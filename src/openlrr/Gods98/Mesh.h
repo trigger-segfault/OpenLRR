@@ -1,0 +1,670 @@
+#pragma once
+
+#include "../common.h"
+#include "../Types/geometry.h"
+#include "../Types/colour.h"
+#include "Maths.h"
+
+
+/**********************************************************************************
+ ******** Forward Global Namespace Declarations
+ **********************************************************************************/
+
+#pragma region Forward Declarations
+
+//struct IDirect3DRM3;
+//struct IDirect3DRMDevice3;
+struct IDirect3DRMFrame3;
+struct IDirect3DRMViewport2;
+enum LightWave_TexFlags : uint32;
+enum LightWave_SurfFlags : uint32;
+
+#pragma endregion
+
+
+namespace Gods98
+{; // !<---
+
+/**********************************************************************************
+ ******** Forward Declarations
+ **********************************************************************************/
+
+#pragma region Forward Declarations
+
+struct Container_Texture;
+struct APPOBJ;
+struct Viewport;
+
+#pragma endregion
+
+/**********************************************************************************
+ ******** Function Typedefs
+ **********************************************************************************/
+
+#pragma region Function Typedefs
+
+typedef void (__cdecl* MeshRenderCallback)(Mesh* mesh, void* data, Viewport* vp);
+
+#pragma endregion
+
+/**********************************************************************************
+ ******** Constants
+ **********************************************************************************/
+
+#pragma region Constants
+
+#define MESH_MAXTEXTURESEQENCE			100
+
+#define MESH_MAXLISTS			20
+
+#define MESH_TEXTURELISTSIZE		2048
+
+#define MESH_DEFLISTSIZE			10
+#define MESH_LISTINCREASE			150			// Increase list size by 150% when it is full...
+
+#define MESH_MAXTEXTURESTAGESTATES	50
+
+#pragma endregion
+
+/**********************************************************************************
+ ******** Enumerations
+ **********************************************************************************/
+
+#pragma region Enums
+/*
+//MESH RENDER FLAGS FOR RENDER DESC
+//#define MESH_FLAG_ZB_ENABLE				0x00000100
+//#define MESH_FLAG_ZB_WRITE				0x00000200
+#define MESH_FLAG_RENDER_ALPHA11		0x00000400 // render
+#define MESH_FLAG_RENDER_ALPHASA1		0x00000800 // render
+#define MESH_FLAG_RENDER_ALPHATRANS		0x00001000 // render
+#define MESH_FLAG_RENDER_ALPHASA0		0x20000000 // render
+#define MESH_FLAG_RENDER_ALLALPHA		(MESH_FLAG_RENDER_ALPHASA0|MESH_FLAG_RENDER_ALPHA11|MESH_FLAG_RENDER_ALPHASA1|MESH_FLAG_RENDER_ALPHATRANS) // render
+#define MESH_FLAG_TRANSFORM_PARENTPOS	0x00002000 // render
+#define MESH_FLAG_TRANSFORM_IDENTITY	0x00004000 // render
+#define MESH_FLAG_STIPPLE				0x00008000 // (unused)
+#define MESH_FLAG_RENDER_ALPHAMOD		0x00010000 // (unused)
+#define MESH_FLAG_RENDER_ALPHATEX		0x00020000 // render
+#define MESH_FLAG_RENDER_ALPHADIFFUSE	0x00040000 // render
+#define MESH_FLAG_ALPHAENABLE			0x00080000 // struct Mesh_Group
+#define MESH_FLAG_TEXTURECOLOURONLY		0x00100000 // struct Mesh_Group
+#define MESH_FLAG_HASBEENCLONED			0x00200000 // struct Mesh
+#define MESH_FLAG_TRANSTEXTURE			0x00400000 // struct Mesh_Group
+#define MESH_FLAG_RENDER_FILTERNEAREST	0x00800000 // render
+#define MESH_FLAG_FACECAMERA			0x01000000 // struct Mesh
+#define MESH_FLAG_FACECAMERADONE		0x02000000 // struct Mesh
+#define MESH_FLAG_RENDER_DOUBLESIDED	0x04000000 // render
+#define MESH_FLAG_HIGHZBIAS				0x08000000 // render (commented out in code)
+#define MESH_FLAG_ALPHAHIDDEN			0x10000000 // struct Mesh_Group
+
+// render
+#define MESH_RENDERFLAGS_LWONORM		( MESH_FLAG_TRANSFORM_PARENTPOS )
+#define MESH_RENDERFLAGS_LWOALPHA		( MESH_FLAG_RENDER_ALPHATRANS | MESH_FLAG_TRANSFORM_PARENTPOS )
+
+
+#define MESH_FLAG_HIDDEN			0x00000001 // struct Mesh, Mesh_Group
+#define MESH_FLAG_POSTEFFECT		0x00000002 // struct Mesh
+#define MESH_FLAG_LWO				0x00000004 // struct Mesh
+
+// render
+//#define MESH_DEFAULTRENDERFLAGS	( D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_RESERVED1 | D3DFVF_TEX1 )
+#define MESH_DEFAULTRENDERFLAGS		D3DFVF_VERTEX
+*/
+
+/*enum MeshFlags : uint32
+{
+	MESH_FLAG_NONE                 = 0,
+
+	MESH_FLAG_HIDDEN               = 0x1 // struct Mesh, Mesh_Group
+	MESH_FLAG_POSTEFFECT           = 0x2 // struct Mesh
+	MESH_FLAG_LWO                  = 0x4 // struct Mesh
+
+	MESH_FLAG_ALPHAENABLE          = 0x80000, // struct Mesh_Group
+	MESH_FLAG_TEXTURECOLOURONLY    = 0x100000, // struct Mesh_Group
+	MESH_FLAG_HASBEENCLONED        = 0x200000, // struct Mesh
+	MESH_FLAG_TRANSTEXTURE         = 0x400000, // struct Mesh_Group
+	MESH_FLAG_RENDER_FILTERNEAREST = 0x800000, // render
+	MESH_FLAG_FACECAMERA           = 0x1000000, // struct Mesh
+	MESH_FLAG_FACECAMERADONE       = 0x2000000, // struct Mesh
+	MESH_FLAG_RENDER_DOUBLESIDED   = 0x4000000, // render
+	MESH_FLAG_HIGHZBIAS            = 0x8000000, // render (commented out in code)
+	MESH_FLAG_ALPHAHIDDEN          = 0x10000000, // struct Mesh_Group
+};*/
+
+enum MeshFlags : uint32
+{
+	MESH_FLAG_NONE                   = 0,
+
+//	//MESH_FLAG_ZB_ENABLE            = 0x100, // (commented out define)
+//	//MESH_FLAG_ZB_WRITE             = 0x200, // (commented out define)
+
+	//MESH_FLAG_RENDER_ALPHA11       = 0x400, // render
+	//MESH_FLAG_RENDER_ALPHASA1      = 0x800, // render
+	//MESH_FLAG_RENDER_ALPHATRANS    = 0x1000, // render
+	//MESH_FLAG_RENDER_ALPHASA0      = 0x20000000, // render
+	//MESH_FLAG_RENDER_ALLALPHA      = (MESH_FLAG_RENDER_ALPHASA0|MESH_FLAG_RENDER_ALPHA11|MESH_FLAG_RENDER_ALPHASA1|MESH_FLAG_RENDER_ALPHATRANS), // render
+	//MESH_FLAG_TRANSFORM_PARENTPOS  = 0x2000, // render
+	//MESH_FLAG_TRANSFORM_IDENTITY   = 0x4000, // render
+	//MESH_FLAG_STIPPLE              = 0x8000, // (unused)
+	//MESH_FLAG_RENDER_ALPHAMOD      = 0x10000, // (unused)
+	//MESH_FLAG_RENDER_ALPHATEX      = 0x20000, // render
+	//MESH_FLAG_RENDER_ALPHADIFFUSE  = 0x40000, // render
+	
+	MESH_FLAG_ALPHAENABLE          = 0x80000, // struct Mesh_Group
+	MESH_FLAG_TEXTURECOLOURONLY    = 0x100000, // struct Mesh_Group
+	MESH_FLAG_HASBEENCLONED        = 0x200000, // struct Mesh
+	MESH_FLAG_TRANSTEXTURE         = 0x400000, // struct Mesh_Group
+
+	//MESH_FLAG_RENDER_FILTERNEAREST = 0x800000, // render
+	MESH_FLAG_FACECAMERA           = 0x1000000, // struct Mesh
+	MESH_FLAG_FACECAMERADONE       = 0x2000000, // struct Mesh
+	//MESH_FLAG_RENDER_DOUBLESIDED   = 0x4000000, // render
+	//MESH_FLAG_HIGHZBIAS            = 0x8000000, // render (commented out in code)
+	
+	MESH_FLAG_ALPHAHIDDEN          = 0x10000000, // struct Mesh_Group
+
+
+	//MESH_RENDERFLAGS_LWONORM       = ( MESH_FLAG_TRANSFORM_PARENTPOS ), // render
+	//MESH_RENDERFLAGS_LWOALPHA      = ( MESH_FLAG_RENDER_ALPHATRANS | MESH_FLAG_TRANSFORM_PARENTPOS ), // render
+	
+	MESH_FLAG_HIDDEN               = 0x1, // struct Mesh, Mesh_Group
+	MESH_FLAG_POSTEFFECT           = 0x2, // struct Mesh
+	MESH_FLAG_LWO                  = 0x4, // struct Mesh
+
+//	//MESH_DEFAULTRENDERFLAGS        = ( D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_RESERVED1 | D3DFVF_TEX1 ), // render (commented out define)
+	//MESH_DEFAULTRENDERFLAGS        = D3DFVF_VERTEX, // render
+};
+DEFINE_ENUM_FLAG_OPERATORS(MeshFlags);
+static_assert(sizeof(MeshFlags) == 0x4, "");
+
+enum Mesh_GroupFlags : uint32
+{
+	MESH_FLAG_NONE                   = 0,
+
+//	//MESH_FLAG_ZB_ENABLE            = 0x100, // (commented out define)
+//	//MESH_FLAG_ZB_WRITE             = 0x200, // (commented out define)
+
+	//MESH_FLAG_RENDER_ALPHA11       = 0x400, // render
+	//MESH_FLAG_RENDER_ALPHASA1      = 0x800, // render
+	//MESH_FLAG_RENDER_ALPHATRANS    = 0x1000, // render
+	//MESH_FLAG_RENDER_ALPHASA0      = 0x20000000, // render
+	//MESH_FLAG_RENDER_ALLALPHA      = (MESH_FLAG_RENDER_ALPHASA0|MESH_FLAG_RENDER_ALPHA11|MESH_FLAG_RENDER_ALPHASA1|MESH_FLAG_RENDER_ALPHATRANS), // render
+	//MESH_FLAG_TRANSFORM_PARENTPOS  = 0x2000, // render
+	//MESH_FLAG_TRANSFORM_IDENTITY   = 0x4000, // render
+	//MESH_FLAG_STIPPLE              = 0x8000, // (unused)
+	//MESH_FLAG_RENDER_ALPHAMOD      = 0x10000, // (unused)
+	//MESH_FLAG_RENDER_ALPHATEX      = 0x20000, // render
+	//MESH_FLAG_RENDER_ALPHADIFFUSE  = 0x40000, // render
+	
+	MESH_FLAG_ALPHAENABLE          = 0x80000, // struct Mesh_Group
+	MESH_FLAG_TEXTURECOLOURONLY    = 0x100000, // struct Mesh_Group
+	MESH_FLAG_HASBEENCLONED        = 0x200000, // struct Mesh
+	MESH_FLAG_TRANSTEXTURE         = 0x400000, // struct Mesh_Group
+
+	//MESH_FLAG_RENDER_FILTERNEAREST = 0x800000, // render
+	MESH_FLAG_FACECAMERA           = 0x1000000, // struct Mesh
+	MESH_FLAG_FACECAMERADONE       = 0x2000000, // struct Mesh
+	//MESH_FLAG_RENDER_DOUBLESIDED   = 0x4000000, // render
+	//MESH_FLAG_HIGHZBIAS            = 0x8000000, // render (commented out in code)
+	
+	MESH_FLAG_ALPHAHIDDEN          = 0x10000000, // struct Mesh_Group
+
+
+	//MESH_RENDERFLAGS_LWONORM       = ( MESH_FLAG_TRANSFORM_PARENTPOS ), // render
+	//MESH_RENDERFLAGS_LWOALPHA      = ( MESH_FLAG_RENDER_ALPHATRANS | MESH_FLAG_TRANSFORM_PARENTPOS ), // render
+	
+	MESH_FLAG_HIDDEN               = 0x1, // struct Mesh, Mesh_Group
+	MESH_FLAG_POSTEFFECT           = 0x2, // struct Mesh
+	MESH_FLAG_LWO                  = 0x4, // struct Mesh
+
+//	//MESH_DEFAULTRENDERFLAGS        = ( D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_RESERVED1 | D3DFVF_TEX1 ), // render (commented out define)
+	//MESH_DEFAULTRENDERFLAGS        = D3DFVF_VERTEX, // render
+};
+DEFINE_ENUM_FLAG_OPERATORS(Mesh_GroupFlags);
+static_assert(sizeof(Mesh_GroupFlags) == 0x4, "");
+
+enum Mesh_RenderFlags : uint32
+{
+	MESH_FLAG_RENDER_NONE          = 0,
+
+//	MESH_FLAG_ZB_ENABLE            = 0x100, // (commented out define)
+//	MESH_FLAG_ZB_WRITE             = 0x200, // (commented out define)
+
+	MESH_FLAG_RENDER_ALPHA11       = 0x400, // render
+	MESH_FLAG_RENDER_ALPHASA1      = 0x800, // render
+	MESH_FLAG_RENDER_ALPHATRANS    = 0x1000, // render
+	MESH_FLAG_RENDER_ALPHASA0      = 0x20000000, // render
+	MESH_FLAG_RENDER_ALLALPHA      = (MESH_FLAG_RENDER_ALPHASA0|MESH_FLAG_RENDER_ALPHA11|MESH_FLAG_RENDER_ALPHASA1|MESH_FLAG_RENDER_ALPHATRANS), // render
+	MESH_FLAG_TRANSFORM_PARENTPOS  = 0x2000, // render
+	MESH_FLAG_TRANSFORM_IDENTITY   = 0x4000, // render
+	MESH_FLAG_STIPPLE              = 0x8000, // (unused)
+	MESH_FLAG_RENDER_ALPHAMOD      = 0x10000, // (unused)
+	MESH_FLAG_RENDER_ALPHATEX      = 0x20000, // render
+	MESH_FLAG_RENDER_ALPHADIFFUSE  = 0x40000, // render
+	
+	MESH_FLAG_ALPHAENABLE          = 0x80000, // struct Mesh_Group
+	MESH_FLAG_TEXTURECOLOURONLY    = 0x100000, // struct Mesh_Group
+	MESH_FLAG_HASBEENCLONED        = 0x200000, // struct Mesh
+	MESH_FLAG_TRANSTEXTURE         = 0x400000, // struct Mesh_Group
+
+	MESH_FLAG_RENDER_FILTERNEAREST = 0x800000, // render
+	//MESH_FLAG_FACECAMERA           = 0x1000000, // struct Mesh
+	//MESH_FLAG_FACECAMERADONE       = 0x2000000, // struct Mesh
+	MESH_FLAG_RENDER_DOUBLESIDED   = 0x4000000, // render
+	MESH_FLAG_HIGHZBIAS            = 0x8000000, // render (commented out in code)
+	
+	//MESH_FLAG_ALPHAHIDDEN          = 0x10000000, // struct Mesh_Group
+
+
+	MESH_RENDERFLAGS_LWONORM       = ( MESH_FLAG_TRANSFORM_PARENTPOS ), // render
+	MESH_RENDERFLAGS_LWOALPHA      = ( MESH_FLAG_RENDER_ALPHATRANS | MESH_FLAG_TRANSFORM_PARENTPOS ), // render
+	
+	//MESH_FLAG_HIDDEN               = 0x1, // struct Mesh, Mesh_Group
+	//MESH_FLAG_POSTEFFECT           = 0x2, // struct Mesh
+	//MESH_FLAG_LWO                  = 0x4, // struct Mesh
+
+//	MESH_DEFAULTRENDERFLAGS        = ( D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_RESERVED1 | D3DFVF_TEX1 ), // render (commented out define)
+	MESH_DEFAULTRENDERFLAGS        = D3DFVF_VERTEX, // render
+};
+DEFINE_ENUM_FLAG_OPERATORS(Mesh_RenderFlags);
+static_assert(sizeof(Mesh_RenderFlags) == 0x4, "");
+
+
+enum Mesh_Colour : sint32
+{
+	Mesh_Colour_Diffuse  = 0,
+	Mesh_Colour_Ambient  = 1,
+	Mesh_Colour_Specular = 2,
+	Mesh_Colour_Emissive = 3,
+
+	Mesh_Colour_Alpha    = 4,
+	Mesh_Colour_Power    = 5,
+};
+static_assert(sizeof(Mesh_Colour) == 0x4, "");
+
+
+enum Mesh_Type : sint32
+{	
+	Mesh_Type_Norm            = 0,
+	Mesh_Type_PostEffect      = 1,
+	Mesh_Type_LightWaveObject = 2,
+};
+static_assert(sizeof(Mesh_Type) == 0x4, "");
+
+
+enum Mesh_WrapType : sint32
+{
+	Mesh_WrapType_XAxis = 0,
+	Mesh_WrapType_YAxis = 1,
+	Mesh_WrapType_ZAxis = 2,
+};
+static_assert(sizeof(Mesh_WrapType) == 0x4, "");
+
+#pragma endregion
+
+/**********************************************************************************
+ ******** Typedefs
+ **********************************************************************************/
+
+#pragma region Typedefs
+
+ //struct Container_Texture;
+ //typedef struct Container_Texture *lpMesh_Texture;
+
+typedef struct Container_Texture Mesh_Texture;
+
+#pragma endregion
+
+/**********************************************************************************
+ ******** Structures
+ **********************************************************************************/
+
+#pragma region Structs
+
+struct Mesh_LightWave_Surface //lpMesh_LightWave_SurfaceTAG
+{
+	/*00,4*/ Mesh_Texture** textureSeq;
+	/*04,4*/ Mesh_Texture* texture;
+	/*08,4*/ uint32 numInTexSeq;
+	/// NOTE: Changed from Vector4F to ColourRGBAF
+	/*0c,10*/ ColourRGBAF colour;
+	///*0c,10*/ Vector4F colour;
+	/*1c,4*/ real32 diffuse;
+	/*20,4*/ real32 emissive;
+	/*24,4*/ real32 specular;
+	/*28,4*/ real32 power;
+	/*2c,4*/ real32 transparency;
+	/*30,4*/ LightWave_SurfFlags flags; // lwt.h flags
+	/*34,4*/ LightWave_TexFlags texFlags;
+	/*38,4*/ sint32 texSeqOffset;
+	/*3c*/
+};// Mesh_LightWave_Surface, * lpMesh_LightWave_Surface;
+static_assert(sizeof(Mesh_LightWave_Surface) == 0x3c, "");
+
+
+struct Mesh_TextureStateChangeData //Mesh_TextureStateChangeDataTAG
+{
+	/*0,4*/ uint32 origValue; // type not guaranteed
+	/*4,4*/ bool32 changed;
+	/*8*/
+};// Mesh_TextureStateChangeData, * lpMesh_TextureStateChangeData;
+static_assert(sizeof(Mesh_TextureStateChangeData) == 0x8, "");
+
+
+struct Mesh_RenderDesc //Mesh_RenderDescTAG
+{
+	/*0,4*/ MeshRenderCallback renderCallback;
+	/*4,4*/ void* renderCallbackData;
+	/*8,4*/ Mesh_RenderFlags renderFlags;
+	/*c*/
+};// Mesh_RenderDesc, * lpMesh_RenderDesc;
+static_assert(sizeof(Mesh_RenderDesc) == 0xc, "");
+
+
+struct Mesh_Vertex // Mesh_VertexTAG
+{
+	/*00,c*/ Vector3F position;
+	/*0c,c*/ Vector3F normal;
+	//	uint32 dwDiffuseRGBA;
+	/*18,4*/ real32 tu;
+	/*1c,4*/ real32 tv;
+	/*20*/
+};// Mesh_Vertex, * lpMesh_Vertex;
+static_assert(sizeof(Mesh_Vertex) == 0x20, "");
+
+
+struct Mesh_Group //Mesh_GroupTAG
+{
+	/*00,4*/ uint32 faceDataSize;
+	/*04,4*/ uint32 vertexCount;
+	/*08,4*/ uint16* faceData;
+	/*0c,4*/ Mesh_Vertex* vertices;
+	/*10,50*/ D3DMATERIAL material;
+	/*60,4*/ IDirect3DTexture2* imText;
+	/*64,4*/ Mesh_RenderFlags renderFlags;
+	/*68,4*/ Mesh_LightWave_Surface* lightWaveSurfaceInfo;
+	/*6c,4*/ Mesh_GroupFlags flags;
+	/*70*/
+};// Mesh_Group, * lpMesh_Group;
+static_assert(sizeof(Mesh_Group) == 0x70, "");
+
+
+struct Mesh
+{
+	/*00,4*/ uint32 groupCount;
+	/*04,4*/ uint32 listSize;
+	/*08,4*/ Mesh_Group* groupList;
+	/*0c,4*/ IDirect3DRMUserVisual* uv;
+	/*10,c*/ Mesh_RenderDesc renderDesc;
+	/*1c,4*/ Mesh_LightWave_Surface* lightWaveSurf;
+	/*20,4*/ uint32 numOfRefs;
+	/*24,4*/ Mesh* clonedFrom;
+	/*28,4*/ IDirect3DRMFrame3* frameCreatedOn;
+	//BOX3D boundingBox;
+	/*2c,4*/ MeshFlags flags;
+	/*30,4*/ Mesh* nextFree;
+	/*34*/
+};// Mesh, * lpMesh;
+static_assert(sizeof(Mesh) == 0x34, "");
+
+
+struct Mesh_PostRenderInfo // Mesh_PostRenderInfoTAG
+{
+	/*00,4*/ Mesh* mesh;
+	/*04,40*/ D3DMATRIX matWorld;
+	/*44,4*/ Mesh_PostRenderInfo* next;
+	/*48*/
+};// Mesh_PostRenderInfo, * lpMesh_PostRenderInfo;
+static_assert(sizeof(Mesh_PostRenderInfo) == 0x48, "");
+
+
+struct Mesh_TextureReference //Mesh_TextureReference
+{
+	/*0,4*/ IDirectDrawSurface4* surface;
+	/*4,4*/ char* path;
+	/*8,4*/ bool32 trans;
+	/*c*/
+};// Mesh_TextureReference, * lpMesh_TextureReference;
+static_assert(sizeof(Mesh_TextureReference) == 0xc, "");
+
+
+struct Mesh_Globs
+{
+	/*0000,4*/ Mesh* postRenderList;
+	/*0004,4*/ Mesh_PostRenderInfo* postRenderMeshList;
+	/*0008,190*/ Mesh_TextureStateChangeData stateData[MESH_MAXTEXTURESTAGESTATES];
+	/*0198,4*/ char* sharedTextureDir;
+	/*019c,6000*/ Mesh_TextureReference textureList[MESH_TEXTURELISTSIZE];
+	/*619c,6000*/ Mesh_TextureReference textureListShared[MESH_TEXTURELISTSIZE];
+	/*c19c,4*/ uint32 textureCount;
+	/*c1a0,4*/ uint32 textureCountShared;
+	/*c1a4,4*/ D3DTEXTUREHANDLE oldTextureRM;
+	/*c1a8,4*/ D3DMATERIALHANDLE oldMatIM;
+	/*c1ac,4*/ IDirect3DTexture2* oldTextureIM;
+	/*c1b0,4*/ D3DTEXTUREHANDLE currTextureRM;
+	/*c1b4,4*/ D3DMATERIALHANDLE currMatIM;
+	/*c1b8,4*/ IDirect3DTexture2* currTextureIM;
+	/*c1bc,4*/ D3DMATERIALHANDLE matHandle;
+	/*c1c0,4*/ IDirect3DMaterial3* imMat;
+	//uint32 ambientLight;
+	/*c1c4,50*/ Mesh* listSet[MESH_MAXLISTS];
+	/*c214,4*/ Mesh* freeList;
+	/*c218,4*/ uint32 listCount;
+	/*c21c*/
+};
+static_assert(sizeof(Mesh_Globs) == 0xc21c, "");
+
+#pragma endregion
+
+/**********************************************************************************
+ ******** Globals
+ **********************************************************************************/
+
+#pragma region Globals
+
+// <LegoRR.exe @005353c0>
+extern Mesh_Globs & meshGlobs;
+
+#pragma endregion
+
+/**********************************************************************************
+ ******** Functions
+ **********************************************************************************/
+
+#pragma region Functions
+
+// <LegoRR.exe @00480870>
+bool32 __cdecl Mesh_Initialise(const char* sharedTextureDir);
+
+// <LegoRR.exe @00480910>
+bool32 __cdecl Mesh_CreateGlobalMaterial(void);
+
+// <LegoRR.exe @00480a40>
+bool32 __cdecl Mesh_SetMaterial(D3DMATERIAL* newMaterial);
+
+// <LegoRR.exe @00480a60>
+Mesh* __cdecl Mesh_ObtainFromList(void);
+
+// <LegoRR.exe @00480a90>
+void __cdecl Mesh_ReturnToList(Mesh* dead);
+
+// <LegoRR.exe @00480ab0>
+void __cdecl Mesh_AddList(void);
+
+// <LegoRR.exe @00480b30>
+Mesh* __cdecl Mesh_CreateOnFrame(IDirect3DRMFrame3* frame, MeshRenderCallback renderFunc,
+								Mesh_RenderFlags renderFlags, void* data, uint32 type);
+
+// <LegoRR.exe @00480bc0>
+Mesh* __cdecl Mesh_Clone(Mesh* mesh, IDirect3DRMFrame3* frame);
+
+// <LegoRR.exe @00480ca0>
+Mesh* __cdecl Mesh_Load(const char* fname, IDirect3DRMFrame3* frame, bool32 noTextures);
+
+// <LegoRR.exe @00480d80>
+bool32 __cdecl Mesh_ParseLWO(const char* basePath, Mesh* mesh, APPOBJ* lightWaveObject, bool32 noTextures);
+
+// <LegoRR.exe @00481ae0>
+void __cdecl Mesh_GetSurfInfo(const char* basePath, APPOBJ* lightWaveObject, Mesh_LightWave_Surface* lightWaveSurf/*[]*/, bool32 noTextures);
+
+// <LegoRR.exe @00481d80>
+bool32 __cdecl Mesh_GetTextureSeqInfo(const char* tname, OUT char* tfname, OUT uint32* tstart, OUT uint32* tnumlen);
+
+// <LegoRR.exe @00481e40>
+void __cdecl Mesh_GetNextInSequence(const char* baseName, const char* nextTextName, OUT uint32* texNum, uint32 tnumlen);
+
+// <LegoRR.exe @00481f10>
+void __cdecl Mesh_UViewMesh(APPOBJ* lightWaveObject, const Point2F* textCoords);
+
+// flags = lwt.h srfTexFlags bit enumeration `TFM_*`
+// <LegoRR.exe @00482260>
+void __cdecl Mesh_GetTextureUVsWrap(uint32 vertexCount, OUT Vector3F* vertices, OUT Point2F* coords,
+	real32 sx, real32 sy, real32 sz, real32 px, real32 py, real32 pz, uint32 flags);
+
+// <LegoRR.exe @00482300>
+bool32 __cdecl Mesh_SetTextureTime2(Mesh* mesh, real32 frame);
+
+// <LegoRR.exe @00482390>
+void __cdecl Mesh_Remove(Mesh* mesh, IDirect3DRMFrame3* frame);
+
+// <LegoRR.exe @00482460>
+Mesh_Group* __cdecl Mesh_GetGroup(Mesh* mesh, uint32 groupID, OUT uint32* vertexCount,
+								OUT uint32* faceCount, OUT uint32* vPerFace,
+								OUT uint32* faceDataSize, OUT uint32* faceData);
+
+// <LegoRR.exe @004824d0>
+uint32 __cdecl Mesh_GetGroupCount(Mesh* mesh);
+
+// <LegoRR.exe @004824e0>
+long __cdecl Mesh_AddGroup(Mesh* mesh, uint32 vertexCount, uint32 faceCount,
+						uint32 vPerFace, const uint32* faceData);
+
+// <LegoRR.exe @00482610>
+void __cdecl Mesh_AlterGroupRenderFlags(Mesh* mesh, uint32 groupID, uint32 newFlags);
+
+// <LegoRR.exe @00482630>
+void __cdecl Mesh_Scale(Mesh* mesh, real32 x, real32 y, real32 z);
+
+// <LegoRR.exe @004826a0>
+void __cdecl Mesh_SetVertices(Mesh* mesh, uint32 groupID, uint32 index,
+							uint32 count, const Vertex3F* vertices);
+
+// <LegoRR.exe @00482730>
+void __cdecl Mesh_GetVertices(Mesh* mesh, uint32 groupID, uint32 index,
+							uint32 count, OUT Vertex3F* vertices);
+
+// <LegoRR.exe @004827c0>
+void __cdecl Mesh_SetVertices_PointNormalAt(Mesh* mesh, uint32 groupID, uint32 index,
+							uint32 count, Vector3F* vertices, Vector3F* position, real32 (*textCoords)[2]);
+
+// <LegoRR.exe @004828e0>
+void __cdecl Mesh_SetVertices_SameNormal(Mesh* mesh, uint32 groupID, uint32 index,
+							uint32 count, Vector3F* vertices, Vector3F* normal, real32 (*textCoords)[2]);
+
+// <LegoRR.exe @00482980>
+void __cdecl Mesh_SetVertices_VNT(Mesh* mesh, uint32 groupID, uint32 index, uint32 count,
+								Vector3F* vertices, Vector3F** normal, Point2F* textCoords);
+
+// <LegoRR.exe @00482a40>
+bool32 __cdecl Mesh_IsGroupHidden(Mesh* mesh, uint32 groupID);
+
+// <LegoRR.exe @00482a60>
+void __cdecl Mesh_HideGroup(Mesh* mesh, uint32 groupID, bool32 hide);
+
+// <LegoRR.exe @00482a90>
+void __cdecl Mesh_Hide(Mesh* mesh, bool32 hide);
+
+// <LegoRR.exe @00482ab0>
+bool32 __cdecl Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOID lpArg, D3DRMUSERVISUALREASON lpD3DRMUVreason, LPDIRECT3DRMDEVICE lpD3DRMDev, LPDIRECT3DRMVIEWPORT lpD3DRMview);
+
+// <LegoRR.exe @00482d80>
+void __cdecl Mesh_SetMeshRenderDesc(Mesh* mesh, Viewport* vp, const D3DMATRIX* matWorld, bool32 alphaBlend);
+
+// <LegoRR.exe @00482e10>
+void __cdecl Mesh_SetRenderDesc(Mesh_RenderFlags flags, const D3DMATRIX* matWorld, bool32 alphaBlend);
+
+// <LegoRR.exe @00482f70>
+void __cdecl Mesh_SetAlphaRender(D3DBLEND src, D3DBLEND dest);
+
+// <LegoRR.exe @00482fa0>
+void __cdecl Mesh_AddToPostRenderList(Mesh* mesh, const D3DMATRIX* matWorld);
+
+// <LegoRR.exe @00482ff0>
+void __cdecl Mesh_ClearPostRenderList(void);
+
+// <LegoRR.exe @00483020>
+void __cdecl Mesh_PostRenderAll(Viewport* vp);
+
+// <LegoRR.exe @00483130>
+Mesh_Texture* __cdecl Mesh_LoadTexture(const char* baseDir, const char* name, OUT uint32* width, OUT uint32* height);
+
+// <LegoRR.exe @004832f0>
+Mesh_TextureReference* __cdecl Mesh_SearchTexturePathList(Mesh_TextureReference* list, uint32 count, const char* path);
+
+// <LegoRR.exe @00483340>
+void __cdecl Mesh_AddTexturePathEntry(Mesh_TextureReference* list, IN OUT uint32* count, const char* path, IDirectDrawSurface4* surface, bool32 trans);
+
+// <LegoRR.exe @00483380>
+void __cdecl Mesh_SetGroupTexture(Mesh* mesh, uint32 groupID, Mesh_Texture* mt);
+
+// <LegoRR.exe @00483400>
+void __cdecl Mesh_RemoveGroupTexture(Mesh* mesh, uint32 groupID);
+
+// <LegoRR.exe @00483430>
+bool32 __cdecl Mesh_CreateGroupMaterial(Mesh* mesh, uint32 groupID);
+
+// <LegoRR.exe @00483500>
+bool32 __cdecl Mesh_SetGroupMaterial(Mesh* mesh, uint32 groupID, const D3DMATERIAL* mat);
+
+// <LegoRR.exe @00483530>
+bool32 __cdecl Mesh_SetGroupColour(Mesh* mesh, uint32 groupID, real32 r, real32 g, real32 b, uint32 type);
+
+// <LegoRR.exe @004836c0>
+const D3DMATERIAL* __cdecl Mesh_GetGroupMaterial(Mesh* mesh, uint32 groupID);
+
+// <LegoRR.exe @004836e0>
+bool32 __cdecl Mesh_SetGroupMaterialValues(Mesh* mesh, uint32 groupID, real32 value, uint32 type);
+
+// <LegoRR.exe @00483800>
+void __cdecl Mesh_SetIdentityMatrix(OUT Matrix4F m);
+
+// <LegoRR.exe @00483840>
+bool32 __cdecl Mesh_SetCurrentViewport(IDirect3DRMViewport* view);
+
+// <LegoRR.exe @004838c0>
+bool32 __cdecl Mesh_SetCurrentGODSViewport(Viewport* vp);
+
+/// TODO: is this the correct matrix ptr level?
+//bool32 __cdecl Mesh_SetTransform(D3DTRANSFORMSTATETYPE state, Matrix4F* matrix);
+// 
+// <LegoRR.exe @00483950>
+bool32 __cdecl Mesh_SetTransform(D3DTRANSFORMSTATETYPE state, const Matrix4F matrix);
+
+// <LegoRR.exe @00483ad0>
+bool32 __cdecl Mesh_ChangeTextureStageState(D3DTEXTURESTAGESTATETYPE dwRenderStateType, uint32 dwRenderState);
+
+// <LegoRR.exe @00483b70>
+void __cdecl Mesh_StoreTextureAndMat(void);
+
+// <LegoRR.exe @00483c00>
+void __cdecl Mesh_RestoreTextureAndMat(void);
+
+// <LegoRR.exe @00483c80>
+bool32 __cdecl Mesh_RenderMesh(Mesh* mesh, const D3DMATRIX* matWorld, bool32 alphaBlend);
+
+// <LegoRR.exe @00483d30>
+bool32 __cdecl Mesh_CanRenderGroup(Mesh_Group* group);
+
+// <LegoRR.exe @00483d50>
+bool32 __cdecl Mesh_RenderGroup(Mesh* mesh, Mesh_Group* group, const D3DMATRIX* matWorld, bool32 alphaBlend);
+
+// <LegoRR.exe @00483dc0>
+bool32 __cdecl Mesh_SetGroupRenderDesc(Mesh* mesh, Mesh_Group* group, const D3DMATRIX* matWorld, bool32 alphaBlend);
+
+// <LegoRR.exe @00483e30>
+bool32 __cdecl Mesh_RenderTriangleList(D3DMATERIALHANDLE matHandle, IDirect3DTexture2* texture, Mesh_RenderFlags renderFlags,
+	Mesh_Vertex* vertices, uint32 vertexCount, uint16* faceData, uint32 indexCount);
+
+#pragma endregion
+
+}

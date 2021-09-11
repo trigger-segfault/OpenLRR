@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31205.134
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "openlrr", "src\openlrr\openlrr.vcxproj", "{9F8362B3-B3FF-4FC3-B98E-8AB77FA17583}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "openlrr-injector", "src\openlrr-injector\openlrr-injector.vcxproj", "{1BE20375-38A4-401C-BA11-56E896EDD3BE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tool", "tool", "{3AF1EC63-71C6-43A8-AD2E-6D26241389BC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9F8362B3-B3FF-4FC3-B98E-8AB77FA17583}.Debug|x64.ActiveCfg = Debug|x64
+		{9F8362B3-B3FF-4FC3-B98E-8AB77FA17583}.Debug|x64.Build.0 = Debug|x64
+		{9F8362B3-B3FF-4FC3-B98E-8AB77FA17583}.Debug|x86.ActiveCfg = Debug|Win32
+		{9F8362B3-B3FF-4FC3-B98E-8AB77FA17583}.Debug|x86.Build.0 = Debug|Win32
+		{9F8362B3-B3FF-4FC3-B98E-8AB77FA17583}.Release|x64.ActiveCfg = Release|x64
+		{9F8362B3-B3FF-4FC3-B98E-8AB77FA17583}.Release|x64.Build.0 = Release|x64
+		{9F8362B3-B3FF-4FC3-B98E-8AB77FA17583}.Release|x86.ActiveCfg = Release|Win32
+		{9F8362B3-B3FF-4FC3-B98E-8AB77FA17583}.Release|x86.Build.0 = Release|Win32
+		{1BE20375-38A4-401C-BA11-56E896EDD3BE}.Debug|x64.ActiveCfg = Debug|x64
+		{1BE20375-38A4-401C-BA11-56E896EDD3BE}.Debug|x64.Build.0 = Debug|x64
+		{1BE20375-38A4-401C-BA11-56E896EDD3BE}.Debug|x86.ActiveCfg = Debug|Win32
+		{1BE20375-38A4-401C-BA11-56E896EDD3BE}.Debug|x86.Build.0 = Debug|Win32
+		{1BE20375-38A4-401C-BA11-56E896EDD3BE}.Release|x64.ActiveCfg = Release|x64
+		{1BE20375-38A4-401C-BA11-56E896EDD3BE}.Release|x64.Build.0 = Release|x64
+		{1BE20375-38A4-401C-BA11-56E896EDD3BE}.Release|x86.ActiveCfg = Release|Win32
+		{1BE20375-38A4-401C-BA11-56E896EDD3BE}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{1BE20375-38A4-401C-BA11-56E896EDD3BE} = {3AF1EC63-71C6-43A8-AD2E-6D26241389BC}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {35E953ED-7822-427B-973C-4510249856B3}
+	EndGlobalSection
+EndGlobal

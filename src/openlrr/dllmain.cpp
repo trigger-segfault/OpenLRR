@@ -1,0 +1,61 @@
+
+#include "hook.h"
+#include "interop.h"
+#include "dllmain.h"
+#include "openlrr.h"
+
+
+HINSTANCE g_hDllInstance = nullptr;
+static BOOL isAttached = false;
+
+
+/// LEGACY:
+extern "C" __declspec(dllexport) void __cdecl Dummy(void) { }
+
+
+static FILE* MakeConsole()
+{
+    FILE* pConsoleFile = NULL;
+    AllocConsole();
+    freopen_s(&pConsoleFile, "CONOUT$", "w", stdout);
+    SetConsoleTitleA("");
+    CONSOLE_CURSOR_INFO conCursorInfo;
+    GetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &conCursorInfo);
+    conCursorInfo.bVisible = false;
+    SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &conCursorInfo);
+    return pConsoleFile;
+}
+
+BOOL APIENTRY DllMain(HMODULE hModule,
+                      DWORD   fdwReason,
+                      LPVOID  lpReserved)
+{
+    switch (fdwReason)
+    {
+    case DLL_PROCESS_ATTACH:
+        MakeConsole();
+        std::printf("[0x%08x] DLL_PROCESS_ATTACH\n", ::timeGetTime());
+        g_hDllInstance = hModule;
+        if (!isAttached) {
+            std::printf("[0x%08x] DLL_PROCESS_ATTACH starting...\n", ::timeGetTime());
+
+            interop_hook_all();
+
+            isAttached = true;
+        }
+        break;
+    //case DLL_THREAD_ATTACH:
+        //std::printf("[0x%08x] DLL_THREAD_ATTACH\n", ::timeGetTime());
+        //InjectFunction::UnloadAll();
+        //break;
+    //case DLL_THREAD_DETACH:
+        //std::printf("[0x%08x] DLL_THREAD_DETACH\n", ::timeGetTime());
+        //InjectFunction::UnloadAll();
+        //break;
+    case DLL_PROCESS_DETACH:
+        std::printf("[0x%08x] DLL_PROCESS_DETACH\n", ::timeGetTime());
+        //InjectFunction::UnloadAll();
+        break;
+    }
+    return TRUE;
+}

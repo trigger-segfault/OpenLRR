@@ -1,3 +1,23 @@
+###########################################
+## Added to .gitignore
+
+# Solution build directory
+/bin
+
+
+###########################################
+## Visual Studio IDE
+
+/.vs
+*.vcxproj.filters
+*.vcxproj.user
+*.aps
+*.pdb
+
+
+###########################################
+## Original .gitignore
+
 # Prerequisites
 *.d
 
@@ -30,3 +50,14 @@
 *.exe
 *.out
 *.app
+
+
+###########################################
+## Explicit includes
+
+# Nothing in here
+/lib/unused/**
+
+# Everything in here (d3drm.lib, d3drm.def, inc/*)
+!/lib/d3drm/*.def
+!/lib/d3drm/*.lib
