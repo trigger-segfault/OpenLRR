@@ -5,8 +5,7 @@
 
 #include "DirectDraw.h"
 #include "Input.h"
-#include "3DSound.h"
-#include "Sound.h"
+//#include "3DSound.h"
 #include "Draw.h"
 #include "Memory.h"
 #include "Files.h"
@@ -17,10 +16,45 @@
 #include "Main.h"
 #include "Registry.h"
 #include "../Gods98Init/Init.h"
-#include "Sound.h"
+//#include "Sound.h"
 #include "Animation.h"
 #include "Fonts.h"
 #include "Images.h"
+
+#include "../Types/geometry.h"
+
+#include "../LegoRR/Lego.h"  // Gods_Go
+
+
+/**********************************************************************************
+ ******** Forward Global Namespace Declarations
+ **********************************************************************************/
+
+#pragma region Forward Declarations
+
+/// TODO: We're currently just relying on the IID defined in LegoRR,
+///        since our `d3drm.lib` won't give it to us. Later on this should be manually defined.
+// <LegoRR.exe @ 004a0bd8>
+IID & Idl::IID_IDirect3DRM3 = *(IID*)0x004a0bd8;
+
+/*#define Input_InitKeysAndDI ((void (__cdecl*)(void))0x0047f050)
+#define Input_ReadKeys ((void (__cdecl*)(void))0x0047f1b0)
+#define Input_ReadMouse2 ((void (__cdecl*)(void))0x0047f2d0)
+#define Input_ReleaseKeysAndDI ((void (__cdecl*)(void))0x0047f290)*/
+
+
+/// TODO: Remove me once Sound module is finished
+#define Sound_Initialise ((bool32(__cdecl*)(bool32))0x00488e10)
+/// TODO: Remove me once Animation module is finished
+//#define Animation_Initialise ((void(__cdecl*)(IDirectDraw4*))0x0047ef40)
+/// TODO: Remove me once Animation module is finished
+//#define Draw_Initialise ((void(__cdecl*)(const Area2F*))0x00486140)
+/// TODO: Remove/choose to add me once Images module and Lego_Initialise are finished
+//#define Image_Initialise ((void(__cdecl*)(void*))0x0047d6d0)
+/// TODO: Remove me once Gods_Go function is implemented
+//#define Gods_Go ((void (__cdecl*)(const char*))0x0041f950)
+
+#pragma endregion
 
 
 /**********************************************************************************
@@ -37,10 +71,12 @@ namespace Gods98
 // (this can return bool32, but does not)
 // (LRR_Go)
 // <LegoRR.exe @0041f950>
-void __cdecl Gods_Go(const char* programName);
+/*void __cdecl Gods_Go(const char* programName)
+{
+	((void (__cdecl*)(const char*))0x0041f950)(programName);
+}*/
 
 }
-
 #pragma endregion
 
 
@@ -61,6 +97,7 @@ Gods98::Main_Globs & Gods98::mainGlobs = *(Gods98::Main_Globs*)0x00506800;
 
 #pragma region Functions
 
+/*
 // <inlined>
 __inline IDirect3DRM3* __cdecl Gods98::lpD3DRM()
 {
@@ -132,29 +169,39 @@ __inline Gods98::MainFlags __cdecl Gods98::Main_GetFlags()
 {
 	return mainGlobs.flags;
 }
+*/
 
 // <LegoRR.exe @00401b30>
-__inline uint32 __cdecl Gods98::Main_ProgrammerMode(void)
+uint32 __cdecl Gods98::noinline(Main_ProgrammerMode)(void)
 {
-	return mainGlobs.programmerLevel;
+	log_firstcall();
+
+	return Main_ProgrammerMode();
 }
 
 // <LegoRR.exe @00401b40>
-__inline const char* __cdecl Gods98::Main_GetStartLevel(void)
+const char* __cdecl Gods98::noinline(Main_GetStartLevel)(void)
 {
-	return (mainGlobs.flags & MainFlags::MAIN_FLAG_STARTLEVEL) ? mainGlobs.startLevel : nullptr;
+	log_firstcall();
+
+	return Main_GetStartLevel();
+	//return (mainGlobs.flags & MainFlags::MAIN_FLAG_STARTLEVEL) ? mainGlobs.startLevel : nullptr;
 }
 
 // <LegoRR.exe @00401b70>
-__inline sint32 __cdecl Gods98::appWidth(void)
+sint32 __cdecl Gods98::noinline(appWidth)(void)
 {
-	return mainGlobs.appWidth;
+	log_firstcall();
+
+	return appWidth();
 }
 
 // <LegoRR.exe @00401b80>
-__inline sint32 __cdecl Gods98::appHeight(void)
+sint32 __cdecl Gods98::noinline(appHeight)(void)
 {
-	return mainGlobs.appHeight;
+	log_firstcall();
+
+	return appHeight();
 }
 
 
@@ -162,49 +209,82 @@ __inline sint32 __cdecl Gods98::appHeight(void)
 sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 							          _In_ LPSTR     lpCmdLine, _In_     sint32    nCmdShow)
 {
+	log_firstcall();
+
 	bool32 setup = false, nosound = false, insistOnCD = false;
-	char* cl;
-	char* s;
 	const char* productName = nullptr;
 	const char* productRegistry = nullptr;
 	char mutexName[128];
 	char noHALMsg[1024];
 
-	/// CHANGEME: Not called in LegoRR.exe::WinMain
-	::CoInitialize(nullptr);
+	/// NEW GODS98: Not called in LegoRR WinMain
+	//::CoInitialize(nullptr);
 
+
+	/// OLD LEGORR: Mutex setup is called at the very beginning in LegoRR
+	///  (but it's essential to be the first here)
+	/*productName = "Lego Rock Raiders";
+	productRegistry = "SOFTWARE\\LEGO Media\\Games\\Rock Raiders";
+
+	if (productName) { // this is never false
+		std::sprintf(mutexName, "%s Mutex", productName);
+		::CreateMutexA(nullptr, true, mutexName);
+		if (::GetLastError() == ERROR_ALREADY_EXISTS) {
+			return 0;  // App is already running
+		}
+	}*/
+
+
+	// This is code that was commented out in Gods98, nothing more.
 //	Test();
 //	{
 //		extern void __cdecl Init_Init(const char* cmdLine);
 //		Init_Init(lpCmdLine);
 //	}
 
-	for (s=cl= ::GetCommandLineA() ; '\0'!=*cl ; cl++) if ('\\' == *cl) s = cl+1;		// Find the last backslash.
+
+	// <https://docs.microsoft.com/en-us/windows/win32/api/processenv/nf-processenv-getcommandlinea>
+	// From MS Docs: `LPSTR GetCommandLineA();`
+	//  "The lifetime of the returned value is managed by the system,
+	//   applications should not free or modify this value."
+	//
+	//  ...good GODS, what have they done!??
+	/// FIX LEGORR: Create a copy of string returned by `::GetCommandLineA();`
+	///  (replaces `::GetCommandLineA();` with variable `getCL`, and frees memory when done)
+	char* getCL = Util_StrCpy(::GetCommandLineA());
+	char* cl;
+	char* s;
+	for (s=cl= ::GetCommandLineA() ; *cl!='\0' ; cl++) if (*cl == '\\') s = cl+1;		// Find the last backslash.
 	std::strcpy(mainGlobs.programName, s);
 
 	// zero-out double quote '\"' characters (hopefully it's impossible for it to start with a quote character)
-	for (s=mainGlobs.programName ; '\0'!=*s ; s++) if ('"' == *s) *s = '\0';		// Terminate at any '"'.
+	for (s=mainGlobs.programName ; *s!='\0' ; s++) if (*s == '"') *s = '\0';		// Terminate at any '"'.
     // find the last '.' for file extension
-	for (s=cl=mainGlobs.programName ; '\0'!=*cl ; cl++) if ('.' == *cl) s = cl+1;	// Find the last dot.
+	for (s=cl=mainGlobs.programName ; *cl!='\0' ; cl++) if (*cl == '.') s = cl+1;	// Find the last dot.
 
 	if (s != mainGlobs.programName) {
 		// separate executable name from extension,
 		// this name without extension will be the basis for many constant lookups
-		::strupr(s);																	// Ensure .exe is in upper case.
+		::_strupr(s);																	// Ensure .exe is in upper case.
 		if (s = std::strstr(mainGlobs.programName, ".EXE")) *s = '\0';					// Strip off .EXE
 	}
+	Mem_Free(getCL); // no longer used
 
-	productName = mainGlobs.programName;
+
+	/// OLD LEGORR: Product mutex name was hardcoded to this:
+	productName = "Lego Rock Raiders";
+	/// NEW GODS98: Mutex setup is called later than in LegoRR
+	//productName = mainGlobs.programName;
 	productRegistry = "SOFTWARE\\LEGO Media\\Games\\Rock Raiders";
 
-	if (productName) {
-
-		std::sprintf(mutexName, "%s Mutex", "Lego Rock Raiders" /*productName*/);
-		::CreateMutexA(0, true, mutexName);
+	if (productName) { // this realistically shoudn't ever be false
+		std::sprintf(mutexName, "%s Mutex", productName);
+		::CreateMutexA(nullptr, true, mutexName);
 		if (::GetLastError() == ERROR_ALREADY_EXISTS) {
-			return 0;									// App is already running
+			return 0;  // App is already running
 		}
 	}
+
 
 	// Setup the default globals
 	mainGlobs.className = mainGlobs.programName;
@@ -223,7 +303,7 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 			std::sprintf(commandLine, "%s %s", lpCmdLine, tempStr);
 		} else std::sprintf(commandLine, "%s", lpCmdLine);
 
-		/// NOTE: Not present in LegoRR.exe
+		/// NEW GODS98: Not present in LegoRR.exe
 //		//mainGlobs.flags |= MainFlags::MAIN_FLAG_BEST;
 		//mainGlobs.flags |= MainFlags::MAIN_FLAG_DUALMOUSE;
 		Main_ParseCommandLine(commandLine, &nosound, &insistOnCD);
@@ -238,25 +318,43 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 	Mem_Initialise();
 	File_Initialise(mainGlobs.programName, insistOnCD, productRegistry);
 	Config_Initialise();
+	/// OLD LEGORR: This is called earlier than in Gods98
+	///  (this had to be moved due to attempting access of Main_hWnd() before assignment)
+	//Input_InitKeysAndDI();
 
-	/// TODO: This function doesn't exist in LegoRR.exe... but it *should*
+	/// NEW GODS98: This function doesn't exist in LegoRR.exe... but it *should*
+	/// TODO: Re-add me once Font module is finished
 	Font_Initialise();
 
 	
+	// OpenLRR: This might be handy later on
 	//	if (Util_StrIStr(lpCmdLine, "-setup")) setup = true;
 #pragma message ("Defaulting to setup mode")
 	setup = true;
 
 	if (Main_InitApp(hInstance)) {
 		DirectDraw_Initialise(mainGlobs.hWnd);
-		if (Sound_Initialise(nosound) && Init_Initialise(setup, mainGlobs.flags & MainFlags::MAIN_FLAG_DEBUGMODE, mainGlobs.flags & MainFlags::MAIN_FLAG_BEST, mainGlobs.flags & MainFlags::MAIN_FLAG_WINDOW, noHALMsg)){
-
+		if (Sound_Initialise(nosound) &&
+			Init_Initialise(setup /*true in LegoRR*/,
+							mainGlobs.flags & MainFlags::MAIN_FLAG_DEBUGMODE,
+							mainGlobs.flags & MainFlags::MAIN_FLAG_BEST,
+							mainGlobs.flags & MainFlags::MAIN_FLAG_WINDOW,
+							noHALMsg))
+		{
 			Animation_Initialise(DirectDraw());
+
 			Draw_Initialise(nullptr);
-			Image_Initialise();
+			/// NEW GODS98: This is called in LegoRR_Initialise, but not in Gods98
+			//Image_Initialise();
+
+			/// NEW GODS98: This is called later than in LegoRR
+			///  (this had to be put here due to attempting access of Main_hWnd() before assignment)
 			Input_InitKeysAndDI();
 
 			// Call the Gods_Go() funtion in the application
+			//  (this acts as a sort-of entrypoint for LegoRR game code)
+			//  (we can also perform OpenLRR hooking in this function,
+			//   rather than using Main_SetState)
 			Gods_Go(mainGlobs.programName);
 
 			// If the game wants to run in state mode...
@@ -264,7 +362,7 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 
 				// Run their initialisation code (if required)...
 				if (mainGlobs.currState.Initialise != nullptr) {
-					if (!mainGlobs.currState.Initialise()){
+					if (!mainGlobs.currState.Initialise()) {
 
 						// Initialisation failed so drop out...
 						Error_Warn(true, "Initialisation function failed...");
@@ -276,9 +374,10 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 				}
 
 #ifdef _DEBUG
-			{
+			// REMOVED: This debug code isn't helpful
+			/*{
 				File_Dummy* logFile = File_Open("notthere.dat", "rb");		// Log a failed file open in FileMon
-			}
+			}*/
 #endif // _DEBUG
 
 
@@ -288,11 +387,11 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 					// Use the MultiMedia timer to give a 'realtime passed' value
 					// per frame to the main loop (in 25th's of a second)
 					real32 time = 1.0f;
-					uint32 currTime;
+					//uint32 currTime;
 
 					uint32 lastTime = ::timeGetTime();
 
-					while(!mainGlobs.exit){
+					while (!mainGlobs.exit) {
 						
 						// Handle windows messages and input...
 						INPUT.lClicked = false;
@@ -302,7 +401,9 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 
 						Main_HandleIO();
 						// In fullscreen mode we will always be the active application or I will eat my hat.
+						//  --Whoever wrote this 20 years ago, I'll hold you to it
 						if (mainGlobs.flags & MainFlags::MAIN_FLAG_FULLSCREEN) mainGlobs.active = true;
+
 						Input_ReadKeys();
 						Input_ReadMouse2();
 
@@ -312,21 +413,24 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 						// Update the device and flip the surfaces...
 						Main_Finalise3D();
 						DirectDraw_Flip();
+						// Set as not-updated again while the game loop is running.
 						mainGlobs.flags &= ~MainFlags::MAIN_FLAG_UPDATED;
 
 						if (mainGlobs.flags & MainFlags::MAIN_FLAG_DUMPMODE) {
-
+							// In LegoRR, this state is never reachable.
 							time = STANDARD_FRAMERATE / 30.0f;
 
 						} else if (mainGlobs.flags & MainFlags::MAIN_FLAG_PAUSED) {
+							// In LegoRR, this state is never reachable because Main_SetPaused is never used.
 							time = 0.0f;
 							lastTime = ::timeGetTime();
-						} else if (0.0f == mainGlobs.fixedFrameTiming) {
+						} else if (mainGlobs.fixedFrameTiming == 0.0f) { // no fps defined
 							// Measure the time taken over the last frame (to be passed next loop)
-							currTime = ::timeGetTime();
+							uint32 currTime = ::timeGetTime();
 							time = ((real32)(currTime - lastTime)) / (1000.0f / STANDARD_FRAMERATE);
 							lastTime = currTime;
 #ifndef _UNLIMITEDUPDATETIME
+							// LegoRR compiles with this preprocessor undefined (this check still happens).
 							if (time > 3.0f) {
 								time = 3.0f;
 							}
@@ -340,9 +444,10 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 				}
 
 #ifdef _DEBUG
-			{
+			// REMOVED: This debug code isn't helpful
+			/*{
 				File_Dummy* logFile = File_Open("notthere.dat", "rb");
-			}
+			}*/
 #endif // _DEBUG
 
 			/*
@@ -377,6 +482,7 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 	Input_ReleaseKeysAndDI();
 	Config_Shutdown();
 
+	// This code was found commented out in Gods98, nothing more.
 //#ifdef _GODS98_USEWAD_
 //	if (mainGlobs.wad != WAD_ERROR) File_CloseWad(mainGlobs.wad);
 //#endif // _GODS98_USEWAD_
@@ -388,8 +494,8 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 
 	Error_Shutdown();
 
-	/// CHANGEME: Not called in LegoRR.exe::WinMain
-	::CoUninitialize();
+	/// NEW GODS98: Not called in LegoRR WinMain
+	//::CoUninitialize();
 
 	return 0;
 }
@@ -398,7 +504,9 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 // <missing>
 void __cdecl Gods98::Main_Exit(void)
 {
-	::CoUninitialize();
+	/// NEW GODS98: Not called in LegoRR WinMain, so it's likely this wasn't
+	///  called here either, making Main_Exit an inline alias for `std::exit(0);`
+	//::CoUninitialize();
 	std::exit(0);
 }
 
@@ -406,6 +514,8 @@ void __cdecl Gods98::Main_Exit(void)
 // <LegoRR.exe @00477e90>
 void __cdecl Gods98::Main_DisableTextureManagement(void)
 {
+	log_firstcall();
+
 	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_FORCETEXTUREMANAGEMENT)) {
 		mainGlobs.flags |= MainFlags::MAIN_FLAG_DONTMANAGETEXTURES;
 	}
@@ -414,6 +524,8 @@ void __cdecl Gods98::Main_DisableTextureManagement(void)
 // <LegoRR.exe @00477eb0>
 void __cdecl Gods98::Main_ParseCommandLine(const char* lpCmdLine, OUT bool32* nosound, OUT bool32* insistOnCD)
 {
+	log_firstcall();
+
 	const char* loc;
 	char langDir[128];
 
@@ -438,8 +550,8 @@ void __cdecl Gods98::Main_ParseCommandLine(const char* lpCmdLine, OUT bool32* no
 #ifdef CONFIG_DEVELOPMENTMODE
 	if (Util_StrIStr(lpCmdLine, "-langdump")) mainGlobs.flags |= MainFlags::MAIN_FLAG_LANGDUMPUNKNOWN;
 	if (loc = Util_StrIStr(lpCmdLine, "-langsuffix")) {
-		LPUCHAR s;
-		ULONG index = 0;
+		const char* s;
+		uint32 index = 0;
 		for (s=&loc[strlen("-langsuffix")] ; '\0'!=*s ; s++) if (' ' != *s) break;
 		for ( ; '\0' != *s ; s++) {
 			if (' ' == *s) break;
@@ -563,6 +675,8 @@ bool32 __cdecl Gods98::Main_DumpUnknownPhrases(void)
 // <LegoRR.exe @004781f0>
 void __cdecl Gods98::Main_LoopUpdate(bool32 clear)
 {
+	log_firstcall();
+
 	Main_HandleIO();
 	Input_ReadKeys();
 	Input_ReadMouse2();
@@ -578,18 +692,24 @@ void __cdecl Gods98::Main_LoopUpdate(bool32 clear)
 // <LegoRR.exe @00478230>
 uint32 __cdecl Gods98::Main_GetCLFlags(void)
 {
+	log_firstcall();
+
 	return mainGlobs.clFlags;
 }
 
 // <LegoRR.exe @00478240>
 uint32 __cdecl Gods98::Main_GetWindowsBitDepth(void)
 {
+	log_firstcall();
+
 	return ::GetDeviceCaps(::GetDC(Main_hWnd()), BITSPIXEL);
 }
 
 // <LegoRR.exe @00478260>
 void __cdecl Gods98::Main_Finalise3D(void)
 {
+	log_firstcall();
+
 	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_UPDATED)) {
 		mainGlobs.device->Update();
 		mainGlobs.flags |= MainFlags::MAIN_FLAG_UPDATED;
@@ -599,6 +719,10 @@ void __cdecl Gods98::Main_Finalise3D(void)
 // <LegoRR.exe @00478290>
 bool32 __cdecl Gods98::Main_SetState(Main_State* state)
 {
+	log_firstcall();
+
+	/// TODO: This is a good place to setup wrapping around Main_State functions.
+	///  function pointers allow using original functions without overwriting the assembly.
 	if (state != nullptr) {
 		mainGlobs.currState = *state;
 		mainGlobs.stateSet = true;
@@ -610,6 +734,8 @@ bool32 __cdecl Gods98::Main_SetState(Main_State* state)
 // <LegoRR.exe @004782c0>
 uint32 __cdecl Gods98::Main_GetTime(void)
 {
+	log_firstcall();
+
 	return ::timeGetTime();
 }
 
@@ -624,21 +750,27 @@ void __cdecl Gods98::Main_SetFixedFrameTiming(real32 time)
 // <LegoRR.exe @004782d0>
 bool32 __cdecl Gods98::Main_DispatchMessage(const MSG* msg)
 {
+	log_firstcall();
+
 	if ((mainGlobs.flags & MainFlags::MAIN_FLAG_FULLSCREEN) &&
-		(msg->message == WM_ACTIVATEAPP || msg->message == WM_SYSKEYDOWN || msg->message == WM_SYSKEYUP)) return false;
+		(msg->message == WM_ACTIVATEAPP || msg->message == WM_SYSKEYDOWN ||
+		 msg->message == WM_SYSKEYUP)) return false;
 	else return true;
 }
 
 // <LegoRR.exe @00478300>
 void __cdecl Gods98::Main_HandleIO(void)
 {
+	log_firstcall();
+
 	MSG msg;
 
 	// Look at windows messages (if there are any)
 
+	/// NEW GODS98: New API to pair with the Main_SetAccel function
 	if (mainGlobs.accels != nullptr)
 	{
-		while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+		while (::PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE)) {
 			if (!::TranslateAcceleratorA(Main_hWnd(), mainGlobs.accels, &msg)) {
 				::TranslateMessage(&msg);
 				::DispatchMessageA(&msg);
@@ -647,7 +779,7 @@ void __cdecl Gods98::Main_HandleIO(void)
 	}
 	else
 	{
-		while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+		while (::PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE)) {
 			if (Main_DispatchMessage(&msg)) {
 				::TranslateMessage(&msg);
 				::DispatchMessageA(&msg);
@@ -659,7 +791,8 @@ void __cdecl Gods98::Main_HandleIO(void)
 // <LegoRR.exe @00478370>
 void __cdecl Gods98::Main_SetupDisplay(bool32 fullScreen, uint32 xPos, uint32 yPos, uint32 width, uint32 height)
 {
-		
+	log_firstcall();
+
 	mainGlobs.appWidth = width;
 	mainGlobs.appHeight = height;
 	if (fullScreen) mainGlobs.flags |= MainFlags::MAIN_FLAG_FULLSCREEN;
@@ -667,7 +800,6 @@ void __cdecl Gods98::Main_SetupDisplay(bool32 fullScreen, uint32 xPos, uint32 yP
 	Error_FullScreen(fullScreen);
 
 	if (!fullScreen) {
-		
 		// Adjust the window to any new settings...
 		
 		RECT rect = {
@@ -683,17 +815,20 @@ void __cdecl Gods98::Main_SetupDisplay(bool32 fullScreen, uint32 xPos, uint32 yP
 		::SetWindowLongA(mainGlobs.hWnd, GWL_STYLE, mainGlobs.style);
 		::SetWindowPos(mainGlobs.hWnd, nullptr, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
 
-		::ShowCursor(false);
+		/// FIX APPLY: (by removing) Show cursor over title bar
+		///  This has been removed along with DirectDraw_Setup's fullscreen ShowCursor(false).
+		///  The fix is then handled with the Main_WndProc message WM_SETCURSOR.
+		//::ShowCursor(false);
 
 	} else {
-
 		HWND hWndDesktop = ::GetDesktopWindow();
 
 		RECT rect;
 		::GetWindowRect(hWndDesktop, &rect);
 		::SetWindowPos(mainGlobs.hWnd, nullptr, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
 
-		::SetCursor(false);
+		// Shows an empty/no(?) cursor in the fullscreen window
+		::SetCursor((HCURSOR)false); // NOTE: false was used here by Gods98, though it may be a mistake
 	}
 
 	::ShowWindow(mainGlobs.hWnd, SW_SHOW);
@@ -703,6 +838,8 @@ void __cdecl Gods98::Main_SetupDisplay(bool32 fullScreen, uint32 xPos, uint32 yP
 // <LegoRR.exe @00478490>
 bool32 __cdecl Gods98::Main_SetupDirect3D(const DirectDraw_Device* dev, IDirectDraw* ddraw1, IDirectDrawSurface4* backSurf, bool32 doubleBuffered)
 {
+	log_firstcall();
+
 	
 	LPGUID guid = nullptr;
 	LPDIRECT3DRM lpD3DRM1;
@@ -713,27 +850,36 @@ bool32 __cdecl Gods98::Main_SetupDirect3D(const DirectDraw_Device* dev, IDirectD
 	
 	if (dev) {
 		guid = const_cast<GUID*>(&dev->guid);
-		if (dev->flags & DIRECTDRAW_FLAG_DEVICE_VIDEOTEXTURE) mainGlobs.flags |= MainFlags::MAIN_FLAG_VIDEOTEXTURE;
+		if (dev->flags & DirectDraw_DeviceFlags::DIRECTDRAW_FLAG_DEVICE_VIDEOTEXTURE)
+			mainGlobs.flags |= MainFlags::MAIN_FLAG_VIDEOTEXTURE;
 	}
 
 #pragma message ( "CAPS testing is a complete waste of time for this" )
-	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_FORCEVERTEXFOG) && (dev->flags & DIRECTDRAW_FLAG_DEVICE_HARDWARE)) Main_SetFogMethod(D3DRMFOGMETHOD_TABLE);
-	else Main_SetFogMethod(D3DRMFOGMETHOD_VERTEX);
+	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_FORCEVERTEXFOG) &&
+		(dev->flags & DirectDraw_DeviceFlags::DIRECTDRAW_FLAG_DEVICE_HARDWARE))
+	{
+		Main_SetFogMethod(D3DRMFOGMETHOD_TABLE);
+	} else {
+		Main_SetFogMethod(D3DRMFOGMETHOD_VERTEX);
+	}
 
 	// Create D3DRM and the device...
 	
-	if (::Direct3DRMCreate(&lpD3DRM1) == D3DRM_OK){
-		if (lpD3DRM1->QueryInterface(IID_IDirect3DRM3, (void**)&mainGlobs.lpD3DRM) == D3DRM_OK){
+	if (::Direct3DRMCreate(&lpD3DRM1) == D3DRM_OK) {
+		/// NOTE: referencing LegoRR's IID_IDirect3DRM3 data (define this ourselves!)
+		if (lpD3DRM1->QueryInterface(Idl::IID_IDirect3DRM3, (void**)&mainGlobs.lpD3DRM) == D3DRM_OK){
 			backSurf->QueryInterface(IID_IDirectDrawSurface, (void**)&surf1);
+			/// NOTE ASM: Decompiled code shows dev->guid,
+			///  but this is only because it's the first structure item, and referenced
+			///  by address. Meaning a NULL dev is "functionally safe".
 			if ((r = mainGlobs.lpD3DRM->CreateDeviceFromSurface(guid, ddraw1, surf1, 0, &mainGlobs.device)) == D3DRM_OK){
 
 				LPDIRECT3DDEVICE2 imdev2;
-
 				mainGlobs.device->GetDirect3DDevice2( &imdev2 );
 				imdev2->QueryInterface( IID_IDirect3DDevice3, (void**)&mainGlobs.imDevice );
 				imdev2->Release();
 
-
+				// This is code that was commented out in Gods98, and nothing more.
 //			if ((r = mainGlobs.lpD3DRM->CreateDeviceFromSurface(nullptr, ddraw1, surf1, 0, &mainGlobs.device)) == D3DRM_OK){
 //			if (D3DRM_OK == ddraw1->lpVtbl->QueryInterface(ddraw1, &IID_IDirect3D3, &d3d3)){
 //				r = 1;
@@ -757,8 +903,9 @@ bool32 __cdecl Gods98::Main_SetupDirect3D(const DirectDraw_Device* dev, IDirectD
 
 //					d3d3->lpVtbl->Release(d3d3);
 
-					if (doubleBuffered) mainGlobs.device->SetBufferCount(2);
-					return true;
+
+				if (doubleBuffered) mainGlobs.device->SetBufferCount(2);
+				return true;
 					
 			} else {
 				CHKDD(r);
@@ -777,23 +924,28 @@ bool32 __cdecl Gods98::Main_SetupDirect3D(const DirectDraw_Device* dev, IDirectD
 // <LegoRR.exe @004785d0>
 void __cdecl Gods98::Main_AdjustWindowRect(IN OUT RECT* rect)
 {
-	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_FULLSCREEN)) ::AdjustWindowRect(rect, mainGlobs.style, false);
+	log_firstcall();
+
+	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_FULLSCREEN)) {
+		::AdjustWindowRect(rect, mainGlobs.style, false);
+	}
 }
 
 // <LegoRR.exe @004785f0>
-void __cdecl Gods98::Main_Setup3D(uint32 renderQuality, bool32 dither, bool32 linearFilter, bool32 mipMap,
+void __cdecl Gods98::Main_Setup3D(MainQuality renderQuality, bool32 dither, bool32 linearFilter, bool32 mipMap,
 						  bool32 mipMapLinear, bool32 blendTransparency, bool32 sortTransparency)
 {
-	uint32 quality = D3DRMRENDER_WIREFRAME, renderMode = 0;
+	D3DRMRENDERQUALITY quality = D3DRMRENDER_WIREFRAME;
+	DWORD renderMode = 0;
 
-	if (WIREFRAME == renderQuality) quality = D3DRMRENDER_WIREFRAME;
-	if (FLATSHADE == renderQuality) quality = D3DRMRENDER_FLAT;
-	/// CHANGE: Add UnlitFlag option back in
-	if (UNLITFLATSHADE == renderQuality) quality = D3DRMRENDER_UNLITFLAT;
-	if (GOURAUDSHADE == renderQuality) quality = D3DRMRENDER_GOURAUD;
+	if (renderQuality == MainQuality::WIREFRAME)      quality = D3DRMRENDER_WIREFRAME;
+	if (renderQuality == MainQuality::FLATSHADE)      quality = D3DRMRENDER_FLAT;
+	if (renderQuality == MainQuality::UNLITFLATSHADE) quality = D3DRMRENDER_UNLITFLAT;
+	if (renderQuality == MainQuality::GOURAUDSHADE)   quality = D3DRMRENDER_GOURAUD;
 
-	if (blendTransparency) renderMode |= D3DRMRENDERMODE_BLENDEDTRANSPARENCY;
-	if (sortTransparency) renderMode |= D3DRMRENDERMODE_SORTEDTRANSPARENCY;
+	/// NEW GODS98: Not present in LegoRR (these arguments ended up being unused)
+	//if (blendTransparency) renderMode |= D3DRMRENDERMODE_BLENDEDTRANSPARENCY;
+	//if (sortTransparency)  renderMode |= D3DRMRENDERMODE_SORTEDTRANSPARENCY;
 
 	D3DRMTEXTUREQUALITY textureMode;
 	if (linearFilter) {
@@ -812,7 +964,8 @@ void __cdecl Gods98::Main_Setup3D(uint32 renderQuality, bool32 dither, bool32 li
 		mainGlobs.device->SetQuality(quality);
 		mainGlobs.device->SetTextureQuality(textureMode);
 //		mainGlobs.device->SetRenderMode(D3DRMRENDERMODE_BLENDEDTRANSPARENCY|D3DRMRENDERMODE_SORTEDTRANSPARENCY |D3DRMRENDERMODE_DISABLESORTEDALPHAZWRITE);
-		mainGlobs.device->SetRenderMode(renderMode);
+		/// NEW GODS98: Not present in LegoRR
+		//mainGlobs.device->SetRenderMode(renderMode);
 
 	} else Error_Fatal(true, "Device not initialised");
 }
@@ -820,6 +973,8 @@ void __cdecl Gods98::Main_Setup3D(uint32 renderQuality, bool32 dither, bool32 li
 // <LegoRR.exe @00478690>
 void __cdecl Gods98::Main_SetTitle(const char* title)
 {
+	log_firstcall();
+
 	::SetWindowTextA(mainGlobs.hWnd, title);
 }
 
@@ -843,7 +998,9 @@ uint32 __cdecl Gods98::Main_GetTrianglesDrawn(bool32 total)
 // <LegoRR.exe @004786b0>
 bool32 __cdecl Gods98::Main_InitApp(HINSTANCE hInstance)
 {
-	WNDCLASSA wc;
+	log_firstcall();
+
+	WNDCLASSA wc = { 0 }; // dummy init
 	//	DWORD WIN_STYLE;
 	
 	// Register the window style
@@ -852,7 +1009,9 @@ bool32 __cdecl Gods98::Main_InitApp(HINSTANCE hInstance)
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
 	wc.hInstance = hInstance;
-	wc.hIcon = nullptr;
+	/// CHANGE: Load small icon into main window title bar
+	wc.hIcon = ::LoadIconA(hInstance, MAKEINTRESOURCEA(113));
+	//wc.hIcon = nullptr;
 //	wc.hCursor = ::LoadCursor( nullptr, IDC_ARROW );
 //	wc.hbrBackground = ::GetStockObject(BLACK_BRUSH);
 	wc.hCursor = nullptr;
@@ -868,7 +1027,8 @@ bool32 __cdecl Gods98::Main_InitApp(HINSTANCE hInstance)
 		if (mainGlobs.hWnd = ::CreateWindowExA(WS_EX_APPWINDOW, mainGlobs.className, "",
 			WS_POPUP | WS_SYSMENU,
 			0, 0, 100, 100,
-			nullptr, nullptr, hInstance, nullptr)) {
+			nullptr, nullptr, hInstance, nullptr))
+		{
 			
 			::SetFocus(mainGlobs.hWnd);
 			
@@ -883,9 +1043,13 @@ bool32 __cdecl Gods98::Main_InitApp(HINSTANCE hInstance)
 // <LegoRR.exe @00478780>
 LRESULT __cdecl Gods98::Main_WndProc_Fullscreen(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	INPUT.lClicked = false;
-	INPUT.rClicked = false;
+	log_firstcall();
 
+	/// NEW GODS98: This is not in LegoRR, but may fix some mouse input handling issues
+	//INPUT.lClicked = false;
+	//INPUT.rClicked = false;
+
+	/// ADDED: API not used in LegoRR, but found in Gods98
 	if (mainGlobs.windowCallback != nullptr) mainGlobs.windowCallback(hWnd, message, wParam, lParam);
 
 	switch (message)  
@@ -901,105 +1065,130 @@ LRESULT __cdecl Gods98::Main_WndProc_Fullscreen(HWND hWnd, UINT message, WPARAM 
 		return 0;
 
 	// Handle single or dual mouse
-	case WM_LBUTTONDOWN:		
-	case WM_LBUTTONUP:			
-	case WM_RBUTTONDOWN:		
+	case WM_LBUTTONDOWN:
+	case WM_LBUTTONUP:
+	case WM_RBUTTONDOWN:
 	case WM_RBUTTONUP:
 		{
-			if (mainGlobs.flags & MainFlags::MAIN_FLAG_DUALMOUSE)
-			{
+			/// IMPORTANT: Consider that the faulty switch breaking may have intended
+			///  control flow to fall into the end of the function:
+			///  `::DefWindowProcA();` for Fullscreen.
+			if (mainGlobs.flags & MainFlags::MAIN_FLAG_DUALMOUSE) {
 				// Both buttons valid
 				switch (message)
 				{
-				case WM_LBUTTONDOWN:		
+				/// OLD GODS98: This is from a commmented-out preprocessor,
+				///  and matches LegoRR's code.
+				case WM_LBUTTONDOWN:
+					INPUT.mslb = INPUT.lClicked = true;
+					return 0;
+				case WM_LBUTTONUP:
+					INPUT.mslb = INPUT.lClicked = false;
+					return 0;
+				case WM_RBUTTONDOWN:
+					INPUT.msrb = INPUT.rClicked = true;
+					return 0;
+				case WM_RBUTTONUP:
+					INPUT.msrb = INPUT.rClicked = false;
+					return 0;
+
+				/// NEW GODS98: Newer input handling used instead of what's above,
+				///  however this is not what's used by LegoRR.
+				/*case WM_LBUTTONDOWN:
 					INPUT.mslb		= true;
 					INPUT.lClicked	= false;
 					return 0;
-
-				case WM_LBUTTONUP:			
+				case WM_LBUTTONUP:
 					INPUT.mslb		= false;
 					INPUT.lClicked	= true;
 					return 0;
-
-				case WM_RBUTTONDOWN:		
+				case WM_RBUTTONDOWN:
 					INPUT.msrb		= true;
 					INPUT.rClicked	= false;
 					return 0;
-
-				case WM_RBUTTONUP:			
+				case WM_RBUTTONUP:
 					INPUT.msrb		= false;
 					INPUT.rClicked	= true;
-					return 0;
+					return 0;*/
 				}
 			}
-			else
-			{
+			else {
 				// Merged buttons
 				switch (message)
 				{
+				/// OLD GODS98: This is from a commmented-out preprocessor,
+				///  and matches LegoRR's code.
 				case WM_LBUTTONDOWN:
+				case WM_RBUTTONDOWN:
+					if (!INPUT.mslb) {
+						INPUT.lClicked = true;
+						INPUT.rClicked = true;
+					}
+					INPUT.mslb = INPUT.msrb = true;
+
+					/// FIXME LEGORR: Bad switch fallthrough into WM_LBUTTONDBLCLK.
+					INPUT.lDoubleClicked = true;
+					return 0; // use this instead of `break;`, bad switch fallthrough
+
+				case WM_LBUTTONUP:
+				case WM_RBUTTONUP:
+					INPUT.lClicked = false;
+					INPUT.rClicked = false;
+					INPUT.mslb = INPUT.msrb = false;
+
+					/// FIXME LEGORR: Bad switch fallthrough into WM_LBUTTONDBLCLK.
+					INPUT.lDoubleClicked = true;
+					return 0; // use this instead of `break;`, bad switch fallthrough
+
+				/// NEW GODS98: Newer input handling used instead of what's above,
+				///  however this is not what's used by LegoRR.
+				/// NOTE: The accidental switch fallthrough is still present here,
+				///  it's very likely not intentional. Should change `break;` to `return 0;`
+				///  if using this code.
+				/*case WM_LBUTTONDOWN:
 				case WM_RBUTTONDOWN:
 					if (!INPUT.mslb) {
 						INPUT.lClicked = false;
 						INPUT.rClicked = false;
 					}
 					INPUT.mslb = INPUT.msrb = true;
-					break;
+
+					/// FIXME GODS98: Bad switch fallthrough into WM_LBUTTONDBLCLK.
+					INPUT.lDoubleClicked = true;
+					return 0; // use this instead of `break;`, bad switch fallthrough
+					//break;
 				case WM_LBUTTONUP:
 				case WM_RBUTTONUP:
 					INPUT.lClicked = true;
 					INPUT.rClicked = true;
 					INPUT.mslb = INPUT.msrb = false;
-					break;
+					
+					/// FIXME GODS98: Bad switch fallthrough into WM_LBUTTONDBLCLK.
+					INPUT.lDoubleClicked = true;
+					return 0; // use this instead of `break;`, bad switch fallthrough
+					//break;
+					*/
 				}
 			}
 		}
 
-/*#ifdef MAIN_MERGEMOUSEBUTTONS
-
-	case WM_LBUTTONDOWN:
-	case WM_RBUTTONDOWN:
-		if (!INPUT.mslb) {
-			INPUT.lClicked = true;
-			INPUT.rClicked = true;
-		}
-		INPUT.mslb = INPUT.msrb = true;
-		break;
-	case WM_LBUTTONUP:
-	case WM_RBUTTONUP:
-		INPUT.lClicked = false;
-		INPUT.rClicked = false;
-		INPUT.mslb = INPUT.msrb = false;
-		break;
-#else
-
-	case WM_LBUTTONDOWN:		
-		INPUT.mslb = INPUT.lClicked = true;		
-		return 0;
-	case WM_LBUTTONUP:			
-		INPUT.mslb = INPUT.lClicked = false;	
-		return 0;
-	case WM_RBUTTONDOWN:		
-		INPUT.msrb = INPUT.rClicked = true;		
-		return 0;
-	case WM_RBUTTONUP:			
-		INPUT.msrb = INPUT.rClicked = false;	
-		return 0;
-#endif*/
-
-	case WM_LBUTTONDBLCLK:		
+	case WM_LBUTTONDBLCLK:
 		INPUT.lDoubleClicked = true;
 		return 0;
-	case WM_RBUTTONDBLCLK:		
+	case WM_RBUTTONDBLCLK:
 		INPUT.rDoubleClicked = true;			
 		return 0;
 
 	// Exit messages
 	case WM_CLOSE:
+		/// TODO: Consider handling close button here with immediate termination
+		///  (assuming the user is okay with losing save progress)
+		mainGlobs.exit = true;
+		break; // -> `return ::DefWindowProcA();`
 	case WM_QUIT:
 	case WM_DESTROY:
 		mainGlobs.exit = true;
-		break;
+		break; // -> `return ::DefWindowProcA();`
 
 	// Window messages
 	case WM_SIZE:
@@ -1010,13 +1199,13 @@ LRESULT __cdecl Gods98::Main_WndProc_Fullscreen(HWND hWnd, UINT message, WPARAM 
 		return 0;
 
 	case WM_ACTIVATEAPP:
-		mainGlobs.active = (bool32) wParam;
+		mainGlobs.active = (bool32) wParam; // true if this window is being activated
 		return 0;
 
 	case WM_PAINT:
 	case WM_CREATE:
 	case WM_COMMAND:
-		break;
+		break; // -> `return ::DefWindowProcA();`
 
 	case WM_WINDOWPOSCHANGING:
 		{
@@ -1038,89 +1227,143 @@ LRESULT __cdecl Gods98::Main_WndProc_Fullscreen(HWND hWnd, UINT message, WPARAM 
 		return 0;
 
 	default:
-		break;
+		break; // -> `return ::DefWindowProcA();`
 	}
 
-	return ::DefWindowProcA(hWnd, message, wParam, lParam);
+	return ::DefWindowProcA(hWnd, message, wParam, lParam); // default for all top-level switch breaks
 }
 
 // <LegoRR.exe @00478980>
 LRESULT __cdecl Gods98::Main_WndProc_Windowed(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	log_firstcall();
+
+	/// POSSIBLE MISSING GODS98: These two are present in Gods98 WndProc_Fullscreen (but not in LegoRR)
+	//INPUT.lClicked = false;
+	//INPUT.rClicked = false;
+
+	/// ADDED: API not used in LegoRR, but found in Gods98
 	if (mainGlobs.windowCallback != nullptr) mainGlobs.windowCallback(hWnd, message, wParam, lParam);
 
-	switch (message)  {
+	switch (message)
+	{
 		
-		// Exit messages
+	// Exit messages
 	case WM_CLOSE:
+		/// TODO: Consider handling close button here with immediate termination
+		///  (assuming the user is okay with losing save progress)
 		mainGlobs.exit = true;
-		break;
+		break; // -> `return 0;`
 	case WM_QUIT:
-		mainGlobs.exit = true;
-		break;
 	case WM_DESTROY:
 		mainGlobs.exit = true;
-		break;
+		break; // -> `return 0;`
 
 	// Handle single or dual mouse
-	case WM_LBUTTONDOWN:		
-	case WM_LBUTTONUP:			
-	case WM_RBUTTONDOWN:		
+	case WM_LBUTTONDOWN:
+	case WM_LBUTTONUP:
+	case WM_RBUTTONDOWN:
 	case WM_RBUTTONUP:
 		{
-			if (mainGlobs.flags & MainFlags::MAIN_FLAG_DUALMOUSE)
-			{
-				/*
+			/// IMPORTANT: Consider that the faulty switch breaking may have intended
+			///  control flow to fall into the end of the function:
+			///  `return 0;` for Windowed (although `::DefWindowProcA();` is the end for Fullscreen)
+			if (mainGlobs.flags & MainFlags::MAIN_FLAG_DUALMOUSE) {
 				// Both buttons valid
 				switch (message)
 				{
+				/// OLD GODS98: This is from a commmented-out preprocessor,
+				///  and matches LegoRR's code.
 				case WM_LBUTTONDOWN:
 					::SetCapture(hWnd);
 					INPUT.mslb = INPUT.lClicked = true;
-					break;
+					/// FIXME LEGORR: Bad switch fallthrough into WM_LBUTTONDBLCLK.
+					INPUT.lDoubleClicked = true;
+					return 0; // use this instead of `break;`, bad switch fallthrough
+
 				case WM_LBUTTONUP:
 					::ReleaseCapture();
 					INPUT.mslb = INPUT.lClicked = false;
-					break;
-				case WM_RBUTTONDOWN:		INPUT.msrb = INPUT.rClicked = true;		break;
-				case WM_RBUTTONUP:			INPUT.msrb = INPUT.rClicked = false;	break;
-				}
-				 */
+					/// FIXME LEGORR: Bad switch fallthrough into WM_LBUTTONDBLCLK.
+					INPUT.lDoubleClicked = true;
+					return 0; // use this instead of `break;`, bad switch fallthrough
 
-				switch (message)
-				{
-				case WM_LBUTTONDOWN:		
+				case WM_RBUTTONDOWN:
+					/// NOTE GODS98: Newer version includes ::SetCapture() for RMB
+					INPUT.msrb = INPUT.rClicked = true;
+					/// FIXME LEGORR: Bad switch fallthrough into WM_LBUTTONDBLCLK.
+					INPUT.lDoubleClicked = true;
+					return 0; // use this instead of `break;`, bad switch fallthrough
+
+				case WM_RBUTTONUP:
+					/// NOTE GODS98: Newer version includes ::ReleaseCapture() for RMB
+					INPUT.msrb = INPUT.rClicked = false;
+					/// FIXME LEGORR: Bad switch fallthrough into WM_LBUTTONDBLCLK.
+					INPUT.lDoubleClicked = true;
+					return 0; // use this instead of `break;`, bad switch fallthrough
+
+				/// NEW GODS98: Newer input handling used instead of what's above,
+				///  however this is not what's used by LegoRR.
+				/*case WM_LBUTTONDOWN:
 					::SetCapture(hWnd);
 					INPUT.mslb		= true;
 					INPUT.lClicked	= false;		
 					return 0;
 
-				case WM_LBUTTONUP:			
+				case WM_LBUTTONUP:
 					::ReleaseCapture();
 					INPUT.mslb		= false;
 					INPUT.lClicked	= true;
 					return 0;
 
-				case WM_RBUTTONDOWN:		
+				case WM_RBUTTONDOWN:
 					::SetCapture(hWnd);
 					INPUT.msrb		= true;
 					INPUT.rClicked	= false;
 					return 0;
 
-				case WM_RBUTTONUP:			
+				case WM_RBUTTONUP:
 					::ReleaseCapture();
 					INPUT.msrb		= false;
 					INPUT.rClicked	= true;
 					return 0;
+					*/
 				}
-
 			}
-			else
-			{
+			else {
 				// Merged buttons
 				switch (message)
 				{
+				/// OLD GODS98: This is from a commmented-out preprocessor,
+				///  and matches LegoRR's code.
 				case WM_LBUTTONDOWN:
+				case WM_RBUTTONDOWN:
+					::SetCapture(hWnd);
+					if (!INPUT.mslb) {
+						INPUT.lClicked = true;
+						INPUT.rClicked = true;
+					}
+					INPUT.mslb = INPUT.msrb = true;
+					/// FIXME LEGORR: Bad switch fallthrough into WM_LBUTTONDBLCLK.
+					INPUT.lDoubleClicked = true;
+					return 0; // use this instead of `break;`, bad switch fallthrough
+
+				case WM_LBUTTONUP:
+				case WM_RBUTTONUP:
+					::ReleaseCapture();
+					INPUT.lClicked = false;
+					INPUT.rClicked = false;
+					INPUT.mslb = INPUT.msrb = false;
+					/// FIXME LEGORR: Bad switch fallthrough into WM_LBUTTONDBLCLK.
+					INPUT.lDoubleClicked = true;
+					return 0; // use this instead of `break;`, bad switch fallthrough
+
+				/// NEW GODS98: Newer input handling used instead of what's above,
+				///  however this is not what's used by LegoRR.
+				/// NOTE: The accidental switch fallthrough is still present here,
+				///  it's very likely not intentional. Should change `break;` to `return 0;`
+				///  if using this code.
+				/*case WM_LBUTTONDOWN:
 				case WM_RBUTTONDOWN:
 					::SetCapture(hWnd);
 					if (!INPUT.mslb) {
@@ -1128,71 +1371,73 @@ LRESULT __cdecl Gods98::Main_WndProc_Windowed(HWND hWnd, UINT message, WPARAM wP
 						INPUT.rClicked = false;
 					}
 					INPUT.mslb = INPUT.msrb = true;
-					break;
+
+					/// FIXME GODS98: Bad switch fallthrough into WM_LBUTTONDBLCLK.
+					INPUT.lDoubleClicked = true;
+					return 0; // use this instead of `break;`, bad switch fallthrough
+					//break;
 				case WM_LBUTTONUP:
 				case WM_RBUTTONUP:
 					::ReleaseCapture();
 					INPUT.lClicked = true;
 					INPUT.rClicked = true;
 					INPUT.mslb = INPUT.msrb = false;
-					break;
+
+					/// FIXME GODS98: Bad switch fallthrough into WM_LBUTTONDBLCLK.
+					INPUT.lDoubleClicked = true;
+					return 0; // use this instead of `break;`, bad switch fallthrough
+					//break;
+					*/
 				}
 			}
 		}
 
-/*#ifdef MAIN_MERGEMOUSEBUTTONS
-
-	case WM_LBUTTONDOWN:
-	case WM_RBUTTONDOWN:
-		::SetCapture(hWnd);
-		if (!INPUT.mslb) {
-			INPUT.lClicked = true;
-			INPUT.rClicked = true;
-		}
-		INPUT.mslb = INPUT.msrb = true;
-		break;
-	case WM_LBUTTONUP:
-	case WM_RBUTTONUP:
-		::ReleaseCapture();
-		INPUT.lClicked = false;
-		INPUT.rClicked = false;
-		INPUT.mslb = INPUT.msrb = false;
-		break;
-#else
-
-
-	case WM_LBUTTONDOWN:
-		::SetCapture(hWnd);
-		INPUT.mslb = INPUT.lClicked = true;
-		break;
-	case WM_LBUTTONUP:
-		::ReleaseCapture();
-		INPUT.mslb = INPUT.lClicked = false;
-		break;
-	case WM_RBUTTONDOWN:		INPUT.msrb = INPUT.rClicked = true;		break;
-	case WM_RBUTTONUP:			INPUT.msrb = INPUT.rClicked = false;	break;
-
-#endif*/
-	
-	case WM_LBUTTONDBLCLK:		INPUT.lDoubleClicked = true;			break;
-	case WM_RBUTTONDBLCLK:		INPUT.rDoubleClicked = true;			break;
+	case WM_LBUTTONDBLCLK:
+		INPUT.lDoubleClicked = true;
+		return 0;
+		//break; // -> `return 0;` (was break intentional?)
+	case WM_RBUTTONDBLCLK:
+		INPUT.rDoubleClicked = true;
+		//break; // -> `return 0;` (was break intentional?)
 
 	case WM_ACTIVATEAPP:
-		mainGlobs.active = (bool32) wParam;
+		mainGlobs.active = (bool32) wParam; // true if this window is being activated
 		return 0;
 
 	case WM_ACTIVATE:
-		break;
+		break; // -> `return 0;`
 
-	default: return ::DefWindowProcA(hWnd, message, wParam, lParam);
+	default:
+		// The choosing of moving Windowed `::DefWindowProcA();` to the default statement may
+		//  have something to do with changing how `break;` performs for windowed/fullscreen.
+		// When window messages should be handled likely has some important differences in
+		//  these two modes.
+		return ::DefWindowProcA(hWnd, message, wParam, lParam);
 	}
 
-	return 0L;
+	return 0L; // default for all top-level switch breaks
 }
 
 // <LegoRR.exe @00478b40>
 LRESULT __stdcall Gods98::Main_WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	log_firstcall();
+	
+	/// APPLY FIX: Show cursor in when hovering over title bar
+	/// <https://stackoverflow.com/a/14134212/7517185>
+    if (message == WM_SETCURSOR)
+    {
+		// are we inside the client area? If so, erase the cursor like normal
+        if (LOWORD(lParam) == HTCLIENT)
+        {
+            ::SetCursor(nullptr);
+            return (LRESULT)true;
+        }
+
+		// Otherwise, show the cursor again
+        return ::DefWindowProcA(hWnd, message, wParam, lParam);
+    }
+
 	if (mainGlobs.flags & MainFlags::MAIN_FLAG_FULLSCREEN)
 	{
 		return Main_WndProc_Fullscreen(hWnd, message, wParam, lParam);
@@ -1206,6 +1451,8 @@ LRESULT __stdcall Gods98::Main_WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 // <LegoRR.exe @00478b90>
 void __cdecl Gods98::Main_ChangeRenderState(D3DRENDERSTATETYPE dwRenderStateType, DWORD dwRenderState)
 {
+	log_firstcall();
+
 	Error_Fatal(dwRenderStateType >= MAIN_MAXRENDERSTATES, "RenderState type is out of range");
 
 	DWORD currValue;
@@ -1215,14 +1462,13 @@ void __cdecl Gods98::Main_ChangeRenderState(D3DRENDERSTATETYPE dwRenderStateType
 
 	if (currValue != dwRenderState) {
 
-		//		if( D3D_OK ==
+//		if( D3D_OK ==
 		mainGlobs.imDevice->SetRenderState(dwRenderStateType, dwRenderState);
-		// )
+			// )
 		{
 			if (data->changed) {
 				if (data->origValue == currValue) data->changed = false;
-			}
-			else {
+			} else {
 				data->origValue = currValue;
 				data->changed = true;
 			}
@@ -1236,6 +1482,9 @@ void __cdecl Gods98::Main_ChangeRenderState(D3DRENDERSTATETYPE dwRenderStateType
 // <LegoRR.exe @00478c00>
 void __cdecl Gods98::Main_RestoreStates(void)
 {
+	log_firstcall();
+
+	// NEW GODS98: BOOL force argument
 	//if (force) {
 	for (uint32 loop = 0; loop < MAIN_MAXRENDERSTATES; loop++) {
 		Main_StateChangeData* data = &mainGlobs.renderStateData[loop];
@@ -1266,21 +1515,31 @@ bool32 __cdecl Gods98::Main_IsPaused(void)
 
 
 // <LegoRR.exe @00478c40>
-__inline bool32 __cdecl Gods98::Main_SetCDVolume(real32 leftVolume, real32 rightVolume)
+//bool32 __cdecl Gods98::noinline(Main_SetCDVolume)(real32 leftVolume, real32 rightVolume)
+bool32 __cdecl Gods98::Main_SetCDVolume(real32 leftVolume, real32 rightVolume)
 {
+	log_firstcall();
+
 	return Main_CDVolume(&leftVolume, &rightVolume, true);
 }
 
 // <LegoRR.exe @00478c60>
-__inline bool32 __cdecl Gods98::Main_GetCDVolume(OUT real32* leftVolume, OUT real32* rightVolume)
+//bool32 __cdecl Gods98::noinline(Main_GetCDVolume)(OUT real32* leftVolume, OUT real32* rightVolume)
+bool32 __cdecl Gods98::Main_GetCDVolume(OUT real32* leftVolume, OUT real32* rightVolume)
 {
+	log_firstcall();
+
 	return Main_CDVolume(leftVolume, rightVolume, false);
 }
 
 // <LegoRR.exe @00478c80>
 bool32 __cdecl Gods98::Main_CDVolume(IN OUT real32* leftVolume, IN OUT real32* rightVolume, bool32 set)
 {
-	uint32 deviceCount = mixerGetNumDevs();
+	log_firstcall();
+
+	/// TODO: Go over and check this function against LegoRR,
+	///  this is one of the few Gods98 functions not closely looked at.
+	uint32 deviceCount = ::mixerGetNumDevs();
 	MIXERCAPS caps;
 	MIXERLINE mixerLine;
 	uint32 cConnections;
@@ -1298,7 +1557,7 @@ bool32 __cdecl Gods98::Main_CDVolume(IN OUT real32* leftVolume, IN OUT real32* r
 	for (uint32 loop=0 ; loop<deviceCount ; loop++) {
 
 		if (::mixerOpen(&hMixer, loop, 0, 0, MIXER_OBJECTF_MIXER) == MMSYSERR_NOERROR) {
-			HMIXEROBJ mixer = (HMIXEROBJ)hMixer;
+			HMIXEROBJ mixer = (HMIXEROBJ)hMixer; // second variable created to avoid extra casting
 
 			std::memset(&caps, 0, sizeof(caps));
 			::mixerGetDevCapsA(loop, &caps, sizeof(caps));
@@ -1353,8 +1612,8 @@ bool32 __cdecl Gods98::Main_CDVolume(IN OUT real32* leftVolume, IN OUT real32* r
 											details.paDetails = valueList;
 
 											if (set) {
-												uwVolumeL = controlList[controlLoop].Bounds.dwMinimum + (ULONG) (*leftVolume * (controlList[controlLoop].Bounds.dwMaximum - controlList[controlLoop].Bounds.dwMinimum));
-												uwVolumeR = controlList[controlLoop].Bounds.dwMinimum + (ULONG) (*rightVolume * (controlList[controlLoop].Bounds.dwMaximum - controlList[controlLoop].Bounds.dwMinimum));
+												uwVolumeL = controlList[controlLoop].Bounds.dwMinimum + (uint32) (*leftVolume * (controlList[controlLoop].Bounds.dwMaximum - controlList[controlLoop].Bounds.dwMinimum));
+												uwVolumeR = controlList[controlLoop].Bounds.dwMinimum + (uint32) (*rightVolume * (controlList[controlLoop].Bounds.dwMaximum - controlList[controlLoop].Bounds.dwMinimum));
 												if (mixerLine.cChannels == 2) {
 													valueList[0].dwValue = uwVolumeL;
 													valueList[1].dwValue = uwVolumeR;

@@ -32,18 +32,22 @@ Gods98::DirectDraw_Globs & Gods98::directDrawGlobs = *(Gods98::DirectDraw_Globs*
 #pragma region Functions
 
 // <LegoRR.exe @00406500>
-__inline IDirectDraw4* __cdecl Gods98::DirectDraw()
+IDirectDraw4* __cdecl Gods98::noinline(DirectDraw)(void)
 {
-	return directDrawGlobs.lpDirectDraw;
+	log_firstcall();
+
+	return DirectDraw();
 }
 
 // <LegoRR.exe @00406510>
-__inline IDirectDrawSurface4* __cdecl Gods98::DirectDraw_bSurf()
+IDirectDrawSurface4* __cdecl Gods98::noinline(DirectDraw_bSurf)(void)
 {
-	return directDrawGlobs.bSurf;
+	log_firstcall();
+
+	return DirectDraw_bSurf();
 }
 
-
+/*
 // <unused>
 __inline IDirectDrawSurface4* __cdecl Gods98::DirectDraw_fSurf()
 {
@@ -55,15 +59,18 @@ __inline bool32 __cdecl Gods98::DirectDraw_FullScreen()
 {
 	return directDrawGlobs.fullScreen;
 }
+*/
 
 
-//__inline bool32 __cdecl DirectDraw_SetupFullScreen(lpDirectDraw_Driver driver, lpDirectDraw_Device device, lpDirectDraw_Mode mode)	{ return DirectDraw_Setup(TRUE, driver, device, mode, 0, 0, 320, 200); }
-//__inline bool32 __cdecl DirectDraw_SetupWindowed(lpDirectDraw_Device device, ULONG xPos, ULONG yPos, ULONG width, ULONG height)		{ return DirectDraw_Setup(FALSE, NULL, device, NULL, xPos, yPos, width, height); }
+//__inline bool32 __cdecl DirectDraw_SetupFullScreen(lpDirectDraw_Driver driver, lpDirectDraw_Device device, lpDirectDraw_Mode mode)	{ return DirectDraw_Setup(true, driver, device, mode, 0, 0, 320, 200); }
+//__inline bool32 __cdecl DirectDraw_SetupWindowed(lpDirectDraw_Device device, ULONG xPos, ULONG yPos, ULONG width, ULONG height)		{ return DirectDraw_Setup(false, nullptr, device, nullptr, xPos, yPos, width, height); }
 
 
 // <LegoRR.exe @0047c430>
 void __cdecl Gods98::DirectDraw_Initialise(HWND hWnd)
 {
+	log_firstcall();
+
 	directDrawGlobs.driverCount = 0;
 	directDrawGlobs.driverList = nullptr;
 	directDrawGlobs.deviceCount = 0;
@@ -75,13 +82,15 @@ void __cdecl Gods98::DirectDraw_Initialise(HWND hWnd)
 	directDrawGlobs.lpDirectDraw = nullptr;
 	directDrawGlobs.fSurf = directDrawGlobs.bSurf = directDrawGlobs.zSurf = nullptr;
 
-	/// FIXME: lpFrontClipper is assigned twice
+	/// FIXME GODS98: lpFrontClipper is assigned twice
 	directDrawGlobs.lpFrontClipper = directDrawGlobs.lpFrontClipper = nullptr;
 }
 
 // <LegoRR.exe @0047c480>
 bool32 __cdecl Gods98::DirectDraw_EnumDrivers(OUT DirectDraw_Driver* list, OUT uint32* count)
 {
+	log_firstcall();
+
 	directDrawGlobs.driverList = list;
 	// Enumerate each driver and record its GUID and description
 	::DirectDrawEnumerateA(DirectDraw_EnumDriverCallback, nullptr);
@@ -112,6 +121,8 @@ BOOL __stdcall Gods98::DirectDraw_EnumDriverCallback(GUID FAR* lpGUID, LPSTR lpD
 // <LegoRR.exe @0047c5a0>
 bool32 __cdecl Gods98::DirectDraw_EnumDevices(const DirectDraw_Driver* driver, OUT DirectDraw_Device* list, OUT uint32* count)
 {
+	log_firstcall();
+
 	LPDIRECTDRAW4 lpDD;
 	LPDIRECTDRAW lpDD1;
 
@@ -184,6 +195,8 @@ HRESULT __stdcall Gods98::DirectDraw_EnumDeviceCallback(LPGUID lpGuid, LPSTR lpD
 // <LegoRR.exe @0047c770>
 bool32 __cdecl Gods98::DirectDraw_EnumModes(const DirectDraw_Driver* driver, bool32 fullScreen, OUT DirectDraw_Mode* list, OUT uint32* count)
 {
+	log_firstcall();
+
 	LPDIRECTDRAW4 lpDD;
 	LPDIRECTDRAW lpDD1;
 	LPGUID guid;
@@ -241,12 +254,108 @@ HRESULT __stdcall Gods98::DirectDraw_EnumModeCallback(LPDDSURFACEDESC2 lpDDSurfa
 bool32 __cdecl Gods98::DirectDraw_Setup(bool32 fullscreen, const DirectDraw_Driver* driver, const DirectDraw_Device* device,
 								const DirectDraw_Mode* mode, uint32 xPos, uint32 yPos, uint32 width, uint32 height)
 {
-	/// TODO:
+	log_firstcall();
+
+	IDirectDraw* ddraw1;
+	DDSURFACEDESC2 desc;
+	LPGUID guid;
+	uint32 bpp = 16;
+	HRESULT r;
+
+	if (driver) if (!(driver->flags & DirectDraw_DriverFlags::DIRECTDRAW_FLAG_DRIVER_VALID)) driver = nullptr;
+	if (device) if (!(device->flags & DirectDraw_DeviceFlags::DIRECTDRAW_FLAG_DEVICE_VALID)) device = nullptr;
+	if (mode) if (!(mode->flags & DirectDraw_ModeFlags::DIRECTDRAW_FLAG_MODE_VALID)) mode = nullptr;
+
+	if (mode) {
+		width = mode->width;
+		height = mode->height;
+		bpp = mode->bitDepth;
+	}
+
+	directDrawGlobs.width = width;
+	directDrawGlobs.height = height;
+	directDrawGlobs.fullScreen = fullscreen;
+
+	if (driver == nullptr) guid = nullptr;
+	else if (driver->flags & DirectDraw_DriverFlags::DIRECTDRAW_FLAG_DRIVER_PRIMARY) guid = nullptr;
+	else guid = const_cast<GUID*>(&driver->guid);
+
+	Main_SetupDisplay(fullscreen, xPos, yPos, width, height);
+
+	if (::DirectDrawCreate(guid, &ddraw1, 0) == DD_OK){
+		if (ddraw1->QueryInterface(IID_IDirectDraw4, (void**)&directDrawGlobs.lpDirectDraw) == DD_OK){
+			if (directDrawGlobs.lpDirectDraw->SetCooperativeLevel(directDrawGlobs.hWnd, fullscreen?(DDSCL_EXCLUSIVE|DDSCL_FULLSCREEN):DDSCL_NORMAL) == DD_OK){
+				if (fullscreen) r = directDrawGlobs.lpDirectDraw->SetDisplayMode(width, height, bpp, 0, 0);
+				else r = DD_OK;
+
+				if (r == DD_OK) {
+					std::memset(&desc, 0, sizeof(desc));
+					desc.dwSize = sizeof(desc);
+					desc.dwFlags = DDSD_CAPS;
+					desc.ddsCaps.dwCaps = DDSCAPS_3DDEVICE | DDSCAPS_PRIMARYSURFACE;
+					if (fullscreen) {
+						desc.dwFlags |= DDSD_BACKBUFFERCOUNT;
+						desc.dwBackBufferCount = 1;
+						desc.ddsCaps.dwCaps |= DDSCAPS_FLIP | DDSCAPS_COMPLEX;
+					}
+					
+					if (directDrawGlobs.lpDirectDraw->CreateSurface(&desc, &directDrawGlobs.fSurf, 0) == DD_OK){
+						
+						if (!fullscreen) {
+							// Create the back buffer
+							desc.ddsCaps.dwCaps &= ~DDSCAPS_PRIMARYSURFACE;
+							desc.ddsCaps.dwCaps |= DDSCAPS_OFFSCREENPLAIN;
+							desc.dwFlags |= DDSD_HEIGHT | DDSD_WIDTH;
+							desc.dwWidth  = width;
+							desc.dwHeight = height;
+							r = directDrawGlobs.lpDirectDraw->CreateSurface(&desc, &directDrawGlobs.bSurf, nullptr);
+						} else {
+							DDSCAPS2 ddscaps;
+							std::memset(&ddscaps, 0, sizeof(ddscaps));
+							ddscaps.dwCaps = DDSCAPS_BACKBUFFER;
+							r = directDrawGlobs.fSurf->GetAttachedSurface(&ddscaps, &directDrawGlobs.bSurf);
+						}
+						
+						if (r == DD_OK) {
+							if (DirectDraw_CreateClipper(fullscreen, width, height)){
+								if (Main_SetupDirect3D(device, ddraw1, directDrawGlobs.bSurf, fullscreen)){
+
+									// Everything went OK, so tidy up and return
+									ddraw1->Release();
+
+									/// NOTE: global cursor behavior to pay attention to
+									///  when fixing cursor visibility over title bar.
+									/// FIX APPLY: (by removing) Show cursor over title bar
+									///  This has been removed along with Main_SetupDisplay's windowed ShowCursor(false).
+									///  The fix is then handled with the Main_WndProc message WM_SETCURSOR.
+									//if (fullscreen) ::ShowCursor(false);
+
+									return true;
+									
+								}
+							}
+							directDrawGlobs.bSurf->Release();
+							directDrawGlobs.bSurf = nullptr;
+						} else Error_Warn(true, "Error creating back surface");
+						directDrawGlobs.fSurf->Release();
+						directDrawGlobs.fSurf = nullptr;
+					} else Error_Warn(true, "Error creating front surface");
+				} else Error_Warn(true, "Cannot set Display Mode");
+			} else Error_Warn(true, "Cannot set Cooperative Level");
+			directDrawGlobs.lpDirectDraw->Release();
+			directDrawGlobs.lpDirectDraw = nullptr;
+		} else Error_Warn(true, "Cannot obtain DirectDraw2");
+		ddraw1->Release();
+	} else Error_Warn(true, "Cannot create DirectDraw");
+	
+	return false;
 }
 
 // <LegoRR.exe @0047cb90>
 void __cdecl Gods98::DirectDraw_Flip(void)
 {
+	log_firstcall();
+
 	if (directDrawGlobs.fullScreen) {
 		HRESULT r = directDrawGlobs.fSurf->Flip(0, DDFLIP_WAIT);
 		Error_Fatal(r == DDERR_SURFACELOST, "Surface lost");
@@ -336,6 +445,8 @@ bool32 __cdecl Gods98::DirectDraw_SaveBMP(IDirectDrawSurface4* surface, const ch
 // <LegoRR.exe @0047cee0>
 void __cdecl Gods98::DirectDraw_ReturnFrontBuffer(void)
 {
+	log_firstcall();
+
 	if (directDrawGlobs.fullScreen) {
 		directDrawGlobs.bSurf->Blt(nullptr, directDrawGlobs.fSurf, nullptr, DDBLT_WAIT, nullptr);
 	}
@@ -344,6 +455,8 @@ void __cdecl Gods98::DirectDraw_ReturnFrontBuffer(void)
 // <LegoRR.exe @0047cf10>
 void __cdecl Gods98::DirectDraw_BlitBuffers(void)
 {
+	log_firstcall();
+
 	// Calculate the destination blitting rectangle
 	//	::GetClientRect(directDrawGlobs.hWnd, &dest);
 
@@ -366,9 +479,9 @@ void __cdecl Gods98::DirectDraw_BlitBuffers(void)
 	HRESULT r = directDrawGlobs.fSurf->Blt(&dest, directDrawGlobs.bSurf, &src, DDBLT_WAIT, nullptr);
 	Error_Fatal(r == DDERR_SURFACELOST, "Front surface lost");
 
-/*		while (TRUE){
+/*		while (true){
 
-		if ((ddrval = directDrawGlobs.fSurf->lpVtbl->Blt(directDrawGlobs.fSurf, &dest, directDrawGlobs.bSurf, &src, DDBLT_WAIT, NULL)) == DD_OK){
+		if ((ddrval = directDrawGlobs.fSurf->lpVtbl->Blt(directDrawGlobs.fSurf, &dest, directDrawGlobs.bSurf, &src, DDBLT_WAIT, nullptr)) == DD_OK){
 			break;
 		if(ddrval == DDERR_SURFACELOST) if(!Ddraw_RestoreSurfaces()) break;
 		if(ddrval != DDERR_WASSTILLDRAWING) break;
@@ -382,6 +495,8 @@ void __cdecl Gods98::DirectDraw_BlitBuffers(void)
 // <LegoRR.exe @0047cfb0>
 void __cdecl Gods98::DirectDraw_Shutdown(void)
 {
+	log_firstcall();
+
 	if (directDrawGlobs.fSurf) directDrawGlobs.fSurf->Release();
 	if (directDrawGlobs.lpFrontClipper) directDrawGlobs.lpFrontClipper->Release();
 	if (directDrawGlobs.lpBackClipper) directDrawGlobs.lpBackClipper->Release();
@@ -395,6 +510,8 @@ void __cdecl Gods98::DirectDraw_Shutdown(void)
 // <LegoRR.exe @0047d010>
 void __cdecl Gods98::DirectDraw_AdjustTextureUsage(IN OUT uint32* textureUsage)
 {
+	log_firstcall();
+
 	// Adjust the texture usage for cards that don't like 8 bit textures...
 
 	DDPIXELFORMAT pixelFormat;
@@ -418,6 +535,8 @@ void __cdecl Gods98::DirectDraw_AdjustTextureUsage(IN OUT uint32* textureUsage)
 // <LegoRR.exe @0047d090>
 bool32 __cdecl Gods98::DirectDraw_GetAvailTextureMem(OUT uint32* total, OUT uint32* avail)
 {
+	log_firstcall();
+
 	DDSCAPS2 ddsc;
 
 	std::memset(&ddsc, 0, sizeof(ddsc));
@@ -440,6 +559,8 @@ bool32 __cdecl Gods98::DirectDraw_GetAvailTextureMem(OUT uint32* total, OUT uint
 // <LegoRR.exe @0047d0e0>
 void __cdecl Gods98::DirectDraw_Clear(const Area2F* window, uint32 colour)
 {
+	log_firstcall();
+
 	DDBLTFX bltFX;
 
 	std::memset(&bltFX, 0, sizeof(DDBLTFX));
@@ -458,11 +579,59 @@ void __cdecl Gods98::DirectDraw_Clear(const Area2F* window, uint32 colour)
 }
 
 // <LegoRR.exe @0047d1a0>
-bool32 __cdecl Gods98::DirectDraw_CreateClipper(bool32 fullscreen, uint32 width, uint32 height);
+bool32 __cdecl Gods98::DirectDraw_CreateClipper(bool32 fullscreen, uint32 width, uint32 height)
+{
+	log_firstcall();
+
+	//HRGN handle;
+	//ULONG size;
+	//RGNDATA* region;
+
+	if (directDrawGlobs.lpDirectDraw->CreateClipper(0, &directDrawGlobs.lpBackClipper, nullptr) == DD_OK){
+
+		HRGN handle = ::CreateRectRgn(0, 0, width, height);
+		uint32 size = ::GetRegionData(handle, 0, nullptr);
+		RGNDATA* region = (RGNDATA*)Mem_Alloc(size);
+		::GetRegionData(handle, size, region);
+
+		if (directDrawGlobs.lpBackClipper->SetClipList(region, 0) == DD_OK){
+			
+			Mem_Free(region);
+
+			if (directDrawGlobs.bSurf->SetClipper(directDrawGlobs.lpBackClipper) == DD_OK){
+				if (!fullscreen) {
+					// Create the window clipper
+					if (directDrawGlobs.lpDirectDraw->CreateClipper(0, &directDrawGlobs.lpFrontClipper, nullptr) == DD_OK){
+						// Associate the clipper with the window (obtain window sizes).
+						if (directDrawGlobs.lpFrontClipper->SetHWnd(0, directDrawGlobs.hWnd) == DD_OK){
+							if (directDrawGlobs.fSurf->SetClipper(directDrawGlobs.lpFrontClipper) == DD_OK){
+								
+								return true;
+								
+							} else Error_Warn(true, "Cannot attach clipper to front buffer");
+						} else Error_Warn(true, "Cannot initialise clipper from hWnd");
+					} else Error_Warn(true, "Cannot create front clipper");
+				} else {
+					// Fullscreen, we can skip the rest above
+					return true;
+				}
+				
+			} else Error_Warn(true, "Cannot attach clipper to back buffer");
+			directDrawGlobs.lpBackClipper->Release();
+			directDrawGlobs.lpBackClipper = nullptr;
+		} else Error_Warn(true, "Cannot set clip list");
+		Mem_Free(region);
+
+	}
+
+	return false;
+}
 
 // <LegoRR.exe @0047d2c0>
 void __cdecl Gods98::DirectDraw_Blt8To16(IDirectDrawSurface4* target, IDirectDrawSurface4* source, PALETTEENTRY* palette)
 {
+	log_firstcall();
+
 	DDSURFACEDESC2 tDesc, sDesc;
 	uint32 rBits, gBits, bBits;
 	uint8 index, r, g, b;
@@ -522,6 +691,8 @@ void __cdecl Gods98::DirectDraw_Blt8To16(IDirectDrawSurface4* target, IDirectDra
 // <LegoRR.exe @0047d590>
 uint32 __cdecl Gods98::DirectDraw_GetColour(IDirectDrawSurface4* surf, uint32 colour)
 {
+	log_firstcall();
+
 	DDPIXELFORMAT pf;
 	uint32 rbc, gbc, bbc, r, g, b;
 
@@ -566,6 +737,8 @@ uint32 __cdecl Gods98::DirectDraw_GetColour(IDirectDrawSurface4* surf, uint32 co
 // <LegoRR.exe @0047d6b0>
 uint32 __cdecl Gods98::DirectDraw_GetNumberOfBits(uint32 mask)
 {
+	log_firstcall();
+
 	uint32 bc = 0;
 	while (mask) {
 		mask = mask & (mask - 1);

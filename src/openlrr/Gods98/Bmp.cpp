@@ -9,6 +9,8 @@
 // <LegoRR.exe @00489ef0>
 void __cdecl Gods98::BMP_Parse(const void* data, uint32 size, OUT D3DRMIMAGE* istruct)
 {
+	log_firstcall();
+
 	BMP_Header* header = (BMP_Header *)data;
 	uint32 colourCount = 0;
 
@@ -52,8 +54,8 @@ void __cdecl Gods98::BMP_Parse(const void* data, uint32 size, OUT D3DRMIMAGE* is
 	}
 	istruct->bytes_per_line = ((istruct->width * bpp) + 3) & ~3;
 
-	//	istruct->buffer1 = &((LPUCHAR) data)[sizeof(BMP_Header) + (colourCount * sizeof(D3DRMPALETTEENTRY))];
-	istruct->buffer1 = &((char*)data)[header->img_offset];
+//	istruct->buffer1 = &((LPUCHAR) data)[sizeof(BMP_Header) + (colourCount * sizeof(D3DRMPALETTEENTRY))];
+	istruct->buffer1 = &((uint8*)data)[header->img_offset];
 
 	istruct->buffer2 = nullptr;
 
@@ -63,6 +65,8 @@ void __cdecl Gods98::BMP_Parse(const void* data, uint32 size, OUT D3DRMIMAGE* is
 // <LegoRR.exe @0048a030>
 void __cdecl Gods98::BMP_Cleanup(D3DRMIMAGE* istruct)
 {
+	log_firstcall();
+
 	if (istruct->palette) Mem_Free(istruct->palette);
 }
 

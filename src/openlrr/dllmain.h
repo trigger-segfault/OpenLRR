@@ -9,6 +9,8 @@ extern HINSTANCE g_hDllInstance;
 // This requires `extern "C"` and `__cdecl` to avoid function name mangling.
 extern "C" __declspec(dllexport) void __cdecl Dummy(void);
 
+FILE* MakeConsole();
+
 // Entry point where we inject any desired functions.
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved);
 

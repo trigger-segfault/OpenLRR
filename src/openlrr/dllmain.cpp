@@ -13,7 +13,7 @@ static BOOL isAttached = false;
 extern "C" __declspec(dllexport) void __cdecl Dummy(void) { }
 
 
-static FILE* MakeConsole()
+FILE* MakeConsole()
 {
     FILE* pConsoleFile = NULL;
     AllocConsole();
@@ -33,13 +33,20 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     switch (fdwReason)
     {
     case DLL_PROCESS_ATTACH:
-        MakeConsole();
-        std::printf("[0x%08x] DLL_PROCESS_ATTACH\n", ::timeGetTime());
+        //::CreateThread(NULL, )
+        /*if (::ResumeThread(ProcessInfo.hThread) == (DWORD)-1) {
+            _tprintf(_T("ResumeThread failed\n"));
+            return_error(-1);
+        }*/
+        interop_hook_Gods98_WinMain();
+        //MakeConsole();
+        //std::printf("[0x%08x] DLL_PROCESS_ATTACH\n", ::timeGetTime());
         g_hDllInstance = hModule;
         if (!isAttached) {
-            std::printf("[0x%08x] DLL_PROCESS_ATTACH starting...\n", ::timeGetTime());
+            //std::printf("[0x%08x] DLL_PROCESS_ATTACH starting...\n", ::timeGetTime());
 
-            interop_hook_all();
+            //interop_hook_WinMain_call();
+            //interop_hook_all();
 
             isAttached = true;
         }
@@ -53,7 +60,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
         //InjectFunction::UnloadAll();
         //break;
     case DLL_PROCESS_DETACH:
-        std::printf("[0x%08x] DLL_PROCESS_DETACH\n", ::timeGetTime());
+        //std::printf("[0x%08x] DLL_PROCESS_DETACH\n", ::timeGetTime());
         //InjectFunction::UnloadAll();
         break;
     }

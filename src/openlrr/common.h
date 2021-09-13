@@ -18,8 +18,8 @@
 #define WIN32_LEAN_AND_MEAN
 // dinput.h version. NOTE: Normally this is 0x500 (v5) in LegoRR,
 //  but we don't need to try to support that.
-//#define DIRECTINPUT_VERSION				0x800
-#define DIRECTINPUT_VERSION				0x500
+#define DIRECTINPUT_VERSION				0x800
+//#define DIRECTINPUT_VERSION				0x500
 #pragma endregion
 
 // Header File Includes:
@@ -76,9 +76,9 @@
 
 // Library Comments for Header Files:
 #pragma region Library Comments
-/*// Direct X Header Files and Library
+// Direct X Header Files and Library
 #pragma comment(lib, "ddraw.lib")		// DirectDraw
-#pragma comment(lib, "dsound.lib")		// DirectSound
+//#pragma comment(lib, "dsound.lib")		// DirectSound
 #pragma comment(lib, "dinput8.lib")		// DirectInput 8.0
 #pragma comment(lib, "winmm.lib")		// Multimedia System and timeGetTime()
 #pragma comment(lib, "dxguid.lib")		// GUID + IID constants
@@ -90,9 +90,8 @@
 #pragma comment(lib, "vfw32.lib")		// AVIFile
 
 // Windows Process and memory management (for inspecting runnings instance of LegoRR.exe)
-#pragma comment(lib, "psapi.lib")		// EnumProcesses() + OpenProcess()*/
+//#pragma comment(lib, "psapi.lib")		// EnumProcesses() + OpenProcess()
 #pragma endregion
-#pragma comment(lib, "winmm.lib")		// Multimedia System and timeGetTime()
 
 
 // Project-global Defines:
@@ -166,3 +165,9 @@ static_assert(sizeof(BoolTri) == 0x4, "");
 #define log_firstcall() { static bool _log_firstcallbool = false; \
 	if (!_log_firstcallbool) {_log_firstcallbool = true; \
 		std::printf("%s called\n", __FUNCTION__); } }
+
+#define noinline(funcname) _noinline_ ##funcname
+
+#define def_inline(ret, funcname, ...) ret __cdecl noinline(funcname) ##__VA_ARGS__ ; __inline ret funcname ##__VA_ARGS__
+// a slapdash approach for standardizing no-inlined method names that can be safely hooked
+//#define noinline(funcname) _noinline_ ##funcname

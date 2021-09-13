@@ -32,6 +32,8 @@ Gods98::Init_Globs & Gods98::initGlobs = *(Gods98::Init_Globs*)0x005590a0; // (n
 // <LegoRR.exe @0049d2f0>
 bool32 __cdecl Gods98::Init_Initialise(bool32 setup, bool32 debug, bool32 best, bool32 window, const char* noHALMsg)
 {
+	log_firstcall();
+
 	sint32 rval = IDOK;
 	bool32 ok;
 
@@ -126,6 +128,8 @@ bool32 __cdecl Gods98::Init_Initialise(bool32 setup, bool32 debug, bool32 best, 
 // <LegoRR.exe @0049d5b0>
 BOOL __stdcall Gods98::Init_DialogProc(HWND hWndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	log_firstcall();
+
 	if (WM_INITDIALOG == uMsg){
 
 		RECT deskRect, dlgRect;
@@ -200,6 +204,8 @@ BOOL __stdcall Gods98::Init_DialogProc(HWND hWndDlg, UINT uMsg, WPARAM wParam, L
 // <LegoRR.exe @0049d8a0>
 void __cdecl Gods98::Init_SetFullScreen(HWND hWndDlg, bool32 on)
 {
+	log_firstcall();
+
 	initGlobs.selFullScreen = on;
 	Init_SetModeList(hWndDlg);
 	HWND hWndText = ::GetDlgItem(hWndDlg, IDC_MODELISTTEXT);
@@ -212,7 +218,8 @@ void __cdecl Gods98::Init_SetFullScreen(HWND hWndDlg, bool32 on)
 // <LegoRR.exe @0049d8f0>
 void __cdecl Gods98::Init_SetModeList(HWND hWndDlg)
 {
-	uint32 loop;
+	log_firstcall();
+
 	bool32 first = true;
 
 	HWND hWndList = ::GetDlgItem(hWndDlg, IDC_MODE);
@@ -248,6 +255,8 @@ void __cdecl Gods98::Init_SetModeList(HWND hWndDlg)
 // <LegoRR.exe @0049da40>
 void __cdecl Gods98::Init_SetDeviceList(HWND hWndDlg)
 {
+	log_firstcall();
+
 	uint32 best = 0;
 
 	HWND hWndList = ::GetDlgItem(hWndDlg, IDC_DEVICE);
@@ -276,6 +285,8 @@ void __cdecl Gods98::Init_SetDeviceList(HWND hWndDlg)
 // <LegoRR.exe @0049db30>
 void __cdecl Gods98::Init_AddValidMode(uint32 width, uint32 height, uint32 depth)
 {
+	log_firstcall();
+
 	initGlobs.validModes[initGlobs.validModeCount].width = width;
 	initGlobs.validModes[initGlobs.validModeCount].height = height;
 	initGlobs.validModes[initGlobs.validModeCount].bitDepth = depth;
@@ -287,6 +298,8 @@ void __cdecl Gods98::Init_AddValidMode(uint32 width, uint32 height, uint32 depth
 // <LegoRR.exe @0049db90>
 bool32 __cdecl Gods98::Init_IsValidMode(uint32 mode)
 {
+	log_firstcall();
+
 	if (initGlobs.validModeCount) {
 
 		for (uint32 loop = 0; loop < initGlobs.validModeCount; loop++) {
@@ -308,6 +321,8 @@ bool32 __cdecl Gods98::Init_IsValidMode(uint32 mode)
 // <LegoRR.exe @0049dc10>
 bool32 __cdecl Gods98::Init_GetMode(const char* name, OUT uint32* mode)
 {
+	log_firstcall();
+
 	for (uint32 loop = 0; loop < initGlobs.modeCount; loop++) {
 		if (std::strcmp(initGlobs.modes[loop].desc, name) == 0) {
 
@@ -324,6 +339,8 @@ bool32 __cdecl Gods98::Init_GetMode(const char* name, OUT uint32* mode)
 // <LegoRR.exe @0049dc90>
 void __cdecl Gods98::Init_HandleWindowButton(HWND hWndDlg)
 {
+	log_firstcall();
+
 	HWND hWndButton;
 
 	if (initGlobs.selDriver->flags & DIRECTDRAW_FLAG_DRIVER_WINDOWOK) {

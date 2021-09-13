@@ -2,7 +2,7 @@
 
 #include "../common.h"
 #include "../Types/geometry.h"
-#include "Maths.h"
+//#include "Maths.h"
 
 
 /**********************************************************************************
@@ -15,7 +15,7 @@ struct IDirectDraw4;
 struct IDirectDrawSurface4;
 struct IDirectDrawClipper;
 struct tagPALETTEENTRY;
-typedef tagPALETTEENTRY PALETTEENTRY;
+typedef struct tagPALETTEENTRY PALETTEENTRY;
 //struct PALETTEENTRY;
 //enum D3DRENDERSTATETYPE : uint32;
 
@@ -197,21 +197,23 @@ extern DirectDraw_Globs & directDrawGlobs;
 #pragma region Functions
 
 // <LegoRR.exe @00406500>
-__inline IDirectDraw4* __cdecl DirectDraw() { return directDrawGlobs.lpDirectDraw; }
+IDirectDraw4* __cdecl noinline(DirectDraw)(void);
+__inline IDirectDraw4* DirectDraw(void) { return directDrawGlobs.lpDirectDraw; }
 
 // <LegoRR.exe @00406510>
-__inline IDirectDrawSurface4* __cdecl DirectDraw_bSurf() { return directDrawGlobs.bSurf; }
+IDirectDrawSurface4* __cdecl noinline(DirectDraw_bSurf)(void);
+__inline IDirectDrawSurface4* DirectDraw_bSurf(void) { return directDrawGlobs.bSurf; }
 
 
 // <unused>
-__inline IDirectDrawSurface4* __cdecl DirectDraw_fSurf() { return directDrawGlobs.fSurf; }
+__inline IDirectDrawSurface4* DirectDraw_fSurf(void) { return directDrawGlobs.fSurf; }
 
 // <unused>
-__inline bool32 __cdecl DirectDraw_FullScreen() { return directDrawGlobs.fullScreen; }
+__inline bool32 DirectDraw_FullScreen(void) { return directDrawGlobs.fullScreen; }
 
 
-//__inline bool32 __cdecl DirectDraw_SetupFullScreen(lpDirectDraw_Driver driver, lpDirectDraw_Device device, lpDirectDraw_Mode mode)	{ return DirectDraw_Setup(TRUE, driver, device, mode, 0, 0, 320, 200); }
-//__inline bool32 __cdecl DirectDraw_SetupWindowed(lpDirectDraw_Device device, ULONG xPos, ULONG yPos, ULONG width, ULONG height)		{ return DirectDraw_Setup(FALSE, NULL, device, NULL, xPos, yPos, width, height); }
+//__inline bool32 DirectDraw_SetupFullScreen(lpDirectDraw_Driver driver, lpDirectDraw_Device device, lpDirectDraw_Mode mode)	{ return DirectDraw_Setup(TRUE, driver, device, mode, 0, 0, 320, 200); }
+//__inline bool32 DirectDraw_SetupWindowed(lpDirectDraw_Device device, ULONG xPos, ULONG yPos, ULONG width, ULONG height)		{ return DirectDraw_Setup(FALSE, NULL, device, NULL, xPos, yPos, width, height); }
 
 
 // <LegoRR.exe @0047c430>
@@ -280,10 +282,10 @@ uint32 __cdecl DirectDraw_GetNumberOfBits(uint32 mask);
 
 
 // <inlined>
-__inline bool32 __cdecl DirectDraw_SetupFullScreen(const DirectDraw_Driver* driver, const DirectDraw_Device* device, const DirectDraw_Mode* mode) { return DirectDraw_Setup(true, driver, device, mode, 0, 0, 320, 200); }
+__inline bool32 DirectDraw_SetupFullScreen(const DirectDraw_Driver* driver, const DirectDraw_Device* device, const DirectDraw_Mode* mode) { return DirectDraw_Setup(true, driver, device, mode, 0, 0, 320, 200); }
 
 // <inlined>
-__inline bool32 __cdecl DirectDraw_SetupWindowed(const DirectDraw_Device* device, uint32 xPos, uint32 yPos, uint32 width, uint32 height) { return DirectDraw_Setup(false, nullptr, device, nullptr, xPos, yPos, width, height); }
+__inline bool32 DirectDraw_SetupWindowed(const DirectDraw_Device* device, uint32 xPos, uint32 yPos, uint32 width, uint32 height) { return DirectDraw_Setup(false, nullptr, device, nullptr, xPos, yPos, width, height); }
 
 #pragma endregion
 

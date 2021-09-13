@@ -39,7 +39,11 @@ static_assert(sizeof(joystickType) == 0x20, "");
 
 struct DIcallbackData
 {
+#if DIRECTINPUT_VERSION == 0x500
 	/*0,4*/ IDirectInputA* di;
+#else
+	/*0,4*/ IDirectInput8A* di;
+#endif
 	/*4,4*/ HWND hWnd;
 	/*8,4*/ joystickType* joystick;
 	/*c*/
@@ -49,11 +53,17 @@ static_assert(sizeof(DIcallbackData) == 0xc, "");
 
 struct Input_Globs
 {
-	// Keyboard state
-	/*000,100*/ bool prevKey_Map[INPUT_MAXKEYS];
+	/*000,100*/ bool prevKey_Map[INPUT_MAXKEYS]; // Keyboard state
+	// [globs: start]
+#if DIRECTINPUT_VERSION == 0x500
 	/*100,4*/ IDirectInputA* lpdi;
 	/*104,4*/ IDirectInputDeviceA* lpdiKeyboard;
 	/*108,4*/ IDirectInputDeviceA* lpdiMouse;		// (unused)
+#else
+	/*100,4*/ IDirectInput8A* lpdi;
+	/*104,4*/ IDirectInputDevice8A* lpdiKeyboard;
+	/*108,4*/ IDirectInputDevice8A* lpdiMouse;		// (unused)
+#endif
 	/*10c,4*/ bool32 fKeybdAcquired;
 	/*110,4*/ bool32 fMouseAcquired;							// (unused)
 	/*114,10*/ RECT MouseBounds;						// Bounding box in which mouse may move
@@ -73,10 +83,12 @@ struct Input_Globs
 	/*158,4*/ bool32 rDoubleClicked;
 	/*15c,4*/ bool32 caps;
 	/*160,10*/ DIMOUSESTATE dims;
+	// [globs: end]
 	/*170,c*/ DIcallbackData cbd;
 	/*17c,1*/ char Input_KeyTemp;
-	///*17d,3*/ unsigned char padding1[3];
-	/*180,100*/ bool Key_Map[INPUT_MAXKEYS];
+	// THIS PADDING IS NEEDED so that Key_Map aligns to 180
+	/*17d,3*/ uint8 padding1[3];
+	/*180,100*/ bool Key_Map[INPUT_MAXKEYS]; // Keyboard state
 	/*280*/
 };
 static_assert(sizeof(Input_Globs) == 0x280, "");
@@ -104,29 +116,35 @@ extern Input_Globs & INPUT;
 
 // Mouse data
 // <LegoRR.exe @00410a60>
-__inline sint32 __cdecl msx() { return INPUT.msx; }		// Mouse positions
+sint32 __cdecl noinline(msx)(void);
+__inline sint32 msx(void) { return INPUT.msx; }		// Mouse positions
+///*__inline*/ sint32 __cdecl msx(void);// { return INPUT.msx; }		// Mouse positions
 
 // <LegoRR.exe @00410a70>
-__inline sint32 __cdecl msy() { return INPUT.msy; }
+sint32 __cdecl noinline(msy)(void);
+__inline sint32 msy(void) { return INPUT.msy; }
+//def_inline(sint32, msy, (void)) { return INPUT.msy; }
+
 
 // <LegoRR.exe @00410a80>
-__inline bool32 __cdecl mslb() { return INPUT.mslb; }		// Left and right mouse buttons
+bool32 __cdecl noinline(mslb)(void);
+__inline bool32 mslb(void) { return INPUT.mslb; }		// Left and right mouse buttons
 
 
 // <inlined>
-__inline bool32 __cdecl msrb() { return INPUT.msrb; }
+__inline bool32 msrb(void) { return INPUT.msrb; }
 
 // <inlined>
-__inline sint32 __cdecl msxr() { return INPUT.diffx; }		// Relative mouse movement
+__inline sint32 msxr(void) { return INPUT.diffx; }		// Relative mouse movement
 
 // <inlined>
-__inline sint32 __cdecl msyr() { return INPUT.diffy; }
+__inline sint32 msyr(void) { return INPUT.diffy; }
 
 // <inlined>
-__inline bool32 __cdecl mslbheld() { return INPUT.mslbheld; }
+__inline bool32 mslbheld(void) { return INPUT.mslbheld; }
 
 // <inlined>
-__inline bool32 __cdecl Input_LClicked() { return INPUT.lClicked; }
+__inline bool32 Input_LClicked(void) { return INPUT.lClicked; }
 
 
 
@@ -157,7 +175,7 @@ BOOL __cdecl Input_SetCursorPos(sint32 x, sint32 y);
 
 
 // Initialize the mouse
-bool32 __cdecl Input_InitMouse(bool32 GrabExclusiveAccess, sint32 sx, sint32 sy, RECT Bounds);
+//bool32 __cdecl Input_InitMouse(bool32 GrabExclusiveAccess, sint32 sx, sint32 sy, RECT Bounds);
 
 /*// Release the mouse
 void __cdecl Input_ReleaseMouse(void);

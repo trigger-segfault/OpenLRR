@@ -28,9 +28,22 @@ namespace Gods98
 
 #pragma region Enums
 
-#define TEXTWINDOW_FLAG_WINDOWWRAPPED	0x00000001
-#define TEXTWINDOW_FLAG_OVERLAY			0x00000002
-#define TEXTWINDOW_FLAG_CENTERED		0x00000004
+//#define TEXTWINDOW_FLAG_WINDOWWRAPPED	0x00000001
+//#define TEXTWINDOW_FLAG_OVERLAY			0x00000002
+//#define TEXTWINDOW_FLAG_CENTERED		0x00000004
+
+namespace _ns_TextWindowFlags {
+enum TextWindowFlags : uint32
+{
+	TEXTWINDOW_FLAG_NONE = 0, // (unused)
+
+	TEXTWINDOW_FLAG_WINDOWWRAPPED = 0x1,
+	TEXTWINDOW_FLAG_OVERLAY = 0x2,
+	TEXTWINDOW_FLAG_CENTERED = 0x4,
+};
+DEFINE_ENUM_FLAG_OPERATORS(TextWindowFlags);
+static_assert(sizeof(TextWindowFlags) == 0x4, "");
+} using TextWindowFlags = _ns_TextWindowFlags::TextWindowFlags;
 
 #pragma endregion
 
@@ -40,7 +53,7 @@ namespace Gods98
 
 #pragma region Structs
 
-typedef struct TextWindow
+struct TextWindow
 {
 	/*000,4*/ Font* font;
 	/*004,10*/ Area2F windowSize;
@@ -52,9 +65,9 @@ typedef struct TextWindow
 	/*820,4*/ uint32 usedLines; // (count)
 	/*824,4*/ uint32 maxLines;  // (capacity)
 	/*828,4*/ real32 displayDelay;
-	/*82c,4*/ uint32 flags;
+	/*82c,4*/ TextWindowFlags flags;
 	/*830*/
-} TextWindow, *lpTextWindow;
+};// TextWindow, * lpTextWindow;
 static_assert(sizeof(TextWindow) == 0x830, "");
 
 #pragma endregion
@@ -105,8 +118,14 @@ void __cdecl TextWindow_Clear(TextWindow* window);
 void __cdecl TextWindow_GetInfo(TextWindow* window, OUT uint32* linesUsed, OUT uint32* linesInWindow);
 
 
-//sint32 __cdecl TextWindow_GetRow(TextWindow* window, sint32 chrPos, sint32 dir);
-//void __cdecl TextWindow_SetFont(TextWindow* window, Font* font);
+// <unused>
+sint32 __cdecl TextWindow_GetDrawPos(TextWindow* window, uint32 chrPos, uint32 line, uint32 xpos, bool32 check);
+
+// <unused>
+sint32 __cdecl TextWindow_GetRow(TextWindow* window, sint32 chrPos, sint32 dir);
+
+// <unused>
+void __cdecl TextWindow_SetFont(TextWindow* window, Font* font);
 
 #pragma endregion
 

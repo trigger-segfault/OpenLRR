@@ -35,17 +35,21 @@ typedef void Movie_t;
 
 // <LegoRR.exe @00472820>
 Movie_t* __cdecl Movie_Load(const char* fName);
+
 // cannot be const, due to using IDirectDraw-type interface
 // <LegoRR.exe @00472930>
 void __cdecl Movie_GetSize(Movie_t* mov, OUT uint32* width, OUT uint32* height);
-/// NOTE: Name may be changed to Movie_GetLength
+
+// Gets the movie duration in milliseconds.
 // cannot be const, due to using IMultiMedia-type interface
 // <LegoRR.exe @00472980>
 sint64 __cdecl Movie_GetDuration(Movie_t* mov);
+
 // also performs BlitToBackBuffer
 // float speed parameter is unused (name is assumed as 1.0f is always passed)
 // <LegoRR.exe @00472990>
 bool32 __cdecl Movie_Update(Movie_t* mov, real32 speed, const RECT* destRect);
+
 // <LegoRR.exe @004729b0>
 void __cdecl Movie_Free(Movie_t* mov);
 

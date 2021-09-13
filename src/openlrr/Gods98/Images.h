@@ -2,7 +2,29 @@
 
 #include "../common.h"
 #include "../Types/geometry.h"
-#include "Maths.h"
+//#include "Maths.h"
+
+
+/**********************************************************************************
+ ******** Forward Global Namespace Declarations
+ **********************************************************************************/
+
+#pragma region Forward Declarations
+
+struct _D3DRMIMAGE;
+typedef struct _D3DRMIMAGE D3DRMIMAGE;
+struct IDirectDraw4;
+struct IDirectDrawSurface4;
+struct IDirectDrawClipper;
+struct _DDSURFACEDESC2;
+typedef struct _DDSURFACEDESC2 DDSURFACEDESC2;
+struct tagPALETTEENTRY;
+typedef struct tagPALETTEENTRY PALETTEENTRY;
+typedef unsigned long COLORREF;
+//struct PALETTEENTRY;
+//enum D3DRENDERSTATETYPE : uint32;
+
+#pragma endregion
 
 
 namespace Gods98
@@ -33,6 +55,7 @@ namespace Gods98
 #define IMAGE_VERTEXFLAGS		(D3DFVF_DIFFUSE|D3DFVF_XYZRHW|D3DFVF_TEX1)
 
 
+namespace _ns_Image_GlobFlags {
 enum Image_GlobFlags : uint32
 {
 	IMAGE_FLAG_NONE        = 0,
@@ -40,7 +63,9 @@ enum Image_GlobFlags : uint32
 };
 DEFINE_ENUM_FLAG_OPERATORS(Image_GlobFlags);
 static_assert(sizeof(Image_GlobFlags) == 0x4, "");
+} using Image_GlobFlags = _ns_Image_GlobFlags::Image_GlobFlags;
 
+namespace _ns_ImageFlags {
 enum ImageFlags : uint32
 {
 	IMAGE_FLAG_NONE    = 0,
@@ -50,6 +75,7 @@ enum ImageFlags : uint32
 };
 DEFINE_ENUM_FLAG_OPERATORS(ImageFlags);
 static_assert(sizeof(ImageFlags) == 0x4, "");
+} using ImageFlags = _ns_ImageFlags::ImageFlags;
 
 enum Image_TextureMode : sint32
 {
@@ -95,7 +121,7 @@ typedef struct Image
 	/*0c,4*/ uint32 penZero;
 	/*10,4*/ uint32 pen255;
 	/*14,4*/ uint32 penZeroRGB;
-	/*18,4*/ uint32 flags;
+	/*18,4*/ ImageFlags flags;
 	/*1c,4*/ Image *nextFree;
 	/*20*/
 } Image, *lpImage;
@@ -123,7 +149,7 @@ static_assert(sizeof(Image_Globs) == 0x8c, "");
 #pragma region Globals
 
 // <LegoRR.exe @00534908>
-extern Image_Globs imageGlobs;
+extern Image_Globs & imageGlobs;
 
 #pragma endregion
 
@@ -147,10 +173,10 @@ void __cdecl Image_Shutdown(void);
 void __cdecl Image_Remove(Image* dead);
 
 // <LegoRR.exe @0047d750>
-BOOL __cdecl Image_CopyToDataToSurface(IDirectDrawSurface4* surface, D3DRMIMAGE* image);
+bool32 __cdecl Image_CopyToDataToSurface(IDirectDrawSurface4* surface, D3DRMIMAGE* image);
 
 // <LegoRR.exe @0047d7e0>
-BOOL __cdecl Image_8BitSourceCopy(DDSURFACEDESC2* desc, D3DRMIMAGE* image);
+bool32 __cdecl Image_8BitSourceCopy(DDSURFACEDESC2* desc, D3DRMIMAGE* image);
 
 // <LegoRR.exe @0047d9c0>
 uint32 __cdecl Image_CountMaskBits(uint32 mask);
@@ -162,10 +188,10 @@ uint32 __cdecl Image_CountMaskBitShift(uint32 mask);
 void __cdecl Image_FlipSurface(DDSURFACEDESC2* desc);
 
 // <LegoRR.exe @0047dac0>
-BOOL __cdecl Image_24BitSourceCopy(DDSURFACEDESC2* desc, D3DRMIMAGE* image);
+bool32 __cdecl Image_24BitSourceCopy(DDSURFACEDESC2* desc, D3DRMIMAGE* image);
 
 // <LegoRR.exe @0047dc90>
-Image* __cdecl Image_LoadBMPScaled(const char* filename, uint32 width, uint32 height);
+Image* __cdecl Image_LoadBMPScaled(const char* fileName, uint32 width, uint32 height);
 
 // <LegoRR.exe @0047de50>
 COLORREF __cdecl Image_RGB2CR(uint8 r, uint8 g, uint8 b);
@@ -192,7 +218,7 @@ colour32 __cdecl Image_GetPen255(Image* image);
 uint32 __cdecl Image_GetPixelMask(Image* image);
 
 // <LegoRR.exe @0047e260>
-BOOL __cdecl Image_GetPixel(Image* image, uint32 x, uint32 y, OUT colour32* colour);
+bool32 __cdecl Image_GetPixel(Image* image, uint32 x, uint32 y, OUT colour32* colour);
 
 // <LegoRR.exe @0047e310>
 Image* __cdecl Image_Create(IDirectDrawSurface4* surface, uint32 width, uint32 height, COLORREF penZero, COLORREF pen255);
@@ -218,7 +244,7 @@ void __cdecl Image_InitFromSurface(Image* newImage, IDirectDrawSurface4* surface
 								uint32 width, uint32 height, COLORREF penZero, COLORREF pen255);
 
 // <LegoRR.exe @0047e700>
-BOOL __cdecl Image_SaveBMP(Image* image, const char* fname);
+bool32 __cdecl Image_SaveBMP(Image* image, const char* fname);
 
 
 // <missing>

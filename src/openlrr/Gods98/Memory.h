@@ -100,24 +100,28 @@ extern Mem_Globs & memGlobs;
 
 // std::malloc(void*)
 // <LegoRR.exe @0048de90>
-inline void * __cdecl Mem_Alloc(uint32 size)
+__inline void * Mem_Alloc(uint32 size)
 {
 	return ((void* (__cdecl*)(uint32))0x0048de90)(size);
 }
 
 // std::free(void*)
 // <LegoRR.exe @0048de40>
-inline void __cdecl Mem_Free(void * addr)
+__inline void Mem_Free(void * addr)
 {
 	((void(__cdecl*)(void*))0x0048de40)(addr);
 }
 
 // std::realloc(void*)
 // <LegoRR.exe @0048df40>
-inline void * __cdecl Mem_ReAlloc(void * addr, uint32 size)
+__inline void * Mem_ReAlloc(void * addr, uint32 size)
 {
 	return ((void*(__cdecl*)(void*, uint32))0x0048df40)(addr, size);
 }
+
+//#define std_Mem_Alloc Mem_Alloc
+//#define std_Mem_Free Mem_Free
+//#define std_Mem_ReAlloc Mem_ReAlloc
 
 
 // <LegoRR.exe @004896b0>

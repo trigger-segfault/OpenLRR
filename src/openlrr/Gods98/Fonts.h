@@ -2,8 +2,8 @@
 
 #include "../common.h"
 #include "../Types/geometry.h"
-#include "Images.h"
-#include "Maths.h"
+//#include "Images.h"
+//#include "Maths.h"
 
 
 namespace Gods98
@@ -14,6 +14,9 @@ namespace Gods98
  **********************************************************************************/
 
 #pragma region Forward Declarations
+
+struct Font;
+struct Image;
 
 #pragma endregion
 
@@ -51,9 +54,32 @@ typedef void (__cdecl* FontRunThroughListsCallback)(Font* font, void* data);
 
 #pragma region Enums
 
-#define FONT_FLAG_INITIALISED	0x00000001
-#define FONT_FLAG_WINDOWSET		0x00000002 // (unused)
-#define FONT_FLAG_WINDOWWRAPPED	0x00000004 // (unused)
+//#define FONT_FLAG_INITIALISED	0x00000001
+//#define FONT_FLAG_WINDOWSET		0x00000002 // (unused)
+//#define FONT_FLAG_WINDOWWRAPPED	0x00000004 // (unused)
+
+
+namespace _ns_Font_GlobFlags {
+enum Font_GlobFlags : uint32
+{
+	FONT_FLAG_NONE = 0,
+	FONT_FLAG_INITIALISED = 0x1,
+};
+DEFINE_ENUM_FLAG_OPERATORS(Font_GlobFlags);
+static_assert(sizeof(Font_GlobFlags) == 0x4, "");
+} using Font_GlobFlags = _ns_Font_GlobFlags::Font_GlobFlags;
+
+namespace _ns_FontFlags {
+enum FontFlags : uint32
+{
+	FONT_FLAG_NONE = 0, // (unused)
+
+	FONT_FLAG_WINDOWSET = 0x2, // (unused)
+	FONT_FLAG_WINDOWWRAPPED = 0x4, // (unused)
+};
+DEFINE_ENUM_FLAG_OPERATORS(FontFlags);
+static_assert(sizeof(FontFlags) == 0x4, "");
+} using FontFlags = _ns_FontFlags::FontFlags;
 
 #pragma endregion
 
@@ -69,7 +95,7 @@ struct Font
 	/*000,be0*/ Area2F posSet[FONT_GRIDWIDTH][FONT_GRIDHEIGHT];
 	/*be4,4*/ uint32 fontHeight;
 	/*be8,4*/ uint32 tabWidth;
-	/*bec,4*/ uint32 flags;
+	/*bec,4*/ FontFlags flags;
 	/*bf0,4*/ Font* nextFree;
 	/*bf4*/
 };// Font, * lpFont;
@@ -81,7 +107,7 @@ struct Font_Globs
 	/*00,80*/ Font* listSet[FONT_MAXLISTS];		// Fonts list
 	/*80,4*/ Font* freeList;
 	/*84,4*/ uint32 listCount;						// number of lists.
-	/*88,4*/ uint32 flags;
+	/*88,4*/ Font_GlobFlags flags;
 	/*8c*/
 };
 static_assert(sizeof(Font_Globs) == 0x8c, "");
@@ -123,10 +149,10 @@ void __cdecl Font_Shutdown(void);
 
 
 // <LegoRR.exe @00401b90>
-uint32 __cdecl Font_GetStringWidth(Font* font, const char* msg, ...);
+uint32 __cdecl noinline(Font_GetStringWidth)(Font* font, const char* msg, ...);
 
 // <LegoRR.exe @00401bc0>
-void __cdecl Font_GetStringInfo(Font* font, OPTIONAL OUT uint32* width,
+void __cdecl noinline(Font_GetStringInfo)(Font* font, OPTIONAL OUT uint32* width,
 								OPTIONAL OUT uint32* lineCount, const char* msg, ...);
 
 // <LegoRR.exe @0047a1a0>
@@ -178,14 +204,34 @@ void __cdecl Font_RemoveCallback(Font* font, void* data);
 // <missing>
 void __cdecl Font_RunThroughLists(FontRunThroughListsCallback Callback, void* data);
 
+// (inline form for OpenLRR usage)
+__inline uint32 Font_GetStringWidth(Font* font, const char* msg, ...) {
+	uint32 width;
+	std::va_list args;
+	va_start(args, msg);
+	Font_VGetStringInfo(font, &width, NULL, msg, args);
+	va_end(args);
+	return width;
+}
+
+
 // <missing or inlined>
-__inline uint32 __cdecl Font_GetLineCount(Font* font, const char* msg, ...) {
+__inline uint32 Font_GetLineCount(Font* font, const char* msg, ...) {
 	uint32 lineCount;
 	std::va_list args;
 	va_start(args, msg);
 	Font_VGetStringInfo(font, nullptr, &lineCount, msg, args);
 	va_end(args);
 	return lineCount;
+}
+
+// (inline form for OpenLRR usage)
+__inline void Font_GetStringInfo(Font* font, OPTIONAL OUT uint32* width,
+	OPTIONAL OUT uint32* lineCount, const char* msg, ...) {
+	std::va_list args;
+	va_start(args, msg);
+	Font_VGetStringInfo(font, width, lineCount, msg, args);
+	va_end(args);
 }
 
 /*uint32 __cdecl Font_GetLineCount(Font* font, const char* msg, ...);

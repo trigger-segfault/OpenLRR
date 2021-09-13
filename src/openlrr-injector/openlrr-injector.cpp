@@ -311,8 +311,24 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	// (commented out for now)
 	//_tprintf(_T("\nInjection Success!\nAttach any debuggers now\n"));
 	//::system("pause");
-	_tprintf(_T("Restoring EIP... "));
+	//_tprintf(_T("Restoring EIP... "));
+	_tprintf(_T("Waiting for WinMain hook... "));
 
+	BYTE wmainBuff[] = { 0x81, 0xEC, 0x94, 0x0C, 0x00, 0x00 };
+
+	int loops = 0;
+
+	do {
+		loops++;
+		if (!::ReadProcessMemory(ProcessInfo.hProcess, (LPVOID)0x00477a60, &wmainBuff, sizeof(wmainBuff), NULL)) {
+			_tprintf(_T("ReadProcessMemory WinMain first byte failed... "));
+			return_error(-1);
+		}
+		
+	} while (wmainBuff[0] == 0x81 || wmainBuff[5] == 0x00);
+	_tprintf(_T("took %i loops\n"), loops);
+
+	_tprintf(_T("Restoring EIP... "));
 	if (!::WriteProcessMemory(ProcessInfo.hProcess, (LPVOID)PROCESS_EIP, &eipBackup, sizeof(eipBackup), NULL)) {
 		_tprintf(_T("Failed\n"));
 	}

@@ -84,12 +84,15 @@ bool32 __cdecl Animation_Update(Animation_t* anim);
 // <LegoRR.exe @0047efc0>
 void __cdecl Animation_BlitToBackBuffer(Animation_t* anim, const RECT* destRect);
 
+// Sets the animation time in frame units.
 // <LegoRR.exe @0047f000>
 void __cdecl Animation_SetTime(Animation_t* anim, uint32 time);
 
+// Gets the animation time in frame units.
 // <LegoRR.exe @0047f010>
 uint32 __cdecl Animation_GetTime(const Animation_t* anim);
 
+// Gets the animation length in frame units.
 // <LegoRR.exe @0047f020>
 uint32 __cdecl Animation_GetLength(const Animation_t* anim);
 

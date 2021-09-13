@@ -8,10 +8,9 @@
  ******** Game Entry point
  **********************************************************************************/
 
-#pragma region Entry point
-
 namespace Gods98
 {; // !<---
+#pragma region Entry point
 
 // This is the GAME entry point as called by WinMain,
 //  this should hook the Main_State loop functions and only perform basic initial setup.
@@ -20,9 +19,10 @@ namespace Gods98
 // <LegoRR.exe @0041f950>
 void __cdecl Gods_Go(const char* programName);
 
+#pragma endregion
 }
 
-#pragma endregion
+
 
 namespace LegoRR
 {; // !<---
@@ -31,6 +31,7 @@ namespace LegoRR
  ******** Functions
  **********************************************************************************/
 
+#if 0
 #pragma region Functions
 
 // (first function in module)
@@ -113,5 +114,6 @@ void __cdecl LRRGame_SetCallToArmsOn(bool32 callToArms);
 
 
 #pragma endregion
+#endif
 
 }

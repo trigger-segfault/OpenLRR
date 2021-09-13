@@ -14,8 +14,19 @@
 struct IDirect3DRM3;
 struct IDirect3DRMDevice3;
 struct IDirect3DDevice3;
-enum D3DRENDERSTATETYPE : uint32;
+enum _D3DRENDERSTATETYPE;
+typedef enum _D3DRENDERSTATETYPE D3DRENDERSTATETYPE;
+static_assert(sizeof(D3DRENDERSTATETYPE) == 0x4, "");
 
+namespace Idl
+{; // !<---
+
+/// TODO: We're currently just relying on the IID defined in LegoRR,
+///        since our `d3drm.lib` won't give it to us. Later on this should be manually defined.
+// <LegoRR.exe @ 004a0bd8>
+extern IID & IID_IDirect3DRM3;
+
+}
 #pragma endregion
 
 
@@ -89,6 +100,7 @@ typedef void (__cdecl* MainWindowCallback)(HWND hWnd, UINT message, WPARAM wPara
 #define MAIN_FLAG_REDUCEFLICS				0x01000000
 #define MAIN_FLAG_REDUCEIMAGES				0x02000000*/
 
+namespace _ns_MainFlags {
 enum MainFlags : uint32
 {
 	MAIN_FLAG_NONE						= 0,
@@ -122,10 +134,12 @@ enum MainFlags : uint32
 };
 DEFINE_ENUM_FLAG_OPERATORS(MainFlags);
 static_assert(sizeof(MainFlags) == 0x4, "");
+} using MainFlags = _ns_MainFlags::MainFlags;
 
 /// REGEX: (0x)0+([A-Fa-f1-9][A-Fa-f0-9]*)
 /// REPLACE: $1$2
 
+namespace _ns_MainQuality {
 enum MainQuality : sint32
 {
 	WIREFRAME      = 0,
@@ -134,6 +148,7 @@ enum MainQuality : sint32
 	GOURAUDSHADE   = 3,
 };
 static_assert(sizeof(MainQuality) == 0x4, "");
+} using MainQuality = _ns_MainQuality::MainQuality;
 
 #pragma endregion
 
@@ -212,54 +227,58 @@ extern Main_Globs & mainGlobs;
 
 #pragma region Functions
 
- // <missing>
-__inline IDirect3DRM3* __cdecl lpD3DRM() { return mainGlobs.lpD3DRM; }
+ // <inlined>
+__inline IDirect3DRM3* lpD3DRM(void) { return mainGlobs.lpD3DRM; }
 
-// <missing>
-__inline IDirect3DRMDevice3* __cdecl lpDevice() { return mainGlobs.device; }
+// <inlined>
+__inline IDirect3DRMDevice3* lpDevice(void) { return mainGlobs.device; }
 
-// <missing>
-__inline IDirect3DDevice3* __cdecl lpIMDevice() { return mainGlobs.imDevice; }
+// <inlined>
+__inline IDirect3DDevice3* lpIMDevice(void) { return mainGlobs.imDevice; }
 
-// <missing>
-__inline bool32 __cdecl Main_VideoTexture() { return mainGlobs.flags & MAIN_FLAG_VIDEOTEXTURE; }
+// <inlined>
+__inline bool32 Main_VideoTexture(void) { return mainGlobs.flags & MainFlags::MAIN_FLAG_VIDEOTEXTURE; }
 
-// <missing>
-__inline bool32 __cdecl Main_MIPMapEnabled() { return mainGlobs.flags & MAIN_FLAG_MIPMAPENABLED; }
+// <inlined>
+__inline bool32 Main_MIPMapEnabled(void) { return mainGlobs.flags & MainFlags::MAIN_FLAG_MIPMAPENABLED; }
 
-// <missing>
-__inline bool32 __cdecl Main_FullScreen() { return mainGlobs.flags & MAIN_FLAG_FULLSCREEN; }
+// <inlined>
+__inline bool32 Main_FullScreen(void) { return mainGlobs.flags & MainFlags::MAIN_FLAG_FULLSCREEN; }
 
-// <missing>
-__inline uint32 __cdecl Main_GetFogMethod() { return mainGlobs.fogMethod; }
+// <inlined>
+__inline uint32 Main_GetFogMethod(void) { return mainGlobs.fogMethod; }
 
-// <missing>
-__inline void __cdecl Main_SetFogMethod(uint32 m) { mainGlobs.fogMethod = m; }
+// <inlined>
+__inline void Main_SetFogMethod(uint32 m) { mainGlobs.fogMethod = m; }
 
-// <missing>
-__inline HWND __cdecl Main_hWnd(void) { return mainGlobs.hWnd; }
+// <inlined>
+__inline HWND Main_hWnd(void) { return mainGlobs.hWnd; }
 
-// <missing>
-__inline HINSTANCE __cdecl Main_hInst(void) { return mainGlobs.hInst; }
+// <inlined>
+__inline HINSTANCE Main_hInst(void) { return mainGlobs.hInst; }
 
-// <missing>
-__inline bool32 __cdecl Main_AppActive() { return mainGlobs.active; }
+// <inlined>
+__inline bool32 Main_AppActive(void) { return mainGlobs.active; }
 
-// <missing>
-__inline MainFlags __cdecl Main_GetFlags() { return mainGlobs.flags; }
+// <inlined>
+__inline MainFlags Main_GetFlags(void) { return mainGlobs.flags; }
 
 
 // <LegoRR.exe @00401b30>
-__inline uint32 __cdecl Main_ProgrammerMode(void) { return mainGlobs.programmerLevel; }
+uint32 __cdecl noinline(Main_ProgrammerMode)(void);
+__inline uint32 Main_ProgrammerMode(void) { return mainGlobs.programmerLevel; }
 
 // <LegoRR.exe @00401b40>
-__inline const char* __cdecl Main_GetStartLevel(void) { return (mainGlobs.flags & MAIN_FLAG_STARTLEVEL) ? mainGlobs.startLevel : NULL; }
+const char* __cdecl noinline(Main_GetStartLevel)(void);
+__inline const char* Main_GetStartLevel(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_STARTLEVEL) ? mainGlobs.startLevel : nullptr; }
 
 // <LegoRR.exe @00401b70>
-__inline sint32 __cdecl appWidth(void) { return mainGlobs.appWidth; }
+sint32 __cdecl noinline(appWidth)(void);
+__inline sint32 appWidth(void) { return mainGlobs.appWidth; }
 
 // <LegoRR.exe @00401b80>
-__inline sint32 __cdecl appHeight(void) { return mainGlobs.appHeight; }
+sint32 __cdecl noinline(appHeight)(void);
+__inline sint32 appHeight(void) { return mainGlobs.appHeight; }
 
 
 // <LegoRR.exe @00477a60>
@@ -324,7 +343,7 @@ bool32 __cdecl Main_SetupDirect3D(const DirectDraw_Device* dev, IDirectDraw* ddr
 void __cdecl Main_AdjustWindowRect(IN OUT RECT* rect);
 
 // <LegoRR.exe @004785f0>
-void __cdecl Main_Setup3D(uint32 renderQuality, bool32 dither, bool32 linearFilter, bool32 mipMap,
+void __cdecl Main_Setup3D(MainQuality renderQuality, bool32 dither, bool32 linearFilter, bool32 mipMap,
 						  bool32 mipMapLinear, bool32 blendTransparency, bool32 sortTransparency);
 
 // <LegoRR.exe @00478690>
@@ -364,13 +383,22 @@ bool32 __cdecl Main_IsPaused(void);
 
 
 // <LegoRR.exe @00478c40>
-__inline bool32 __cdecl Main_SetCDVolume(real32 leftVolume, real32 rightVolume);
+//bool32 __cdecl noinline(Main_SetCDVolume)(real32 leftVolume, real32 rightVolume);
+bool32 __cdecl Main_SetCDVolume(real32 leftVolume, real32 rightVolume);
 
 // <LegoRR.exe @00478c60>
-__inline bool32 __cdecl Main_GetCDVolume(OUT real32* leftVolume, OUT real32* rightVolume);
+//bool32 __cdecl noinline(Main_GetCDVolume)(OUT real32* leftVolume, OUT real32* rightVolume);
+bool32 __cdecl Main_GetCDVolume(OUT real32* leftVolume, OUT real32* rightVolume);
 
 // <LegoRR.exe @00478c80>
 bool32 __cdecl Main_CDVolume(IN OUT real32* leftVolume, IN OUT real32* rightVolume, bool32 set);
+
+/*__inline bool32 Main_SetCDVolume(real32 leftVolume, real32 rightVolume) {
+	return Main_CDVolume(&leftVolume, &rightVolume, true);
+}
+__inline bool32 Main_GetCDVolume(OUT real32* leftVolume, OUT real32* rightVolume) {
+	return Main_CDVolume(leftVolume, rightVolume, false);
+}*/
 
 
 // <missing>

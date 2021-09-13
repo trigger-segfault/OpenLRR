@@ -1,10 +1,14 @@
 
-//#include "../DirectX/D3DRM/d3drmwin.h"
+#define DIRECTINPUT_VERSION				0x800
 #include <dinput.h>
 #include <process.h>
 
 #include "Errors.h"
 #include "Config.h"
+
+
+/// CUSTOM:
+#define LOG_CONSOLEWINDOW
 
 
 /**********************************************************************************
@@ -75,7 +79,7 @@ void __cdecl Gods98::Error_Shutdown(void)
 // <missing>
 bool32 __cdecl Gods98::Error_SetDumpFile(const char* errors, const char* loadLog, const char* loadErrorLog, const char* rendundantLog)
 {
-	BOOL ok = true;
+	bool32 ok = true;
 
 
 	if (loadLog)
@@ -183,6 +187,13 @@ void __cdecl Gods98::Error_Out(bool32 ErrFatal, const char* lpOutputString, ...)
 		  This ifdef is necessary to avoid infinite recursion
 		  from the inclusion of W95TRACE.H
 		*/
+#ifdef LOG_CONSOLEWINDOW
+#ifdef _UNICODE
+		std::wprintf(achBuffer);
+#else
+		std::printf(achBuffer);
+#endif
+#else
 #ifdef _cplusplus
 #ifdef _UNICODE
 		::OutputDebugStringW(achBuffer);
@@ -194,6 +205,7 @@ void __cdecl Gods98::Error_Out(bool32 ErrFatal, const char* lpOutputString, ...)
 		::OutputDebugStringW(achBuffer);
 #else
 		::OutputDebugStringA(achBuffer);
+#endif
 #endif
 #endif
 

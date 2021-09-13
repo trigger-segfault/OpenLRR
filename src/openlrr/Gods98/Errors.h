@@ -78,6 +78,17 @@ extern Error_Globs & errorGlobs;
  ******** Functions
  **********************************************************************************/
 
+//#ifndef _RELEASE
+
+#define Error_Warn(b,s)						{ if (b) { Error_Out(false, "%s(%i): Warning: %s\n", __FILE__, __LINE__, (s)); Error_SetWarn(); } }
+#define Error_Fatal(b,s)					{ if (b) { Error_Out(true, "%s(%i): Fatal: %s\n", __FILE__, __LINE__, (s)); } }
+#define Error_Debug(s)						Error_Out(false, "%s", (s))
+#define Error_LogLoad(b,s)					{ Error_Log( errorGlobs.loadLogFile, (b), "%s\n", (s) ); }
+#define Error_LogLoadError(b,s)				{ Error_Log( errorGlobs.loadErrorLogFile, (b), "%s\n", (s) ); }
+#define Error_LogRedundantFile(b,s)			{ Error_Log( errorGlobs.redundantLogFile, (b), "%s\n", (s) ); }
+
+/*#else
+
 #define Error_Warn(b,s)			(b)
 #define Error_Fatal(b,s)		(b)
 #define Error_Debug(s)
@@ -85,6 +96,8 @@ __inline void Error_CheckWarn(bool32 check) {  }
 #define Error_LogLoad(b,s)					(b)
 #define Error_LogLoadError(b,s)				(b)
 #define Error_LogRedundantFile(b,s)			(b)
+
+#endif*/
 
 #pragma region Functions
 
@@ -117,6 +130,10 @@ void __cdecl Error_Out(bool32 ErrFatal, const char* lpOutputString, ...);
 
 // <missing>
 void __cdecl Error_Log(File_Dummy* logFile, bool32 log, const char* lpOutputString, ...);
+
+
+__inline void Error_SetWarn(void) { errorGlobs.warnCalled = true; }
+__inline void Error_CheckWarn(bool32 check) { if (!check) errorGlobs.warnCalled = false; else if (errorGlobs.warnCalled) Error_TerminateProgram("Check warning message log"); }
 
 #pragma endregion
 

@@ -1,5 +1,5 @@
 
-#define DIRECTINPUT_VERSION 0x500
+#define DIRECTINPUT_VERSION				0x800
 //#include "../DirectX/D3DRM/d3drmwin.h"
 #include <d3drmwin.h>
 #include <dinput.h>
@@ -8,6 +8,12 @@
 #include "Main.h"
 #include "Errors.h"
 #include "Dxbug.h"
+
+
+/*namespace Idl {
+	static IID IID_IDirectInput8A = { 0xbf798030, 0x483a, 0x4da2, 0xaa, 0x99, 0x5d, 0x64, 0xed, 0x36, 0x97, 0x00 }; // __uuidof(IDirectInput8A);// "BF798030-483A-4DA2-AA99-5D64ED369700");
+	static GUID GUID_SysKeyboard = { 0x6f1d2b61, 0xd5a0, 0x11cf, 0xbf, 0xc7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00 };
+}*/
 
 
 /**********************************************************************************
@@ -33,25 +39,32 @@ Gods98::Input_Globs & Gods98::INPUT = *(Gods98::Input_Globs*)0x0076ba00; // (no 
 
 // Mouse positions
 // <LegoRR.exe @00410a60>
-__inline sint32 __cdecl Gods98::msx()
+sint32 __cdecl Gods98::noinline(msx)(void)
 {
-	return INPUT.msx;
+	log_firstcall();
+
+	return msx();
 }
 
 // <LegoRR.exe @00410a70>
-__inline sint32 __cdecl Gods98::msy()
+sint32 __cdecl Gods98::noinline(msy)(void)
 {
-	return INPUT.msy;
+	log_firstcall();
+
+	return msy();
 }
 
 // Left and right mouse buttons
 // <LegoRR.exe @00410a80>
-__inline bool32 __cdecl Gods98::mslb()
+bool32 __cdecl Gods98::noinline(mslb)(void)
 {
-	return INPUT.mslb;
+	log_firstcall();
+
+	return mslb();
 }
 
 
+/*
 // <inlined>
 __inline bool32 __cdecl Gods98::msrb()
 {
@@ -82,6 +95,7 @@ __inline bool32 __cdecl Gods98::Input_LClicked()
 {
 	return INPUT.lClicked;
 }
+*/
 
 
 
@@ -89,12 +103,18 @@ __inline bool32 __cdecl Gods98::Input_LClicked()
 // <LegoRR.exe @0047f050>
 bool32 __cdecl Gods98::Input_InitKeysAndDI(void)
 {
+	log_firstcall();
+
 	GUID guid = GUID_SysKeyboard;
 
 	// CHKDI_F if an Errors.h macro
 
 	// Try to create DI object
+#if DIRECTINPUT_VERSION == 0x500
 	CHKDI_F(::DirectInputCreateA(Main_hInst(), DIRECTINPUT_VERSION, &INPUT.lpdi, nullptr));
+#else
+	CHKDI_F(::DirectInput8Create(Main_hInst(), DIRECTINPUT_VERSION, IID_IDirectInput8A, (void**)&INPUT.lpdi, nullptr));
+#endif
 
 	// Try to create keyboard device
 	CHKDI_F(INPUT.lpdi->CreateDevice(guid, &INPUT.lpdiKeyboard, nullptr));
@@ -102,6 +122,8 @@ bool32 __cdecl Gods98::Input_InitKeysAndDI(void)
 	// Tell DirectInput that we want to receive data in keyboard format
 	CHKDI_F(INPUT.lpdiKeyboard->SetDataFormat(&c_dfDIKeyboard));
 
+	/// FIXME LEGORR: Main_hWnd() is currently NULL, go through with moving the Input initialisation
+	///  location in WinMain
 	// set cooperative level for keyboard
 	CHKDI_F(INPUT.lpdiKeyboard->SetCooperativeLevel(Main_hWnd(), DISCL_NONEXCLUSIVE | DISCL_FOREGROUND));
 
@@ -118,7 +140,7 @@ bool32 __cdecl Gods98::Input_InitKeysAndDI(void)
 // <LegoRR.exe @0047f1b0>
 void __cdecl Gods98::Input_ReadKeys(void)
 {
-	//uint16 us = 0;
+	log_firstcall();
 
 	if (!(Main_FullScreen() ? true : Main_AppActive()))
 	{
@@ -157,6 +179,8 @@ void __cdecl Gods98::Input_ReadKeys(void)
 // <LegoRR.exe @0047f270>
 uint32 __cdecl Gods98::Input_AnyKeyPressed(void)
 {
+	log_firstcall();
+
 	uint32 ret = 0;
 	const bool* lp = INPUT.Key_Map;
 	for (uint32 i=0; i<INPUT_MAXKEYS; i++)
@@ -172,6 +196,8 @@ uint32 __cdecl Gods98::Input_AnyKeyPressed(void)
 // <LegoRR.exe @0047f290>
 void __cdecl Gods98::Input_ReleaseKeysAndDI(void)
 {
+	log_firstcall();
+
 	// If we have control over the keyboard then release it first
 	if(INPUT.fKeybdAcquired)
 	{
@@ -190,6 +216,8 @@ void __cdecl Gods98::Input_ReleaseKeysAndDI(void)
 // <LegoRR.exe @0047f2d0>
 void __cdecl Gods98::Input_ReadMouse2(void)
 {
+	log_firstcall();
+
 	RECT rect;
 	if (::GetClientRect(Main_hWnd(), &rect)){
 
@@ -217,6 +245,8 @@ void __cdecl Gods98::Input_ReadMouse2(void)
 // <LegoRR.exe @0047f390>
 BOOL __cdecl Gods98::Input_SetCursorPos(sint32 x, sint32 y)
 {
+	log_firstcall();
+
 	POINT clientPos = { 0, 0 };
 	::ClientToScreen(Main_hWnd(), &clientPos );
 

@@ -495,6 +495,8 @@ uint32 Gods98::G98CAnimation::GetTime() const
 // <LegoRR.exe @0047ef40>
 void __cdecl Gods98::Animation_Initialise(IDirectDraw4* directDraw)
 {
+	log_firstcall();
+
 	animationGlobs.ddraw = directDraw;
 	::AVIFileInit();
 }
@@ -503,6 +505,8 @@ void __cdecl Gods98::Animation_Initialise(IDirectDraw4* directDraw)
 // <missing>
 void __cdecl Gods98::Animation_ShutDown(void)
 {
+	log_firstcall();
+
 	::AVIFileExit();
 }
 
@@ -510,6 +514,8 @@ void __cdecl Gods98::Animation_ShutDown(void)
 // <LegoRR.exe @0047ef50>
 Gods98::Animation_t* __cdecl Gods98::Animation_Load(const char* fName)
 {
+	log_firstcall();
+
 	G98CAnimation* animation = new G98CAnimation(fName);
 
 	return (Animation_t*)animation;
@@ -518,6 +524,8 @@ Gods98::Animation_t* __cdecl Gods98::Animation_Load(const char* fName)
 // <LegoRR.exe @0047efb0>
 bool32 __cdecl Gods98::Animation_Update(Animation_t* anim)
 {
+	log_firstcall();
+
 	G98CAnimation* animation = (G98CAnimation*)anim;
 
 	return animation->Update();
@@ -526,6 +534,8 @@ bool32 __cdecl Gods98::Animation_Update(Animation_t* anim)
 // <LegoRR.exe @0047efc0>
 void __cdecl Gods98::Animation_BlitToBackBuffer(Animation_t* anim, const RECT* destRect)
 {
+	log_firstcall();
+
 	G98CAnimation* animation = (G98CAnimation*)anim;
 
 	if (animation->IsOk()) {
@@ -538,34 +548,44 @@ void __cdecl Gods98::Animation_BlitToBackBuffer(Animation_t* anim, const RECT* d
 	///}
 }
 
+// Sets the animation time in frame units.
 // <LegoRR.exe @0047f000>
 void __cdecl Gods98::Animation_SetTime(Animation_t* anim, uint32 time)
 {
+	log_firstcall();
+
 	G98CAnimation* animation = (G98CAnimation*)anim;
 
 	animation->SetTime(time);
 }
 
+// Gets the animation time in frame units.
 // <LegoRR.exe @0047f010>
 uint32 __cdecl Gods98::Animation_GetTime(const Animation_t* anim)
 {
+	log_firstcall();
+
 	G98CAnimation* animation = (G98CAnimation*)anim;
 
 	return animation->GetTime();
 }
 
+// Gets the animation length in frame units.
 // <LegoRR.exe @0047f020>
 uint32 __cdecl Gods98::Animation_GetLength(const Animation_t* anim)
 {
+	log_firstcall();
+
 	G98CAnimation* animation = (G98CAnimation*)anim;
 
 	return animation->Length();
 }
 
-// Better description would be "Destroy", as it frees the memory.
 // <LegoRR.exe @0047f030>
 void __cdecl Gods98::Animation_Free(Animation_t* anim)
 {
+	log_firstcall();
+
 	G98CAnimation* animation = (G98CAnimation*)anim;
 
 	/// DIFFERENCE: Gods98 source does not null-check this, maybe this is a C++ deletor behavior(?)
@@ -575,6 +595,8 @@ void __cdecl Gods98::Animation_Free(Animation_t* anim)
 // <LegoRR.exe @0047f040>
 bool32 __cdecl Gods98::Animation_IsOk(const Animation_t* anim)
 {
+	log_firstcall();
+
 	G98CAnimation* animation = (G98CAnimation*)anim;
 
 	return animation->IsOk();

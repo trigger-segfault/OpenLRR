@@ -2,6 +2,17 @@
 
 #include "../common.h"
 
+/**********************************************************************************
+ ******** Forward Global Namespace Declarations
+ **********************************************************************************/
+
+#pragma region Forward Declarations
+
+struct _D3DRMIMAGE;
+typedef struct _D3DRMIMAGE D3DRMIMAGE;
+
+#pragma endregion
+
 
 namespace Gods98
 {; // !<---

@@ -131,7 +131,7 @@ struct File_Globs
 	/*a10,4*/ void* loadCallbackData;
 	/*a14,1*/ char cdLetter;
 	// [globs: end]
-	/*a15,3*/ //unsigned char padding1[3];
+	/*a15,3*/ uint8 padding1[3]; // padding not needed, but included for safety
 	/*a18,4*/ bool32 basePathSet;
 	/*a1c,4*/ bool32 fileLogFileAccess;		// (address not known)
 	/*a20*/

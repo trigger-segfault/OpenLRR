@@ -148,7 +148,8 @@ const char* __cdecl Gods98::Config_BuildStringID(const char* s, ...)
 	return configGlobs.s_JoinPath_string;
 }
 
-/*// <inlined>
+/*
+// <inlined>
 __inline const char* Gods98::Config_GetItemName(const Config* conf)
 {
 	return conf->itemName;
@@ -158,7 +159,8 @@ __inline const char* Gods98::Config_GetItemName(const Config* conf)
 __inline const char* Gods98::Config_GetDataString(const Config* conf)
 {
 	return conf->dataString;
-}*/
+}
+*/
 
 // <LegoRR.exe @004792b0>
 const Gods98::Config* __cdecl Gods98::Config_FindArray(const Config* root, const char* name)
@@ -228,12 +230,19 @@ BoolTri __cdecl Gods98::Config_GetBoolValue(const Config* root, const char* stri
 
 	BoolTri res = BoolTri::BOOL3_ERROR;
 
-	char* str;
+	/// FIX LEGORR: Don't bother allocating a new string,
+	///              Util_GetBoolFromString won't modify it.
+	const char* str;
+	if (str = Config_GetTempStringValue(root, stringID)) {
+		res = Util_GetBoolFromString(str);
+	}
+
+	/*char* str;
 	if (str = Config_GetStringValue(root, stringID)) {
 
 		res = Util_GetBoolFromString(str);
 		Mem_Free(str);
-	}
+	}*/
 
 	return res;
 }
@@ -427,11 +436,11 @@ const Gods98::Config* __cdecl Gods98::Config_FindItem(const Config* conf, const 
 				uint32 index = 0;
 				for (s = conf->itemName; *s != '\0'; s++) { if (*s == '*') break; index++; }
 				if (*s == '*') {
-					wildcard = !::_strnicmp(argv[count - 1], conf->itemName, index);
+					wildcard = (::_strnicmp(argv[count - 1], conf->itemName, index) == 0);
 				}
 			}
 
-			if (wildcard || 0 == ::_stricmp(argv[count - 1], conf->itemName)) {
+			if (wildcard || ::_stricmp(argv[count - 1], conf->itemName) == 0) {
 
 				wildcard = false;
 
@@ -449,7 +458,7 @@ const Gods98::Config* __cdecl Gods98::Config_FindItem(const Config* conf, const 
 							}
 						}
 
-						if (wildcard || 0 == ::_stricmp(argv[currDepth - 1], backConf->itemName)) {
+						if (wildcard || ::_stricmp(argv[currDepth - 1], backConf->itemName) == 0) {
 							currDepth--;
 						}
 						else break;

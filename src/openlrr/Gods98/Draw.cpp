@@ -8,9 +8,23 @@
 #include "DirectDraw.h"
 #include "Draw.h"
 #include "Errors.h"
-#include "Mesh.h"
+//#include "Mesh.h"
 #include "Main.h"
-#include "Viewports.h"
+//#include "Viewports.h"
+
+
+/**********************************************************************************
+ ******** Forward Global Namespace Declarations
+ **********************************************************************************/
+
+#pragma region Forward Declarations
+
+/// TODO: Remove me once Maths module is finished
+#define Maths_Cos(a)						(real32)std::cos((double)(a))
+#define Maths_Sin(a)						(real32)std::sin((double)(a))
+
+#pragma endregion
+
 
 /**********************************************************************************
  ******** Globals
@@ -30,6 +44,8 @@ Gods98::Draw_Globs & Gods98::drawGlobs = *(Gods98::Draw_Globs*)0x005417e8; // = 
 // <LegoRR.exe @00486140>
 void __cdecl Gods98::Draw_Initialise(const Area2F* window)
 {
+	log_firstcall();
+
 	drawGlobs.flags |= Draw_GlobFlags::DRAW_FLAG_INITIALISED;
 	Draw_SetClipWindow(window);
 }
@@ -37,7 +53,8 @@ void __cdecl Gods98::Draw_Initialise(const Area2F* window)
 // <LegoRR.exe @00486160>
 void __cdecl Gods98::Draw_SetClipWindow(const Area2F* window)
 {
-	
+	log_firstcall();
+
 	IDirectDrawSurface4* surf = DirectDraw_bSurf();
 	DDSURFACEDESC2 desc;
 
@@ -71,6 +88,8 @@ void __cdecl Gods98::Draw_SetClipWindow(const Area2F* window)
 // <LegoRR.exe @00486270>
 void __cdecl Gods98::Draw_GetClipWindow(OUT Area2F* window)
 {
+	log_firstcall();
+
 	window->x = drawGlobs.clipStart.x;
 	window->y = drawGlobs.clipStart.y;
 	window->width = drawGlobs.clipEnd.x - drawGlobs.clipStart.x;
@@ -80,6 +99,8 @@ void __cdecl Gods98::Draw_GetClipWindow(OUT Area2F* window)
 // <unused>
 void __cdecl Gods98::Draw_PixelListEx(const Point2F* pointList, uint32 count, real32 r, real32 g, real32 b, DrawEffect effect)
 {
+	log_firstcall();
+
 	IDirectDrawSurface4* surf = DirectDraw_bSurf();
 
 	Error_Fatal(!(drawGlobs.flags & Draw_GlobFlags::DRAW_FLAG_INITIALISED), "Draw not initialised");
@@ -102,6 +123,8 @@ void __cdecl Gods98::Draw_PixelListEx(const Point2F* pointList, uint32 count, re
 // <LegoRR.exe @004862b0>
 void __cdecl Gods98::Draw_LineListEx(const Point2F* fromList, const Point2F* toList, uint32 count, real32 r, real32 g, real32 b, DrawEffect effect)
 {
+	log_firstcall();
+
 	IDirectDrawSurface4* surf = DirectDraw_bSurf();
 
 	Error_Fatal(!(drawGlobs.flags & Draw_GlobFlags::DRAW_FLAG_INITIALISED), "Draw not initialised");
@@ -127,6 +150,8 @@ void __cdecl Gods98::Draw_LineListEx(const Point2F* fromList, const Point2F* toL
 // <LegoRR.exe @00486350>
 void __cdecl Gods98::Draw_RectListEx(const Area2F* rectList, uint32 count, real32 r, real32 g, real32 b, DrawEffect effect)
 {
+	log_firstcall();
+
 	IDirectDrawSurface4* surf = DirectDraw_bSurf();
 
 	Error_Fatal(!(drawGlobs.flags & Draw_GlobFlags::DRAW_FLAG_INITIALISED), "Draw not initialised");
@@ -161,6 +186,8 @@ void __cdecl Gods98::Draw_RectListEx(const Area2F* rectList, uint32 count, real3
 // <LegoRR.exe @004864d0>
 void __cdecl Gods98::Draw_RectList2Ex(const Draw_Rect* rectList, uint32 count, DrawEffect effect)
 {
+	log_firstcall();
+
 	IDirectDrawSurface4* surf = DirectDraw_bSurf();
 	/*uint32 loop, colour;
 	sint32 x, y, ex, ey;
@@ -200,6 +227,8 @@ void __cdecl Gods98::Draw_RectList2Ex(const Draw_Rect* rectList, uint32 count, D
 // <LegoRR.exe @00486650>
 void __cdecl Gods98::Draw_DotCircle(const Point2F* pos, uint32 radius, uint32 dots, real32 r, real32 g, real32 b, DrawEffect effect)
 {
+	log_firstcall();
+
 	IDirectDrawSurface4* surf = DirectDraw_bSurf();
 	real32 step = (2.0f * M_PI) / dots;
 
@@ -224,6 +253,8 @@ void __cdecl Gods98::Draw_DotCircle(const Point2F* pos, uint32 radius, uint32 do
 // <LegoRR.exe @00486790>
 uint32 __cdecl Gods98::Draw_GetColour(real32 r, real32 g, real32 b)
 {
+	log_firstcall();
+
 	uint32 colour = 0;
 
 	Error_Fatal(drawGlobs.buffer==nullptr, "Must be called after Draw_LockSurface()");
@@ -242,6 +273,8 @@ uint32 __cdecl Gods98::Draw_GetColour(real32 r, real32 g, real32 b)
 // <LegoRR.exe @00486810>
 bool32 __cdecl Gods98::Draw_LockSurface(IDirectDrawSurface4* surf, DrawEffect effect)
 {
+	log_firstcall();
+
 	DDSURFACEDESC2 desc;
 	HRESULT r;
 
@@ -277,6 +310,8 @@ bool32 __cdecl Gods98::Draw_LockSurface(IDirectDrawSurface4* surf, DrawEffect ef
 // <LegoRR.exe @00486910>
 void __cdecl Gods98::Draw_UnlockSurface(IDirectDrawSurface4* surf)
 {
+	log_firstcall();
+
 //	surf->Unlock(&drawGlobs.lockRect);
 	surf->Unlock(nullptr);
 	drawGlobs.buffer = nullptr;
@@ -291,6 +326,8 @@ void __cdecl Gods98::Draw_UnlockSurface(IDirectDrawSurface4* surf)
 // <LegoRR.exe @00486950>
 bool32 __cdecl Gods98::Draw_SetDrawPixelFunc(DrawEffect effect)
 {
+	log_firstcall();
+
 	switch (drawGlobs.bpp) {
 	case 8:
 		drawGlobs.drawPixelFunc = Draw_Pixel8;
@@ -342,6 +379,8 @@ bool32 __cdecl Gods98::Draw_SetDrawPixelFunc(DrawEffect effect)
 // <LegoRR.exe @004869e0>
 void __cdecl Gods98::Draw_LineActual(sint32 x1, sint32 y1, sint32 x2, sint32 y2, uint32 colour)
 {
+	log_firstcall();
+
 	sint32 numpixels;
 	sint32 d, dinc1, dinc2;
 
@@ -406,6 +445,8 @@ void __cdecl Gods98::Draw_LineActual(sint32 x1, sint32 y1, sint32 x2, sint32 y2,
 // <LegoRR.exe @00486b40>
 void __cdecl Gods98::Draw_Pixel8(sint32 x, sint32 y, uint32 value)
 {
+	log_firstcall();
+
 	uint8* addr = &((uint8*)drawGlobs.buffer)[(y*drawGlobs.pitch)+x];
 	*addr = (uint8) value;
 }
@@ -413,6 +454,8 @@ void __cdecl Gods98::Draw_Pixel8(sint32 x, sint32 y, uint32 value)
 // <LegoRR.exe @00486b60>
 void __cdecl Gods98::Draw_Pixel16(sint32 x, sint32 y, uint32 value)
 {
+	log_firstcall();
+
 	uint16* addr = (uint16*) &((uint8*)drawGlobs.buffer)[(y*drawGlobs.pitch)+(x*2)];
 	*addr = (uint16) value;
 }
@@ -420,6 +463,8 @@ void __cdecl Gods98::Draw_Pixel16(sint32 x, sint32 y, uint32 value)
 // <LegoRR.exe @00486b90>
 void __cdecl Gods98::Draw_Pixel16XOR(sint32 x, sint32 y, uint32 value)
 {
+	log_firstcall();
+
 	uint16* addr = (uint16*) &((uint8*)drawGlobs.buffer)[(y*drawGlobs.pitch)+(x*2)];
 	*addr = *addr ^((uint16) value);
 }
@@ -427,6 +472,8 @@ void __cdecl Gods98::Draw_Pixel16XOR(sint32 x, sint32 y, uint32 value)
 // <LegoRR.exe @00486bc0>
 void __cdecl Gods98::Draw_Pixel16HalfTrans(sint32 x, sint32 y, uint32 value)
 {
+	log_firstcall();
+
 	uint16* addr = (uint16*) &((uint8*)drawGlobs.buffer)[(y*drawGlobs.pitch)+(x*2)];
 	uint16 r, g, b;
 
@@ -440,6 +487,8 @@ void __cdecl Gods98::Draw_Pixel16HalfTrans(sint32 x, sint32 y, uint32 value)
 // <LegoRR.exe @00486c60>
 void __cdecl Gods98::Draw_Pixel24(sint32 x, sint32 y, uint32 value)
 {
+	log_firstcall();
+
 	uint32* addr = (uint32*) & ((uint8*)drawGlobs.buffer)[(y * drawGlobs.pitch) + (x * 3)];
 
 	*addr &= 0x000000ff;
@@ -449,6 +498,8 @@ void __cdecl Gods98::Draw_Pixel24(sint32 x, sint32 y, uint32 value)
 // <LegoRR.exe @00486c90>
 void __cdecl Gods98::Draw_Pixel32(sint32 x, sint32 y, uint32 value)
 {
+	log_firstcall();
+
 	uint32* addr = (uint32*) &((uint8*)drawGlobs.buffer)[(y*drawGlobs.pitch)+(x*4)];
 	*addr = (uint32) value;
 }

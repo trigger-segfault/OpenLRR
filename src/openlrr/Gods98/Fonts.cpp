@@ -26,18 +26,22 @@ Gods98::Font_Globs & Gods98::fontGlobs = *(Gods98::Font_Globs*)0x00507528; // (n
  // <missing>
 void __cdecl Gods98::Font_Initialise(void)
 {
+	log_firstcall();
+
 	for (uint32 loop = 0; loop < FONT_MAXLISTS; loop++) {
 		fontGlobs.listSet[loop] = nullptr;
 	}
 
 	fontGlobs.freeList = nullptr;
 	fontGlobs.listCount = 0;
-	fontGlobs.flags = FONT_FLAG_INITIALISED;
+	fontGlobs.flags = Font_GlobFlags::FONT_FLAG_INITIALISED;
 }
 
 // <missing>
 void __cdecl Gods98::Font_Shutdown(void)
 {
+	log_firstcall();
+
 	Font_RunThroughLists(Font_RemoveCallback, nullptr);
 
 	for (uint32 loop = 0; loop < FONT_MAXLISTS; loop++) {
@@ -45,16 +49,17 @@ void __cdecl Gods98::Font_Shutdown(void)
 	}
 
 	fontGlobs.freeList = nullptr;
-	fontGlobs.flags = 0x00000000;
+	fontGlobs.flags = Font_GlobFlags::FONT_FLAG_NONE;
 }
 
 
 // <LegoRR.exe @00401b90>
-uint32 __cdecl Gods98::Font_GetStringWidth(Font* font, const char* msg, ...)
+uint32 __cdecl Gods98::noinline(Font_GetStringWidth)(Font* font, const char* msg, ...)
 {
+	log_firstcall();
+
 	uint32 width;
 	std::va_list args;
-
 	va_start(args, msg);
 	Font_VGetStringInfo(font, &width, nullptr, msg, args);
 	va_end(args);
@@ -62,11 +67,12 @@ uint32 __cdecl Gods98::Font_GetStringWidth(Font* font, const char* msg, ...)
 }
 
 // <LegoRR.exe @00401bc0>
-void __cdecl Gods98::Font_GetStringInfo(Font* font, OPTIONAL OUT uint32* width,
+void __cdecl Gods98::noinline(Font_GetStringInfo)(Font* font, OPTIONAL OUT uint32* width,
 								OPTIONAL OUT uint32* lineCount, const char* msg, ...)
 {
+	log_firstcall();
+
 	std::va_list args;
-	
 	va_start(args, msg);
 	Font_VGetStringInfo(font, width, lineCount, msg, args);
 	va_end(args);
@@ -75,6 +81,8 @@ void __cdecl Gods98::Font_GetStringInfo(Font* font, OPTIONAL OUT uint32* width,
 // <LegoRR.exe @0047a1a0>
 Gods98::Font* __cdecl Gods98::Font_Load(const char* fname)
 {
+	log_firstcall();
+
 	Font* font;
 	Image* image;
 
@@ -134,6 +142,8 @@ Gods98::Font* __cdecl Gods98::Font_Load(const char* fname)
 void __cdecl Gods98::Font_VGetStringInfo(const Font* font, OPTIONAL OUT uint32* width,
 								OPTIONAL OUT uint32* lineCount, const char* msg, std::va_list args)
 {
+	log_firstcall();
+
 	uint32 w = Font_VPrintF2(font, 0, 0, false, lineCount, msg, args);
 	if (width) *width = w;
 }
@@ -142,6 +152,8 @@ void __cdecl Gods98::Font_VGetStringInfo(const Font* font, OPTIONAL OUT uint32* 
 // <LegoRR.exe @0047a440>
 uint32 __cdecl Gods98::Font_PrintF(const Font* font, sint32 x, sint32 y, const char* msg, ...)
 {
+	log_firstcall();
+
 	std::va_list args;
 	uint32 width;
 
@@ -155,6 +167,8 @@ uint32 __cdecl Gods98::Font_PrintF(const Font* font, sint32 x, sint32 y, const c
 // <LegoRR.exe @0047a470>
 uint32 __cdecl Gods98::Font_VPrintF(const Font* font, sint32 x, sint32 y, const char* msg, std::va_list args)
 {
+	log_firstcall();
+
 	return Font_VPrintF2(font, x, y, true, nullptr, msg, args);
 }
 
@@ -162,6 +176,8 @@ uint32 __cdecl Gods98::Font_VPrintF(const Font* font, sint32 x, sint32 y, const 
 uint32 __cdecl Gods98::Font_VPrintF2(const Font* font, sint32 x, sint32 y, bool32 render,
 									OPTIONAL OUT uint32* lineCount, const char* msg, std::va_list args)
 {
+	log_firstcall();
+
 	char line[FONT_MAXSTRINGLEN], line2[FONT_MAXSTRINGLEN];
 	uint32 width, loop, lines = 1;
 	uint32 xPos = 0, xMax = 0, yIncrease = font->fontHeight;
@@ -184,7 +200,7 @@ uint32 __cdecl Gods98::Font_VPrintF2(const Font* font, sint32 x, sint32 y, bool3
 	width = std::vsprintf(line, line2, args);
 
 	for (loop=0 ; loop<width ; loop++) {
-		if ('\n' == line[loop]){
+		if (line[loop] == '\n'){
 			if (xPos > xMax) xMax = xPos;
 			xPos = 0;
 			y += yIncrease;
@@ -195,12 +211,12 @@ uint32 __cdecl Gods98::Font_VPrintF2(const Font* font, sint32 x, sint32 y, bool3
 		} else if (loop < width - 12 && line[loop] == '@' && line[loop+1] == '[' && line[loop+2] == '0' && line[loop+3] == 'x' && line[loop+12] == ']') {
 			uint32 addr = 0, sub;
 			Point2F pos;
-			for (sub=0 ; sub<8 ; sub++) addr |= (line[loop+4+sub] - (std::isdigit(line[loop+4+sub])?'0':('a'-10))) << (28 - (sub * 4));
+			for (sub=0 ; sub<8 ; sub++) addr |= (((uchar8*)line)[loop+4+sub] - (std::isdigit(((uchar8*)line)[loop+4+sub])?'0':('a'-10))) << (28 - (sub * 4));
 			if (image = (Image*) addr) {
 				pos.x = (real32) (x + xPos);
 				pos.y = (real32) y;
 
-				if (line[loop] != 203)		xPos += image->width;
+				if (((uchar8*)line)[loop] != 203)		xPos += image->width;
 
 				if (image->height > yIncrease) yIncrease = image->height;
 				Image_Display(image, &pos);
@@ -209,7 +225,7 @@ uint32 __cdecl Gods98::Font_VPrintF2(const Font* font, sint32 x, sint32 y, bool3
 		} else {
 			uint32 fontWidth = Font_OutputChar(font, x + xPos, y, line[loop], render);
 
-			if (line[loop] != 203)
+			if (((uchar8*)line)[loop] != 203)
 			{
 				xPos+=fontWidth;
 			}
@@ -222,11 +238,15 @@ uint32 __cdecl Gods98::Font_VPrintF2(const Font* font, sint32 x, sint32 y, bool3
 // <LegoRR.exe @0047a730>
 uint32 __cdecl Gods98::Font_OutputChar(const Font* font, sint32 x, sint32 y, char c, bool32 render)
 {
+	log_firstcall();
+
 	Point2F pos = { (real32)x, (real32)y };
 
-	c -= 32;
-	uint32 gy = c / FONT_GRIDWIDTH;
-	uint32 gx = c % FONT_GRIDWIDTH;
+	uchar8 uc = (uchar8)c;
+
+	uc -= 32;
+	uint32 gy = uc / FONT_GRIDWIDTH;
+	uint32 gx = uc % FONT_GRIDWIDTH;
 
 	if (gy < FONT_GRIDHEIGHT) {
 		if (render) Image_DisplayScaled(font->image, &font->posSet[gx][gy], &pos, nullptr);
@@ -239,18 +259,24 @@ uint32 __cdecl Gods98::Font_OutputChar(const Font* font, sint32 x, sint32 y, cha
 // <LegoRR.exe @0047a7e0>
 uint32 __cdecl Gods98::Font_GetCharWidth(const Font* font, char c)
 {
+	log_firstcall();
+
 	return Font_OutputChar(font, 0, 0, c, false);
 }
 
 // <LegoRR.exe @0047a800>
 uint32 __cdecl Gods98::Font_GetHeight(const Font* font)
 {
+	log_firstcall();
+
 	return font->fontHeight;
 }
 
 // <LegoRR.exe @0047a810>
 void __cdecl Gods98::Font_Remove(Font* dead)
 {
+	log_firstcall();
+
 	Font_CheckInit();
 	Error_Fatal(!dead, "NULL passed to Font_Remove()");
 
@@ -263,6 +289,8 @@ void __cdecl Gods98::Font_Remove(Font* dead)
 // <LegoRR.exe @0047a840>
 Gods98::Font* __cdecl Gods98::Font_Create(Image* image)
 {
+	log_firstcall();
+
 	Font_CheckInit();
 
 	if (fontGlobs.freeList == nullptr) Font_AddList();
@@ -280,6 +308,8 @@ Gods98::Font* __cdecl Gods98::Font_Create(Image* image)
 // <LegoRR.exe @0047a880>
 void __cdecl Gods98::Font_AddList(void)
 {
+	log_firstcall();
+
 	Font_CheckInit();
 
 	Error_Fatal(fontGlobs.listCount+1 >= FONT_MAXLISTS, "Run out of lists");
@@ -344,6 +374,7 @@ void __cdecl Gods98::Font_RunThroughLists(FontRunThroughListsCallback Callback, 
 	}
 }
 
+/*
 // <missing or inlined>
 __inline uint32 __cdecl Gods98::Font_GetLineCount(Font* font, const char* msg, ...)
 {
@@ -354,5 +385,6 @@ __inline uint32 __cdecl Gods98::Font_GetLineCount(Font* font, const char* msg, .
 	va_end(args);
 	return lineCount;
 }
+*/
 
 #pragma endregion

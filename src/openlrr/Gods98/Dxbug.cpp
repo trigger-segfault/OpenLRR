@@ -1,4 +1,5 @@
 
+#define DIRECTINPUT_VERSION				0x800
 #include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -24,7 +25,7 @@ const char* (& Gods98::DXModuleName)[8] = *(const char* (*)[8])0x004ac788;
 // = { "Unknown module", "Direct3D Retained Mode", "Direct Input", "Direct Draw", "Direct Sound", "Direct Play", "Direct3D Immediate mode", "IUknown Interface" };
 
 // <LegoRR.exe @005498a8>
-Gods98::Dxbug_Globs & Gods98::dxbugGlobs = *(Gods98::Dxbug_Globs*)0x005498a8;
+Gods98::Dxbug_Globs & Gods98::dxbugGlobs = *(Gods98::Dxbug_Globs*)0x005498a8; // (no init)
 
 #pragma endregion
 
@@ -62,6 +63,8 @@ void __cdecl Gods98::Error_ShowLastDXError(void)
 // <LegoRR.exe @0048a050>
 void __cdecl Gods98::SE(const char* error, const char* errdesc)
 {
+	log_firstcall();
+
 	std::sprintf(dxbugGlobs.DXErrorString,
 		"A DirectX error was set in module %s at line no %i.\n"
 		"Error : %s (code %i)\n"
@@ -74,6 +77,8 @@ void __cdecl Gods98::SE(const char* error, const char* errdesc)
 // <LegoRR.exe @0048a090>
 HRESULT __cdecl Gods98::Error_SetDXError(HRESULT err, DxbugModule DXModule, const char* File, sint32 Line)
 {
+	log_firstcall();
+
 	// Take the last error code specified by the program
 	dxbugGlobs.errnum = err;
 	if (DXModule > DxbugModule::ERROR_UNKNOWN && DXModule <= DxbugModule::ERROR_IUNKNOWN) dxbugGlobs.DXModuleNameNumber = DXModule;
