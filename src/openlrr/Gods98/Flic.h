@@ -3,7 +3,6 @@
 #include "../common.h"
 #include "../Types/geometry.h"
 #include "Files.h"
-#include "Maths.h"
 
 
 namespace Gods98
@@ -21,11 +20,16 @@ namespace Gods98
 
 #define FLICERRORSTART 3000
 
-#define FLICFINISHED 1
-#define FLICNOERROR  0
-#define FLICERROR   -1
+//#define FLICFINISHED 1
+//#define FLICNOERROR  0
+//#define FLICERROR   -1
 
 #define DIRECTVIDEOPORTAL (-2)
+
+
+// flic variables
+#define FLIC_FIRSTBUFFER 0
+#define FLIC_SECONDBUFFER 1
 
 #pragma endregion
 
@@ -35,6 +39,7 @@ namespace Gods98
 
 #pragma region Enums
 
+/*
 #define FLICRESIDE          (1<<0)
 #define FLICDISK            (0<<0)
 #define FLICMEMORY          (1<<0)
@@ -47,34 +52,66 @@ namespace Gods98
 #define FLICSOUND           (1<<3)
 #define FLICSOUNDON         (0<<3)
 #define FLICSOUNDOFF        (1<<3)
-
+*/
 //#define FLICSETPALETTE      (1<<1)
 
-enum
+namespace _ns_FlicUserFlags {
+enum FlicUserFlags : sint32
 {
-	FLICMODE_BYTEPERPIXEL,	//  EQU   0       ;BYTE PER PIXEL
-	FLICMODE_MODEX,	//     EQU   1       ;MODEX
-	FLICMODE_PLANAR,		//    EQU   2       ;PLANAR MODE
-	FLICMODE_TRUECOLOR,		//   EQU   3       ;TRUE COLOR MODE
-	FLICMODE_HICOLOR,	//   EQU   4       ;HI COLOR MODE
+	FLICUSER_FLAG_NONE = 0,
+
+	FLICRESIDE     = (1<<0) /*0x1*/, // reside:mask
+	FLICDISK       = (0<<0) /*0x0*/, // reside:state disk
+	FLICMEMORY     = (1<<0) /*0x1*/, // reside:state memory
+	FLICLOOPING    = (1<<1) /*0x2*/, // looping:mask
+	FLICLOOPINGON  = (1<<1) /*0x2*/, // looping:state on
+	FLICLOOPINGOFF = (0<<1) /*0x0*/, // looping:state off
+	FLICCATCHUP    = (1<<2) /*0x4*/, // catchup:mask
+	FLICCATCHUPON  = (1<<2) /*0x4*/, // catchup:state on
+	FLICCATCHUPOFF = (0<<2) /*0x0*/, // catchup:state off
+	FLICSOUND      = (1<<3) /*0x8*/, // sound:mask
+	FLICSOUNDON    = (0<<3) /*0x0*/, // sound:state on
+	FLICSOUNDOFF   = (1<<3) /*0x8*/, // sound:state off
 };
+DEFINE_ENUM_FLAG_OPERATORS(FlicUserFlags);
+static_assert(sizeof(FlicUserFlags) == 0x4, "");
+} using FlicUserFlags = _ns_FlicUserFlags::FlicUserFlags;
 
 
+namespace _ns_FlicMode {
+enum FlicMode : sint32
+{
+	FLICMODE_BYTEPERPIXEL = 0, // BYTE PER PIXEL
+	FLICMODE_MODEX        = 1, // MODEX
+	FLICMODE_PLANAR       = 2, // PLANAR MODE
+	FLICMODE_TRUECOLOR    = 3, // TRUE COLOR MODE
+	FLICMODE_HICOLOR      = 4, // HI COLOR MODE
+};
+static_assert(sizeof(FlicMode) == 0x4, "");
+} using FlicMode = _ns_FlicMode::FlicMode;
+
+
+namespace _ns_FlicError {
 enum FlicError : sint32
 {
-     FLICINVALIDHANDLE=FLICERRORSTART,
-     FLICNOMOREHANDLES,
-     FLICNOTENOUGHMEMORY,
-     FLICINVALIDFILE,
-     FLICFILENOTFOUND,
-     FLICFILEERROR,
-     FLICOFFPORTAL,
-     FLICFRAMEDOESNOTEXIST,
-     FLICREPLAYNOTSUPPORTED,
-     FLICNOMOREFRAMES,
-     FLICSOUNDHEADERERROR,
+	FLICERROR              = -1,
+	FLICNOERROR            = 0,
+	FLICFINISHED           = 1,
+
+	FLICINVALIDHANDLE      = FLICERRORSTART    /*3000*/,
+	FLICNOMOREHANDLES      = FLICERRORSTART+1  /*3001*/,
+	FLICNOTENOUGHMEMORY    = FLICERRORSTART+2  /*3002*/,
+	FLICINVALIDFILE        = FLICERRORSTART+3  /*3003*/,
+	FLICFILENOTFOUND       = FLICERRORSTART+4  /*3004*/,
+	FLICFILEERROR          = FLICERRORSTART+5  /*3005*/,
+	FLICOFFPORTAL          = FLICERRORSTART+6  /*3006*/,
+	FLICFRAMEDOESNOTEXIST  = FLICERRORSTART+7  /*3007*/,
+	FLICREPLAYNOTSUPPORTED = FLICERRORSTART+8  /*3008*/,
+	FLICNOMOREFRAMES       = FLICERRORSTART+9  /*3009*/,
+	FLICSOUNDHEADERERROR   = FLICERRORSTART+10 /*3010*/,
 };
 static_assert(sizeof(FlicError) == 0x4, "");
+} using FlicError = _ns_FlicError::FlicError;
 
 #pragma endregion
 
@@ -92,7 +129,7 @@ static_assert(sizeof(FlicError) == 0x4, "");
 #define File_Tell ftell
 */
 
-//int File_Length(lpFile fp);
+//sint32 File_Length(lpFile fp);
 
 struct PORTAL
 {
@@ -164,7 +201,7 @@ static_assert(sizeof(PORTAL_STRUCT) == 0x5c, "");
 struct FLICLISTSTRUCT
 {
     /*0,4*/ sint32 active;
-	/*4,4*/ char* structhandle;
+	/*4,4*/ sint8* structhandle;
 	/*8*/
 };
 static_assert(sizeof(FLICLISTSTRUCT) == 0x8, "");
@@ -181,13 +218,13 @@ static_assert(sizeof(FLICCHUNKSTRUCT) == 0x8, "");
 
 struct FLICSTRUCT
 {
-	/*000,4*/ sint32 userflags;
+	/*000,4*/ FlicUserFlags userflags;
 	/*004,4*/ sint32 fsXc;
 	/*008,4*/ sint32 fsYc;
 	/*00c,4*/ sint32 fsXsize;
 	/*010,4*/ sint32 fsYsize;
-	/*014,4*/ char* rambufferhandle;
-	/*018,4*/ char* destportalhandle;
+	/*014,4*/ sint8* rambufferhandle;
+	/*018,4*/ sint8* destportalhandle;
 	/*01c,100*/ char filename[256];
 	/*11c,300*/ uint8 fsPalette256[(256*3)];
 	/*41c,200*/ uint16 fsPalette64k[256];
@@ -201,10 +238,10 @@ struct FLICSTRUCT
 	/*638,4*/ uint32 fsPitch;
 	/*63c,4*/ IDirectDrawSurface4* fsSurface;
 	/*640,88*/ FLICHEADERSTRUCT fsHeader;
-	/*6c8,4*/ File_Dummy* filehandle;
+	/*6c8,4*/ File* filehandle;
 	/*6cc,4*/ void* fsSPtr;
 	/*6d0,4*/ void* fsSource;
-	/*6d4,4*/ sint32 fsDisplayMode;
+	/*6d4,4*/ FlicMode fsDisplayMode;
 	/*6d8,4*/ sint32 fsBitPlanes;
 	/*6dc,4*/ sint32 fsLoadBufferSize;
 	/*6e0,4*/ void* fsLoadBuffer;
@@ -212,6 +249,8 @@ struct FLICSTRUCT
 	/*6e8*/
 };
 static_assert(sizeof(FLICSTRUCT) == 0x6e8, "");
+
+typedef struct FLICSTRUCT Flic;
 
 
 struct SOUNDARRAY
@@ -236,13 +275,27 @@ static_assert(sizeof(SOUNDARRAY) == 0x11c, "");
 #pragma region Functions
 
 // <LegoRR.exe @00483f40>
-bool32 __cdecl Flic_Setup(const char* filename, OUT FLICSTRUCT** fsp, sint32 flags);
+bool32 __cdecl Flic_Setup(const char* filename, OUT FLICSTRUCT** fsp, FlicUserFlags flags);
 
 // <LegoRR.exe @004841c0>
 bool32 __cdecl Flic_Close(FLICSTRUCT* fsp);
 
+
+// <unused>
+bool32 __cdecl Flic_SetFrameRate(FLICSTRUCT* fsp, sint32 rate);
+
+// <unused>
+sint32 __cdecl Flic_GetFrameRate(FLICSTRUCT* fsp);
+
+
 // <LegoRR.exe @00484220>
 bool32 __cdecl Flic_LoadHeader(const char* filename, FLICSTRUCT** fsp);
+
+
+// (debug)
+// <unused>
+void __cdecl flicTest(FLICSTRUCT* fsp);
+
 
 // <LegoRR.exe @00484330>
 bool32 __cdecl Flic_Animate(FLICSTRUCT* fsp, const Area2F* destArea, bool32 advance, bool32 trans);
@@ -262,6 +315,12 @@ bool32 __cdecl Flic_FrameChunk(FLICSTRUCT* fsp);
 // <LegoRR.exe @004848d0>
 FlicError __cdecl Flic_DoChunk(FLICSTRUCT* fsp);
 
+
+// (unsused and commented out in Flic.prot)
+// <unused>
+sint32 __cdecl Flic_FindMaxChunk(FLICSTRUCT* fsp);
+
+
 // Function to load pointers for each frame of flic
 // <LegoRR.exe @004849e0>
 FlicError __cdecl Flic_LoadPointers(FLICSTRUCT* fsp);
@@ -273,18 +332,54 @@ FlicError __cdecl Flic_LoadPalette64(FLICSTRUCT* fsp);
 // <LegoRR.exe @00484b40>
 bool32 __cdecl Flic_Copy(FLICSTRUCT* fsp);
 
+
+// Simply returns 100
+// <unused>
+sint32 __cdecl Flic_GetEventRate(void);
+
+
+// return true;
+// <shared internal> (see: <LegoRR.exe @00484e50>)
+__inline bool32 FlicBRunDepackBytePerPixel(FLICSTRUCT* fsp) { return true; }
+
+
 // <LegoRR.exe @00484b90>
 bool32 __cdecl FlicBRunDepackHiColor(FLICSTRUCT* fsp);
 
 // <LegoRR.exe @00484c90>
 bool32 __cdecl FlicBRunDepackHiColorFlic32k(FLICSTRUCT* fsp);
 
+
+// return true;
+// <shared internal> (see: <LegoRR.exe @00484e50>)
+__inline bool32 FlicBRunDepackHiColorFlic(FLICSTRUCT* fsp) { return true; }
+
+// return 0;
+// <shared internal> (see: <LegoRR.exe @00484f50>)
+__inline sint32 UnpackM2(void* input, void* output) { return 0; }
+
+
 // <LegoRR.exe @00484de0>
 bool32 __cdecl Flic_BrunDepack(FLICSTRUCT* fsp);
 
-// (shared)
+
+// return true;
+// <shared internal> (see: <LegoRR.exe @00484e50>)
+__inline bool32 Flic_Black(FLICSTRUCT* fsp) { return true; }
+
+// return true;
+// <shared internal> (see: <LegoRR.exe @00484e50>)
+__inline bool32 Flic_DeltaByte(FLICSTRUCT* fsp) { return true; }
+
+// return true;
+// <shared internal> (see: <LegoRR.exe @00484e50>)
+__inline bool32 Flic_Palette64(FLICSTRUCT* fsp) { return true; }
+
+// (shared, internal)
+// DON'T HOOK THIS, it's internal only(?)
 // <LegoRR.exe @00484e50>
-bool32 __cdecl Flic_NERPFunc__True(int* stack); // return 1;
+//bool32 __cdecl Flic_NERPFunc__True(sint32* stack); // return 1;
+
 
 // <LegoRR.exe @00484e60>
 void __cdecl FlicCreateHiColorTable(FLICSTRUCT* fsp);
@@ -292,15 +387,50 @@ void __cdecl FlicCreateHiColorTable(FLICSTRUCT* fsp);
 // <LegoRR.exe @00484ec0>
 bool32 __cdecl Flic_Palette256(FLICSTRUCT* fsp);
 
-// (shared)
+
+// return 0;
+// <shared internal> (see: <LegoRR.exe @00484f50>)
+__inline sint32 Flic_Unpack(FLICSTRUCT* fsp) { return 0; }
+
+// return;
+// <shared internal> (see: <LegoRR.exe @00484f50>)
+__inline void FlicCopyHiColor(FLICSTRUCT* fsp) { return; }
+
+// return;
+// <shared internal> (see: <LegoRR.exe @00484f50>)
+__inline void FlicCopyBytePerPixel(FLICSTRUCT* fsp) { return; }
+
+// return;
+// <shared internal> (see: <LegoRR.exe @00484f50>)
+__inline void FlicCopyHiColorFlic(FLICSTRUCT* fsp) { return; }
+
+// return;
+// <shared internal> (see: <LegoRR.exe @00484f50>)
+__inline void FlicDeltaWordBytePerPixel(FLICSTRUCT* fsp) { return; }
+
+// (shared, internal)
+// DON'T HOOK THIS, it's internal only(?)
 // <LegoRR.exe @00484f50>
-void __cdecl Flic_logf_removed(const char* msg, ...); // return;
+//void __cdecl Flic_logf_removed(const char* msg, ...); // return;
+
 
 // <LegoRR.exe @00484f60>
 void __cdecl FlicDeltaWordHiColor(FLICSTRUCT* fsp);
 
+
+// return;
+// <shared internal> (see: <LegoRR.exe @00484f50>)
+__inline void FlicDeltaWordHiColorDZ(FLICSTRUCT* fsp) { return; }
+
+
 // <LegoRR.exe @00485110>
 void __cdecl FlicDeltaWordHiColorFlic32k(FLICSTRUCT* fsp);
+
+
+// return;
+// <shared internal> (see: <LegoRR.exe @00484f50>)
+__inline void FlicDeltaWordHiColorFlic(FLICSTRUCT* fsp) { return; }
+
 
 // <LegoRR.exe @004852f0>
 bool32 __cdecl Flic_DeltaWord(FLICSTRUCT* fsp);
@@ -308,14 +438,22 @@ bool32 __cdecl Flic_DeltaWord(FLICSTRUCT* fsp);
 // <LegoRR.exe @00485380>
 uint16 __cdecl getFlicCol(uint8 n, FLICSTRUCT* fsp);
 
-// <LegoRR.exe @004853a0>
-uint32 __cdecl Flic_GetHeight(FLICSTRUCT* fsp);
 
-
-// (shared)
+// (shared) "AnimClone_IsLws__Flic_GetWidth"
+// THIS FUNCTION MUST BE HOOKED ON AN INDIVIDUAL BASIS
+// There are 5 calls made to this:
+//  type:FLICSTRUCT (Flic_GetWidth)  -> FUN_004120e0  <@004120f7>
+//                                      Panel_FUN_0045a9f0  <@0045ab17>
+//                                      Pointer_DrawPointer  <@0045cfc8>
+//  type:FlocksData (Flocks_???)     -> LiveObject_Flocks_FUN_0044bef0  <@0044bfc3>
+//  type:AnimClone (AnimClone_IsLws) -> Container_FormatPartName  <@00473f60>
+// <called @004120f7, 0045ab17, 0045cfc8>
 // <LegoRR.exe @00489a90>
 uint32 __cdecl Flic_GetWidth(FLICSTRUCT* fsp);
 
+
+// <LegoRR.exe @004853a0>
+uint32 __cdecl Flic_GetHeight(FLICSTRUCT* fsp);
 
 #pragma endregion
 

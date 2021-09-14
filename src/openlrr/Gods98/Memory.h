@@ -98,21 +98,21 @@ extern Mem_Globs & memGlobs;
 
 #pragma region Functions
 
-// std::malloc(void*)
+// void* std::malloc(size_t);
 // <LegoRR.exe @0048de90>
 __inline void * Mem_Alloc(uint32 size)
 {
 	return ((void* (__cdecl*)(uint32))0x0048de90)(size);
 }
 
-// std::free(void*)
+// void std::free(void*);
 // <LegoRR.exe @0048de40>
 __inline void Mem_Free(void * addr)
 {
 	((void(__cdecl*)(void*))0x0048de40)(addr);
 }
 
-// std::realloc(void*)
+// void* std::realloc(void*, size_t);
 // <LegoRR.exe @0048df40>
 __inline void * Mem_ReAlloc(void * addr, uint32 size)
 {

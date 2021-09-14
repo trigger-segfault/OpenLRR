@@ -78,7 +78,7 @@
 #pragma region Library Comments
 // Direct X Header Files and Library
 #pragma comment(lib, "ddraw.lib")		// DirectDraw
-//#pragma comment(lib, "dsound.lib")		// DirectSound
+#pragma comment(lib, "dsound.lib")		// DirectSound
 #pragma comment(lib, "dinput8.lib")		// DirectInput 8.0
 #pragma comment(lib, "winmm.lib")		// Multimedia System and timeGetTime()
 #pragma comment(lib, "dxguid.lib")		// GUID + IID constants
@@ -171,3 +171,9 @@ static_assert(sizeof(BoolTri) == 0x4, "");
 #define def_inline(ret, funcname, ...) ret __cdecl noinline(funcname) ##__VA_ARGS__ ; __inline ret funcname ##__VA_ARGS__
 // a slapdash approach for standardizing no-inlined method names that can be safely hooked
 //#define noinline(funcname) _noinline_ ##funcname
+
+
+//#define enum_scoped(name) namespace _ns_ ##name { \
+//	enum name
+
+//#define enum_scoped_end(name) } using name = _ns_ ##name## :: ##name

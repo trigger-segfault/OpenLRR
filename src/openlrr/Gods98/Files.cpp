@@ -275,13 +275,13 @@ void __cdecl Gods98::File_MakeDir(const char* path)
 }
 
 // <LegoRR.exe @0047f9a0>
-Gods98::File_Dummy* __cdecl Gods98::File_Open(const char* fName, const char* mode)
+Gods98::File* __cdecl Gods98::File_Open(const char* fName, const char* mode)
 {
 	log_firstcall();
 
 	const char* fullName = File_VerifyFilename(fName);
 	FileSys fs = _File_CheckSystem(fullName, mode);
-	File_Dummy* file;
+	File* file;
 
 	switch (fs)
 	{
@@ -333,7 +333,7 @@ Gods98::File_Dummy* __cdecl Gods98::File_Open(const char* fName, const char* mod
 }
 
 // <LegoRR.exe @0047fb10>
-sint32 __cdecl Gods98::File_Seek(File_Dummy* f, sint32 pos, sint32 mode)
+sint32 __cdecl Gods98::File_Seek(File* f, sint32 pos, sint32 mode)
 {
 	log_firstcall();
 
@@ -375,7 +375,7 @@ sint32 __cdecl Gods98::File_Seek(File_Dummy* f, sint32 pos, sint32 mode)
 }
 
 // <LegoRR.exe @0047fc40>
-sint32 __cdecl Gods98::File_Read(OUT void* buffer, sint32 size, sint32 count, File_Dummy* f)
+sint32 __cdecl Gods98::File_Read(OUT void* buffer, sint32 size, sint32 count, File* f)
 {
 	log_firstcall();
 
@@ -403,7 +403,7 @@ sint32 __cdecl Gods98::File_Read(OUT void* buffer, sint32 size, sint32 count, Fi
 }
 
 // <LegoRR.exe @0047fd10>
-sint32 __cdecl Gods98::File_Write(const void* buffer, sint32 size, sint32 count, File_Dummy* f)
+sint32 __cdecl Gods98::File_Write(const void* buffer, sint32 size, sint32 count, File* f)
 {
 	log_firstcall();
 
@@ -425,7 +425,7 @@ sint32 __cdecl Gods98::File_Write(const void* buffer, sint32 size, sint32 count,
 }
 
 // <LegoRR.exe @0047fd80>
-sint32 __cdecl Gods98::File_Close(File_Dummy* f)
+sint32 __cdecl Gods98::File_Close(File* f)
 {
 	log_firstcall();
 
@@ -445,7 +445,7 @@ sint32 __cdecl Gods98::File_Close(File_Dummy* f)
 }
 
 // <missing>
-sint32 __cdecl Gods98::File_EOF(File_Dummy* f)
+sint32 __cdecl Gods98::File_EOF(File* f)
 {
 	FileSys fs = _File_GetSystem(f);
 	switch (fs)
@@ -465,7 +465,7 @@ sint32 __cdecl Gods98::File_EOF(File_Dummy* f)
 }
 
 // <LegoRR.exe @0047fdd0>
-sint32 __cdecl Gods98::File_Tell(File_Dummy* f)
+sint32 __cdecl Gods98::File_Tell(File* f)
 {
 	log_firstcall();
 
@@ -487,7 +487,7 @@ sint32 __cdecl Gods98::File_Tell(File_Dummy* f)
 }
 
 // <missing>
-sint32 __cdecl Gods98::File_Flush(File_Dummy* f)
+sint32 __cdecl Gods98::File_Flush(File* f)
 {
 	FileSys fs = _File_GetSystem(f);
 	switch (fs)
@@ -543,7 +543,7 @@ bool32 __cdecl Gods98::File_Exists(const char* fName)
 }
 
 // <LegoRR.exe @0047fee0>
-sint32 __cdecl Gods98::File_GetC(File_Dummy* f)
+sint32 __cdecl Gods98::File_GetC(File* f)
 {
 	log_firstcall();
 
@@ -575,7 +575,7 @@ sint32 __cdecl Gods98::File_GetC(File_Dummy* f)
 }
 
 // <LegoRR.exe @0047ff60>
-sint32 __cdecl Gods98::File_Length(File_Dummy* f)
+sint32 __cdecl Gods98::File_Length(File* f)
 {
 	log_firstcall();
 
@@ -587,7 +587,7 @@ sint32 __cdecl Gods98::File_Length(File_Dummy* f)
 }
 
 // <LegoRR.exe @0047ffa0>
-char* __cdecl Gods98::File_InternalFGetS(OUT char* fgetsBuffer, sint32 num, File_Dummy* f)
+char* __cdecl Gods98::File_InternalFGetS(OUT char* fgetsBuffer, sint32 num, File* f)
 {
 	log_firstcall();
 
@@ -601,7 +601,7 @@ char* __cdecl Gods98::File_InternalFGetS(OUT char* fgetsBuffer, sint32 num, File
 }
 
 // <LegoRR.exe @00480000>
-char* __cdecl Gods98::File_GetS(OUT char* fgetsBuffer, sint32 num, File_Dummy* f)
+char* __cdecl Gods98::File_GetS(OUT char* fgetsBuffer, sint32 num, File* f)
 {
 	log_firstcall();
 
@@ -623,7 +623,7 @@ char* __cdecl Gods98::File_GetS(OUT char* fgetsBuffer, sint32 num, File_Dummy* f
 }
 
 // <LegoRR.exe @00480070>
-sint32 __cdecl Gods98::File_PrintF(File_Dummy* f, const char* msg, ...)
+sint32 __cdecl Gods98::File_PrintF(File* f, const char* msg, ...)
 {
 	log_firstcall();
 
@@ -653,7 +653,7 @@ sint32 __cdecl Gods98::File_PrintF(File_Dummy* f, const char* msg, ...)
 }
 
 // <missing>
-uint32 __cdecl Gods98::File_VPrintF(File_Dummy* f, const char* msg, std::va_list args)
+uint32 __cdecl Gods98::File_VPrintF(File* f, const char* msg, std::va_list args)
 {
 	FileSys fs = _File_GetSystem(f);
 
@@ -672,7 +672,7 @@ uint32 __cdecl Gods98::File_VPrintF(File_Dummy* f, const char* msg, std::va_list
 }
 
 // <missing>
-sint32 __cdecl Gods98::File_ScanF(File_Dummy* f, const char* msg, ...)
+sint32 __cdecl Gods98::File_ScanF(File* f, const char* msg, ...)
 {
 	/// FIXME: not implemented by GODS98
 	return 0;
@@ -680,7 +680,7 @@ sint32 __cdecl Gods98::File_ScanF(File_Dummy* f, const char* msg, ...)
 
 
 // <LegoRR.exe @004800e0>
-Gods98::FileSys __cdecl Gods98::_File_GetSystem(File_Dummy* f)
+Gods98::FileSys __cdecl Gods98::_File_GetSystem(File* f)
 {
 	log_firstcall();
 
@@ -723,20 +723,20 @@ bool32 __cdecl Gods98::_File_OpenWad(WADFILE* wad, const char* fName)
 }
 
 // <LegoRR.exe @00480190>
-Gods98::File_Dummy* __cdecl Gods98::_File_Alloc(FileSys fType)
+Gods98::File* __cdecl Gods98::_File_Alloc(FileSys fType)
 {
 	log_firstcall();
 
 	if (fType == FileSys::FileSystem_Std)
 	{
-		File_Dummy* f;
-		f = (File_Dummy*)_File_Malloc(sizeof(File_Dummy));
+		File* f;
+		f = (File*)_File_Malloc(sizeof(File));
 		f->type = fType;
 		return f;
 	}
 	else if (fType == FileSys::FileSystem_Wad)
 	{
-		File_Dummy* f = (File_Dummy*)_File_Malloc(sizeof(File_Dummy));
+		File* f = (File*)_File_Malloc(sizeof(File));
 		if (f)
 		{
 			f->type = fType;
@@ -765,7 +765,7 @@ void __cdecl Gods98::_File_Free(void* ptr)
 }
 
 // <LegoRR.exe @00480210>
-void __cdecl Gods98::_File_Dealloc(File_Dummy* file)
+void __cdecl Gods98::_File_Dealloc(File* file)
 {
 	log_firstcall();
 
@@ -821,7 +821,7 @@ const char* __cdecl Gods98::_File_GetWadName(const char* fName)
 }
 
 // <LegoRR.exe @00480310>
-char* __cdecl Gods98::File_GetLine(OUT char* buffer, uint32 size, File_Dummy* file)
+char* __cdecl Gods98::File_GetLine(OUT char* buffer, uint32 size, File* file)
 {
 	log_firstcall();
 
@@ -854,7 +854,7 @@ void* __cdecl Gods98::File_Load(const char* filename, OUT uint32* sizeptr, bool3
 {
 	log_firstcall();
 
-	File_Dummy* ifp;
+	File* ifp;
 	if (ifp = File_Open(filename, binary ? "rb" : "r")) {
 		File_Seek(ifp, 0, FileOrigin::File_SeekEnd);
 		uint32 size = File_Tell(ifp);
@@ -882,7 +882,7 @@ uint32 __cdecl Gods98::File_LoadBinaryHandle(const char* filename, OUT uint32* s
 {
 	log_firstcall();
 
-	File_Dummy* ifp;
+	File* ifp;
 	if (ifp = File_Open(filename, "rb")) {
 		File_Seek(ifp, 0, FileOrigin::File_SeekEnd);
 		uint32 size = File_Tell(ifp);

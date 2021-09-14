@@ -11,7 +11,24 @@
 #include "Maths.h"
 #include "DirectDraw.h"
 #include "Dxbug.h"
+//Mesh_PostRenderAll
 
+/**********************************************************************************
+ ******** Forward Global Namespace Declarations
+ **********************************************************************************/
+
+#pragma region Forward Declarations
+
+/// TODO: Remove me once Container module is finished
+//struct Container;
+//struct AnimClone;
+/*namespace Gods98 {
+	struct Viewport;
+}*/
+#define Mesh_PostRenderAll ((void(__cdecl*)(Viewport*))0x00483020)
+// <LegoRR.exe @00483020>
+
+#pragma endregion
 
 
 /**********************************************************************************
@@ -34,18 +51,22 @@ Gods98::Viewport_Globs & Gods98::viewportGlobs = *(Gods98::Viewport_Globs*)0x007
 // <LegoRR.exe @00477010>
 void __cdecl Gods98::Viewport_Initialise(void)
 {
+	log_firstcall();
+
 	for (uint32 loop=0 ; loop<VIEWPORT_MAXLISTS ; loop++){
 		viewportGlobs.listSet[loop] = nullptr;
 	}
 
 	viewportGlobs.freeList = nullptr;
 	viewportGlobs.listCount = 0;
-	viewportGlobs.flags = VIEWPORT_FLAG_INITIALISED;
+	viewportGlobs.flags = Viewport_GlobFlags::VIEWPORT_FLAG_INITIALISED;
 }
 
 // <LegoRR.exe @00477040>
 void __cdecl Gods98::Viewport_Shutdown(void)
 {
+	log_firstcall();
+
 	Viewport_RemoveAll();
 
 	for (uint32 loop=0 ; loop<VIEWPORT_MAXLISTS ; loop++){
@@ -53,12 +74,14 @@ void __cdecl Gods98::Viewport_Shutdown(void)
 	}
 
 	viewportGlobs.freeList = nullptr;
-	viewportGlobs.flags = 0x00000000;
+	viewportGlobs.flags = Viewport_GlobFlags::VIEWPORT_FLAG_NONE;
 }
 
 // <LegoRR.exe @00477080>
 Gods98::Viewport* __cdecl Gods98::Viewport_Create(real32 xPos, real32 yPos, real32 width, real32 height, Container* camera)
 {
+	log_firstcall();
+
 	//uint32 actWidth, actHeight, actXPos, actYPos;
 	//uint32 devWidth, devHeight;
 
@@ -76,6 +99,8 @@ Gods98::Viewport* __cdecl Gods98::Viewport_Create(real32 xPos, real32 yPos, real
 // <LegoRR.exe @00477110>
 Gods98::Viewport* __cdecl Gods98::Viewport_CreatePixel(sint32 xPos, sint32 yPos, uint32 width, uint32 height, Container* camera)
 {
+	log_firstcall();
+
 	Viewport* newViewport;
 	uint32 devWidth = lpDevice()->GetWidth();
 	uint32 devHeight = lpDevice()->GetHeight();
@@ -99,7 +124,7 @@ Gods98::Viewport* __cdecl Gods98::Viewport_CreatePixel(sint32 xPos, sint32 yPos,
 	if (lpD3DRM()->CreateViewport(lpDevice(), camera->masterFrame, xPos, yPos, width, height, &newViewport->lpVP) == D3DRM_OK){
 
 		/// X86: 32-bit pointer
-		newViewport->lpVP->SetAppData((uint32) newViewport);
+		newViewport->lpVP->SetAppData((DWORD) newViewport);
 
 		newViewport->smoothFOV = 0.0f;
 		return newViewport;
@@ -112,6 +137,8 @@ Gods98::Viewport* __cdecl Gods98::Viewport_CreatePixel(sint32 xPos, sint32 yPos,
 // <LegoRR.exe @004771d0>
 void __cdecl Gods98::Viewport_GetSize(Viewport* vp, OUT uint32* width, OUT uint32* height)
 {
+	log_firstcall();
+
 	Viewport_CheckInit();
 
 	Error_Fatal(!vp, "NULL passed as viewport to Viewport_Configure()");
@@ -123,6 +150,8 @@ void __cdecl Gods98::Viewport_GetSize(Viewport* vp, OUT uint32* width, OUT uint3
 // <LegoRR.exe @00477210>
 void __cdecl Gods98::Viewport_SetCamera(Viewport* vp, Container* cont)
 {
+	log_firstcall();
+
 	Viewport_CheckInit();
 
 	Error_Fatal(!vp||!cont, "NULL passed as viewport or container to Viewport_SetCamera()");
@@ -137,6 +166,8 @@ void __cdecl Gods98::Viewport_SetCamera(Viewport* vp, Container* cont)
 // <LegoRR.exe @00477230>
 Gods98::Container* __cdecl Gods98::Viewport_GetCamera(Viewport* vp)
 {
+	log_firstcall();
+
 	IDirect3DRMFrame3* frame;
 	Container* camera = nullptr;
 
@@ -156,8 +187,10 @@ Gods98::Container* __cdecl Gods98::Viewport_GetCamera(Viewport* vp)
 }
 
 // <LegoRR.exe @00477270>
-Gods98::Container* __cdecl Gods98::Viewport_SetBackClip(Viewport* vp, real32 dist)
+void __cdecl Gods98::Viewport_SetBackClip(Viewport* vp, real32 dist)
 {
+	log_firstcall();
+
 	Viewport_CheckInit();
 
 	if (vp->lpVP->SetBack(dist) == D3DRM_OK){
@@ -176,6 +209,8 @@ real32 __cdecl Gods98::Viewport_GetBackClip(Viewport* vp)
 // <LegoRR.exe @004772b0>
 real32 __cdecl Gods98::Viewport_GetFrontClip(Viewport* vp)
 {
+	log_firstcall();
+
 	Viewport_CheckInit();
 
 	return vp->lpVP->GetFront();
@@ -184,6 +219,8 @@ real32 __cdecl Gods98::Viewport_GetFrontClip(Viewport* vp)
 // <LegoRR.exe @004772d0>
 void __cdecl Gods98::Viewport_Clear(Viewport* vp, bool32 full)
 {
+	log_firstcall();
+
 	Viewport_CheckInit();
 
 	if (full) {
@@ -227,6 +264,7 @@ void __cdecl Gods98::Viewport_Clear(Viewport* vp, bool32 full)
 // <LegoRR.exe @00477410>
 void __cdecl Gods98::Viewport_Render(Viewport* vp, Container* root, real32 delta)
 {
+	log_firstcall();
 
 	Viewport_CheckInit();
 
@@ -263,6 +301,8 @@ void __cdecl Gods98::Viewport_Render(Viewport* vp, Container* root, real32 delta
 // <LegoRR.exe @004774e0>
 void __cdecl Gods98::Viewport_Remove(Viewport* dead)
 {
+	log_firstcall();
+
 	Viewport_CheckInit();
 	Error_Fatal(!dead, "NULL passed to Viewport_Remove()");
 
@@ -277,6 +317,8 @@ void __cdecl Gods98::Viewport_Remove(Viewport* dead)
 // <LegoRR.exe @00477500>
 void __cdecl Gods98::Viewport_SmoothSetField(Viewport* vp, real32 fov)
 {
+	log_firstcall();
+
 	vp->smoothFOV = fov;
 }
 
@@ -284,6 +326,8 @@ void __cdecl Gods98::Viewport_SmoothSetField(Viewport* vp, real32 fov)
 // <LegoRR.exe @00477510>
 void __cdecl Gods98::Viewport_SetField(Viewport* vp, real32 fov)
 {
+	log_firstcall();
+
 	Viewport_CheckInit();
 	Error_Fatal(!vp, "NULL passed to Viewport_SetField()");
 
@@ -294,6 +338,8 @@ void __cdecl Gods98::Viewport_SetField(Viewport* vp, real32 fov)
 // <LegoRR.exe @00477530>
 real32 __cdecl Gods98::Viewport_GetField(Viewport* vp)
 {
+	log_firstcall();
+
 	Viewport_CheckInit();
 	Error_Fatal(!vp, "NULL passed to Viewport_GetField()");
 
@@ -303,6 +349,8 @@ real32 __cdecl Gods98::Viewport_GetField(Viewport* vp)
 // <LegoRR.exe @00477550>
 void __cdecl Gods98::Viewport_InverseTransform(Viewport* vp, OUT Vector3F* dest, const Vector4F* src)
 {
+	log_firstcall();
+
 	Viewport_CheckInit();
 	Error_Fatal(!vp, "NULL passed to Viewport_InverseTransform()");
 	
@@ -312,6 +360,8 @@ void __cdecl Gods98::Viewport_InverseTransform(Viewport* vp, OUT Vector3F* dest,
 // <LegoRR.exe @00477570>
 void __cdecl Gods98::Viewport_Transform(Viewport* vp, OUT Vector4F* dest, const Vector3F* src)
 {
+	log_firstcall();
+
 	Viewport_CheckInit();
 	Error_Fatal(!vp, "NULL passed to Viewport_InverseTransform()");
 	
@@ -321,6 +371,8 @@ void __cdecl Gods98::Viewport_Transform(Viewport* vp, OUT Vector4F* dest, const 
 // <LegoRR.exe @00477590>
 Point2F* __cdecl Gods98::Viewport_WorldToScreen(Viewport* vp, OUT Point2F* screen, const Vector3F* world)
 {
+	log_firstcall();
+
 	Vector4F v4d;
 
 	Viewport_Transform(vp, &v4d, world);
@@ -333,6 +385,8 @@ Point2F* __cdecl Gods98::Viewport_WorldToScreen(Viewport* vp, OUT Point2F* scree
 // <LegoRR.exe @004775d0>
 IDirect3DRMFrame3* __cdecl Gods98::Viewport_GetScene(Viewport* vp)
 {
+	log_firstcall();
+
 	IDirect3DRMFrame3* camera = nullptr;
 	IDirect3DRMFrame3* scene = nullptr;
 
@@ -349,6 +403,8 @@ IDirect3DRMFrame3* __cdecl Gods98::Viewport_GetScene(Viewport* vp)
 // <LegoRR.exe @00477630>
 void __cdecl Gods98::Viewport_AddList(void)
 {
+	log_firstcall();
+
 	Viewport_CheckInit();
 
 	Error_Fatal(viewportGlobs.listCount+1 >= VIEWPORT_MAXLISTS, "Run out of lists");
@@ -373,6 +429,8 @@ void __cdecl Gods98::Viewport_AddList(void)
 // <LegoRR.exe @004776a0>
 void __cdecl Gods98::Viewport_RemoveAll(void)
 {
+	log_firstcall();
+
 	for (uint32 list=0 ; list<viewportGlobs.listCount ; list++){
 		if (viewportGlobs.listSet[list]){
 			uint32 count = 0x00000001 << list;

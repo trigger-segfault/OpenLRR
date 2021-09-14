@@ -285,7 +285,7 @@ void __cdecl Gods98::Error_Out(bool32 ErrFatal, const char* lpOutputString, ...)
 }
 
 // <missing>
-void __cdecl Gods98::Error_Log(File_Dummy* logFile, bool32 log, const char* lpOutputString, ...)
+void __cdecl Gods98::Error_Log(File* logFile, bool32 log, const char* lpOutputString, ...)
 {
 	if (log && logFile) {
 		std::va_list args;

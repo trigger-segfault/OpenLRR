@@ -2,7 +2,29 @@
 
 #include "../common.h"
 #include "../Types/geometry.h"
-#include "Maths.h"
+
+
+/**********************************************************************************
+ ******** Forward Global Namespace Declarations
+ **********************************************************************************/
+
+#pragma region Forward Declarations
+
+struct IDirectDrawSurface4;
+struct IDirect3DRMTexture3;
+typedef IDirect3DRMTexture3* LPDIRECT3DRMTEXTURE3;
+struct IDirect3DRMObject;
+struct IDirect3DRMVisual;
+struct IDirect3DRMFrame3;
+struct IDirect3DRMLight;
+struct IDirect3DRMMesh;
+typedef IDirect3DRMObject* LPDIRECT3DRMOBJECT;
+
+/*struct IDirect3DRMFrame3;
+typedef IDirect3DRMFrame3* LPDIRECT3DRMFRAME3;
+typedef float D3DVALUE;*/
+
+#pragma endregion
 
 
 namespace Gods98
@@ -91,31 +113,31 @@ typedef bool32 (__cdecl* ContainerWalkTreeCallback)(IDirect3DRMFrame3* frame, vo
 #define CONTAINER_TEXTURE_NOLOAD		0x00000001
 
 
-enum Container_Type
+enum Container_Type : sint32
 {
-	Container_Invalid = -1,
-	Container_Null,				// #0
-	Container_Mesh,				// #1
-	Container_Frame,			// #2
-	Container_Anim,				// #3
-	Container_FromActivity,		// #4
-	Container_Light,			// #5
-	Container_Reference,		// #6
-	Container_LWS,
-	Container_LWO,
+	Container_Invalid      = -1,
+	Container_Null         = 0,
+	Container_Mesh         = 1,
+	Container_Frame        = 2,
+	Container_Anim         = 3,
+	Container_FromActivity = 4,
+	Container_Light        = 5,
+	Container_Reference    = 6,
+	Container_LWS          = 7,
+	Container_LWO          = 8,
 
-	Container_TypeCount
+	Container_TypeCount    = 9,
 };
 static_assert(sizeof(Container_Type) == 0x4, "");
 
 
 enum Container_Light
 {
-	Container_Light_Ambient,
-	Container_Light_Point,
-	Container_Light_Spot,
-	Container_Light_Directional,
-	Container_Light_ParallelPoint
+	Container_Light_Ambient       = 0,
+	Container_Light_Point         = 1,
+	Container_Light_Spot          = 2,
+	Container_Light_Directional   = 3,
+	Container_Light_ParallelPoint = 4,
 };
 static_assert(sizeof(Container_Light) == 0x4, "");
 
@@ -187,35 +209,35 @@ static_assert(sizeof(Container_SearchMode) == 0x4, "");
 #define CDF(f)	Container_Frame_CastDown(f)
 #define CUF(f)	Container_Frame_CastUp(f)
 
-#define Container_SetWorldRotation(c,x,y,z,a)				Container_SetRotation((c),NULL,(x),(y),(z),(a))
-#define Container_SetWorldPosition(c,x,y,z)					Container_SetPosition((c),NULL,(x),(y),(z))
-#define Container_SetWorldOrientation(c,dx,dy,dz,ux,uy,uz)	Container_SetOrientation((c),NULL,(dx),(dy),(dz),(ux),(uy),(uz))
-#define Container_GetWorldRotation(c,ax,a)					Container_GetRotation((c),NULL,(ax),(a))
-#define Container_GetWorldPosition(c,p)						Container_GetPosition((c),NULL,(p))
-#define Container_GetWorldOrientation(c,d,u)				Container_GetOrientation((c),NULL,(d),(u))
+#define Container_SetWorldRotation(c,x,y,z,a)				Container_SetRotation((c),nullptr,(x),(y),(z),(a))
+#define Container_SetWorldPosition(c,x,y,z)					Container_SetPosition((c),nullptr,(x),(y),(z))
+#define Container_SetWorldOrientation(c,dx,dy,dz,ux,uy,uz)	Container_SetOrientation((c),nullptr,(dx),(dy),(dz),(ux),(uy),(uz))
+#define Container_GetWorldRotation(c,ax,a)					Container_GetRotation((c),nullptr,(ax),(a))
+#define Container_GetWorldPosition(c,p)						Container_GetPosition((c),nullptr,(p))
+#define Container_GetWorldOrientation(c,d,u)				Container_GetOrientation((c),nullptr,(d),(u))
 
-#define Container_MakePointLight(c,r,g,b)					Container_MakeLight((c),Container_Light_Point,(r),(g),(b));
-#define Container_MakeSpotLight(c,r,g,b)					Container_MakeLight((c),Container_Light_Spot,(r),(g),(b));
-#define Container_MakeAmbientLight(c,r,g,b)					Container_MakeLight((c),Container_Light_Ambient,(r),(g),(b));
-#define Container_MakeDirectionalLight(c,r,g,b)				Container_MakeLight((c),Container_Light_Directional,(r),(g),(b));
-#define Container_MakeParallelPointLight(c,r,g,b)			Container_MakeLight((c),Container_Light_ParallelPoint,(r),(g),(b));
+#define Container_MakePointLight(c,r,g,b)					Container_MakeLight((c),Gods98::Container_Light::Container_Light_Point,(r),(g),(b));
+#define Container_MakeSpotLight(c,r,g,b)					Container_MakeLight((c),Gods98::Container_Light::Container_Light_Spot,(r),(g),(b));
+#define Container_MakeAmbientLight(c,r,g,b)					Container_MakeLight((c),Gods98::Container_Light::Container_Light_Ambient,(r),(g),(b));
+#define Container_MakeDirectionalLight(c,r,g,b)				Container_MakeLight((c),Gods98::Container_Light::Container_Light_Directional,(r),(g),(b));
+#define Container_MakeParallelPointLight(c,r,g,b)			Container_MakeLight((c),Gods98::Container_Light::Container_Light_ParallelPoint,(r),(g),(b));
 
 #define Container_MakeCamera(p)								Container_Create((p))
 
 #define Container_SetColour(c,r,g,b)						Container_SetColourAlpha((c),(r),(g),(b),1.0f)
-#define Container_GetColour(c,r,g,b)						Container_GetColourAlpha((c),(r),(g),(b),NULL)
+#define Container_GetColour(c,r,g,b)						Container_GetColourAlpha((c),(r),(g),(b),nullptr)
 #define Container_Mesh_SetColour(c,i,r,g,b)					Container_Mesh_SetColourAlpha((c),(i),(r),(g),(b),1.0f)
-#define Container_Mesh_GetColour(c,i,r,g,b)					Container_Mesh_GetColourAlpha((c),(i),(r),(g),(b),NULL)
+#define Container_Mesh_GetColour(c,i,r,g,b)					Container_Mesh_GetColourAlpha((c),(i),(r),(g),(b),nullptr)
 
-#define Container_MakeMesh(r)								Container_MakeMesh2((r),Container_MeshType_Normal)
-#define Container_MakeMeshSeperateGroups(r)					Container_MakeMesh2((r),Container_MeshType_SeperateMeshes)
-#define Container_MakeMeshImmediate(r)						Container_MakeMesh2((r),Container_MeshType_Immediate)
-#define Container_MakeMeshTrans(r)							Container_MakeMesh2((r),Container_MeshType_Transparent)
-#define Container_MakeMeshAdditive(r)						Container_MakeMesh2((r),Container_MeshType_Additive)
-#define Container_MakeMeshSubtractive(r)					Container_MakeMesh2((r),Container_MeshType_Subtractive)
+#define Container_MakeMesh(r)								Container_MakeMesh2((r),Gods98::Container_MeshType::Container_MeshType_Normal)
+#define Container_MakeMeshSeperateGroups(r)					Container_MakeMesh2((r),Gods98::Container_MeshType::Container_MeshType_SeperateMeshes)
+#define Container_MakeMeshImmediate(r)						Container_MakeMesh2((r),Gods98::Container_MeshType::Container_MeshType_Immediate)
+#define Container_MakeMeshTrans(r)							Container_MakeMesh2((r),Gods98::Container_MeshType::Container_MeshType_Transparent)
+#define Container_MakeMeshAdditive(r)						Container_MakeMesh2((r),Gods98::Container_MeshType::Container_MeshType_Additive)
+#define Container_MakeMeshSubtractive(r)					Container_MakeMesh2((r),Gods98::Container_MeshType::Container_MeshType_Subtractive)
 
-#define Container_LoadTexture(f,w,h)						Container_LoadTexture2((f),FALSE,(w),(h))
-#define Container_LoadTextureImmediate(f,w,h)				Container_LoadTexture2((f),TRUE,(w),(h))
+#define Container_LoadTexture(f,w,h)						Container_LoadTexture2((f),false,(w),(h))
+#define Container_LoadTextureImmediate(f,w,h)				Container_LoadTexture2((f),true,(w),(h))
 
 #pragma endregion
 
@@ -302,7 +324,7 @@ struct Container_MeshAppData
 {
 	/*00,4*/ IDirect3DRMMesh** meshList;
 	/*04,4*/ uint32 usedCount;
-	/*08,4*/ uint32  listSize;
+	/*08,4*/ uint32 listSize;
 	/*0c,4*/ bool32 groupZeroHidden;
 	/*10,4*/ bool32 firstAddGroup;
 	/*14*/
@@ -400,7 +422,7 @@ static_assert(sizeof(Container_Globs) == 0x2018, "");
 #pragma region Globals
 
 // <LegoRR.exe @0076bd80>
-extern Container_Globs containerGlobs;
+extern Container_Globs & containerGlobs;
 
 #pragma endregion
 
@@ -410,7 +432,7 @@ extern Container_Globs containerGlobs;
 
 #pragma region Functions
 
-//__inline LPDIRECT3DRMFRAME3 Debug_Scene() { return containerGlobs.rootContainer->masterFrame; }
+//__inline IDirect3DRMFrame3* Debug_Scene() { return containerGlobs.rootContainer->masterFrame; }
 
 /**********************************************************************************
  ******** Prototypes
@@ -547,7 +569,7 @@ uint32 __cdecl Container_Mesh_AddGroup(Container* cont, uint32 vertexCount,
 uint32 __cdecl Container_Mesh_GetGroupCount(Container* cont);
 
 // <LegoRR.exe @00474d20>
-void __cdecl Container_Mesh_SetQuality(Container* cont, uint32 groupID, uint32 quality);
+void __cdecl Container_Mesh_SetQuality(Container* cont, uint32 groupID, Container_Quality quality);
 
 // <LegoRR.exe @00474da0>
 bool32 __cdecl Container_Mesh_IsGroupHidden(Container* cont, uint32 group);

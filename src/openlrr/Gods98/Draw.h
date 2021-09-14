@@ -2,7 +2,6 @@
 
 #include "../common.h"
 #include "../Types/geometry.h"
-//#include "Maths.h"
 
 
 namespace Gods98
@@ -38,6 +37,7 @@ typedef void (__cdecl* DrawPixelFunc)(sint32 x, sint32 y, uint32 value);
 
 //#define DRAW_FLAG_INITIALISED	0x00000001
 
+namespace _ns_Draw_GlobFlags {
 enum Draw_GlobFlags : uint32
 {
 	DRAW_FLAG_NONE        = 0,
@@ -46,8 +46,10 @@ enum Draw_GlobFlags : uint32
 };
 DEFINE_ENUM_FLAG_OPERATORS(Draw_GlobFlags);
 static_assert(sizeof(Draw_GlobFlags) == 0x4, "");
+} using Draw_GlobFlags = _ns_Draw_GlobFlags::Draw_GlobFlags;
 
 
+namespace _ns_DrawEffect {
 enum DrawEffect : uint32
 {
 	DrawEffect_None      = 0,
@@ -55,6 +57,7 @@ enum DrawEffect : uint32
 	DrawEffect_HalfTrans = 2,
 };
 static_assert(sizeof(DrawEffect) == 0x4, "");
+} using DrawEffect = _ns_DrawEffect::DrawEffect;
 
 #pragma endregion
 

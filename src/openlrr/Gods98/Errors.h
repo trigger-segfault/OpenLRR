@@ -48,10 +48,10 @@ static_assert(sizeof(Error_LoadError) == 0x4, "");
 struct Error_Globs
 {
 	// [globs: start]
-	/*000,4*/ File_Dummy* dumpFile;
-	/*004,4*/ File_Dummy* loadLogFile;
-	/*008,4*/ File_Dummy* loadErrorLogFile;
-	/*00c,4*/ File_Dummy* redundantLogFile;
+	/*000,4*/ File* dumpFile;
+	/*004,4*/ File* loadLogFile;
+	/*008,4*/ File* loadErrorLogFile;
+	/*00c,4*/ File* redundantLogFile;
 	/*010,400*/ char loadLogName[1024];
 	/*410,400*/ char redundantLogName[1024];
 	/*810,4*/ bool32 warnCalled;
@@ -80,9 +80,11 @@ extern Error_Globs & errorGlobs;
 
 //#ifndef _RELEASE
 
+#define Error_Debug(s)
+
 #define Error_Warn(b,s)						{ if (b) { Error_Out(false, "%s(%i): Warning: %s\n", __FILE__, __LINE__, (s)); Error_SetWarn(); } }
 #define Error_Fatal(b,s)					{ if (b) { Error_Out(true, "%s(%i): Fatal: %s\n", __FILE__, __LINE__, (s)); } }
-#define Error_Debug(s)						Error_Out(false, "%s", (s))
+//#define Error_Debug(s)						Error_Out(false, "%s", (s))
 #define Error_LogLoad(b,s)					{ Error_Log( errorGlobs.loadLogFile, (b), "%s\n", (s) ); }
 #define Error_LogLoadError(b,s)				{ Error_Log( errorGlobs.loadErrorLogFile, (b), "%s\n", (s) ); }
 #define Error_LogRedundantFile(b,s)			{ Error_Log( errorGlobs.redundantLogFile, (b), "%s\n", (s) ); }
@@ -129,7 +131,7 @@ const char* __cdecl Error_Format(const char* msg, ...);
 void __cdecl Error_Out(bool32 ErrFatal, const char* lpOutputString, ...);
 
 // <missing>
-void __cdecl Error_Log(File_Dummy* logFile, bool32 log, const char* lpOutputString, ...);
+void __cdecl Error_Log(File* logFile, bool32 log, const char* lpOutputString, ...);
 
 
 __inline void Error_SetWarn(void) { errorGlobs.warnCalled = true; }

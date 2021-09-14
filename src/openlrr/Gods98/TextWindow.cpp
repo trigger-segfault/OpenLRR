@@ -14,6 +14,8 @@
 // <LegoRR.exe @004853b0>
 Gods98::TextWindow* __cdecl Gods98::TextWindow_Create(Font* font, const Area2F* size, uint32 bufferSize)
 {
+	log_firstcall();
+
 	TextWindow* window;
 
 	if (window = (TextWindow *)Mem_Alloc(sizeof(TextWindow))) {
@@ -31,6 +33,8 @@ Gods98::TextWindow* __cdecl Gods98::TextWindow_Create(Font* font, const Area2F* 
 // <LegoRR.exe @00485420>
 void __cdecl Gods98::TextWindow_EnableCentering(TextWindow* window, bool32 enable)
 {
+	log_firstcall();
+
 	if (enable) window->flags |= TextWindowFlags::TEXTWINDOW_FLAG_CENTERED;
 	else window->flags &= ~TextWindowFlags::TEXTWINDOW_FLAG_CENTERED;
 }
@@ -38,6 +42,8 @@ void __cdecl Gods98::TextWindow_EnableCentering(TextWindow* window, bool32 enabl
 // <LegoRR.exe @00485450>
 void __cdecl Gods98::TextWindow_Remove(TextWindow* window)
 {
+	log_firstcall();
+
 	Mem_Free(window->windowBuffer);
 	Mem_Free(window);
 }
@@ -45,6 +51,8 @@ void __cdecl Gods98::TextWindow_Remove(TextWindow* window)
 // <LegoRR.exe @00485470>
 void __cdecl Gods98::TextWindow_ChangePosition(TextWindow* window, sint32 xPos, sint32 yPos)
 {
+	log_firstcall();
+
 	window->windowSize.x = (real32)xPos;
 	window->windowSize.y = (real32)yPos;
 }
@@ -52,6 +60,8 @@ void __cdecl Gods98::TextWindow_ChangePosition(TextWindow* window, sint32 xPos, 
 // <LegoRR.exe @00485490>
 void __cdecl Gods98::TextWindow_ChangeSize(TextWindow* window, uint32 width, uint32 height)
 {
+	log_firstcall();
+
 	window->windowSize.width = (real32)width;
 	window->windowSize.height = (real32)height;
 }
@@ -59,6 +69,8 @@ void __cdecl Gods98::TextWindow_ChangeSize(TextWindow* window, uint32 width, uin
 // <LegoRR.exe @004854d0>
 void __cdecl Gods98::TextWindow_PagePrintF(TextWindow* window, uint32 page, const char* msg, ...)
 {
+	log_firstcall();
+
 	std::va_list args;
 	va_start(args, msg);
 	TextWindow_VPrintF(window, page, msg, args);
@@ -68,6 +80,8 @@ void __cdecl Gods98::TextWindow_PagePrintF(TextWindow* window, uint32 page, cons
 // <LegoRR.exe @004854f0>
 void __cdecl Gods98::TextWindow_PrintF(TextWindow* window, const char* msg, ...)
 {
+	log_firstcall();
+
 	std::va_list args;
 	va_start(args, msg);
 	TextWindow_VPrintF(window, 0, msg, args);
@@ -77,6 +91,8 @@ void __cdecl Gods98::TextWindow_PrintF(TextWindow* window, const char* msg, ...)
 // <LegoRR.exe @00485510>
 void __cdecl Gods98::TextWindow_VPrintF(TextWindow* window, uint32 page, const char* msg, std::va_list args)
 {
+	log_firstcall();
+
 	char line[TEXTWINDOW_MAXSTRINGLEN];
 	uint32 count, loop, onPage = 0;
 
@@ -100,6 +116,8 @@ void __cdecl Gods98::TextWindow_VPrintF(TextWindow* window, uint32 page, const c
 // <LegoRR.exe @004855c0>
 void __cdecl Gods98::TextWindow_PrintFOverlay(TextWindow* window, bool32 oneFrame, const char* msg, ...)
 {
+	log_firstcall();
+
 	char line[TEXTWINDOW_MAXSTRINGLEN];
 	uint32 count;
 	std::va_list args;
@@ -127,6 +145,8 @@ void __cdecl Gods98::TextWindow_PrintFOverlay(TextWindow* window, bool32 oneFram
 // <LegoRR.exe @00485650>
 bool32 __cdecl Gods98::TextWindow_Update(TextWindow* window, uint32 posFromEnd, real32 time, OUT sint32* lpLowestPoint)
 {
+	log_firstcall();
+
 	uint32 loop, firstLine=0, sub;
 	sint32 currWidth=0, currHeight;
 	sint32 over, maxOver;
@@ -292,6 +312,8 @@ bool32 __cdecl Gods98::TextWindow_Update(TextWindow* window, uint32 posFromEnd, 
 // <LegoRR.exe @004859d0>
 bool32 __cdecl Gods98::TextWindow_UpdateOverlay(TextWindow* window, real32 time, OUT sint32* lpLowestPoint)
 {
+	log_firstcall();
+
 	uint32 sub, loop = 0, usedLines = 0;
 	uint32 lineList[TEXTWINDOW_MAXLINES];
 	char c;
@@ -377,6 +399,8 @@ bool32 __cdecl Gods98::TextWindow_UpdateOverlay(TextWindow* window, real32 time,
 // <LegoRR.exe @00485c70>
 void __cdecl Gods98::TextWindow_Clear(TextWindow* window)
 {
+	log_firstcall();
+
 	std::memset(window->windowBuffer, 0, window->windowBufferSize);
 	std::memset(window->secondaryBuffer, 0, sizeof(window->secondaryBuffer) /*TEXTWINDOW_MAXSTRINGLEN*/);
 	window->usedLines = 0;
@@ -387,6 +411,8 @@ void __cdecl Gods98::TextWindow_Clear(TextWindow* window)
 // <LegoRR.exe @00485cc0>
 void __cdecl Gods98::TextWindow_GetInfo(TextWindow* window, OUT uint32* linesUsed, OUT uint32* linesInWindow)
 {
+	log_firstcall();
+
 	*linesUsed = window->usedLines;
 	*linesInWindow = window->maxLines;
 }

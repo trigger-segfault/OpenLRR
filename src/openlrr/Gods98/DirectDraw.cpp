@@ -366,7 +366,7 @@ void __cdecl Gods98::DirectDraw_Flip(void)
 // <LegoRR.exe @0047cbb0>
 bool32 __cdecl Gods98::DirectDraw_SaveBMP(IDirectDrawSurface4* surface, const char* fname)
 {
-	File_Dummy* ofp;
+	File* ofp;
 	DDSURFACEDESC2 desc;
 	uint8* buffer;
 	uint32 loop, x, y;

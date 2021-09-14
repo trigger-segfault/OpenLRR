@@ -2,7 +2,38 @@
 
 #include "../common.h"
 #include "../Types/geometry.h"
-#include "Maths.h"
+
+
+// no getting around this include without some very ugly work-arounds :(
+#include <mmsystem.h>
+
+
+/**********************************************************************************
+ ******** Forward Global Namespace Declarations
+ **********************************************************************************/
+
+#pragma region Forward Declarations
+
+struct IDirectSound;
+struct IDirectSoundBuffer;
+struct IDirectSound3DBuffer;
+struct IDirectSound3DListener;
+
+struct IDirect3DRMFrame3;
+typedef IDirect3DRMFrame3* LPDIRECT3DRMFRAME3;
+typedef float D3DVALUE;
+
+//struct _D3DVECTOR;
+//typedef struct _D3DVECTOR D3DVECTOR;
+
+/*struct HMMIO__;
+typedef struct HMMIO__ *HMMIO;
+struct _MMCKINFO;
+typedef struct _MMCKINFO MMCKINFO;
+struct tWAVEFORMATEX;
+typedef struct tWAVEFORMATEX WAVEFORMATEX;*/
+
+#pragma endregion
 
 
 namespace Gods98
@@ -32,20 +63,38 @@ namespace Gods98
 
 #pragma region Enums
 
+/*
 #define SOUND3D_FLAG_USED						0x00000001
 #define SOUND3D_FLAG_ACTIVE						0x00000002
 #define SOUND3D_FLAG_MULTI						0x00000004
 #define SOUND3D_FLAG_STREAM						0x00000008
+*/
 
-
-enum Sound3D_Play // Sound3D_PlayTAG
+namespace _ns_Sound3DFlags {
+enum Sound3DFlags : uint32
 {
-	Sound3D_Play_OnFrame,
-	Sound3D_Play_OnPos,
-	Sound3D_Play_Normal
+	SOUND3D_FLAG_NONE   = 0,
+
+	SOUND3D_FLAG_USED   = 0x1,
+	SOUND3D_FLAG_ACTIVE = 0x2,
+	SOUND3D_FLAG_MULTI  = 0x4,
+	SOUND3D_FLAG_STREAM = 0x8,
+};
+DEFINE_ENUM_FLAG_OPERATORS(Sound3DFlags);
+static_assert(sizeof(Sound3DFlags) == 0x4, "");
+} using Sound3DFlags = _ns_Sound3DFlags::Sound3DFlags;
+
+
+namespace _ns_Sound3D_Play {
+enum Sound3D_Play : sint32 // Sound3D_PlayTAG
+{
+	Sound3D_Play_OnFrame = 0,
+	Sound3D_Play_OnPos   = 1,
+	Sound3D_Play_Normal  = 2,
 
 };// Sound3D_Play;
 static_assert(sizeof(Sound3D_Play) == 0x4, "");
+} using Sound3D_Play = _ns_Sound3D_Play::Sound3D_Play;
 
 #pragma endregion
 
@@ -55,29 +104,29 @@ static_assert(sizeof(Sound3D_Play) == 0x4, "");
 
 #pragma region Structs
 
-struct Sound3D_WaveData // Sound3D_WaveDataTAG
+struct Sound3D_WaveData
 {
 	/*00,4*/ WAVEFORMATEX* pwfx;		    // Wave Format data structure
-	/*04,4*/ HMMIO                hmmio;		    // MM I/O handle for the WAVE
-	/*08,14*/ MMCKINFO             mmck;		    // Multimedia RIFF chunk
-	/*1c,14*/ MMCKINFO             mmckInRIFF;	    // Use in opening a WAVE file
-	//LPDIRECTSOUNDBUFFER  lpDSBStreamBuffer; // Points to DirectSoundBuffer
-	/*30,4*/ DWORD                dwBufferSize;	    // Size of the entire buffer
-	/*34,4*/ DWORD				 dwNotifySize;		// size of each notification period.
-	/*38,4*/ DWORD                dwNextWriteOffset; // Offset to next buffer segment
-	/*3c,4*/ DWORD                dwProgress;	    // Used with above to show prog. 
-	/*40,4*/ DWORD				dwNextProgressCheck;
-	/*44,4*/ DWORD				 dwLastPos;			// the last play position returned by GetCurrentPos().
-	//DWORD                dwBytesRemaining;  // Bytes 'til timer shutdown 
-	/*48,4*/ bool32                 bDonePlaying;	    // Signals early abort to timer 
-	/*4c,4*/ bool32                 bLoopFile;	    // Should we loop playback? 
-	/*50,4*/ bool32                 bFoundEnd;	    // Timer found file end
+	/*04,4*/ HMMIO hmmio;		    // MM I/O handle for the WAVE
+	/*08,14*/ MMCKINFO mmck;		    // Multimedia RIFF chunk
+	/*1c,14*/ MMCKINFO mmckInRIFF;	    // Use in opening a WAVE file
+	//IDirectSoundBuffer* lpDSBStreamBuffer; // Points to DirectSoundBuffer
+	/*30,4*/ DWORD dwBufferSize;	    // Size of the entire buffer
+	/*34,4*/ DWORD dwNotifySize;		// size of each notification period.
+	/*38,4*/ DWORD dwNextWriteOffset; // Offset to next buffer segment
+	/*3c,4*/ DWORD dwProgress;	    // Used with above to show prog.
+	/*40,4*/ DWORD dwNextProgressCheck;
+	/*44,4*/ DWORD dwLastPos;			// the last play position returned by GetCurrentPos().
+	//DWORD dwBytesRemaining;  // Bytes 'til timer shutdown
+	/*48,4*/ bool32 bDonePlaying;	    // Signals early abort to timer
+	/*4c,4*/ bool32 bLoopFile;	    // Should we loop playback?
+	/*50,4*/ bool32 bFoundEnd;	    // Timer found file end
 	/*54*/
 };// Sound3D_WaveData, * lpSound3D_WaveData;
 static_assert(sizeof(Sound3D_WaveData) == 0x54, "");
 
 
-struct Sound3D_StreamData // Sound3D_StreamDataTAG
+struct Sound3D_StreamData
 {
 	/*00,4*/ bool32 fileOpen;
 	/*04,54*/ Sound3D_WaveData wiWave;
@@ -88,7 +137,7 @@ struct Sound3D_StreamData // Sound3D_StreamDataTAG
 static_assert(sizeof(Sound3D_StreamData) == 0x5c, "");
 
 
-struct Sound3D_SoundRecord // Sound3D_SoundRecordTAG
+struct Sound3D_SoundRecord
 {
 	/*00,4*/ IDirect3DRMFrame3* frame;
 	/*04,4*/ IDirectSoundBuffer* soundBuff;
@@ -99,17 +148,18 @@ struct Sound3D_SoundRecord // Sound3D_SoundRecordTAG
 static_assert(sizeof(Sound3D_SoundRecord) == 0x10, "");
 
 
-struct Sound3D_SoundFrameRecord // Sound3D_SoundFrameRecordTAG
+struct Sound3D_SoundFrameRecord
 {
 	/*00,4*/ IDirectSound3DBuffer* sound3DBuff;
-	/*04,c*/ D3DVECTOR pos;
+	///*04,c*/ D3DVECTOR pos;
+	/*04,c*/ Vector3F pos;
 	/*10,4*/ Sound3D_SoundFrameRecord* next;
 	/*14*/
 };// Sound3D_SoundFrameRecord, * lpSound3D_SoundFrameRecord;
 static_assert(sizeof(Sound3D_SoundFrameRecord) == 0x14, "");
 
 
-struct Sound3D_SoundData //Sound3D_SoundDataTAG
+struct Sound3D_SoundData
 {
 	/*000,104*/ char fName[MAX_PATH];
 	/*104,4*/ uint32 size;
@@ -121,7 +171,7 @@ struct Sound3D_SoundData //Sound3D_SoundDataTAG
 	/*11c,4*/ WAVEFORMATEX* pwf;
 	/*120,c*/ IDirectSoundBuffer* lpDsb3D[SOUND3D_MAXSIMULTANEOUS];
 	/*12c,4*/ uint32 voice;
-	/*130,4*/ uint32 flags;
+	/*130,4*/ Sound3DFlags flags;
 	/*134*/
 };// Sound3D_SoundData, * lpSound3D_SoundData;
 static_assert(sizeof(Sound3D_SoundData) == 0x134, "");
@@ -129,6 +179,7 @@ static_assert(sizeof(Sound3D_SoundData) == 0x134, "");
 
 struct Sound3D_Globs
 {
+	// [globs: start]
 	/*00000,4*/ IDirectSound* lpDSnd;
 	/*00004,4*/ IDirectSoundBuffer* lpDSBuff;
 	/*00008,4*/ IDirectSound3DListener* lp3DListenerInfo;
@@ -144,8 +195,9 @@ struct Sound3D_Globs
 	/*000e0,2d1e0*/ Sound3D_SoundData soundTable[SOUND3D_MAXSAMPLES];
 	/*2d2c0,4*/ bool32 intialised;
 	/*2d2c4,4*/ sint32 windowsVolume;
-	/*2d2c8,4*/ uint32 flags;
+	/*2d2c8,4*/ uint32 flags; // (unused)
 	/*2d2cc,50*/ IDirect3DRMFrame3* updateFrameList[SOUND3D_MAXUPDATEFRAMES];
+	// [globs: end]
 	/*2d31c,4*/ uint32 reserved1;
 	/*2d320,c*/ Vector3F s_ListenerCallback_oldPos;
 	/*2d32c,4*/ uint32 reserved2;
@@ -163,6 +215,11 @@ static_assert(sizeof(Sound3D_Globs) == 0x2d34c, "");
  **********************************************************************************/
 
 #pragma region Globals
+
+//[0xFFFFD8F0, 0xFFFFEC78, 0xFFFFF254, 0xFFFFF830, 0xFFFFFA24, 0xFFFFFC18, 0xFFFFFD44, 0xFFFFFE70, 0xFFFFFF38, 0xFFFFFFB0, 0x0]
+// { -10000, -5000, -3500, -2000, -1500, -1000, -700, -400, -200, -80, 0 }
+// <LegoRR.exe @004abe30>
+extern const sint32 (& c_SetGlobalVolumePrescaled_realVol)[11];
 
 // <LegoRR.exe @005075b8>
 extern Sound3D_Globs & sound3DGlobs;
@@ -229,8 +286,18 @@ void __cdecl Sound3D_StopSound(sint32 soundHandle);
 // <LegoRR.exe @0047b420>
 void __cdecl Sound3D_StopAllSounds(void);
 
+
+// <inlined>
+/*__inline*/ void __cdecl Sound3D_RegisterUpdateFrame(IDirect3DRMFrame3* frame);
+
+
 // <LegoRR.exe @0047b460>
 void __cdecl Sound3D_AttachSound(IDirect3DRMFrame3* frame, IDirectSound3DBuffer* sound3DBuff);
+
+
+// <inlined>
+/*__inline*/ void __cdecl Sound3D_RemoveUpdateFrame(IDirect3DRMFrame3* frame);
+
 
 // <LegoRR.exe @0047b4e0>
 void __cdecl Sound3D_RemoveSound(IDirect3DRMFrame3* owner, IDirectSound3DBuffer* sound3DBuff);
@@ -243,6 +310,11 @@ bool32 __cdecl Sound3D_RecurseRemoveSoundRecord(IDirect3DRMFrame3* owner, IDirec
 
 // <LegoRR.exe @0047b5f0>
 bool32 __cdecl Sound3D_RecurseRemoveSound(IDirect3DRMFrame3* owner, IDirectSound3DBuffer* sound3DBuff, Sound3D_SoundFrameRecord* record);
+
+
+// <inlined>
+/*__inline*/ void __cdecl Sound3D_UpdateFrames(void);
+
 
 // <LegoRR.exe @0047b650>
 void __cdecl Sound3D_Update(void);
@@ -293,7 +365,8 @@ bool32 __cdecl Sound3D_Stream_FillDataBuffer(bool32 looping);
 void __cdecl Sound3D_Stream_CheckPosition(bool32 looping);
 
 // <LegoRR.exe @0047c380>
-bool32 __cdecl Sound3D_D3DVectorEqual(const D3DVECTOR* a, const D3DVECTOR* b);
+bool32 __cdecl Sound3D_D3DVectorEqual(const Vector3F* a, const Vector3F* b);
+//bool32 __cdecl Sound3D_D3DVectorEqual(const D3DVECTOR* a, const D3DVECTOR* b);
 
 // <LegoRR.exe @0047c3c0>
 real32 __cdecl Sound3D_SetRollOffFactor(real32 rollOff);
@@ -301,26 +374,25 @@ real32 __cdecl Sound3D_SetRollOffFactor(real32 rollOff);
 // <LegoRR.exe @0047c420>
 sint32 __cdecl Sound3D_MinVolume(void);
 
-
+// return 0;
 // <shared>
 sint32 __cdecl Sound3D_MaxVolume(void); // return 0;
 
 
+// <inlined>
+__inline IDirectSound* lpDSnd(void) { return sound3DGlobs.lpDSnd; }
 
+// <inlined>
+__inline IDirectSoundBuffer* lpDSBuff(void) { return sound3DGlobs.lpDSBuff; }
 
+// <inlined>
+__inline IDirectSound3DListener* lp3DListenerInfo(void) { return sound3DGlobs.lp3DListenerInfo; }
 
+// <inlined>
+__inline IDirectSoundBuffer* lpDSStreamBuff(bool32 looping) { return looping?sound3DGlobs.lpDSLoopStreamBuff:sound3DGlobs.lpDSStreamBuff; }
 
-
-
-
-
-__inline IDirectSound* __cdecl lpDSnd()								{ return sound3DGlobs.lpDSnd; }
-__inline IDirectSoundBuffer* __cdecl lpDSBuff()						{ return sound3DGlobs.lpDSBuff; }
-__inline IDirectSound3DListener* __cdecl lp3DListenerInfo()			{ return sound3DGlobs.lp3DListenerInfo; }
-__inline IDirectSoundBuffer* __cdecl lpDSStreamBuff(bool32 looping)	{ return looping?sound3DGlobs.lpDSLoopStreamBuff:sound3DGlobs.lpDSStreamBuff; }
 
 #define Sound3D_Initialised()								sound3DGlobs.intialised
-
 
 #define Sound3D_PlayOnFrame( frame, sound, loop )			Sound3D_Play2( Sound3D_Play_OnFrame, (frame), (sound), (loop), nullptr )
 #define Sound3D_PlayOnCont( cont, sound, loop )				Sound3D_Play2( Sound3D_Play_OnFrame, (cont)->masterFrame, (sound), (loop), nullptr )
@@ -330,13 +402,6 @@ __inline IDirectSoundBuffer* __cdecl lpDSStreamBuff(bool32 looping)	{ return loo
 #define Sound3D_StopContainerSounds( cont )					Sound3D_StopFrameSounds( (cont)->masterFrame )
 #define SOUND3D_VOLUME_MAX		Sound3D_MaxVolume()
 #define SOUND3D_VOLUME_MIN		Sound3D_MinVolume()
-
-/*real32 Sound3D_GetSamplePlayTime( sint32 handle );
-bool32 Sound3D_Remove( sint32 soundTableIndex );
-void Sound3D_SetBufferVolume(sint32 handle, sint32 newvolume);
-sint32 Sound3D_GetBufferVolume(sint32 handle);
-sint32 Sound3D_MaxVolume();
-sint32 Sound3D_MinVolume();*/
 
 #pragma endregion
 

@@ -213,7 +213,7 @@ struct APPOBJ
 	/*10,4*/ real32*	aoVerts;
 	/*14,4*/ LWPOLY*	aoPoly;
 	/*18,4*/ LWSURFACE*	aoSurface;
-	/*1c,4*/ File_Dummy* aoFileUV;
+	/*1c,4*/ File* aoFileUV;
 	/*20*/
 };
 static_assert(sizeof(APPOBJ) == 0x20, "");
@@ -246,7 +246,7 @@ char* __cdecl lwExtractString(const char* str1, const char* str2, OPTIONAL OUT u
 char* __cdecl stringAlloc(const char* str);
 
 // <LegoRR.exe @0048c3e0>
-LightWave_TexMapType __cdecl texMapType(const char* str);
+LightWave_TexType __cdecl texMapType(const char* str);
 
 // if (flag) Mem_Free(srf);
 // <LegoRR.exe @0048c440>
@@ -256,25 +256,25 @@ void __cdecl surfFree(LWSURFACE* srf, bool32 flag);
 bool32 __cdecl LWD3D(uint8** p, real32* f);
 
 // <LegoRR.exe @0048c4d0>
-bool32 __cdecl PNTSprc(File_Dummy* file, LWSIZE* sizeData, sint32 csize, real32** verts, bool32 dflag);
+bool32 __cdecl PNTSprc(File* file, LWSIZE* sizeData, sint32 csize, real32** verts, bool32 dflag);
 
 // <LegoRR.exe @0048c620>
-bool32 __cdecl CRVSprc(File_Dummy* file, sint32 csize, bool32 dflag);
+bool32 __cdecl CRVSprc(File* file, sint32 csize, bool32 dflag);
 
 // <LegoRR.exe @0048c6a0>
-bool32 __cdecl POLSprc(File_Dummy* file, LWSIZE* sizeData, LWPOLY** polys, sint32 csize, bool32 dflag);
+bool32 __cdecl POLSprc(File* file, LWSIZE* sizeData, LWPOLY** polys, sint32 csize, bool32 dflag);
 
 // if (dflag) ... Error_Debug(...);
 // <LegoRR.exe @0048c950>
-bool32 __cdecl SRFSprc(File_Dummy* file, LWSIZE* sizeData, LWSURFLIST** srfl, sint32 csize, OUT uint32* srflCount, bool32 dflag);
+bool32 __cdecl SRFSprc(File* file, LWSIZE* sizeData, LWSURFLIST** srfl, sint32 csize, OUT uint32* srflCount, bool32 dflag);
 
 // if (dflag) ... Error_Debug(...);
 // <LegoRR.exe @0048cae0>
-bool32 __cdecl SURFprc(File_Dummy* file, LWSIZE* sizeData, LWSURFACE** surf, sint32 csize, bool32 dflag);
+bool32 __cdecl SURFprc(File* file, LWSIZE* sizeData, LWSURFACE** surf, sint32 csize, bool32 dflag);
 
 // if (dflag) ... Error_Debug(...);
 // <LegoRR.exe @0048d580>
-bool32 __cdecl LoadLWOB(const char* fn, LWSIZE* size, real32** verts, LWPOLY** polys, LWSURFACE** surf, File_Dummy** fileUV, bool32 dflag);
+bool32 __cdecl LoadLWOB(const char* fn, LWSIZE* size, real32** verts, LWPOLY** polys, LWSURFACE** surf, File** fileUV, bool32 dflag);
 
 // if (dflag) ... Error_Debug(...);
 // <LegoRR.exe @0048da80>

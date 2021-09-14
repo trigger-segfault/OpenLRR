@@ -16,7 +16,7 @@
 #include "Main.h"
 #include "Registry.h"
 #include "../Gods98Init/Init.h"
-//#include "Sound.h"
+#include "Sound.h"
 #include "Animation.h"
 #include "Fonts.h"
 #include "Images.h"
@@ -44,7 +44,8 @@ IID & Idl::IID_IDirect3DRM3 = *(IID*)0x004a0bd8;
 
 
 /// TODO: Remove me once Sound module is finished
-#define Sound_Initialise ((bool32(__cdecl*)(bool32))0x00488e10)
+//#define Sound_Initialise ((bool32(__cdecl*)(bool32))0x00488e10)
+
 /// TODO: Remove me once Animation module is finished
 //#define Animation_Initialise ((void(__cdecl*)(IDirectDraw4*))0x0047ef40)
 /// TODO: Remove me once Animation module is finished
@@ -376,7 +377,7 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 #ifdef _DEBUG
 			// REMOVED: This debug code isn't helpful
 			/*{
-				File_Dummy* logFile = File_Open("notthere.dat", "rb");		// Log a failed file open in FileMon
+				File* logFile = File_Open("notthere.dat", "rb");		// Log a failed file open in FileMon
 			}*/
 #endif // _DEBUG
 
@@ -446,7 +447,7 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 #ifdef _DEBUG
 			// REMOVED: This debug code isn't helpful
 			/*{
-				File_Dummy* logFile = File_Open("notthere.dat", "rb");
+				File* logFile = File_Open("notthere.dat", "rb");
 			}*/
 #endif // _DEBUG
 

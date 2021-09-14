@@ -2,25 +2,36 @@
 #include "hook.h"
 #include "interop.h"
 #include "openlrr.h"
+#include "Gods98/3DSound.h"
 #include "Gods98/Animation.h"
+//#include "Gods98/AnimClone.h"
 #include "Gods98/Bmp.h"
 #include "Gods98/Compress.h"
 #include "Gods98/Config.h"
+//#include "Gods98/Containers.h"
 #include "Gods98/DirectDraw.h"
 #include "Gods98/Draw.h"
 #include "Gods98/Dxbug.h"
 #include "Gods98/Errors.h"
 #include "Gods98/Files.h"
+#include "Gods98/Flic.h"
 #include "Gods98/Fonts.h"
 #include "Gods98/Images.h"
 #include "Gods98/Input.h"
 #include "Gods98/Keys.h"
+//#include "Gods98/Lws.h"
+//#include "Gods98/Lwt.h"
 #include "Gods98/Main.h"
+#include "Gods98/Materials.h"
+#include "Gods98/Maths.h"
 #include "Gods98/Memory.h"
+//#include "Gods98/Mesh.h"
 #include "Gods98/Movie.h"
 #include "Gods98/Registry.h"
+#include "Gods98/Sound.h"
 #include "Gods98/TextWindow.h"
 #include "Gods98/Utils.h"
+#include "Gods98/Viewports.h"
 #include "Gods98/Wad.h"
 #include "Gods98Init/Init.h"
 
@@ -43,6 +54,109 @@ bool interop_hook_Gods98_WinMain(void)
 }
 
 
+bool interop_hook_Gods98_3DSound(void)
+{   bool result = true;
+	// used by: Sound_Initialise
+	result &= hook_write_jmpret(0x0047a900, Gods98::Sound3D_Initialise);
+
+	// used by: Lego_Shutdown_Debug, Lego_HandleKeys
+	result &= hook_write_jmpret(0x0047aac0, Gods98::Sound3D_ShutDown);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x0047ab10, Gods98::Sound3D_CheckVolumeLimits);
+
+	// used by: NERPsFile_LoadMessageFile, SFX_Sample_LoadProperty
+	result &= hook_write_jmpret(0x0047ab30, Gods98::Sound3D_Load);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x0047ad90, Gods98::Sound3D_GetFreeSoundIndex);
+
+	// used by: NERPsFile_Free
+	result &= hook_write_jmpret(0x0047adc0, Gods98::Sound3D_Remove);
+
+	// used by: Lego_Initialise, Lego_SetViewMode
+	result &= hook_write_jmpret(0x0047ae40, Gods98::Sound3D_MakeListener);
+	// used by: Lego_MainLoop
+	result &= hook_write_jmpret(0x0047ae60, Gods98::Sound3D_UpdateListener);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x0047ae80, Gods98::Sound3D_ListenerCallback);
+	//result &= hook_write_jmpret(0x0047afd0, Gods98::Sound3D_SetWorldPos);
+	//result &= hook_write_jmpret(0x0047aff0, Gods98::Sound3D_CheckAlreadyExists);
+
+	// used by: NERPs.c, SFX.c
+	result &= hook_write_jmpret(0x0047b030, Gods98::Sound3D_Play2);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x0047b2e0, Gods98::Sound3D_AddSoundRecord);
+
+	// used by: SFX_Sample_Random_SetBufferVolume
+	result &= hook_write_jmpret(0x0047b310, Gods98::Sound3D_SetBufferVolume);
+	// used by: SFX_Sample_Random_GetBufferVolume
+	result &= hook_write_jmpret(0x0047b390, Gods98::Sound3D_GetBufferVolume);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x0047b3b0, Gods98::Sound3D_GetSoundBuffer);
+
+	// used by: Lws_HandleTrigger, SFX_Sample_Sound3D_StopSound
+	result &= hook_write_jmpret(0x0047b3f0, Gods98::Sound3D_StopSound);
+
+	// used by: Game_SetPaused, Level_Free, Lego_GoBackToMissionSelect,
+	//           SFX_SetSoundStates_IsOn_StopAll
+	result &= hook_write_jmpret(0x0047b420, Gods98::Sound3D_StopAllSounds);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x0047b460, Gods98::Sound3D_AttachSound);
+	//result &= hook_write_jmpret(0x0047b4e0, Gods98::Sound3D_RemoveSound);
+	//result &= hook_write_jmpret(0x0047b560, Gods98::Sound3D_RemoveSoundRecord);
+	//result &= hook_write_jmpret(0x0047b5a0, Gods98::Sound3D_RecurseRemoveSoundRecord);
+	//result &= hook_write_jmpret(0x0047b5f0, Gods98::Sound3D_RecurseRemoveSound);
+
+	// used by: Container_Clone, SFX_Sound3D_Update
+	result &= hook_write_jmpret(0x0047b650, Gods98::Sound3D_Update);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x0047b6d0, Gods98::Sound3D_SoundCallback);
+
+	// used by: Lego_Initialise, Lego_SetViewMode
+	result &= hook_write_jmpret(0x0047b760, Gods98::Sound3D_SetMinDistForAtten);
+	// used by: Lego_Initialise
+	result &= hook_write_jmpret(0x0047b790, Gods98::Sound3D_SetMaxDist);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x0047b7c0, Gods98::Sound3D_SetGlobalVolume);
+
+	// used by: PausedMenu_SliderSoundVolume
+	result &= hook_write_jmpret(0x0047b7f0, Gods98::Sound3D_SetGlobalVolumePrescaled);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x0047b810, Gods98::Sound3D_SetVolumeToDefault);
+	//result &= hook_write_jmpret(0x0047b840, Gods98::Sound3D_LoadSample);
+	//result &= hook_write_jmpret(0x0047b980, Gods98::Sound3D_CreateSoundBuffer);
+	//result &= hook_write_jmpret(0x0047ba50, Gods98::Sound3D_SendSoundToBuffer);
+
+	// used by: NERPs_Level_NERPMessage_Parse, SFX_Sample_Random_GetSamplePlayTime
+	result &= hook_write_jmpret(0x0047bba0, Gods98::Sound3D_GetSamplePlayTime);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x0047bc30, Gods98::Sound3D_Stream_Play);
+
+	result &= hook_write_jmpret(0x0047bce0, Gods98::Sound3D_Stream_Stop);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x0047bd60, Gods98::Sound3D_Stream_BufferSetup);
+	//result &= hook_write_jmpret(0x0047bef0, Gods98::Sound3D_Stream_FillDataBuffer);
+	//result &= hook_write_jmpret(0x0047c070, Gods98::Sound3D_Stream_CheckPosition);
+	//result &= hook_write_jmpret(0x0047c380, Gods98::Sound3D_D3DVectorEqual);
+	
+	// used by: Lego_Initialise, Lego_MainLoop
+	result &= hook_write_jmpret(0x0047c3c0, Gods98::Sound3D_SetRollOffFactor);
+	// used by: Lego_MainLoop
+	result &= hook_write_jmpret(0x0047c420, Gods98::Sound3D_MinVolume);
+
+	return_interop(result);
+}
+
 bool interop_hook_Gods98_Animation(void)
 {   bool result = true;
 	// Only the C wrapper API's need to be hooked
@@ -63,6 +177,12 @@ bool interop_hook_Gods98_Animation(void)
 	return_interop(result);
 }
 
+/*bool interop_hook_Gods98_AnimClone(void)
+{   bool result = true;
+
+	return result;
+}*/
+
 bool interop_hook_Gods98_Bmp(void)
 {   bool result = true;
 	// used by: Container_LoadTextureSurface, Image_LoadBMPScaled
@@ -74,7 +194,7 @@ bool interop_hook_Gods98_Bmp(void)
 bool interop_hook_Gods98_Compress(void)
 {   bool result = true;
 	// not ready yet, do not hook!
-	result &= hook_write_jmpret(0x0049ca80, Gods98::RNC_Uncompress);
+	//result &= hook_write_jmpret(0x0049ca80, Gods98::RNC_Uncompress);
 	return_interop(result);
 }
 
@@ -105,6 +225,12 @@ bool interop_hook_Gods98_Config(void)
 	//result &= hook_write_jmpret(0x00479750, Gods98::Config_AddList);
 	return_interop(result);
 }
+
+/*bool interop_hook_Gods98_Containers(void)
+{   bool result = true;
+
+	return result;
+}*/
 
 bool interop_hook_Gods98_Dxbug(void)
 {   bool result = true;
@@ -219,10 +345,13 @@ bool interop_hook_Gods98_Draw(void)
 
 bool interop_hook_Gods98_Errors(void)
 {   bool result = true;
-	result &= hook_write_jmpret(0x0048b520, Gods98::Error_Initialise);
-	result &= hook_write_jmpret(0x0048b540, Gods98::Error_FullScreen);
-	result &= hook_write_jmpret(0x0048b550, Gods98::Error_CloseLog);
-	result &= hook_write_jmpret(0x0048b5b0, Gods98::Error_Shutdown);
+	// used by: WinMain
+	//result &= hook_write_jmpret(0x0048b520, Gods98::Error_Initialise);
+	// used by: Main_SetupDisplay
+	//result &= hook_write_jmpret(0x0048b540, Gods98::Error_FullScreen);
+	// used by: WinMain
+	//result &= hook_write_jmpret(0x0048b550, Gods98::Error_CloseLog);
+	//result &= hook_write_jmpret(0x0048b5b0, Gods98::Error_Shutdown);
 	return_interop(result);
 }
 
@@ -241,7 +370,7 @@ bool interop_hook_Gods98_Files(void)
 	//result &= hook_write_jmpret(0x0047f900, Gods98::File_LoadWad);
 
 	// used by: Movie_Load, Sound3D_Load, Sound3D_Play2
-	result &= hook_write_jmpret(0x0047f920, Gods98::File_GetCDFilePath);
+	//result &= hook_write_jmpret(0x0047f920, Gods98::File_GetCDFilePath);
 
 	// internal, no need to hook these
 	//result &= hook_write_jmpret(0x0047f960, Gods98::File_MakeDir);
@@ -308,6 +437,54 @@ bool interop_hook_Gods98_Files(void)
 
 	// internal, no need to hook these
 	//result &= hook_write_jmpret(0x00484f50, Gods98::File_ErrorFile);
+	return_interop(result);
+}
+
+bool interop_hook_Gods98_Flic(void)
+{   bool result = true;
+
+	result &= hook_write_jmpret(0x00483f40, Gods98::Flic_Setup);
+	result &= hook_write_jmpret(0x004841c0, Gods98::Flic_Close);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x00484220, Gods98::Flic_LoadHeader);
+
+	result &= hook_write_jmpret(0x00484330, Gods98::Flic_Animate);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x00484490, Gods98::Flic_Memory);
+	//result &= hook_write_jmpret(0x00484520, Gods98::Flic_Load);
+	//result &= hook_write_jmpret(0x004845e0, Gods98::Flic_FindChunk);
+	//result &= hook_write_jmpret(0x00484770, Gods98::Flic_FrameChunk);
+	//result &= hook_write_jmpret(0x004848d0, Gods98::Flic_DoChunk);
+	//result &= hook_write_jmpret(0x004849e0, Gods98::Flic_LoadPointers);
+	//result &= hook_write_jmpret(0x00484a90, Gods98::Flic_LoadPalette64);
+	//result &= hook_write_jmpret(0x00484b40, Gods98::Flic_Copy);
+	//result &= hook_write_jmpret(0x00484b90, Gods98::FlicBRunDepackHiColor);
+	//result &= hook_write_jmpret(0x00484c90, Gods98::FlicBRunDepackHiColorFlic32k);
+	//result &= hook_write_jmpret(0x00484de0, Gods98::Flic_BrunDepack);
+	//result &= hook_write_jmpret(0x00484e60, Gods98::FlicCreateHiColorTable);
+	//result &= hook_write_jmpret(0x00484ec0, Gods98::Flic_Palette256);
+	//result &= hook_write_jmpret(0x00484f60, Gods98::FlicDeltaWordHiColor);
+	//result &= hook_write_jmpret(0x00485110, Gods98::FlicDeltaWordHiColorFlic32k);
+	//result &= hook_write_jmpret(0x004852f0, Gods98::Flic_DeltaWord);
+	//result &= hook_write_jmpret(0x00485380, Gods98::getFlicCol);
+
+	// (shared) "AnimClone_IsLws__Flic_GetWidth"
+	// THIS FUNCTION MUST BE HOOKED ON AN INDIVIDUAL BASIS
+	// There are 5 calls made to this:
+	//  type:FLICSTRUCT (Flic_GetWidth)  -> FUN_004120e0  <@004120f7>
+	//                                      Panel_FUN_0045a9f0  <@0045ab17>
+	//                                      Pointer_DrawPointer  <@0045cfc8>
+	//  type:FlocksData (Flocks_???)     -> LiveObject_Flocks_FUN_0044bef0  <@0044bfc3>
+	//  type:AnimClone (AnimClone_IsLws) -> Container_FormatPartName  <@00473f60>
+	// <called @004120f7, 0045ab17, 0045cfc8>
+	result &= hook_write_call(0x004120f7, Gods98::Flic_GetWidth);
+	result &= hook_write_call(0x0045ab17, Gods98::Flic_GetWidth);
+	result &= hook_write_call(0x0045cfc8, Gods98::Flic_GetWidth);
+
+	result &= hook_write_jmpret(0x004853a0, Gods98::Flic_GetHeight);
+
 	return_interop(result);
 }
 
@@ -379,10 +556,10 @@ bool interop_hook_Gods98_Images(void)
 	result &= hook_write_jmpret(0x0047df70, Gods98::Image_DisplayScaled);
 
 	// used by: Font_Load
-	result &= hook_write_jmpret(0x0047e120, Gods98::Image_LockSurface);
-	result &= hook_write_jmpret(0x0047e190, Gods98::Image_UnlockSurface);
-	result &= hook_write_jmpret(0x0047e1b0, Gods98::Image_GetPen255);
-	result &= hook_write_jmpret(0x0047e210, Gods98::Image_GetPixelMask);
+	//result &= hook_write_jmpret(0x0047e120, Gods98::Image_LockSurface);
+	//result &= hook_write_jmpret(0x0047e190, Gods98::Image_UnlockSurface);
+	//result &= hook_write_jmpret(0x0047e1b0, Gods98::Image_GetPen255);
+	//result &= hook_write_jmpret(0x0047e210, Gods98::Image_GetPixelMask);
 
 	result &= hook_write_jmpret(0x0047e260, Gods98::Image_GetPixel);
 
@@ -413,7 +590,7 @@ bool interop_hook_Gods98_Input(void)
 	result &= hook_write_jmpret(0x00410a80, Gods98::noinline(mslb));
 
 	// used by: WinMain
-	result &= hook_write_jmpret(0x0047f050, Gods98::Input_InitKeysAndDI);
+	//result &= hook_write_jmpret(0x0047f050, Gods98::Input_InitKeysAndDI);
 
 	// used by: WinMain, Main_LoopUpdate, NERPFunc__SetMessage
 	result &= hook_write_jmpret(0x0047f1b0, Gods98::Input_ReadKeys);
@@ -422,9 +599,9 @@ bool interop_hook_Gods98_Input(void)
 	result &= hook_write_jmpret(0x0047f270, Gods98::Input_AnyKeyPressed);
 
 	// used by: WinMain
-	result &= hook_write_jmpret(0x0047f290, Gods98::Input_ReleaseKeysAndDI);
+	//result &= hook_write_jmpret(0x0047f290, Gods98::Input_ReleaseKeysAndDI);
 	// used by: WinMain, Main_LoopUpdate
-	result &= hook_write_jmpret(0x0047f2d0, Gods98::Input_ReadMouse2);
+	//result &= hook_write_jmpret(0x0047f2d0, Gods98::Input_ReadMouse2);
 
 	// used by: Objective_DoHotkeyChecks, Panel_RotationControl_FUN_0045bf90,
 	//           Priorities_FUN_0045d810, Priorities_FUN_0045d900
@@ -443,6 +620,18 @@ bool interop_hook_Gods98_Keys(void)
 	result &= hook_write_jmpret(0x004860f0, Gods98::Key_Find);
 	return_interop(result);
 }
+
+/*bool interop_hook_Gods98_Lws(void)
+{   bool result = true;
+
+	return result;
+}*/
+
+/*bool interop_hook_Gods98_Lwt(void)
+{   bool result = true;
+
+	return result;
+}*/
 
 bool interop_hook_Gods98_Main(void)
 {   bool result = true;
@@ -464,7 +653,7 @@ bool interop_hook_Gods98_Main(void)
 	result &= hook_write_jmpret(0x00477e90, Gods98::Main_DisableTextureManagement);
 
 	// used by: WinMain
-	result &= hook_write_jmpret(0x00477eb0, Gods98::Main_ParseCommandLine);
+	//result &= hook_write_jmpret(0x00477eb0, Gods98::Main_ParseCommandLine);
 
 	result &= hook_write_jmpret(0x004781f0, Gods98::Main_LoopUpdate);
 
@@ -472,7 +661,7 @@ bool interop_hook_Gods98_Main(void)
 	result &= hook_write_jmpret(0x00478230, Gods98::Main_GetCLFlags);
 
 	// used by: DirectDraw_EnumModeCallback, Init_SetModeList
-	result &= hook_write_jmpret(0x00478240, Gods98::Main_GetWindowsBitDepth);
+	//result &= hook_write_jmpret(0x00478240, Gods98::Main_GetWindowsBitDepth);
 
 	// used by: WinMain, Main_LoopUpdate, Lego_MainLoop
 	result &= hook_write_jmpret(0x00478260, Gods98::Main_Finalise3D);
@@ -485,7 +674,7 @@ bool interop_hook_Gods98_Main(void)
 	// internal, no need to hook these
 	//result &= hook_write_jmpret(0x004782d0, Gods98::Main_DispatchMessage);
 	// used by: WinMain, Main_LoopUpdate
-	result &= hook_write_jmpret(0x00478300, Gods98::Main_HandleIO);
+	//result &= hook_write_jmpret(0x00478300, Gods98::Main_HandleIO);
 
 	// used by: DirectDraw_Setup
 	result &= hook_write_jmpret(0x00478370, Gods98::Main_SetupDisplay);
@@ -527,6 +716,67 @@ bool interop_hook_Gods98_Main(void)
 	return_interop(result);
 }
 
+bool interop_hook_Gods98_Materials(void)
+{   bool result = true;
+	// used by: Map3D_LoadSurfaceMap
+	result &= hook_write_jmpret(0x00489780, Gods98::Material_Create);
+	return_interop(result);
+}
+
+bool interop_hook_Gods98_Maths(void)
+{   bool result = true;
+	// used by: LiveObject_DrawSelectedBox
+	result &= hook_write_jmpret(0x00401240, Gods98::noinline(Maths_Vector2DDistance));
+	result &= hook_write_jmpret(0x004013e0, Gods98::noinline(Maths_Vector3DCrossProduct));
+	result &= hook_write_jmpret(0x00401470, Gods98::noinline(Maths_Vector3DAdd));
+	result &= hook_write_jmpret(0x00401630, Gods98::noinline(Maths_Vector3DSubtract));
+
+	// used by: LiveObject_DrawSelectedBox, Vehicle_SetPosition
+	result &= hook_write_jmpret(0x00401660, Gods98::noinline(Maths_Vector3DScale));
+
+	// used by: LiveObject_DrawSelectedBox
+	result &= hook_write_jmpret(0x00401690, Gods98::noinline(Maths_Vector3DNormalize));
+
+	result &= hook_write_jmpret(0x004797c0, Gods98::Maths_Vector3DRandom);
+	result &= hook_write_jmpret(0x004797d0, Gods98::Maths_Vector3DRotate);
+	result &= hook_write_jmpret(0x004797f0, Gods98::Maths_PlaneNormal);
+
+	// used by: DynamicPM_FUN_0040b3a0
+	result &= hook_write_jmpret(0x004798f0, Gods98::Maths_TriangleAreaZ);
+
+	result &= hook_write_jmpret(0x00479b60, Gods98::Maths_Rand);
+	result &= hook_write_jmpret(0x00479b70, Gods98::Maths_RandRange);
+	result &= hook_write_jmpret(0x00479ba0, Gods98::Maths_RayPlaneIntersection);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x00479cf0, Gods98::Maths_RayPlaneDistance);
+	//result &= hook_write_jmpret(0x00479d70, Gods98::Maths_RayEndPoint);
+
+	// used by: Map3D_FUN_0044fe50, LiveObject_CollisionBox_FUN_00470570
+	result &= hook_write_jmpret(0x00479db0, Gods98::Maths_Vector2DIntersection);
+
+	result &= hook_write_jmpret(0x00479e40, Gods98::Maths_PointInsidePoly);
+
+	// used by: LiveObject_Callback_FUN_0043b670
+	result &= hook_write_jmpret(0x00479ed0, Gods98::Maths_RaySphereIntersection);
+
+	// used by: Flocks.c
+	result &= hook_write_jmpret(0x00479fa0, Gods98::Matrix_Mult);
+	result &= hook_write_jmpret(0x0047a010, Gods98::Matrix_RotX);
+	result &= hook_write_jmpret(0x0047a060, Gods98::Matrix_RotY);
+	result &= hook_write_jmpret(0x0047a0b0, Gods98::Matrix_RotZ);
+	result &= hook_write_jmpret(0x0047a100, Gods98::Matrix_Translate);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x0047a130, Gods98::Matrix_Identity);
+	//result &= hook_write_jmpret(0x0047a160, Gods98::Matrix_Zero);
+
+	// used by: Flocks.c
+	result &= hook_write_jmpret(0x0047a170, Gods98::Matrix_Copy);
+
+	return_interop(result);
+}
+
 bool interop_hook_Gods98_Memory(void)
 {   bool result = true;
 	// used by: WinMain
@@ -543,6 +793,12 @@ bool interop_hook_Gods98_Memory(void)
 	result &= hook_write_jmpret(0x00489760, Gods98::Mem_AddressHandle);
 	return_interop(result);
 }
+
+/*bool interop_hook_Gods98_Mesh(void)
+{   bool result = true;
+
+	return result;
+}*/
 
 bool interop_hook_Gods98_Movie(void)
 {   bool result = true;
@@ -572,6 +828,45 @@ bool interop_hook_Gods98_Registry(void)
 
 	// internal, no need to hook these
 	//result &= hook_write_jmpret(0x0048b650, Gods98::Registry_GetValue_Recursive);
+	return_interop(result);
+}
+
+bool interop_hook_Gods98_Sound(void)
+{   bool result = true;
+
+	// used by: WinMain
+	result &= hook_write_jmpret(0x00488e10, Gods98::Sound_Initialise);
+
+	// used by: Lego_Initialise, Lego_Shutdown_Debug
+	result &= hook_write_jmpret(0x00488e50, Gods98::Sound_IsInitialised);
+
+	result &= hook_write_jmpret(0x00488e70, Gods98::Sound_PlayCDTrack);
+	result &= hook_write_jmpret(0x00488eb0, Gods98::Sound_StopCD);
+
+	result &= hook_write_jmpret(0x00488ec0, Gods98::Sound_Update);
+
+	// used by: Sound3D_LoadSample
+	result &= hook_write_jmpret(0x00488f30, Gods98::WaveOpenFile);
+	// used by: Sound3D_Load
+	result &= hook_write_jmpret(0x00489130, Gods98::GetWaveAvgBytesPerSec);
+	// used by: Sound3D_Stream_BufferSetup
+	result &= hook_write_jmpret(0x004891d0, Gods98::WaveOpenFile2);
+	// used by: Sound3D_LoadSample, Sound3D_Stream_BufferSetup,
+	//           Sound3D_Stream_FillDataBuffer, Sound3D_Stream_CheckPosition
+	result &= hook_write_jmpret(0x00489380, Gods98::WaveStartDataRead);
+	// used by: Sound3D_Stream_Stop,
+	//           Sound3D_Stream_FillDataBuffer, Sound3D_Stream_CheckPosition
+	result &= hook_write_jmpret(0x004893c0, Gods98::WaveReadFile);
+	// used by: Sound3D_Stream_Stop, Sound3D_Stream_BufferSetup
+	result &= hook_write_jmpret(0x00489490, Gods98::WaveCloseReadFile);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x004894d0, Gods98::Restart_CDTrack);
+	//result &= hook_write_jmpret(0x00489520, Gods98::ReportCDError);
+	//result &= hook_write_jmpret(0x00489540, Gods98::Status_CDTrack);
+	//result &= hook_write_jmpret(0x004895f0, Gods98::Play_CDTrack);
+	//result &= hook_write_jmpret(0x00489660, Gods98::Stop_CDTrack);
+
 	return_interop(result);
 }
 
@@ -610,17 +905,73 @@ bool interop_hook_Gods98_Utils(void)
 	return_interop(result);
 }
 
+bool interop_hook_Gods98_Viewports(void)
+{   bool result = true;
+
+	// used by: Lego_Initialise
+	result &= hook_write_jmpret(0x00477010, Gods98::Viewport_Initialise);
+	// used by: Lego_Shutdown_Debug
+	result &= hook_write_jmpret(0x00477040, Gods98::Viewport_Shutdown);
+	// used by: Lego_Initialise
+	result &= hook_write_jmpret(0x00477080, Gods98::Viewport_Create);
+	result &= hook_write_jmpret(0x00477110, Gods98::Viewport_CreatePixel);
+
+	// used by: Lego_FPHighPolyBlocks_FUN_00433db0
+	result &= hook_write_jmpret(0x004771d0, Gods98::Viewport_GetSize);
+
+	// used by: Lego_SetViewMode
+	result &= hook_write_jmpret(0x00477210, Gods98::Viewport_SetCamera);
+
+	// used by: DamageFont_MeshRenderCallback, SaveMenu_FUN_00412b30
+	//           Smoke_Group_MeshRenderCallback
+	result &= hook_write_jmpret(0x00477230, Gods98::Viewport_GetCamera);
+	// used by: Lego_Initialise, Lego_SetViewMode
+	result &= hook_write_jmpret(0x00477270, Gods98::Viewport_SetBackClip);
+
+	// used by: Advisor_InitViewport
+	result &= hook_write_jmpret(0x00477290, Gods98::Viewport_GetBackClip);
+	result &= hook_write_jmpret(0x004772b0, Gods98::Viewport_GetFrontClip);
+
+	// used by: SaveMenu_FUN_00412b30, Lego_MainLoop
+	result &= hook_write_jmpret(0x004772d0, Gods98::Viewport_Clear);
+	result &= hook_write_jmpret(0x00477410, Gods98::Viewport_Render);
+
+	// used by: Lego_Shutdown_Debug
+	result &= hook_write_jmpret(0x004774e0, Gods98::Viewport_Remove);
+	// used by: Lego_SetViewMode
+	result &= hook_write_jmpret(0x00477500, Gods98::Viewport_SmoothSetField);
+	result &= hook_write_jmpret(0x00477510, Gods98::Viewport_SetField);
+
+	// used by: Lego_FPHighPolyBlocks_FUN_00433db0
+	result &= hook_write_jmpret(0x00477530, Gods98::Viewport_GetField);
+
+	result &= hook_write_jmpret(0x00477550, Gods98::Viewport_InverseTransform);
+
+	// used by: DynamicPM_FUN_0040b3a0, Lego_MainLoop
+	//           LiveObject_CallbackDoSelection, Map3D_GetIntersections
+	result &= hook_write_jmpret(0x00477570, Gods98::Viewport_Transform);
+
+	result &= hook_write_jmpret(0x00477590, Gods98::Viewport_WorldToScreen);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x004775d0, Gods98::Viewport_GetScene);
+	//result &= hook_write_jmpret(0x00477630, Gods98::Viewport_AddList);
+	//result &= hook_write_jmpret(0x004776a0, Gods98::Viewport_RemoveAll);
+
+	return_interop(result);
+}
+
 bool interop_hook_Gods98_Wad(void)
 {   bool result = true;
 
-	// used by: Files.c (shared function call with Files.c!File_Error
+	// DO NOT HOOK: used by: Files.c (shared function call with Files.c!File_Error)
 	//result &= hook_write_jmpret(0x0047f8c0, Gods98::Wad_Error);
 
 	// internal, no need to hook these
 	//result &= hook_write_jmpret(0x0048b760, Gods98::GetFileName);
 
 	// used by: File_LoadWad
-	//result &= hook_write_jmpret(0x0048b7a0, Gods98::Wad_Load);
+	result &= hook_write_jmpret(0x0048b7a0, Gods98::Wad_Load);
 
 	// internal, no need to hook these
 	//result &= hook_write_jmpret(0x0048bfa0, Gods98::Wad_Get);
@@ -629,7 +980,7 @@ bool interop_hook_Gods98_Wad(void)
 	//result &= hook_write_jmpret(0x0048bff0, Gods98::Wad_FindFreeFileHandle);
 
 	// used by: File_Exists, _File_CheckSystem
-	//result &= hook_write_jmpret(0x0048c010, Gods98::Wad_IsFileInWad);
+	result &= hook_write_jmpret(0x0048c010, Gods98::Wad_IsFileInWad);
 
 	// internal, no need to hook these
 	//result &= hook_write_jmpret(0x0048c060, Gods98::_Wad_IsFileInWad);
@@ -637,19 +988,19 @@ bool interop_hook_Gods98_Wad(void)
 	//result &= hook_write_jmpret(0x0048c100, Gods98::_Wad_FileOpen);
 
 	// used by: _File_OpenWad
-	//result &= hook_write_jmpret(0x0048c230, Gods98::Wad_FileOpen);
+	result &= hook_write_jmpret(0x0048c230, Gods98::Wad_FileOpen);
 
 	// used by: _File_Dealloc
-	//result &= hook_write_jmpret(0x0048c280, Gods98::Wad_FileClose);
+	result &= hook_write_jmpret(0x0048c280, Gods98::Wad_FileClose);
 
 	// internal, no need to hook these
 	//result &= hook_write_jmpret(0x0048c2b0, Gods98::Wad_FileGetPointer);
 
 	// used by: File_Seek, File_Read, File_GetC
-	//result &= hook_write_jmpret(0x0048c2d0, Gods98::Wad_hLength);
+	result &= hook_write_jmpret(0x0048c2d0, Gods98::Wad_hLength);
 
 	// used by: File_Read, File_GetC
-	//result &= hook_write_jmpret(0x0048c2f0, Gods98::Wad_hData);
+	result &= hook_write_jmpret(0x0048c2f0, Gods98::Wad_hData);
 
 	return_interop(result);
 }
@@ -676,37 +1027,39 @@ bool interop_hook_Gods98Init_Init(void)
 bool interop_hook_all(void)
 {   bool result = true;
 
-	//result &= interop_hook_WinMain_call();
 
+	result &= interop_hook_Gods98_3DSound();
 	result &= interop_hook_Gods98_Animation();
+	/// TODO: result &= interop_hook_Gods98_AnimClone();
 	result &= interop_hook_Gods98_Bmp();
-
-	// not ready yet, don't hook in for now, since RNC is a pain
-	//result &= interop_hook_Gods98_Compress();
-
+	//result &= interop_hook_Gods98_Compress(); // not ready yet, don't hook in for now, since RNC is a pain
 	result &= interop_hook_Gods98_Config();
+	/// TODO: result &= interop_hook_Gods98_Containers();
 	result &= interop_hook_Gods98_DirectDraw();
 	result &= interop_hook_Gods98_Draw();
-	result &= interop_hook_Gods98_Dxbug();
-	result &= interop_hook_Gods98_Errors();
+	result &= interop_hook_Gods98_Dxbug(); // used by: Viewport_Render, Main_SetupDirect3D, Image_GetScreenshot, Input_InitKeysAndDI
+	result &= interop_hook_Gods98_Errors(); // nothing hooked, keep if logging funcs are reinstated
 	result &= interop_hook_Gods98_Files();
+	result &= interop_hook_Gods98_Flic();
 	result &= interop_hook_Gods98_Fonts();
 	result &= interop_hook_Gods98_Images();
 	result &= interop_hook_Gods98_Input();
 	result &= interop_hook_Gods98_Keys();
+	/// TODO: result &= interop_hook_Gods98_Lws();
+	/// TODO: result &= interop_hook_Gods98_Lwt();
 	result &= interop_hook_Gods98_Main();
+	result &= interop_hook_Gods98_Materials();
+	result &= interop_hook_Gods98_Maths();
 	result &= interop_hook_Gods98_Memory();
+	/// TODO: result &= interop_hook_Gods98_Mesh();
 	result &= interop_hook_Gods98_Movie();
-
-	// Can be removed once Main_WinMain is finished.
-	result &= interop_hook_Gods98_Registry();
+	//result &= interop_hook_Gods98_Registry(); // no need to hook, used by: WinMain, File_Initialise
+	result &= interop_hook_Gods98_Sound();
 	result &= interop_hook_Gods98_TextWindow();
 	result &= interop_hook_Gods98_Utils();
-
-	// This isn't required if Files.c is fully hooked (but for now it's being kept anyway)
-	result &= interop_hook_Gods98_Wad();
-
-	result &= interop_hook_Gods98Init_Init();
+	result &= interop_hook_Gods98_Viewports();
+	//result &= interop_hook_Gods98_Wad(); // no need to hook, used by: Files
+	//result &= interop_hook_Gods98Init_Init(); // no need to hook, used by: WinMain
 
 	return_interop(result);
 }

@@ -2,7 +2,17 @@
 
 #include "../common.h"
 #include "../Types/geometry.h"
-#include "Maths.h"
+
+
+/**********************************************************************************
+ ******** Forward Global Namespace Declarations
+ **********************************************************************************/
+
+#pragma region Forward Declarations
+
+struct IDirect3DRMFrame3;
+
+#pragma endregion
 
 
 namespace Gods98
@@ -24,7 +34,7 @@ struct Mesh;
 
 #pragma region Function Typedefs
 
-typedef bool32(__cdecl* LwsFindSFXIDFunc)(const char* name, OUT uint32* sfxID);
+typedef bool32 (__cdecl* LwsFindSFXIDFunc)(const char* name, OUT uint32* sfxID);
 typedef bool32 (__cdecl* LwsSoundEnabledFunc)(void);
 typedef sint32 (__cdecl* LwsPlaySample3DFunc)(void* frame, uint32 type, bool32 loop, bool32 onCont, const Vector3F* wPos);
 
@@ -71,7 +81,7 @@ typedef sint32 (__cdecl* LwsPlaySample3DFunc)(void* frame, uint32 type, bool32 l
 
 #pragma region Structs
 
-typedef struct Lws_SoundTrigger
+struct Lws_SoundTrigger
 {
 	//	Sound* sound;
 	/*00,4*/ uint32 sfxID;
@@ -81,11 +91,11 @@ typedef struct Lws_SoundTrigger
 	/*cc,2*/ uint16 count;
 	/*ce,2*/ uint16 padding1;
 	/*d0*/
-} Lws_SoundTrigger, *lpLws_SoundTrigger;
+};// Lws_SoundTrigger, * lpLws_SoundTrigger;
 static_assert(sizeof(Lws_SoundTrigger) == 0xd0, "");
 
 
-typedef struct Lws_KeyInfo
+struct Lws_KeyInfo
 {
 	/*00,c*/ Vector3F position;
 	/*0c,c*/ Vector3F hpb;
@@ -93,11 +103,11 @@ typedef struct Lws_KeyInfo
 	/*24,2*/ uint16 frame;
 	/*26,2*/ uint16 padding1;
 	/*28*/
-} Lws_KeyInfo, *lpLws_KeyInfo;
+};// Lws_KeyInfo, * lpLws_KeyInfo;
 static_assert(sizeof(Lws_KeyInfo) == 0x28, "");
 
 
-typedef struct Lws_Node
+struct Lws_Node
 {
 	/*00,4*/ char* name;
 	/*04,2*/ uint16 reference;
@@ -112,14 +122,14 @@ typedef struct Lws_Node
 	/*26,2*/ uint16 dissolveCount;
 	/*28,1*/ uint8 flags;
 	/*29,3*/ uint8 padding2[3];
-	/*2c,4*/ Lws_Node *childList;
-	/*30,4*/ Lws_Node *next;
+	/*2c,4*/ Lws_Node* childList;
+	/*30,4*/ Lws_Node* next;
 	/*34*/
-} Lws_Node, *lpLws_Node;
+};// Lws_Node, * lpLws_Node;
 static_assert(sizeof(Lws_Node) == 0x34, "");
 
 
-typedef struct Lws_Info
+struct Lws_Info
 {
 	/*00,2*/ uint16 firstFrame;
 	/*02,2*/ uint16 lastFrame;
@@ -140,20 +150,20 @@ typedef struct Lws_Info
 	/*34,1*/ uint8 flags;
 	/*35,3*/ uint8 padding2[3];
 	/*38*/
-} Lws_Info, *lpLws_Info;
+};// Lws_Info, * lpLws_Info;
 static_assert(sizeof(Lws_Info) == 0x38, "");
 
 
-typedef struct Lws_MeshPath
+struct Lws_MeshPath
 {
 	/*0,4*/ char* path;
 	/*4,4*/ Mesh* mesh;
 	/*8*/
-} Lws_MeshPath, *lpLws_MeshPath;
+};// Lws_MeshPath, * lpLws_MeshPath;
 static_assert(sizeof(Lws_MeshPath) == 0x8, "");
 
 
-typedef struct Lws_Globs
+struct Lws_Globs
 {
 	/*0000,1f40*/ Lws_MeshPath meshPathList[LWS_MAXMESHFILES];			// For full path to files...
 	/*1f40,1f40*/ Lws_MeshPath meshPathListShared[LWS_MAXMESHFILES];	// For shared files...
@@ -166,7 +176,7 @@ typedef struct Lws_Globs
 	/*4024,4*/ LwsSoundEnabledFunc SoundEnabledFunc;
 	/*4028,4*/ LwsPlaySample3DFunc PlaySample3DFunc;
 	/*402c*/
-} Lws_Globs;
+};// Lws_Globs;
 static_assert(sizeof(Lws_Globs) == 0x402c, "");
 
 #pragma endregion

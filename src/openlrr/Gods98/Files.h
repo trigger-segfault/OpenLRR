@@ -52,6 +52,7 @@ typedef void (__cdecl* FileLoadCallback)(const char* filename, uint32 fileSize, 
 
 #pragma region Enums
 
+namespace _ns_FileOrigin {
 enum FileOrigin : sint32
 {
 	File_SeekSet = 0,
@@ -59,8 +60,10 @@ enum FileOrigin : sint32
 	File_SeekEnd = 2,
 };
 static_assert(sizeof(FileOrigin) == 0x4, "");
+} using FileOrigin = _ns_FileOrigin::FileOrigin;
 
 
+namespace _ns_FileSys {
 enum FileSys : sint32
 {
 	FileSystem_Wad  = 0,		// Wad file
@@ -68,6 +71,7 @@ enum FileSys : sint32
 	FileSystem_Err  = 2,		// Error code
 };
 static_assert(sizeof(FileSys) == 0x4, "");
+} using FileSys = _ns_FileSys::FileSys;
 
 #pragma endregion
 
@@ -107,7 +111,7 @@ struct WADFILE
 static_assert(sizeof(WADFILE) == 0xc, "");
 
 
-struct File_Dummy
+struct File
 {
 	/*0,4*/ FileSys type;
 	/*4,4*/ union {
@@ -116,7 +120,7 @@ struct File_Dummy
 	};
 	/*8*/
 };// File, * lpFile;
-static_assert(sizeof(File_Dummy) == 0x8, "");
+static_assert(sizeof(File) == 0x8, "");
 
 
 struct File_Globs
@@ -220,56 +224,56 @@ bool32 __cdecl File_GetCDFilePath(IN OUT char* path, const char* fname);
 void __cdecl File_MakeDir(const char* path);
 
 // <LegoRR.exe @0047f9a0>
-File_Dummy* __cdecl File_Open(const char* fName, const char* mode);
+File* __cdecl File_Open(const char* fName, const char* mode);
 
 // <LegoRR.exe @0047fb10>
-sint32 __cdecl File_Seek(File_Dummy* f, sint32 pos, sint32 mode);
+sint32 __cdecl File_Seek(File* f, sint32 pos, sint32 mode);
 
 // <LegoRR.exe @0047fc40>
-sint32 __cdecl File_Read(OUT void* buffer, sint32 size, sint32 count, File_Dummy* f);
+sint32 __cdecl File_Read(OUT void* buffer, sint32 size, sint32 count, File* f);
 
 // <LegoRR.exe @0047fd10>
-sint32 __cdecl File_Write(const void* buffer, sint32 size, sint32 count, File_Dummy* f);
+sint32 __cdecl File_Write(const void* buffer, sint32 size, sint32 count, File* f);
 
 // <LegoRR.exe @0047fd80>
-sint32 __cdecl File_Close(File_Dummy* f);
+sint32 __cdecl File_Close(File* f);
 
 // <missing>
-sint32 __cdecl File_EOF(File_Dummy* f);
+sint32 __cdecl File_EOF(File* f);
 
 // <LegoRR.exe @0047fdd0>
-sint32 __cdecl File_Tell(File_Dummy* f);
+sint32 __cdecl File_Tell(File* f);
 
 // <missing>
-sint32 __cdecl File_Flush(File_Dummy* f);
+sint32 __cdecl File_Flush(File* f);
 
 // <LegoRR.exe @0047fe20>
 bool32 __cdecl File_Exists(const char* fName);
 
 // <LegoRR.exe @0047fee0>
-sint32 __cdecl File_GetC(File_Dummy* f);
+sint32 __cdecl File_GetC(File* f);
 
 // <LegoRR.exe @0047ff60>
-sint32 __cdecl File_Length(File_Dummy* f);
+sint32 __cdecl File_Length(File* f);
 
 // <LegoRR.exe @0047ffa0>
-char* __cdecl File_InternalFGetS(OUT char* fgetsBuffer, sint32 num, File_Dummy* f);
+char* __cdecl File_InternalFGetS(OUT char* fgetsBuffer, sint32 num, File* f);
 
 // <LegoRR.exe @00480000>
-char* __cdecl File_GetS(OUT char* fgetsBuffer, sint32 num, File_Dummy* f);
+char* __cdecl File_GetS(OUT char* fgetsBuffer, sint32 num, File* f);
 
 // <LegoRR.exe @00480070>
-sint32 __cdecl File_PrintF(File_Dummy* f, const char* msg, ...);
+sint32 __cdecl File_PrintF(File* f, const char* msg, ...);
 
 // <missing>
-uint32 __cdecl File_VPrintF(File_Dummy* f, const char* msg, std::va_list args);
+uint32 __cdecl File_VPrintF(File* f, const char* msg, std::va_list args);
 
 // <missing>
-sint32 __cdecl File_ScanF(File_Dummy* f, const char* msg, ...);
+sint32 __cdecl File_ScanF(File* f, const char* msg, ...);
 
 
 // <LegoRR.exe @004800e0>
-FileSys __cdecl _File_GetSystem(File_Dummy* f);
+FileSys __cdecl _File_GetSystem(File* f);
 
 // <LegoRR.exe @004800f0>
 FileSys __cdecl _File_CheckSystem(const char* fName, const char* mode);
@@ -278,7 +282,7 @@ FileSys __cdecl _File_CheckSystem(const char* fName, const char* mode);
 bool32 __cdecl _File_OpenWad(WADFILE* wad, const char* fName);
 
 // <LegoRR.exe @00480190>
-File_Dummy* __cdecl _File_Alloc(FileSys fType);
+File* __cdecl _File_Alloc(FileSys fType);
 
 // <LegoRR.exe @004801f0>
 void* __cdecl _File_Malloc(uint32 size);
@@ -287,13 +291,13 @@ void* __cdecl _File_Malloc(uint32 size);
 void __cdecl _File_Free(void* ptr);
 
 // <LegoRR.exe @00480210>
-void __cdecl _File_Dealloc(File_Dummy* file);
+void __cdecl _File_Dealloc(File* file);
 
 // <LegoRR.exe @00480280>
 const char* __cdecl _File_GetWadName(const char* fName);
 
 // <LegoRR.exe @00480310>
-char* __cdecl File_GetLine(OUT char* buffer, uint32 size, File_Dummy* file);
+char* __cdecl File_GetLine(OUT char* buffer, uint32 size, File* file);
 
 // <LegoRR.exe @00480360>
 void* __cdecl File_LoadBinary(const char* filename, OUT uint32* sizeptr);

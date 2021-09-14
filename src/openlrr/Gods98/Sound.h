@@ -24,7 +24,7 @@ typedef void (__cdecl* SoundCDStopCallback)(void);
 
 #define WAVEVERSION 1
 
-/*#ifndef ER_MEM
+#ifndef ER_MEM
 #define ER_MEM 				0xe000
 #endif
 
@@ -46,7 +46,7 @@ typedef void (__cdecl* SoundCDStopCallback)(void);
 
 #ifndef ER_CANNOTWRITE
 #define ER_CANNOTWRITE		0xe104
-#endif*/
+#endif
 
 #define SAMP_MULTI 2
 #define SAMP_LOOP 1
@@ -66,12 +66,24 @@ typedef void (__cdecl* SoundCDStopCallback)(void);
 
 #pragma region Enums
 
-enum
+/*enum_scoped(SoundMode2) : uint32
 {
 	Sound_Multi = SAMP_MULTI,
-	Sound_Loop = SAMP_LOOP,
-	Sound_Once = SAMP_ONCE
+	Sound_Loop  = SAMP_LOOP,
+	Sound_Once  = SAMP_ONCE
 };
+static_assert(sizeof(SoundMode2) == 0x4, "");
+enum_scoped_end(SoundMode2);*/
+
+namespace _ns_SoundMode {
+enum SoundMode : uint32
+{
+	Sound_Multi = SAMP_MULTI,
+	Sound_Loop  = SAMP_LOOP,
+	Sound_Once  = SAMP_ONCE
+};
+static_assert(sizeof(SoundMode) == 0x4, "");
+} using SoundMode = _ns_SoundMode::SoundMode;
 
 #pragma endregion
 
@@ -113,6 +125,7 @@ static_assert(sizeof(Sound) == 0x4, "");
 
 struct Sound_Globs
 {
+	// [globs: start]
 	/*000,4*/ uint32 useSound;		// Number of sounds in soundList
 	/*004,4*/ bool32 initialised;
 	/*008,190*/ Sound soundList[MAX_SAMPLES];
@@ -120,6 +133,7 @@ struct Sound_Globs
 	/*19c,4*/ bool32 loopCDTrack;
 	/*1a0,4*/ SoundCDStopCallback CDStopCallback;
 	/*1a4,4*/ bool32 updateCDTrack;
+	// [globs: end]
 	/*1a8,4*/ uint32 s_Update_lastUpdate;
 	/*1ac,8*/ uint32 reserved1[2];
 	/*1b4,4*/ MCIERROR mciErr;
@@ -140,8 +154,8 @@ static_assert(sizeof(Sound_Globs) == 0x1b8, "");
 // <LegoRR.exe @00545868>
 extern Sound_Globs & soundGlobs;
 
-// <LegoRR.exe @mciReturn>
-extern char (&mciReturn)[MCI_RETURN_SIZE];
+// <LegoRR.exe @00577500>
+extern char (& mciReturn)[MCI_RETURN_SIZE];
 
 #pragma endregion
 
@@ -158,7 +172,7 @@ bool32 __cdecl Sound_Initialise(bool32 nosound);
 bool32 __cdecl Sound_IsInitialised(void);
 
 // <LegoRR.exe @00488e70>
-bool32 __cdecl Sound_PlayCDTrack(uint32 track, uint32 mode, SoundCDStopCallback StopCallback);
+bool32 __cdecl Sound_PlayCDTrack(uint32 track, SoundMode mode, SoundCDStopCallback StopCallback);
 
 // <LegoRR.exe @00488eb0>
 bool32 __cdecl Sound_StopCD(void);
@@ -167,25 +181,25 @@ bool32 __cdecl Sound_StopCD(void);
 void __cdecl Sound_Update(bool32 cdtrack);
 
 // <LegoRR.exe @00488f30>
-int __cdecl WaveOpenFile(void* fileData, uint32 fileSize,
+sint32 __cdecl WaveOpenFile(void* fileData, uint32 fileSize,
 				OUT HMMIO* phmmioIn, OUT WAVEFORMATEX** ppwfxInfo, OUT MMCKINFO* pckInRIFF);
 
 // <LegoRR.exe @00489130>
 uint32 __cdecl GetWaveAvgBytesPerSec(const char* pszFileName);
 
 // <LegoRR.exe @004891d0>
-int __cdecl WaveOpenFile2(IN const char* pszFileName,
+sint32 __cdecl WaveOpenFile2(IN const char* pszFileName,
 				OUT HMMIO* phmmioIn, OUT WAVEFORMATEX** ppwfxInfo, OUT MMCKINFO* pckInRIFF);
 
 // <LegoRR.exe @00489380>
-int __cdecl WaveStartDataRead(HMMIO* phmmioIn, MMCKINFO* pckIn, MMCKINFO* pckInRIFF);
+sint32 __cdecl WaveStartDataRead(HMMIO* phmmioIn, MMCKINFO* pckIn, MMCKINFO* pckInRIFF);
 
 // <LegoRR.exe @004893c0>
-int __cdecl WaveReadFile(IN HMMIO hmmioIn, IN uint32 cbRead, OUT uint8* pbDest,
+sint32 __cdecl WaveReadFile(IN HMMIO hmmioIn, IN uint32 cbRead, OUT uint8* pbDest,
 				IN MMCKINFO* pckIn, OUT uint32* cbActualRead);
 
 // <LegoRR.exe @00489490>
-int __cdecl WaveCloseReadFile(IN HMMIO* phmmio, IN WAVEFORMATEX** ppwfxSrc);
+sint32 __cdecl WaveCloseReadFile(IN HMMIO* phmmio, IN WAVEFORMATEX** ppwfxSrc);
 
 // <LegoRR.exe @004894d0>
 bool32 __cdecl Restart_CDTrack(sint32 track);

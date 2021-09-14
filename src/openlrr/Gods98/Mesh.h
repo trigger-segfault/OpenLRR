@@ -3,7 +3,6 @@
 #include "../common.h"
 #include "../Types/geometry.h"
 #include "../Types/colour.h"
-#include "Maths.h"
 
 
 /**********************************************************************************
@@ -31,6 +30,7 @@ namespace Gods98
 
 #pragma region Forward Declarations
 
+struct Mesh;
 struct Container_Texture;
 struct APPOBJ;
 struct Viewport;
@@ -131,6 +131,7 @@ typedef void (__cdecl* MeshRenderCallback)(Mesh* mesh, void* data, Viewport* vp)
 	MESH_FLAG_ALPHAHIDDEN          = 0x10000000, // struct Mesh_Group
 };*/
 
+namespace _ns_MeshFlags {
 enum MeshFlags : uint32
 {
 	MESH_FLAG_NONE                   = 0,
@@ -176,7 +177,10 @@ enum MeshFlags : uint32
 };
 DEFINE_ENUM_FLAG_OPERATORS(MeshFlags);
 static_assert(sizeof(MeshFlags) == 0x4, "");
+} using MeshFlags = _ns_MeshFlags::MeshFlags;
 
+
+namespace _ns_Mesh_GroupFlags {
 enum Mesh_GroupFlags : uint32
 {
 	MESH_FLAG_NONE                   = 0,
@@ -222,7 +226,10 @@ enum Mesh_GroupFlags : uint32
 };
 DEFINE_ENUM_FLAG_OPERATORS(Mesh_GroupFlags);
 static_assert(sizeof(Mesh_GroupFlags) == 0x4, "");
+} using Mesh_GroupFlags = _ns_Mesh_GroupFlags::Mesh_GroupFlags;
 
+
+namespace _ns_Mesh_RenderFlags {
 enum Mesh_RenderFlags : uint32
 {
 	MESH_FLAG_RENDER_NONE          = 0,
@@ -268,8 +275,10 @@ enum Mesh_RenderFlags : uint32
 };
 DEFINE_ENUM_FLAG_OPERATORS(Mesh_RenderFlags);
 static_assert(sizeof(Mesh_RenderFlags) == 0x4, "");
+} using Mesh_RenderFlags = _ns_Mesh_RenderFlags::Mesh_RenderFlags;
 
 
+namespace _ns_Mesh_Colour {
 enum Mesh_Colour : sint32
 {
 	Mesh_Colour_Diffuse  = 0,
@@ -281,8 +290,10 @@ enum Mesh_Colour : sint32
 	Mesh_Colour_Power    = 5,
 };
 static_assert(sizeof(Mesh_Colour) == 0x4, "");
+} using Mesh_Colour = _ns_Mesh_Colour::Mesh_Colour;
 
 
+namespace _ns_Mesh_Type {
 enum Mesh_Type : sint32
 {	
 	Mesh_Type_Norm            = 0,
@@ -290,8 +301,10 @@ enum Mesh_Type : sint32
 	Mesh_Type_LightWaveObject = 2,
 };
 static_assert(sizeof(Mesh_Type) == 0x4, "");
+} using Mesh_Type = _ns_Mesh_Type::Mesh_Type;
 
 
+namespace _ns_Mesh_WrapType {
 enum Mesh_WrapType : sint32
 {
 	Mesh_WrapType_XAxis = 0,
@@ -299,6 +312,7 @@ enum Mesh_WrapType : sint32
 	Mesh_WrapType_ZAxis = 2,
 };
 static_assert(sizeof(Mesh_WrapType) == 0x4, "");
+} using Mesh_WrapType = _ns_Mesh_WrapType::Mesh_WrapType;
 
 #pragma endregion
 
@@ -321,7 +335,7 @@ typedef struct Container_Texture Mesh_Texture;
 
 #pragma region Structs
 
-struct Mesh_LightWave_Surface //lpMesh_LightWave_SurfaceTAG
+struct Mesh_LightWave_Surface
 {
 	/*00,4*/ Mesh_Texture** textureSeq;
 	/*04,4*/ Mesh_Texture* texture;
@@ -342,7 +356,7 @@ struct Mesh_LightWave_Surface //lpMesh_LightWave_SurfaceTAG
 static_assert(sizeof(Mesh_LightWave_Surface) == 0x3c, "");
 
 
-struct Mesh_TextureStateChangeData //Mesh_TextureStateChangeDataTAG
+struct Mesh_TextureStateChangeData
 {
 	/*0,4*/ uint32 origValue; // type not guaranteed
 	/*4,4*/ bool32 changed;
@@ -351,7 +365,7 @@ struct Mesh_TextureStateChangeData //Mesh_TextureStateChangeDataTAG
 static_assert(sizeof(Mesh_TextureStateChangeData) == 0x8, "");
 
 
-struct Mesh_RenderDesc //Mesh_RenderDescTAG
+struct Mesh_RenderDesc
 {
 	/*0,4*/ MeshRenderCallback renderCallback;
 	/*4,4*/ void* renderCallbackData;
@@ -361,7 +375,7 @@ struct Mesh_RenderDesc //Mesh_RenderDescTAG
 static_assert(sizeof(Mesh_RenderDesc) == 0xc, "");
 
 
-struct Mesh_Vertex // Mesh_VertexTAG
+struct Mesh_Vertex
 {
 	/*00,c*/ Vector3F position;
 	/*0c,c*/ Vector3F normal;
@@ -373,7 +387,7 @@ struct Mesh_Vertex // Mesh_VertexTAG
 static_assert(sizeof(Mesh_Vertex) == 0x20, "");
 
 
-struct Mesh_Group //Mesh_GroupTAG
+struct Mesh_Group
 {
 	/*00,4*/ uint32 faceDataSize;
 	/*04,4*/ uint32 vertexCount;
@@ -408,7 +422,7 @@ struct Mesh
 static_assert(sizeof(Mesh) == 0x34, "");
 
 
-struct Mesh_PostRenderInfo // Mesh_PostRenderInfoTAG
+struct Mesh_PostRenderInfo
 {
 	/*00,4*/ Mesh* mesh;
 	/*04,40*/ D3DMATRIX matWorld;
@@ -418,7 +432,7 @@ struct Mesh_PostRenderInfo // Mesh_PostRenderInfoTAG
 static_assert(sizeof(Mesh_PostRenderInfo) == 0x48, "");
 
 
-struct Mesh_TextureReference //Mesh_TextureReference
+struct Mesh_TextureReference
 {
 	/*0,4*/ IDirectDrawSurface4* surface;
 	/*4,4*/ char* path;

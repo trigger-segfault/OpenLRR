@@ -56,6 +56,7 @@ typedef void (__cdecl* WadProgressUpdate)(int percent, bool32 debug, const char*
 //#define WAD_FILE_RNCOMPRESSED (1 << 1)
 //#define WAD_FILE_IS_IN_WAD    (1 << 2)
 
+namespace _ns_Wad_EntryFlags {
 enum Wad_EntryFlags : uint32
 {
 	WAD_FILE_NONE         = 0,
@@ -65,6 +66,7 @@ enum Wad_EntryFlags : uint32
 };
 DEFINE_ENUM_FLAG_OPERATORS(Wad_EntryFlags);
 static_assert(sizeof(Wad_EntryFlags) == 0x4, "");
+} using Wad_EntryFlags = _ns_Wad_EntryFlags::Wad_EntryFlags;
 
 #pragma endregion
 

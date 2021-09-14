@@ -2,7 +2,6 @@
 
 #include "../common.h"
 #include "../Types/geometry.h"
-#include "Maths.h"
 
 
 /**********************************************************************************
@@ -57,7 +56,17 @@ struct Container;
 
 #pragma region Enums
 
-#define VIEWPORT_FLAG_INITIALISED	0x00000001
+//#define VIEWPORT_FLAG_INITIALISED	0x00000001
+
+namespace _ns_Viewport_GlobFlags {
+enum Viewport_GlobFlags : uint32
+{
+	VIEWPORT_FLAG_NONE = 0,
+	VIEWPORT_FLAG_INITIALISED = 0x1,
+};
+DEFINE_ENUM_FLAG_OPERATORS(Viewport_GlobFlags);
+static_assert(sizeof(Viewport_GlobFlags) == 0x4, "");
+} using Viewport_GlobFlags = _ns_Viewport_GlobFlags::Viewport_GlobFlags;
 
 #pragma endregion
 
@@ -107,7 +116,7 @@ struct Viewport_Globs
 	/*00,80*/ Viewport* listSet[VIEWPORT_MAXLISTS];
 	/*80,4*/ Viewport* freeList;
 	/*84,4*/ uint32 listCount;
-	/*88,4*/ uint32 flags;
+	/*88,4*/ Viewport_GlobFlags flags;
 	/*8c*/
 };
 static_assert(sizeof(Viewport_Globs) == 0x8c, "");
@@ -167,7 +176,7 @@ void __cdecl Viewport_SetCamera(Viewport* vp, Container* cont);
 Container* __cdecl Viewport_GetCamera(Viewport* vp);
 
 // <LegoRR.exe @00477270>
-Container* __cdecl Viewport_SetBackClip(Viewport* vp, real32 dist);
+void __cdecl Viewport_SetBackClip(Viewport* vp, real32 dist);
 
 // <LegoRR.exe @00477290>
 real32 __cdecl Viewport_GetBackClip(Viewport* vp);

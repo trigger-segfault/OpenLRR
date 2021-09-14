@@ -3,6 +3,18 @@
 #include "../common.h"
 
 
+/**********************************************************************************
+ ******** Forward Global Namespace Declarations
+ **********************************************************************************/
+
+#pragma region Forward Declarations
+
+struct IDirect3DRMAnimationSet2;
+struct IDirect3DRMFrame3;
+
+#pragma endregion
+
+
 namespace Gods98
 {; // !<---
 
