@@ -1,7 +1,6 @@
 
 
 #include <ddraw.h>
-//#include "../DirectX/D3DRM/d3drm.h"
 #include <d3drm.h>			// For Viewports.h
 
 #include "Memory.h"

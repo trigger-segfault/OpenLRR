@@ -1,10 +1,15 @@
 
-//#include "../DirectX/D3DRM/d3drmwin.h"
 #include <d3drmwin.h>
 
 #include "Bmp.h"
 #include "Memory.h"
 
+
+/**********************************************************************************
+ ******** Functions
+ **********************************************************************************/
+
+#pragma region Functions
 
 // <LegoRR.exe @00489ef0>
 void __cdecl Gods98::BMP_Parse(const void* data, uint32 size, OUT D3DRMIMAGE* istruct)
@@ -70,3 +75,4 @@ void __cdecl Gods98::BMP_Cleanup(D3DRMIMAGE* istruct)
 	if (istruct->palette) Mem_Free(istruct->palette);
 }
 
+#pragma endregion

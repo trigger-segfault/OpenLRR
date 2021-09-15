@@ -2,11 +2,20 @@
 
 #include "../common.h"
 #include "../Types/geometry.h"
-#include "Files.h"
 
 
 namespace Gods98
 {; // !<---
+
+/**********************************************************************************
+ ******** Forward Declarations
+ **********************************************************************************/
+
+#pragma region Forward Declarations
+
+struct File;
+
+#pragma endregion
 
 /**********************************************************************************
  ******** Constants
@@ -438,14 +447,18 @@ bool32 __cdecl Flic_DeltaWord(FLICSTRUCT* fsp);
 // <LegoRR.exe @00485380>
 uint16 __cdecl getFlicCol(uint8 n, FLICSTRUCT* fsp);
 
-
+// This function performs the same accessor,
+// shared between 3 different structure types.
+//  uint32 __cdecl Flic_GetWidth(FLICSTRUCT* fsp);
+//  bool32 __cdecl AnimClone_IsLws(AnimClone* clone);
+//  uint32 __cdecl Flocks_GetNumSubdata(Flocks* flocksData);
 // (shared) "AnimClone_IsLws__Flic_GetWidth"
 // THIS FUNCTION MUST BE HOOKED ON AN INDIVIDUAL BASIS
 // There are 5 calls made to this:
 //  type:FLICSTRUCT (Flic_GetWidth)  -> FUN_004120e0  <@004120f7>
 //                                      Panel_FUN_0045a9f0  <@0045ab17>
 //                                      Pointer_DrawPointer  <@0045cfc8>
-//  type:FlocksData (Flocks_???)     -> LiveObject_Flocks_FUN_0044bef0  <@0044bfc3>
+//  type:FlocksData (Flocks_GetNumSubdata) -> LiveObject_Flocks_FUN_0044bef0  <@0044bfc3>
 //  type:AnimClone (AnimClone_IsLws) -> Container_FormatPartName  <@00473f60>
 // <called @004120f7, 0045ab17, 0045cfc8>
 // <LegoRR.exe @00489a90>

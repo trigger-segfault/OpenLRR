@@ -5,18 +5,39 @@
 #include "../Types/colour.h"
 
 
+// no getting around this include without some very ugly work-arounds :(
+#include <d3d.h>
+
+
 /**********************************************************************************
  ******** Forward Global Namespace Declarations
  **********************************************************************************/
 
 #pragma region Forward Declarations
 
-//struct IDirect3DRM3;
-//struct IDirect3DRMDevice3;
+struct IDirect3DRM3;
+struct IDirect3DRMDevice3;
 struct IDirect3DRMFrame3;
+struct IDirect3DRMUserVisual;
+struct IDirect3DRMViewport;
 struct IDirect3DRMViewport2;
+struct IDirect3DTexture2;
+struct IDirectDrawSurface4;
 enum LightWave_TexFlags : uint32;
 enum LightWave_SurfFlags : uint32;
+enum _D3DTRANSFORMSTATETYPE;
+typedef enum _D3DTRANSFORMSTATETYPE D3DTRANSFORMSTATETYPE;
+enum _D3DTEXTURESTAGESTATETYPE;
+typedef enum _D3DTEXTURESTAGESTATETYPE D3DTEXTURESTAGESTATETYPE;
+//typedef unsigned long DWORD;
+//typedef DWORD D3DMATERIALHANDLE;
+struct IDirect3DRMDevice;
+typedef struct IDirect3DRMDevice* LPDIRECT3DRMDEVICE;
+typedef struct IDirect3DRMViewport* LPDIRECT3DRMVIEWPORT;
+typedef struct IDirect3DRMUserVisual* LPDIRECT3DRMUSERVISUAL;
+
+enum _D3DRMUSERVISUALREASON;
+typedef enum _D3DRMUSERVISUALREASON D3DRMUSERVISUALREASON;
 
 #pragma endregion
 
@@ -43,6 +64,9 @@ struct Viewport;
 
 #pragma region Function Typedefs
 
+/// NEW GODS98: Not present in legoRR (included for completeness)
+typedef sint32 (__cdecl* MeshTextureRenderCallback)(void* data);
+
 typedef void (__cdecl* MeshRenderCallback)(Mesh* mesh, void* data, Viewport* vp);
 
 #pragma endregion
@@ -63,6 +87,8 @@ typedef void (__cdecl* MeshRenderCallback)(Mesh* mesh, void* data, Viewport* vp)
 #define MESH_LISTINCREASE			150			// Increase list size by 150% when it is full...
 
 #define MESH_MAXTEXTURESTAGESTATES	50
+
+#define MESH_UVREALLOCSIZE		10
 
 #pragma endregion
 
@@ -356,6 +382,7 @@ struct Mesh_LightWave_Surface
 static_assert(sizeof(Mesh_LightWave_Surface) == 0x3c, "");
 
 
+// same struct layout/usage as Main_StateChangeData
 struct Mesh_TextureStateChangeData
 {
 	/*0,4*/ uint32 origValue; // type not guaranteed
@@ -418,6 +445,9 @@ struct Mesh
 	/*2c,4*/ MeshFlags flags;
 	/*30,4*/ Mesh* nextFree;
 	/*34*/
+	/// NEW GODS98: Not part of LegoRR
+	//MeshTextureRenderCallback textureRenderCallback;
+	//void* textureRenderCallbackData;
 };// Mesh, * lpMesh;
 static_assert(sizeof(Mesh) == 0x34, "");
 
@@ -482,6 +512,54 @@ extern Mesh_Globs & meshGlobs;
 #pragma endregion
 
 /**********************************************************************************
+ ******** Macro Functions
+ **********************************************************************************/
+
+#pragma region Macros
+
+
+//#ifdef _DEBUG
+
+#define Mesh_Debug_CheckIMDevice_Ptr(PTRTYPE)		{ if (lpIMDevice()==nullptr) return (PTRTYPE) 1; }
+//#define Mesh_Debug_CheckIMDevice_Ptr()		{ if (lpIMDevice()==nullptr) return (LPVOID) 1; }
+#define Mesh_Debug_CheckIMDevice_Void()		{ if (lpIMDevice()==nullptr) return; }
+#define Mesh_Debug_CheckIMDevice_Int()		{ if (lpIMDevice()==nullptr) return 1; }
+/*
+#else
+
+#define Mesh_Debug_CheckIMDevice_Ptr(PTRTYPE)
+//#define Mesh_Debug_CheckIMDevice_Ptr()
+#define Mesh_Debug_CheckIMDevice_Void()
+#define Mesh_Debug_CheckIMDevice_Int()
+
+#endif // _DEBUG
+*/
+
+
+#define Mesh_Create( c, f, rf, d )						Mesh_CreateOnFrame( (c->activityFrame), (f), (rf), (d), Gods98::Mesh_Type::Mesh_Type_Norm )
+#define Mesh_CreatePostEffect( c, f, rf, d )			Mesh_CreateOnFrame( (c->activityFrame), (f), (rf), (d), Gods98::Mesh_Type::Mesh_Type_PostEffect )
+#define Mesh_LoadLightWaveObject( n, c )				Mesh_Load( (n), (c->activityFrame) )
+#define Mesh_RemoveFromContainer(m,c)					Mesh_Remove((m),(c)->activityFrame)
+
+#define Mesh_SetWorldTransform( m )						Mesh_SetTransform( TRANSFORMSTATE_WORLD, (m) )
+
+#define Mesh_SetGroupDiffuse( m, n, r, g, b )				Mesh_SetGroupColour( (m), (n), (r), (g), (b), Gods98::Mesh_Colour::Mesh_Colour_Diffuse )
+#define Mesh_SetGroupAmbient( m, n, r, g, b )				Mesh_SetGroupColour( (m), (n), (r), (g), (b), Gods98::Mesh_Colour::Mesh_Colour_Ambient )
+#define Mesh_SetGroupSpecular( m, n, r, g, b )				Mesh_SetGroupColour( (m), (n), (r), (g), (b), Gods98::Mesh_Colour::Mesh_Colour_Specular )
+#define Mesh_SetGroupEmissive( m, n, r, g, b )				Mesh_SetGroupColour( (m), (n), (r), (g), (b), Gods98::Mesh_Colour::Mesh_Colour_Emissive )
+#define Mesh_SetGroupPower( m, n, p )						Mesh_SetGroupMaterialValues( (m), (n), (p), Gods98::Mesh_Colour::Mesh_Colour_Power )
+#define Mesh_SetGroupAlpha( m, n, a )						Mesh_SetGroupMaterialValues( (m), (n), (a), Gods98::Mesh_Colour::Mesh_Colour_Alpha )
+
+#define Mesh_GetGroupDiffuse( m, n, r, g, b )				Mesh_GetGroupColour( (m), (n), (r), (g), (b), Gods98::Mesh_Colour::Mesh_Colour_Diffuse )
+#define Mesh_GetGroupAmbient( m, n, r, g, b )				Mesh_GetGroupColour( (m), (n), (r), (g), (b), Gods98::Mesh_Colour::Mesh_Colour_Ambient )
+#define Mesh_GetGroupSpecular( m, n, r, g, b )				Mesh_GetGroupColour( (m), (n), (r), (g), (b), Gods98::Mesh_Colour::Mesh_Colour_Specular )
+#define Mesh_GetGroupEmissive( m, n, r, g, b )				Mesh_GetGroupColour( (m), (n), (r), (g), (b), Gods98::Mesh_Colour::Mesh_Colour_Emissive )
+#define Mesh_GetGroupPower( m, n, p )						Mesh_GetGroupMaterialValues( (m), (n), (p), Gods98::Mesh_Colour::Mesh_Colour_Power )
+#define Mesh_GetGroupAlpha( m, n, a )						Mesh_GetGroupMaterialValues( (m), (n), (a), Gods98::Mesh_Colour::Mesh_Colour_Alpha )
+
+#pragma endregion
+
+/**********************************************************************************
  ******** Functions
  **********************************************************************************/
 
@@ -507,7 +585,7 @@ void __cdecl Mesh_AddList(void);
 
 // <LegoRR.exe @00480b30>
 Mesh* __cdecl Mesh_CreateOnFrame(IDirect3DRMFrame3* frame, MeshRenderCallback renderFunc,
-								Mesh_RenderFlags renderFlags, void* data, uint32 type);
+								Mesh_RenderFlags renderFlags, void* data, Mesh_Type type);
 
 // <LegoRR.exe @00480bc0>
 Mesh* __cdecl Mesh_Clone(Mesh* mesh, IDirect3DRMFrame3* frame);
@@ -525,15 +603,24 @@ void __cdecl Mesh_GetSurfInfo(const char* basePath, APPOBJ* lightWaveObject, Mes
 bool32 __cdecl Mesh_GetTextureSeqInfo(const char* tname, OUT char* tfname, OUT uint32* tstart, OUT uint32* tnumlen);
 
 // <LegoRR.exe @00481e40>
-void __cdecl Mesh_GetNextInSequence(const char* baseName, const char* nextTextName, OUT uint32* texNum, uint32 tnumlen);
+void __cdecl Mesh_GetNextInSequence(const char* baseName, OUT char* nextTextName, OUT uint32* texNum, uint32 tnumlen);
 
 // <LegoRR.exe @00481f10>
-void __cdecl Mesh_UViewMesh(APPOBJ* lightWaveObject, const Point2F* textCoords);
+void __cdecl Mesh_UViewMesh(APPOBJ* lightWaveObject, OUT Point2F* textCoords);
 
 // flags = lwt.h srfTexFlags bit enumeration `TFM_*`
 // <LegoRR.exe @00482260>
 void __cdecl Mesh_GetTextureUVsWrap(uint32 vertexCount, OUT Vector3F* vertices, OUT Point2F* coords,
 	real32 sx, real32 sy, real32 sz, real32 px, real32 py, real32 pz, uint32 flags);
+
+
+/// NEW GODS98: API that includes mesh->textureRenderCallback
+// Only calls Mesh_SetTextureTime2 if mesh->textureRenderCallback == null.
+// This function serves no purpose for this version of the engine,
+//  but is included regardless.
+// <inlined>
+bool32 __cdecl Mesh_SetTextureTime(Mesh* mesh, real32 frame);
+
 
 // <LegoRR.exe @00482300>
 bool32 __cdecl Mesh_SetTextureTime2(Mesh* mesh, real32 frame);
@@ -542,7 +629,7 @@ bool32 __cdecl Mesh_SetTextureTime2(Mesh* mesh, real32 frame);
 void __cdecl Mesh_Remove(Mesh* mesh, IDirect3DRMFrame3* frame);
 
 // <LegoRR.exe @00482460>
-Mesh_Group* __cdecl Mesh_GetGroup(Mesh* mesh, uint32 groupID, OUT uint32* vertexCount,
+void __cdecl Mesh_GetGroup(Mesh* mesh, uint32 groupID, OUT uint32* vertexCount,
 								OUT uint32* faceCount, OUT uint32* vPerFace,
 								OUT uint32* faceDataSize, OUT uint32* faceData);
 
@@ -550,11 +637,11 @@ Mesh_Group* __cdecl Mesh_GetGroup(Mesh* mesh, uint32 groupID, OUT uint32* vertex
 uint32 __cdecl Mesh_GetGroupCount(Mesh* mesh);
 
 // <LegoRR.exe @004824e0>
-long __cdecl Mesh_AddGroup(Mesh* mesh, uint32 vertexCount, uint32 faceCount,
+sint32 __cdecl Mesh_AddGroup(Mesh* mesh, uint32 vertexCount, uint32 faceCount,
 						uint32 vPerFace, const uint32* faceData);
 
 // <LegoRR.exe @00482610>
-void __cdecl Mesh_AlterGroupRenderFlags(Mesh* mesh, uint32 groupID, uint32 newFlags);
+void __cdecl Mesh_AlterGroupRenderFlags(Mesh* mesh, uint32 groupID, Mesh_RenderFlags newFlags);
 
 // <LegoRR.exe @00482630>
 void __cdecl Mesh_Scale(Mesh* mesh, real32 x, real32 y, real32 z);
@@ -589,7 +676,7 @@ void __cdecl Mesh_HideGroup(Mesh* mesh, uint32 groupID, bool32 hide);
 void __cdecl Mesh_Hide(Mesh* mesh, bool32 hide);
 
 // <LegoRR.exe @00482ab0>
-bool32 __cdecl Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOID lpArg, D3DRMUSERVISUALREASON lpD3DRMUVreason, LPDIRECT3DRMDEVICE lpD3DRMDev, LPDIRECT3DRMVIEWPORT lpD3DRMview);
+BOOL __cdecl Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOID lpArg, D3DRMUSERVISUALREASON lpD3DRMUVreason, LPDIRECT3DRMDEVICE lpD3DRMDev, LPDIRECT3DRMVIEWPORT lpD3DRMview);
 
 // <LegoRR.exe @00482d80>
 void __cdecl Mesh_SetMeshRenderDesc(Mesh* mesh, Viewport* vp, const D3DMATRIX* matWorld, bool32 alphaBlend);
@@ -631,13 +718,13 @@ bool32 __cdecl Mesh_CreateGroupMaterial(Mesh* mesh, uint32 groupID);
 bool32 __cdecl Mesh_SetGroupMaterial(Mesh* mesh, uint32 groupID, const D3DMATERIAL* mat);
 
 // <LegoRR.exe @00483530>
-bool32 __cdecl Mesh_SetGroupColour(Mesh* mesh, uint32 groupID, real32 r, real32 g, real32 b, uint32 type);
+bool32 __cdecl Mesh_SetGroupColour(Mesh* mesh, uint32 groupID, real32 r, real32 g, real32 b, Mesh_Colour type);
 
 // <LegoRR.exe @004836c0>
-const D3DMATERIAL* __cdecl Mesh_GetGroupMaterial(Mesh* mesh, uint32 groupID);
+D3DMATERIAL* __cdecl Mesh_GetGroupMaterial(Mesh* mesh, uint32 groupID);
 
 // <LegoRR.exe @004836e0>
-bool32 __cdecl Mesh_SetGroupMaterialValues(Mesh* mesh, uint32 groupID, real32 value, uint32 type);
+bool32 __cdecl Mesh_SetGroupMaterialValues(Mesh* mesh, uint32 groupID, real32 value, Mesh_Colour type);
 
 // <LegoRR.exe @00483800>
 void __cdecl Mesh_SetIdentityMatrix(OUT Matrix4F m);
@@ -649,10 +736,9 @@ bool32 __cdecl Mesh_SetCurrentViewport(IDirect3DRMViewport* view);
 bool32 __cdecl Mesh_SetCurrentGODSViewport(Viewport* vp);
 
 /// TODO: is this the correct matrix ptr level?
-//bool32 __cdecl Mesh_SetTransform(D3DTRANSFORMSTATETYPE state, Matrix4F* matrix);
-// 
 // <LegoRR.exe @00483950>
-bool32 __cdecl Mesh_SetTransform(D3DTRANSFORMSTATETYPE state, const Matrix4F matrix);
+bool32 __cdecl Mesh_SetTransform(D3DTRANSFORMSTATETYPE state, const Matrix4F* matrix);
+//bool32 __cdecl Mesh_SetTransform(D3DTRANSFORMSTATETYPE state, const Matrix4F matrix);
 
 // <LegoRR.exe @00483ad0>
 bool32 __cdecl Mesh_ChangeTextureStageState(D3DTEXTURESTAGESTATETYPE dwRenderStateType, uint32 dwRenderState);
@@ -678,6 +764,13 @@ bool32 __cdecl Mesh_SetGroupRenderDesc(Mesh* mesh, Mesh_Group* group, const D3DM
 // <LegoRR.exe @00483e30>
 bool32 __cdecl Mesh_RenderTriangleList(D3DMATERIALHANDLE matHandle, IDirect3DTexture2* texture, Mesh_RenderFlags renderFlags,
 	Mesh_Vertex* vertices, uint32 vertexCount, uint16* faceData, uint32 indexCount);
+
+
+/*
+/// NEW GODS98: Feature not present in LegoRR
+// <unused>
+void __cdecl Mesh_SetAmbientLight(real32 r, real32 g, real32 b);
+*/
 
 #pragma endregion
 

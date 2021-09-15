@@ -6,6 +6,7 @@
 
 #include "Maths.h"
 #include "DirectDraw.h"
+#include "Files.h"
 #include "Flic.h"
 #include "Errors.h"
 #include "Memory.h"
@@ -171,7 +172,8 @@ bool32 __cdecl Gods98::Flic_LoadHeader(const char* filename, FLICSTRUCT** fsp)
     if(((*fsp)->fsHeader.size)!=File_Length(headerhandle))
     {
         File_Close(headerhandle);
-        std::sprintf(buff, "Flic File Invalid",filename);
+		/// FIX APPLY: Missing "%s" format specifier for filename
+        std::sprintf(buff, "Flic File Invalid %s",filename);
 		Error_Warn(true, buff);
 		return false;
     }

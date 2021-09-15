@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <process.h>
-//#include "../DirectX/D3DRM/d3drmwin.h"
 #include <d3drmwin.h>
 #include <dinput.h>
 #include <ddraw.h>

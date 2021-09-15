@@ -3,12 +3,13 @@
 #include "interop.h"
 #include "openlrr.h"
 #include "Gods98/3DSound.h"
+#include "Gods98/Activities.h"
 #include "Gods98/Animation.h"
-//#include "Gods98/AnimClone.h"
+#include "Gods98/AnimClone.h"
 #include "Gods98/Bmp.h"
 #include "Gods98/Compress.h"
 #include "Gods98/Config.h"
-//#include "Gods98/Containers.h"
+#include "Gods98/Containers.h"
 #include "Gods98/DirectDraw.h"
 #include "Gods98/Draw.h"
 #include "Gods98/Dxbug.h"
@@ -19,13 +20,13 @@
 #include "Gods98/Images.h"
 #include "Gods98/Input.h"
 #include "Gods98/Keys.h"
-//#include "Gods98/Lws.h"
-//#include "Gods98/Lwt.h"
+#include "Gods98/Lws.h"
+#include "Gods98/Lwt.h"
 #include "Gods98/Main.h"
 #include "Gods98/Materials.h"
 #include "Gods98/Maths.h"
 #include "Gods98/Memory.h"
-//#include "Gods98/Mesh.h"
+#include "Gods98/Mesh.h"
 #include "Gods98/Movie.h"
 #include "Gods98/Registry.h"
 #include "Gods98/Sound.h"
@@ -177,11 +178,41 @@ bool interop_hook_Gods98_Animation(void)
 	return_interop(result);
 }
 
-/*bool interop_hook_Gods98_AnimClone(void)
+bool interop_hook_Gods98_AnimClone(void)
 {   bool result = true;
 
+	// used by: Container_LoadAnimSet
+	result &= hook_write_jmpret(0x004897e0, Gods98::AnimClone_Register);
+	result &= hook_write_jmpret(0x00489880, Gods98::AnimClone_RegisterLws);
+	// used by: Container_Clone, Container_AddActivity2
+	result &= hook_write_jmpret(0x00489920, Gods98::AnimClone_Make);
+	// used by: Container_Remove2
+	result &= hook_write_jmpret(0x00489a10, Gods98::AnimClone_Remove);
+
+	// (shared) "AnimClone_IsLws__Flic_GetWidth"
+	// THIS FUNCTION MUST BE HOOKED ON AN INDIVIDUAL BASIS
+	// There are 5 calls made to this:
+	//  type:FLICSTRUCT (Flic_GetWidth)  -> FUN_004120e0  <@004120f7>
+	//                                      Panel_FUN_0045a9f0  <@0045ab17>
+	//                                      Pointer_DrawPointer  <@0045cfc8>
+	//  type:FlocksData (Flocks_???)     -> LiveObject_Flocks_FUN_0044bef0  <@0044bfc3>
+	//  type:AnimClone (AnimClone_IsLws) -> Container_FormatPartName  <@00473f60>
+	// <called @00473f60>
+	result &= hook_write_jmpret(0x00473f60, Gods98::AnimClone_IsLws);
+
+	// used by: Container_SetAnimationTime, Container_ForceAnimationUpdate
+	result &= hook_write_jmpret(0x00489aa0, Gods98::AnimClone_SetTime);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x00489ba0, Gods98::AnimClone_FrameCountCallback);
+	//result &= hook_write_jmpret(0x00489bb0, Gods98::AnimClone_SetupFrameArrayCallback);
+	//result &= hook_write_jmpret(0x00489bd0, Gods98::AnimClone_WalkTree);
+	//result &= hook_write_jmpret(0x00489cb0, Gods98::AnimClone_CreateCopy);
+	//result &= hook_write_jmpret(0x00489df0, Gods98::AnimClone_CloneLwsMesh);
+	//result &= hook_write_jmpret(0x00489e80, Gods98::AnimClone_ReferenceVisuals);
+
 	return result;
-}*/
+}
 
 bool interop_hook_Gods98_Bmp(void)
 {   bool result = true;
@@ -226,11 +257,221 @@ bool interop_hook_Gods98_Config(void)
 	return_interop(result);
 }
 
-/*bool interop_hook_Gods98_Containers(void)
+bool interop_hook_Gods98_Containers(void)
 {   bool result = true;
 
+	// used by: Lego_Initialise
+	result &= hook_write_jmpret(0x004729d0, Gods98::Container_Initialise);
+	// used by: Lego_Initialise, Lego_Shutdown_Debug
+	result &= hook_write_jmpret(0x00472ac0, Gods98::Container_Shutdown);
+	// used by: Lego_Initialise
+	result &= hook_write_jmpret(0x00472b80, Gods98::Container_SetSharedTextureDirectory);
+	// used by: LiveObject_Create
+	result &= hook_write_jmpret(0x00472ba0, Gods98::Container_EnableSoundTriggers);
+	// used by: Lego_Initialise
+	result &= hook_write_jmpret(0x00472bc0, Gods98::Container_SetTriggerFrameCallback);
+	// used by: SFX_InitHashNames
+	result &= hook_write_jmpret(0x00472be0, Gods98::Container_SetSoundTriggerCallback);
+	// used by: Mesh_CreateOnFrame, Lego_LoadLighting,
+	//           LiveObject_Flocks_Initialise, Smoke_CreateSmokeArea
+	result &= hook_write_jmpret(0x00472c00, Gods98::Container_GetRoot);
+
+	result &= hook_write_jmpret(0x00472c10, Gods98::Container_Create);
+	result &= hook_write_jmpret(0x00472d00, Gods98::Container_Remove);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x00472d10, Gods98::Container_Remove2);
+
+	result &= hook_write_jmpret(0x00472f90, Gods98::Container_Load);
+
+	// used by: Vehicle_SetActivity_AndRemoveCarryCameraFrames
+	result &= hook_write_jmpret(0x00473600, Gods98::Container_IsCurrentActivity);
+
+	result &= hook_write_jmpret(0x00473630, Gods98::Container_SetActivity);
+
+	result &= hook_write_jmpret(0x00473720, Gods98::Container_Light_SetSpotPenumbra);
+	result &= hook_write_jmpret(0x00473740, Gods98::Container_Light_SetSpotUmbra);
+
+	// used by: Lego_LoadLighting
+	result &= hook_write_jmpret(0x00473760, Gods98::Container_Light_SetSpotRange);
+	// used by: Advisor_Update
+	result &= hook_write_jmpret(0x00473780, Gods98::Container_Light_SetEnableContainer);
+
+	// used by: Advisor_Initialise, Menu_LoadMenus, Lego_LoadLighting
+	result &= hook_write_jmpret(0x004737b0, Gods98::Container_MakeLight);
+
+	// used by: Map3D_LoadSurfaceMap, Roof_Initialise, SelectPlace_Create,
+	//           Water_InitVertices
+	result &= hook_write_jmpret(0x00473820, Gods98::Container_MakeMesh2);
+
+	// used by: SFX_Sample_Container_Random_Play_OrInitSoundUnk
+	result &= hook_write_jmpret(0x00473940, Gods98::Container_GetMasterFrame);
+
+	result &= hook_write_jmpret(0x00473950, Gods98::Container_Clone);
+
+	// used by: LiveObject_Hide2
+	result &= hook_write_jmpret(0x00473de0, Gods98::Container_Hide2);
+
+	result &= hook_write_jmpret(0x00473e00, Gods98::Container_Hide);
+
+	// used by: Object_IsHidden, LiveObject_IsHidden,
+	//           LiveObject_Flocks_FUN_0044bef0
+	result &= hook_write_jmpret(0x00473e60, Gods98::Container_IsHidden);
+
+	result &= hook_write_jmpret(0x00473e80, Gods98::Container_SearchTree);
+	result &= hook_write_jmpret(0x00473f20, Gods98::Container_FormatPartName);
+
+	// used by: Object_SetOwnerObject, LiveObject_Create, Vehicle_SetOwnerObject
+	result &= hook_write_jmpret(0x00474060, Gods98::Container_SetUserData);
+	// used by: Game_Container_TriggerFrameCallback
+	result &= hook_write_jmpret(0x00474070, Gods98::Container_GetUserData);
+	// used by: Game_UpdateSceneFog
+	result &= hook_write_jmpret(0x00474080, Gods98::Container_EnableFog);
+	// used by: Game_UpdateSceneFog, Lego_LoadLevel
+	result &= hook_write_jmpret(0x004740d0, Gods98::Container_SetFogColour);
+	// used by: Lego_LoadLevel
+	result &= hook_write_jmpret(0x00474130, Gods98::Container_SetFogMode);
+	result &= hook_write_jmpret(0x00474160, Gods98::Container_SetFogParams);
+	// used by: Vehicle_Duplicate
+	result &= hook_write_jmpret(0x00474180, Gods98::Container_SetPerspectiveCorrection);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x00474230, Gods98::Container_SetPerspectiveCorrectionCallback);
+
+	// used by: Mesh_LoadTexture
+	result &= hook_write_jmpret(0x00474310, Gods98::Container_LoadTextureSurface);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x004746d0, Gods98::Container_GetDecalColour);
+
+	// used by: DynamicPM_LoadTextureBaseName, Roof_SetTexture
+	result &= hook_write_jmpret(0x004747b0, Gods98::Container_LoadTexture2);
+	// used by: DynamicPM_Free_SurfaceTextureGrid, Roof_SetTexture,
+	//           Roof_Shutdown
+	result &= hook_write_jmpret(0x004749d0, Gods98::Container_FreeTexture);
+	// used by: MeshPoly_Container_SwapFrame (FUN_00451e80)
+	result &= hook_write_jmpret(0x00474a20, Gods98::Container_Mesh_Swap);
+	// used by: Map3D_LoadSurfaceMap, Map3D_FadeInBlock, Roof_LowerBlockRoofVertices,
+	//           SelectPlace_Create, Water_InitVertices
+	result &= hook_write_jmpret(0x00474bb0, Gods98::Container_Mesh_AddGroup);
+
+	result &= hook_write_jmpret(0x00474ce0, Gods98::Container_Mesh_GetGroupCount);
+
+	// used by: Map3D_LoadSurfaceMap, SelectPlace_Create, Vehicle_LoadActivityFile
+	result &= hook_write_jmpret(0x00474d20, Gods98::Container_Mesh_SetQuality);
+	// used by: Map3D_IsBlockMeshHidden
+	result &= hook_write_jmpret(0x00474da0, Gods98::Container_Mesh_IsGroupHidden);
+
+	result &= hook_write_jmpret(0x00474df0, Gods98::Container_Mesh_HideGroup);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x00474ec0, Gods98::Container_Mesh_HandleSeperateMeshGroups);
+
+	// used by: DynamicPM_LoadPromesh_AB
+	result &= hook_write_jmpret(0x00474f00, Gods98::Container_Mesh_GetGroup);
+
+	result &= hook_write_jmpret(0x00474f80, Gods98::Container_Mesh_GetVertices);
+	result &= hook_write_jmpret(0x00474ff0, Gods98::Container_Mesh_SetVertices);
+	result &= hook_write_jmpret(0x00475060, Gods98::Container_Mesh_SetTexture);
+
+	// used by: DynamicPM_LoadPromesh_AB, Map3D_SetPerspectiveCorrectionAll,
+	//           Roof_LowerBlockRoofVertices
+	result &= hook_write_jmpret(0x004750f0, Gods98::Container_Mesh_SetPerspectiveCorrection);
+	// used by: DynamicPM_LoadPromesh_AB
+	result &= hook_write_jmpret(0x00475150, Gods98::Container_Mesh_Scale);
+	// used by: Vehicle_LoadActivityFile
+	result &= hook_write_jmpret(0x004751d0, Gods98::Container_Mesh_GetBox);
+
+	// used by: LiveObject_SetCrystalPoweredColor, Map3D_Coords_SetEmissive,
+	//           SelectPlace_DrawTiles
+	result &= hook_write_jmpret(0x004752b0, Gods98::Container_Mesh_SetEmissive);
+
+	result &= hook_write_jmpret(0x004752e0, Gods98::Container_Mesh_SetColourAlpha);
+	result &= hook_write_jmpret(0x00475330, Gods98::Container_Transform);
+
+	// used by: DynamicPM_Sub2_FUN_0040bac0
+	result &= hook_write_jmpret(0x00475350, Gods98::Container_InverseTransform);
+
+	result &= hook_write_jmpret(0x00475370, Gods98::Container_SetColourAlpha);
+	result &= hook_write_jmpret(0x004753e0, Gods98::Container_MoveAnimation);
+	result &= hook_write_jmpret(0x00475400, Gods98::Container_SetAnimationTime);
+
+	// used by: Game_LiveObjectLargeCallback
+	result &= hook_write_jmpret(0x004755c0, Gods98::Container_ForceAnimationUpdate);
+
+	result &= hook_write_jmpret(0x00475650, Gods98::Container_GetAnimationTime);
+	result &= hook_write_jmpret(0x004756b0, Gods98::Container_GetAnimationFrames);
+	result &= hook_write_jmpret(0x004756f0, Gods98::Container_SetPosition);
+	result &= hook_write_jmpret(0x00475730, Gods98::Container_SetOrientation);
+	result &= hook_write_jmpret(0x00475780, Gods98::Container_GetPosition);
+	result &= hook_write_jmpret(0x004757c0, Gods98::Container_GetOrientation);
+	result &= hook_write_jmpret(0x00475840, Gods98::Container_AddRotation);
+
+	// used by: DynamicPM_Sub1_FUN_0040b930, LiveObject_TeleportUp
+	result &= hook_write_jmpret(0x00475870, Gods98::Container_AddScale);
+
+	result &= hook_write_jmpret(0x004758a0, Gods98::Container_AddTranslation);
+
+	// used by: Building_SetUpgradeActivity, Vehicle_SetUpgradeActivity
+	result &= hook_write_jmpret(0x004758d0, Gods98::Container_ClearTransform);
+	// used by: DynamicPM_Sub2_FUN_0040bac0, FlocksMatrix_FUN_0044ba60
+	result &= hook_write_jmpret(0x00475970, Gods98::Container_AddTransform);
+
+	// used by: Creature_GetThrowNull
+	result &= hook_write_jmpret(0x00475990, Gods98::Container_GetZXRatio);
+	result &= hook_write_jmpret(0x004759d0, Gods98::Container_SetParent);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x00475a60, Gods98::Container_GetParent);
+
+	// used by: Creature_GetTransCoef, Vehicle_GetTransCoef
+	result &= hook_write_jmpret(0x00475ab0, Gods98::Container_GetTransCoef);
+
+	// used by: Mesh_RenderCallback
+	result &= hook_write_jmpret(0x00475af0, Gods98::Container_SearchOwner);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x00475b40, Gods98::Container_Frame_GetContainer);
+	//result &= hook_write_jmpret(0x00475bc0, Gods98::Container_GetFrames);
+	//result &= hook_write_jmpret(0x00475bf0, Gods98::Container_ParseTypeString);
+	//result &= hook_write_jmpret(0x00475cb0, Gods98::Container_AddList);
+	//result &= hook_write_jmpret(0x00475d30, Gods98::Container_GetActivities);
+	//result &= hook_write_jmpret(0x00475ec0, Gods98::Container_SetTypeData);
+	//result &= hook_write_jmpret(0x00475f40, Gods98::Container_FreeTypeData);
+	//result &= hook_write_jmpret(0x00475fd0, Gods98::Container_AddActivity2);
+	//result &= hook_write_jmpret(0x004760d0, Gods98::Container_Frame_ReferenceDestroyCallback);
+	//result &= hook_write_jmpret(0x00476100, Gods98::Container_Frame_Find);
+
+	// used by: Sound3D_AttachSound
+	result &= hook_write_jmpret(0x00476230, Gods98::Container_Frame_SetAppData);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x004763a0, Gods98::Container_Frame_RemoveAppData);
+	//result &= hook_write_jmpret(0x004763e0, Gods98::Container_Frame_GetOwner);
+	//result &= hook_write_jmpret(0x00476400, Gods98::Container_Frame_GetAnimSetFileName);
+	//result &= hook_write_jmpret(0x00476420, Gods98::Container_Frame_GetAnimClone);
+	//result &= hook_write_jmpret(0x00476440, Gods98::Container_Frame_GetFrameCount);
+	//result &= hook_write_jmpret(0x00476460, Gods98::Container_Frame_GetCurrTime);
+	//result &= hook_write_jmpret(0x00476480, Gods98::Container_Frame_GetTransCo);
+	//result &= hook_write_jmpret(0x004764a0, Gods98::Container_Frame_GetSample);
+	//result &= hook_write_jmpret(0x004764c0, Gods98::Container_Frame_GetTrigger);
+	//result &= hook_write_jmpret(0x004764e0, Gods98::Container_Frame_SafeAddChild);
+	//result &= hook_write_jmpret(0x00476530, Gods98::Container_Frame_FormatName);
+	//result &= hook_write_jmpret(0x004765b0, Gods98::Container_Frame_FreeName);
+	//result &= hook_write_jmpret(0x004765d0, Gods98::Container_Frame_GetName);
+	//result &= hook_write_jmpret(0x004765f0, Gods98::Container_Frame_WalkTree);
+	//result &= hook_write_jmpret(0x004766d0, Gods98::Container_Frame_SearchCallback);
+	//result &= hook_write_jmpret(0x00476880, Gods98::Container_LoadAnimSet);
+	//result &= hook_write_jmpret(0x00476a30, Gods98::Container_GetAnimFileFrameCount);
+	//result &= hook_write_jmpret(0x00476aa0, Gods98::Container_FrameLoad);
+	//result &= hook_write_jmpret(0x00476b10, Gods98::Container_MeshLoad);
+	//result &= hook_write_jmpret(0x00476bc0, Gods98::Container_TextureLoadCallback);
+	//result &= hook_write_jmpret(0x00476eb0, Gods98::Container_YFlipTexture);
+	//result &= hook_write_jmpret(0x00476fa0, Gods98::Container_TextureSetSort);
+	//result &= hook_write_jmpret(0x00476fd0, Gods98::Container_TextureDestroyCallback);
+
 	return result;
-}*/
+}
 
 bool interop_hook_Gods98_Dxbug(void)
 {   bool result = true;
@@ -621,17 +862,76 @@ bool interop_hook_Gods98_Keys(void)
 	return_interop(result);
 }
 
-/*bool interop_hook_Gods98_Lws(void)
+bool interop_hook_Gods98_Lws(void)
 {   bool result = true;
+	// used by: Container_LoadAnimSet
+	result &= hook_write_jmpret(0x00486cb0, Gods98::Lws_Parse);
 
+	// used by: Lego_Initialise
+	result &= hook_write_jmpret(0x00487980, Gods98::Lws_Initialise);
+	// used by: Lego_Shutdown_Debug
+	result &= hook_write_jmpret(0x00487a20, Gods98::Lws_Shutdown);
+
+	// used by: Container_LoadAnimSet
+	result &= hook_write_jmpret(0x00487a90, Gods98::Lws_GetFrameCount);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x00487aa0, Gods98::Lws_SetupSoundTriggers);
+
+	// used by: Container_LoadAnimSet
+	result &= hook_write_jmpret(0x00487c50, Gods98::Lws_LoadMeshes);
+	// used by: AnimClone_Make
+	result &= hook_write_jmpret(0x00487cc0, Gods98::Lws_Clone);
+	// used by: Container_LoadAnimSet, AnimClone_SetTime
+	result &= hook_write_jmpret(0x00487e60, Gods98::Lws_SetTime);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x00487f70, Gods98::Lws_FindPrevKey);
+	//result &= hook_write_jmpret(0x00488010, Gods98::Lws_AnimateTextures);
+	//result &= hook_write_jmpret(0x004880a0, Gods98::Lws_HandleTrigger);
+	//result &= hook_write_jmpret(0x00488190, Gods98::Lws_KeyPassed);
+	//result &= hook_write_jmpret(0x00488280, Gods98::Lws_FindPrevDissolve);
+	//result &= hook_write_jmpret(0x00488330, Gods98::Lws_InterpolateDissolve);
+	//result &= hook_write_jmpret(0x00488390, Gods98::Lws_SetDissolveLevel);
+	//result &= hook_write_jmpret(0x00488430, Gods98::Lws_InterpolateKeys);
+	//result &= hook_write_jmpret(0x004885a0, Gods98::Lws_SetupNodeTransform);
+	//result &= hook_write_jmpret(0x00488880, Gods98::Lws_LoadMesh);
+	//result &= hook_write_jmpret(0x004889f0, Gods98::Lws_SearchMeshPathList);
+	//result &= hook_write_jmpret(0x00488a50, Gods98::Lws_AddMeshPathEntry);
+	//result &= hook_write_jmpret(0x00488a80, Gods98::Lws_CreateFrames);
+	//result &= hook_write_jmpret(0x00488bc0, Gods98::Lws_LoadNodes);
+	//result &= hook_write_jmpret(0x00488c60, Gods98::Lws_SetAbsoluteKey);
+
+	// used by: AnimClone_Remove
+	result &= hook_write_jmpret(0x00488c90, Gods98::Lws_Free);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x00488d30, Gods98::Lws_FreeNode);
 	return result;
-}*/
+}
 
-/*bool interop_hook_Gods98_Lwt(void)
+bool interop_hook_Gods98_Lwt(void)
 {   bool result = true;
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x0048c300, Gods98::lwExtractString);
+	//result &= hook_write_jmpret(0x0048c380, Gods98::stringAlloc);
+	//result &= hook_write_jmpret(0x0048c3e0, Gods98::texMapType);
+	//result &= hook_write_jmpret(0x0048c440, Gods98::surfFree);
+	//result &= hook_write_jmpret(0x0048c490, Gods98::LWD3D);
+	//result &= hook_write_jmpret(0x0048c4d0, Gods98::PNTSprc);
+	//result &= hook_write_jmpret(0x0048c620, Gods98::CRVSprc);
+	//result &= hook_write_jmpret(0x0048c6a0, Gods98::POLSprc);
+	//result &= hook_write_jmpret(0x0048c950, Gods98::SRFSprc);
+	//result &= hook_write_jmpret(0x0048cae0, Gods98::SURFprc);
+	//result &= hook_write_jmpret(0x0048d580, Gods98::LoadLWOB);
 
+	// used by: Mesh_Load
+	result &= hook_write_jmpret(0x0048da80, Gods98::LoadAppObj);
+
+	// used by: Mesh_Load   ... is memory properly being elsewhere freed!????
+	result &= hook_write_jmpret(0x0048db30, Gods98::FreeLWOB);
 	return result;
-}*/
+}
 
 bool interop_hook_Gods98_Main(void)
 {   bool result = true;
@@ -794,11 +1094,130 @@ bool interop_hook_Gods98_Memory(void)
 	return_interop(result);
 }
 
-/*bool interop_hook_Gods98_Mesh(void)
+bool interop_hook_Gods98_Mesh(void)
 {   bool result = true;
 
+	// used by: Lego_Initialise
+	result &= hook_write_jmpret(0x00480870, Gods98::Mesh_Initialise);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x00480910, Gods98::Mesh_CreateGlobalMaterial);
+	//result &= hook_write_jmpret(0x00480a40, Gods98::Mesh_SetMaterial);
+	//result &= hook_write_jmpret(0x00480a60, Gods98::Mesh_ObtainFromList);
+	//result &= hook_write_jmpret(0x00480a90, Gods98::Mesh_ReturnToList);
+	//result &= hook_write_jmpret(0x00480ab0, Gods98::Mesh_AddList);
+	
+	// used by: Container_MakeMesh2, DamageFont.c, Smoke.c, Weapons.c
+	result &= hook_write_jmpret(0x00480b30, Gods98::Mesh_CreateOnFrame);
+	// used by: Container_Clone, Lws_Clone, Lws_LoadMesh, AnimClone_CloneLwsMesh
+	result &= hook_write_jmpret(0x00480bc0, Gods98::Mesh_Clone);
+	// used by: Container_Load, Lws_LoadMesh
+	result &= hook_write_jmpret(0x00480ca0, Gods98::Mesh_Load);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x00480d80, Gods98::Mesh_ParseLWO);
+	//result &= hook_write_jmpret(0x00481ae0, Gods98::Mesh_GetSurfInfo);
+	//result &= hook_write_jmpret(0x00481d80, Gods98::Mesh_GetTextureSeqInfo);
+	//result &= hook_write_jmpret(0x00481e40, Gods98::Mesh_GetNextInSequence);
+	//result &= hook_write_jmpret(0x00481f10, Gods98::Mesh_UViewMesh);
+	//result &= hook_write_jmpret(0x00482260, Gods98::Mesh_GetTextureUVsWrap);
+
+	// used by: Lws_AnimateTextures
+	result &= hook_write_jmpret(0x00482300, Gods98::Mesh_SetTextureTime2);
+
+	// used by: Container_Remove2, Container_FreeTypeData, Lws_FreeNode,
+	//           Smoke.c, Weapons.c
+	result &= hook_write_jmpret(0x00482390, Gods98::Mesh_Remove);
+
+	// used by: Container_Mesh_GetGroup
+	result &= hook_write_jmpret(0x00482460, Gods98::Mesh_GetGroup);
+
+	// used by: Container_Mesh_GetGroupCount, Lws_SetDissolveLevel
+	result &= hook_write_jmpret(0x004824d0, Gods98::Mesh_GetGroupCount);
+
+	// used by: Container_Mesh_AddGroup, DamageFont.c, Smoke.c
+	//           Struct34_FUN_00470a20
+	result &= hook_write_jmpret(0x004824e0, Gods98::Mesh_AddGroup);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x00482610, Gods98::Mesh_AlterGroupRenderFlags);
+
+	// used by: Container_Mesh_Scale
+	result &= hook_write_jmpret(0x00482630, Gods98::Mesh_Scale);
+	// used by: Container_Mesh_SetVertices
+	result &= hook_write_jmpret(0x004826a0, Gods98::Mesh_SetVertices);
+	// used by: Container_Mesh_GetVertices
+	result &= hook_write_jmpret(0x00482730, Gods98::Mesh_GetVertices);
+
+	// used by: DamageFont.c, Smoke.c
+	result &= hook_write_jmpret(0x004827c0, Gods98::Mesh_SetVertices_PointNormalAt);
+	// used by: Struct34_FUN_00470a20
+	result &= hook_write_jmpret(0x004828e0, Gods98::Mesh_SetVertices_SameNormal);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x00482980, Gods98::Mesh_SetVertices_VNT);
+
+	// used by: Container_Mesh_IsGroupHidden
+	result &= hook_write_jmpret(0x00482a40, Gods98::Mesh_IsGroupHidden);
+
+	// used by: Container_Mesh_HideGroup, DamageFont.c, Smoke.c
+	result &= hook_write_jmpret(0x00482a60, Gods98::Mesh_HideGroup);
+	// used by: Smoke_Hide
+	result &= hook_write_jmpret(0x00482a90, Gods98::Mesh_Hide);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x00482ab0, Gods98::Mesh_RenderCallback);
+	result &= hook_write_jmpret(0x00482d80, Gods98::Mesh_SetMeshRenderDesc);
+	result &= hook_write_jmpret(0x00482e10, Gods98::Mesh_SetRenderDesc);
+	result &= hook_write_jmpret(0x00482f70, Gods98::Mesh_SetAlphaRender);
+	result &= hook_write_jmpret(0x00482fa0, Gods98::Mesh_AddToPostRenderList);
+	result &= hook_write_jmpret(0x00482ff0, Gods98::Mesh_ClearPostRenderList);
+
+	// use by: Viewport_Render
+	result &= hook_write_jmpret(0x00483020, Gods98::Mesh_PostRenderAll);
+
+	// used by: DamageFont.c, Smoke.c
+	result &= hook_write_jmpret(0x00483130, Gods98::Mesh_LoadTexture);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x004832f0, Gods98::Mesh_SearchTexturePathList);
+	//result &= hook_write_jmpret(0x00483340, Gods98::Mesh_AddTexturePathEntry);
+
+	// used by: Container_Mesh_SetTexture, DamageFont.c, Smoke.c
+	result &= hook_write_jmpret(0x00483380, Gods98::Mesh_SetGroupTexture);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x00483400, Gods98::Mesh_RemoveGroupTexture);
+	//result &= hook_write_jmpret(0x00483430, Gods98::Mesh_CreateGroupMaterial);
+	//result &= hook_write_jmpret(0x00483500, Gods98::Mesh_SetGroupMaterial);
+
+	// used by: Container_Mesh_SetEmissive, Container_Mesh_SetColourAlpha
+	//           DamageFont.c, Smoke.c, Struct34_FUN_00470a20
+	result &= hook_write_jmpret(0x00483530, Gods98::Mesh_SetGroupColour);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x004836c0, Gods98::Mesh_GetGroupMaterial);
+
+	// used by: Container_Mesh_SetColourAlpha, Lws_SetDissolveLevel
+	//           DamageFont.c, Smoke.c, Struct34_FUN_00470a20
+	result &= hook_write_jmpret(0x004836e0, Gods98::Mesh_SetGroupMaterialValues);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x00483800, Gods98::Mesh_SetIdentityMatrix);
+	//result &= hook_write_jmpret(0x00483840, Gods98::Mesh_SetCurrentViewport);
+	//result &= hook_write_jmpret(0x004838c0, Gods98::Mesh_SetCurrentGODSViewport);
+	//result &= hook_write_jmpret(0x00483950, Gods98::Mesh_SetTransform);
+	//result &= hook_write_jmpret(0x00483ad0, Gods98::Mesh_ChangeTextureStageState);
+	//result &= hook_write_jmpret(0x00483b70, Gods98::Mesh_StoreTextureAndMat);
+	//result &= hook_write_jmpret(0x00483c00, Gods98::Mesh_RestoreTextureAndMat);
+	//result &= hook_write_jmpret(0x00483c80, Gods98::Mesh_RenderMesh);
+	//result &= hook_write_jmpret(0x00483d30, Gods98::Mesh_CanRenderGroup);
+	//result &= hook_write_jmpret(0x00483d50, Gods98::Mesh_RenderGroup);
+	//result &= hook_write_jmpret(0x00483dc0, Gods98::Mesh_SetGroupRenderDesc);
+	//result &= hook_write_jmpret(0x00483e30, Gods98::Mesh_RenderTriangleList);
+
 	return result;
-}*/
+}
 
 bool interop_hook_Gods98_Movie(void)
 {   bool result = true;
@@ -1030,11 +1449,11 @@ bool interop_hook_all(void)
 
 	result &= interop_hook_Gods98_3DSound();
 	result &= interop_hook_Gods98_Animation();
-	/// TODO: result &= interop_hook_Gods98_AnimClone();
+	result &= interop_hook_Gods98_AnimClone();
 	result &= interop_hook_Gods98_Bmp();
 	//result &= interop_hook_Gods98_Compress(); // not ready yet, don't hook in for now, since RNC is a pain
 	result &= interop_hook_Gods98_Config();
-	/// TODO: result &= interop_hook_Gods98_Containers();
+	result &= interop_hook_Gods98_Containers();
 	result &= interop_hook_Gods98_DirectDraw();
 	result &= interop_hook_Gods98_Draw();
 	result &= interop_hook_Gods98_Dxbug(); // used by: Viewport_Render, Main_SetupDirect3D, Image_GetScreenshot, Input_InitKeysAndDI
@@ -1045,13 +1464,13 @@ bool interop_hook_all(void)
 	result &= interop_hook_Gods98_Images();
 	result &= interop_hook_Gods98_Input();
 	result &= interop_hook_Gods98_Keys();
-	/// TODO: result &= interop_hook_Gods98_Lws();
-	/// TODO: result &= interop_hook_Gods98_Lwt();
+	result &= interop_hook_Gods98_Lws();
+	result &= interop_hook_Gods98_Lwt();
 	result &= interop_hook_Gods98_Main();
 	result &= interop_hook_Gods98_Materials();
 	result &= interop_hook_Gods98_Maths();
 	result &= interop_hook_Gods98_Memory();
-	/// TODO: result &= interop_hook_Gods98_Mesh();
+	result &= interop_hook_Gods98_Mesh();
 	result &= interop_hook_Gods98_Movie();
 	//result &= interop_hook_Gods98_Registry(); // no need to hook, used by: WinMain, File_Initialise
 	result &= interop_hook_Gods98_Sound();

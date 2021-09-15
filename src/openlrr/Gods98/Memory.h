@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../common.h"
+#include "../legacy.h"
 
 
 namespace Gods98
@@ -98,30 +99,34 @@ extern Mem_Globs & memGlobs;
 
 #pragma region Functions
 
+#define Mem_StopAtID(i)			(i)
+#define Mem_StopAtAddress(i)	(i)
+#define Mem_DebugTrash(a,v,s)
+
+
 // void* std::malloc(size_t);
 // <LegoRR.exe @0048de90>
 __inline void * Mem_Alloc(uint32 size)
 {
-	return ((void* (__cdecl*)(uint32))0x0048de90)(size);
+	return legacy::malloc(size);
+	//return ((void* (__cdecl*)(uint32))0x0048de90)(size);
 }
 
 // void std::free(void*);
 // <LegoRR.exe @0048de40>
 __inline void Mem_Free(void * addr)
 {
-	((void(__cdecl*)(void*))0x0048de40)(addr);
+	return legacy::free(addr);
+	//((void(__cdecl*)(void*))0x0048de40)(addr);
 }
 
 // void* std::realloc(void*, size_t);
 // <LegoRR.exe @0048df40>
 __inline void * Mem_ReAlloc(void * addr, uint32 size)
 {
-	return ((void*(__cdecl*)(void*, uint32))0x0048df40)(addr, size);
+	return legacy::realloc(addr, size);
+	//return ((void*(__cdecl*)(void*, uint32))0x0048df40)(addr, size);
 }
-
-//#define std_Mem_Alloc Mem_Alloc
-//#define std_Mem_Free Mem_Free
-//#define std_Mem_ReAlloc Mem_ReAlloc
 
 
 // <LegoRR.exe @004896b0>

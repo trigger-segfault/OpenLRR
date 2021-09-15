@@ -1,6 +1,5 @@
 
 #define DIRECTINPUT_VERSION				0x800
-//#include "../DirectX/D3DRM/d3drmwin.h"
 #include <d3drmwin.h>
 #include <dinput.h>
 

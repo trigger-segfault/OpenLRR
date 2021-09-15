@@ -67,11 +67,39 @@ typedef sint32 (__cdecl* LwsPlaySample3DFunc)(void* frame, uint32 type, bool32 l
 
 #pragma region Enums
 
+/*
 #define LWS_FLAG_LOOPING			0x01
 
 #define LWSNODE_FLAG_NULL			0x01
 #define LWSNODE_FLAG_SOUNDTRIGGER	0x02
 #define LWSNODE_FLAG_FACECAMERA		0x04
+*/
+
+namespace _ns_LwsFlags {
+enum LwsFlags : uint8
+{
+	LWS_FLAG_NONE    = 0,
+
+	LWS_FLAG_LOOPING = 0x1,
+};
+DEFINE_ENUM_FLAG_OPERATORS(LwsFlags);
+static_assert(sizeof(LwsFlags) == 0x1, "");
+} using LwsFlags = _ns_LwsFlags::LwsFlags;
+
+
+namespace _ns_Lws_NodeFlags {
+enum Lws_NodeFlags : uint8
+{
+	LWSNODE_FLAG_NONE         = 0,
+
+	LWSNODE_FLAG_NULL         = 0x1,
+	LWSNODE_FLAG_SOUNDTRIGGER = 0x2,
+	LWSNODE_FLAG_FACECAMERA   = 0x4,
+};
+DEFINE_ENUM_FLAG_OPERATORS(Lws_NodeFlags);
+static_assert(sizeof(Lws_NodeFlags) == 0x1, "");
+} using Lws_NodeFlags = _ns_Lws_NodeFlags::Lws_NodeFlags;
+
 
 #pragma endregion
 
@@ -120,7 +148,7 @@ struct Lws_Node
 	/*20,4*/ uint16* dissolveFrame;
 	/*24,2*/ uint16 keyCount;
 	/*26,2*/ uint16 dissolveCount;
-	/*28,1*/ uint8 flags;
+	/*28,1*/ Lws_NodeFlags flags;
 	/*29,3*/ uint8 padding2[3];
 	/*2c,4*/ Lws_Node* childList;
 	/*30,4*/ Lws_Node* next;
@@ -137,7 +165,7 @@ struct Lws_Info
 	/*08,4*/ char* filePath;
 	/*0c,4*/ real32 lastTime;
 	/*10,4*/ real32 time;
-	/*14,4*/ IDirect3DRMFrame3* frameList;
+	/*14,4*/ IDirect3DRMFrame3** frameList;
 	/*18,4*/ Lws_SoundTrigger* triggerList;
 	/*1c,4*/ Lws_Node* masterNode;
 	/*20,4*/ Lws_Node* nodeList;
@@ -147,7 +175,7 @@ struct Lws_Info
 	/*2a,2*/ uint16 padding1;
 	/*2c,4*/ Lws_Info* clonedFrom;
 	/*30,4*/ uint32 referenceCount;
-	/*34,1*/ uint8 flags;
+	/*34,1*/ LwsFlags flags;
 	/*35,3*/ uint8 padding2[3];
 	/*38*/
 };// Lws_Info, * lpLws_Info;
@@ -202,7 +230,7 @@ extern Lws_Globs & lwsGlobs;
 Lws_Info* __cdecl Lws_Parse(const char* fname, bool32 looping);
 
 // <LegoRR.exe @00487980>
-Lws_Info* __cdecl Lws_Initialise(const char* sharedDir, LwsFindSFXIDFunc FindSFXID,
+void __cdecl Lws_Initialise(const char* sharedDir, LwsFindSFXIDFunc FindSFXID,
 								LwsPlaySample3DFunc PlaySample3D, LwsSoundEnabledFunc SoundEnabled);
 
 // <LegoRR.exe @00487a20>
@@ -216,6 +244,11 @@ void __cdecl Lws_SetupSoundTriggers(Lws_Info* scene);
 
 // <LegoRR.exe @00487c50>
 void __cdecl Lws_LoadMeshes(Lws_Info* scene, IDirect3DRMFrame3* parent);
+
+
+// <inlined>
+/*__inline*/ Mesh* __cdecl Lws_GetNodeMesh(Lws_Info* scene, Lws_Node* node);
+
 
 // <LegoRR.exe @00487cc0>
 Lws_Info* __cdecl Lws_Clone(Lws_Info* scene, IDirect3DRMFrame3* parent);
@@ -257,7 +290,7 @@ Mesh* __cdecl Lws_LoadMesh(const char* baseDir, const char* fname, IDirect3DRMFr
 Mesh* __cdecl Lws_SearchMeshPathList(Lws_MeshPath* list, uint32 count, const char* path);
 
 // <LegoRR.exe @00488a50>
-void __cdecl Lws_AddMeshPathEntry(Lws_MeshPath* list, uint32 count, const char* path, Mesh* mesh);
+void __cdecl Lws_AddMeshPathEntry(Lws_MeshPath* list, IN OUT uint32* count, const char* path, Mesh* mesh);
 
 // <LegoRR.exe @00488a80>
 void __cdecl Lws_CreateFrames(Lws_Info* scene, Lws_Node* node, IDirect3DRMFrame3* parent, IN OUT uint16* frameCount);

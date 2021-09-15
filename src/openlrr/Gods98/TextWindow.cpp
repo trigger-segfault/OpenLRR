@@ -272,7 +272,7 @@ bool32 __cdecl Gods98::TextWindow_Update(TextWindow* window, uint32 posFromEnd, 
 							int temp;
 							// reset the caretFlag
 							temp = Font_OutputChar(window->font, currWidth, currHeight, c, true);
-							Font_OutputChar(window->font, currWidth-4, currHeight, 203, true);
+							Font_OutputChar(window->font, currWidth-4, currHeight, (char)203, true);
 							currWidth+=temp;
 							caretFlag = false;
 						}
@@ -288,7 +288,7 @@ bool32 __cdecl Gods98::TextWindow_Update(TextWindow* window, uint32 posFromEnd, 
 					/// FIXME: == true BAAAAAAAD
 					if ((sub == window->lineList[loop+1]) && (caretFlag == true))
 					{
-						Font_OutputChar(window->font, currWidth-4, currHeight, 203, true);
+						Font_OutputChar(window->font, currWidth-4, currHeight, (char)203, true);
 						caretFlag = false;
 					}
 

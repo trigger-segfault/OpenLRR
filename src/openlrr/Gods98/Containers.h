@@ -100,19 +100,64 @@ typedef bool32 (__cdecl* ContainerWalkTreeCallback)(IDirect3DRMFrame3* frame, vo
 
 #pragma region Enums
 
-#define CONTAINER_FLAG_INITIALISED		0x00000001
-#define CONTAINER_FLAG_TRIGGERSAMPLE	0x00000002
-#define CONTAINER_FLAG_MESHSWAPPED		0x00000004
-#define CONTAINER_FLAG_HIDDEN			0x00000008
-#define CONTAINER_FLAG_DEADREFERENCE	0x00000010
-#define CONTAINER_FLAG_ANIMATIONSKIPPED	0x00000020
-#define CONTAINER_FLAG_TRIGGERENABLED	0x00000040
-#define CONTAINER_FLAG_HIDDEN2			0x00000080
+/*
+#define CONTAINER_FLAG_INITIALISED		0x00000001 // Globs
+#define CONTAINER_FLAG_TRIGGERSAMPLE	0x00000002 // Container
+#define CONTAINER_FLAG_MESHSWAPPED		0x00000004 // Container
+#define CONTAINER_FLAG_HIDDEN			0x00000008 // Container
+#define CONTAINER_FLAG_DEADREFERENCE	0x00000010 // Container
+#define CONTAINER_FLAG_ANIMATIONSKIPPED	0x00000020 // Container
+#define CONTAINER_FLAG_TRIGGERENABLED	0x00000040 // Globs
+#define CONTAINER_FLAG_HIDDEN2			0x00000080 // Container
 
 
-#define CONTAINER_TEXTURE_NOLOAD		0x00000001
+//#define CONTAINER_TEXTURE_NOLOAD		0x00000001 // TextureData
+*/
+
+namespace _ns_ContainerFlags {
+enum ContainerFlags : uint32
+{
+	CONTAINER_FLAG_NONE             = 0,
+
+	CONTAINER_FLAG_TRIGGERSAMPLE    = 0x2,
+	CONTAINER_FLAG_MESHSWAPPED      = 0x4,
+	CONTAINER_FLAG_HIDDEN           = 0x8,
+	CONTAINER_FLAG_DEADREFERENCE    = 0x10,
+	CONTAINER_FLAG_ANIMATIONSKIPPED = 0x20,
+
+	CONTAINER_FLAG_HIDDEN2          = 0x80,
+};
+DEFINE_ENUM_FLAG_OPERATORS(ContainerFlags);
+static_assert(sizeof(ContainerFlags) == 0x4, "");
+} using ContainerFlags = _ns_ContainerFlags::ContainerFlags;
 
 
+namespace _ns_Container_GlobFlags {
+enum Container_GlobFlags : uint32
+{
+	CONTAINER_FLAG_NONE           = 0,
+
+	CONTAINER_FLAG_INITIALISED    = 0x1,
+	CONTAINER_FLAG_TRIGGERENABLED = 0x40,
+};
+DEFINE_ENUM_FLAG_OPERATORS(Container_GlobFlags);
+static_assert(sizeof(Container_GlobFlags) == 0x4, "");
+} using Container_GlobFlags = _ns_Container_GlobFlags::Container_GlobFlags;
+
+
+namespace _ns_Container_TextureFlags {
+enum Container_TextureFlags : uint32
+{
+	CONTAINER_TEXTURE_NONE   = 0,
+
+	CONTAINER_TEXTURE_NOLOAD = 0x1,
+};
+DEFINE_ENUM_FLAG_OPERATORS(Container_TextureFlags);
+static_assert(sizeof(Container_TextureFlags) == 0x4, "");
+} using Container_TextureFlags = _ns_Container_TextureFlags::Container_TextureFlags;
+
+
+namespace _ns_Container_Type {
 enum Container_Type : sint32
 {
 	Container_Invalid      = -1,
@@ -129,9 +174,11 @@ enum Container_Type : sint32
 	Container_TypeCount    = 9,
 };
 static_assert(sizeof(Container_Type) == 0x4, "");
+} using Container_Type = _ns_Container_Type::Container_Type;
 
 
-enum Container_Light
+namespace _ns_Container_Light {
+enum Container_Light : uint32
 {
 	Container_Light_Ambient       = 0,
 	Container_Light_Point         = 1,
@@ -140,56 +187,68 @@ enum Container_Light
 	Container_Light_ParallelPoint = 4,
 };
 static_assert(sizeof(Container_Light) == 0x4, "");
+} using Container_Light = _ns_Container_Light::Container_Light;
 
 
-enum Container_Combine_Type
+namespace _ns_Container_Combine_Type {
+enum Container_Combine_Type : uint32
 {
-	Container_Combine_Replace,
-	Container_Combine_Before,
-	Container_Combine_After
+	Container_Combine_Replace = 0,
+	Container_Combine_Before  = 1,
+	Container_Combine_After   = 2,
 };
 static_assert(sizeof(Container_Combine_Type) == 0x4, "");
+} using Container_Combine_Type = _ns_Container_Combine_Type::Container_Combine_Type;
 
 
-enum Container_Quality
+namespace _ns_Container_Quality {
+// same as enum Main_Quality (just different symbol names)
+enum Container_Quality : uint32
 {
-	Container_Quality_Wireframe,
-	Container_Quality_UnlitFlat,
-	Container_Quality_Flat,
-	Container_Quality_Gouraud
+	Container_Quality_Wireframe = 0,
+	Container_Quality_UnlitFlat = 1,
+	Container_Quality_Flat      = 2,
+	Container_Quality_Gouraud   = 3,
 };
 static_assert(sizeof(Container_Quality) == 0x4, "");
+} using Container_Quality = _ns_Container_Quality::Container_Quality;
 
 
-enum Container_FogType
+namespace _ns_Container_FogType {
+enum Container_FogType : uint32
 {
-	Container_Fog_None=0,
-	Container_Fog_Exponential,
-	Container_Fog_ExponentialSquared,
-	Container_Fog_Linear,
+	Container_Fog_None               = 0,
+	Container_Fog_Exponential        = 1,
+	Container_Fog_ExponentialSquared = 2,
+	Container_Fog_Linear             = 3,
 };
 static_assert(sizeof(Container_FogType) == 0x4, "");
+} using Container_FogType = _ns_Container_FogType::Container_FogType;
 
 
-enum Container_MeshType
+namespace _ns_Container_MeshType {
+enum Container_MeshType : uint32
 {
-    Container_MeshType_Normal,
-    Container_MeshType_SeperateMeshes,
-    Container_MeshType_Immediate,
-    Container_MeshType_Transparent,
-    Container_MeshType_Additive,
-    Container_MeshType_Subtractive
+    Container_MeshType_Normal         = 0,
+    Container_MeshType_SeperateMeshes = 1,
+    Container_MeshType_Immediate      = 2,
+    Container_MeshType_Transparent    = 3,
+    Container_MeshType_Additive       = 4,
+    Container_MeshType_Subtractive    = 5,
 };
 static_assert(sizeof(Container_MeshType) == 0x4, "");
+} using Container_MeshType = _ns_Container_MeshType::Container_MeshType;
 
 
-enum Container_SearchMode
+namespace _ns_Container_SearchMode {
+enum Container_SearchMode : uint32
 {
-	Container_SearchMode_FirstMatch,
-	Container_SearchMode_MatchCount,
-	Container_SearchMode_NthMatch
+	Container_SearchMode_FirstMatch = 0,
+	Container_SearchMode_MatchCount = 1,
+	Container_SearchMode_NthMatch   = 2,
 };
 static_assert(sizeof(Container_SearchMode) == 0x4, "");
+} using Container_SearchMode = _ns_Container_SearchMode::Container_SearchMode;
 
 #pragma endregion
 
@@ -279,7 +338,7 @@ struct Container
 	/*08,4*/ IDirect3DRMFrame3* hiddenFrame;
 	/*0c,4*/ Container_TypeData* typeData;
 	/*10,4*/ Container_Type type;
-	/*14,4*/ uint32 flags;
+	/*14,4*/ ContainerFlags flags;
 	/*18,4*/ ContainerActivityCallback activityCallback;
 	/*1c,4*/ void* activityCallbackData;
 	/*20,4*/ void* userData;
@@ -307,11 +366,11 @@ struct Container_AppData
 	/*00,4*/ Container* ownerContainer;
 	//IDirect3DRMAnimationSet2* animSet;
 	/*04,4*/ char* animSetFileName;			// For the dodgy Animation Set clone stuff...
-	/*08,4*/ char* frameName;					// For freeing the allocation for SetName...
+	/*08,4*/ const char* frameName;					// For freeing the allocation for SetName...
 	/*0c,4*/ uint32 frameCount;
 	/*10,4*/ real32 currTime;
 	/*14,4*/ real32 transCo;						// Standard translation during amimset loop.
-	/*18,4*/ char* activitySample;				// Sample to play when activity is called...
+	/*18,4*/ const char* activitySample;				// Sample to play when activity is called...
 	/*1c,4*/ AnimClone* animClone;
 	/*20,4*/ uint32 trigger;
 	/*24,4*/ Sound3D_SoundFrameRecord* soundList;		// For 'Sound3D'
@@ -334,7 +393,7 @@ static_assert(sizeof(Container_MeshAppData) == 0x14, "");
 
 struct Container_SearchData
 {
-	/*00,4*/ char* string;
+	/*00,4*/ const char* string;
 	/*04,4*/ uint32 stringLen;
 	/*08,4*/ bool32 caseSensitive;
 	/*0c,4*/ IDirect3DRMFrame3* resultFrame;
@@ -357,8 +416,8 @@ static_assert(sizeof(Container_TextureRef) == 0x8, "");
 
 struct Container_TextureData
 {
-	/*0,4*/ char* xFileName;
-	/*4,4*/ uint32 flags;
+	/*0,4*/ const char* xFileName;
+	/*4,4*/ Container_TextureFlags flags;
 	/*8*/
 };// Container_TextureData, * lpContainer_TextureData;
 static_assert(sizeof(Container_TextureData) == 0x8, "");
@@ -395,8 +454,8 @@ struct Container_Globs
 	/*0000,50*/ Container* listSet[CONTAINER_MAXLISTS];
 	/*0050,4*/ Container* freeList;
 	/*0054,4*/ Container* rootContainer;
-	/*0058,24*/ const char* typeName[Container_TypeCount];
-	/*007c,24*/ const char* extensionName[Container_TypeCount];
+	/*0058,24*/ const char* typeName[Container_Type::Container_TypeCount];
+	/*007c,24*/ const char* extensionName[Container_Type::Container_TypeCount];
 	/*00a0,4*/ const char* gameName;
 	/*00a4,10*/ IDirect3DRMVisual* visualArray[CONTAINER_MAXVISUALS];
 	/*00b4,1f40*/ Container_TextureRef textureSet[CONTAINER_MAXTEXTURES];
@@ -408,7 +467,7 @@ struct Container_Globs
 	/*2008,4*/ char* sharedDir;
 	/*200c,4*/ uint32 fogColour;
 	/*2010,4*/ uint32 listCount;
-	/*2014,4*/ uint32 flags;
+	/*2014,4*/ Container_GlobFlags flags;
 	/*2018*/
 };
 static_assert(sizeof(Container_Globs) == 0x2018, "");
@@ -421,6 +480,9 @@ static_assert(sizeof(Container_Globs) == 0x2018, "");
 
 #pragma region Globals
 
+// <LegoRR.exe @00506400>
+extern char (& s_FormatPartName_name)[1024];
+
 // <LegoRR.exe @0076bd80>
 extern Container_Globs & containerGlobs;
 
@@ -432,14 +494,12 @@ extern Container_Globs & containerGlobs;
 
 #pragma region Functions
 
-//__inline IDirect3DRMFrame3* Debug_Scene() { return containerGlobs.rootContainer->masterFrame; }
+// <inlined>
+/*__inline*/ uint32 __cdecl Container_GetRGBAColour(real32 r, real32 g, real32 b, real32 a);
 
-/**********************************************************************************
- ******** Prototypes
- **********************************************************************************/
+// <inlined>
+/*__inline*/ uint32 __cdecl Container_GetRGBColour(real32 r, real32 g, real32 b);
 
-//extern ULONG __cdecl Container_GetRGBAColour(real32 r, real32 g, real32 b, real32 a);
-//extern ULONG __cdecl Container_GetRGBColour(real32 r, real32 g, real32 b);
 
 
 // <LegoRR.exe @004729d0>
@@ -475,6 +535,14 @@ void __cdecl Container_Remove2(Container* dead, bool32 kill);
 // <LegoRR.exe @00472f90>
 Container* __cdecl Container_Load(Container* parent, const char* filename, const char* typestr, bool32 looping);
 
+
+// <inlined>
+/*__inline*/ Container_Type __cdecl Container_GetType(const Container* cont);
+
+// <inlined>
+/*__inline*/ bool32 __cdecl Container_AddActivity(Container* cont, const char* fname, const char* actname, real32 transCo, uint32 trigger, const char* sample, AnimClone* animClone, bool32 lws, bool32 looping);
+
+
 // <LegoRR.exe @00473600>
 bool32 __cdecl Container_IsCurrentActivity(Container* cont, const char* actname);
 
@@ -494,10 +562,10 @@ bool32 __cdecl Container_Light_SetSpotRange(Container* spotlight, real32 dist);
 void __cdecl Container_Light_SetEnableContainer(Container* light, Container* enable);
 
 // <LegoRR.exe @004737b0>
-Container* __cdecl Container_MakeLight(Container* parent, uint32 type, real32 r, real32 g, real32 b);
+Container* __cdecl Container_MakeLight(Container* parent, Container_Light type, real32 r, real32 g, real32 b);
 
 // <LegoRR.exe @00473820>
-Container* __cdecl Container_MakeMesh2(Container* parent, uint32 type);
+Container* __cdecl Container_MakeMesh2(Container* parent, Container_MeshType type);
 
 // <LegoRR.exe @00473940>
 IDirect3DRMFrame3* __cdecl Container_GetMasterFrame(Container* cont);
@@ -517,6 +585,7 @@ bool32 __cdecl Container_IsHidden(Container* cont);
 // <LegoRR.exe @00473e80>
 Container* __cdecl Container_SearchTree(Container* root, const char* name, Container_SearchMode mode, IN OUT uint32* count);
 
+// Pass NULL as instance for any...
 // <LegoRR.exe @00473f20>
 const char* __cdecl Container_FormatPartName(Container* cont, const char* partname, OPTIONAL uint32* instance);
 
@@ -532,13 +601,14 @@ void __cdecl Container_EnableFog(bool32 on);
 // <LegoRR.exe @004740d0>
 void __cdecl Container_SetFogColour(real32 r, real32 g, real32 b);
 
+// D3DRMFOGMODE mode
 // <LegoRR.exe @00474130>
 void __cdecl Container_SetFogMode(uint32 mode);
 
 // <LegoRR.exe @00474160>
 void __cdecl Container_SetFogParams(real32 start, real32 end, real32 density);
 
-// <LegoRR.exe @00474160>
+// <LegoRR.exe @00474180>
 void __cdecl Container_SetPerspectiveCorrection(Container* cont, bool32 on);
 
 // <LegoRR.exe @00474230>
@@ -586,7 +656,7 @@ bool32 __cdecl Container_Mesh_GetGroup(Container* cont, uint32 groupID,
 								OUT uint32* vPerFace, OUT uint32* faceDataSize,
 								OUT uint32* faceData);
 
-// <LegoRR.exe @00474f00>
+// <LegoRR.exe @00474f80>
 uint32 __cdecl Container_Mesh_GetVertices(Container* cont, uint32 groupID, uint32 index,
 								uint32 count, OUT Vertex3F* retArray);
 
@@ -643,7 +713,7 @@ void __cdecl Container_SetPosition(Container* cont, OPTIONAL Container* ref,
 								real32 x, real32 y, real32 z);
 
 // <LegoRR.exe @00475730>
-void __cdecl Container_SetPosition(Container* cont, OPTIONAL Container* ref,
+void __cdecl Container_SetOrientation(Container* cont, OPTIONAL Container* ref,
 								real32 dirx, real32 diry, real32 dirz, real32 upx, real32 upy, real32 upz);
 
 // <LegoRR.exe @00475780>
@@ -653,22 +723,23 @@ void __cdecl Container_GetPosition(Container* cont, OPTIONAL Container* ref, OUT
 void __cdecl Container_GetOrientation(Container* cont, OPTIONAL Container* ref, OUT Vector3F* dir, OUT Vector3F* up);
 
 // <LegoRR.exe @00475840>
-void __cdecl Container_AddRotation(Container* cont, uint32 combine,
+void __cdecl Container_AddRotation(Container* cont, Container_Combine_Type combine,
 								real32 x, real32 y, real32 z, real32 angle);
 
 // <LegoRR.exe @00475870>
-void __cdecl Container_AddScale(Container* cont, uint32 combine,
+void __cdecl Container_AddScale(Container* cont, Container_Combine_Type combine,
 								real32 x, real32 y, real32 z);
 
 // <LegoRR.exe @004758a0>
-void __cdecl Container_AddTranslation(Container* cont, uint32 combine,
+void __cdecl Container_AddTranslation(Container* cont, Container_Combine_Type combine,
 								real32 x, real32 y, real32 z);
 
 // <LegoRR.exe @004758d0>
 void __cdecl Container_ClearTransform(Container* cont);
 
 // <LegoRR.exe @00475970>
-void __cdecl Container_AddTransform(Container* cont, uint32 combine, const Matrix4F mat);
+void __cdecl Container_AddTransform(Container* cont, Container_Combine_Type combine,
+								const Matrix4F mat);
 
 // <LegoRR.exe @00475990>
 real32 __cdecl Container_GetZXRatio(Container* cont);
@@ -702,7 +773,7 @@ void __cdecl Container_AddList(void);
 uint32 __cdecl Container_GetActivities(Container* cont, OUT IDirect3DRMFrame3** frameList, OUT AnimClone** acList, OUT char** nameList);
 
 // <LegoRR.exe @00475ec0>
-void __cdecl Container_SetTypeData(Container* cont, OPTIONAL const char* name, OPTIONAL IDirect3DRMLight* light, OPTIONAL IDirect3DRMMesh* mesh, OPTIONAL Mesh* transMesh);
+void __cdecl Container_SetTypeData(Container* cont, OPTIONAL char* name, OPTIONAL IDirect3DRMLight* light, OPTIONAL IDirect3DRMMesh* mesh, OPTIONAL Mesh* transMesh);
 
 // <LegoRR.exe @00475f40>
 void __cdecl Container_FreeTypeData(Container* cont);
@@ -726,7 +797,7 @@ void __cdecl Container_Frame_SetAppData(IDirect3DRMFrame3* frame, Container* own
 // <LegoRR.exe @004763a0>
 void __cdecl Container_Frame_RemoveAppData(IDirect3DRMFrame3* frame);
 
-// <LegoRR.exe @004763a0>
+// <LegoRR.exe @004763e0>
 Container* __cdecl Container_Frame_GetOwner(IDirect3DRMFrame3* frame);
 
 
@@ -774,7 +845,7 @@ bool32 __cdecl Container_Frame_SearchCallback(IDirect3DRMFrame3* frame, void* da
 AnimClone* __cdecl Container_LoadAnimSet(const char* fname, IDirect3DRMFrame3* frame, OUT uint32* frameCount, bool32 lws, bool32 looping);
 
 // <LegoRR.exe @00476a30>
-uint32 __cdecl Container_GetAnimFileFrameCount(const uint8* fileData);
+uint32 __cdecl Container_GetAnimFileFrameCount(const char* fileData);
 
 // <LegoRR.exe @00476aa0>
 bool32 __cdecl Container_FrameLoad(const char* fname, IDirect3DRMFrame3* frame);

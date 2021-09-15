@@ -3,6 +3,7 @@
 #include <dinput.h>
 #include <process.h>
 
+#include "Files.h"
 #include "Errors.h"
 #include "Config.h"
 

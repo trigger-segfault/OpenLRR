@@ -1,6 +1,5 @@
 
 
-//#include "../DirectX/D3DRM/d3drm.h"
 #include <d3drm.h>
 
 #include "Errors.h"

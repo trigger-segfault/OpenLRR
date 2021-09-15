@@ -2,9 +2,9 @@
 //
 /// STATUS: [COMPLETE]
 
-#include "../Gods98/DirectDraw.h"
-#include "../Gods98/Files.h"
-#include "../Gods98/Utils.h"
+#include "DirectDraw.h"
+#include "Files.h"
+#include "Utils.h"
 #include "Movie.hpp"
 #include "Movie.h"
 

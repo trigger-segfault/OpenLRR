@@ -26,6 +26,8 @@ namespace Gods98 {
 	struct AnimClone;
 }
 #define Container_Frame_SetAppData ((void(__cdecl*)(IDirect3DRMFrame3*, Container*, AnimClone*, const char*, uint32*, const char*, real32*, real32*, const char*, void*, uint32*))0x00476230)
+
+
 /*// <LegoRR.exe @00476230>
 void __cdecl Container_Frame_SetAppData(IDirect3DRMFrame3* frame, Container* owner,
 	OPTIONAL AnimClone* animClone, OPTIONAL const char* asfname, OPTIONAL uint32* frameCount,

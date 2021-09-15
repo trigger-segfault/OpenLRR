@@ -1,11 +1,23 @@
 #pragma once
 
 #include "../common.h"
-#include "Keys.h"
+//#include "../Types/geometry.h"
+//#include "../Types/colour.h"
+//#include "Keys.h"
 
 
 namespace Gods98
 {; // !<---
+
+/**********************************************************************************
+ ******** Forward Declarations
+ **********************************************************************************/
+
+#pragma region Forward Declarations
+
+enum Keys : uint8;
+
+#pragma endregion
 
 /**********************************************************************************
  ******** Constants

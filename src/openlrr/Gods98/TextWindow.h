@@ -2,12 +2,21 @@
 
 #include "../common.h"
 #include "../Types/geometry.h"
-#include "Fonts.h"
-#include "Maths.h"
+//#include "Fonts.h"
 
 
 namespace Gods98
 {; // !<---
+
+/**********************************************************************************
+ ******** Forward Declarations
+ **********************************************************************************/
+
+#pragma region Forward Declarations
+
+struct Font;
+
+#pragma endregion
 
 /**********************************************************************************
  ******** Constants

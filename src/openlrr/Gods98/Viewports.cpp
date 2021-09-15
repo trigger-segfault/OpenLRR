@@ -1,5 +1,4 @@
 
-//#include "../DirectX/D3DRM/d3drm.h"
 #include <d3drm.h>
 
 #include "Errors.h"
@@ -11,7 +10,7 @@
 #include "Maths.h"
 #include "DirectDraw.h"
 #include "Dxbug.h"
-//Mesh_PostRenderAll
+
 
 /**********************************************************************************
  ******** Forward Global Namespace Declarations
@@ -25,7 +24,7 @@
 /*namespace Gods98 {
 	struct Viewport;
 }*/
-#define Mesh_PostRenderAll ((void(__cdecl*)(Viewport*))0x00483020)
+//#define Mesh_PostRenderAll ((void(__cdecl*)(Viewport*))0x00483020)
 // <LegoRR.exe @00483020>
 
 #pragma endregion

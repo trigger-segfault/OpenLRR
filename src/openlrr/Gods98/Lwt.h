@@ -1,11 +1,20 @@
 #pragma once
 
 #include "../common.h"
-#include "Files.h"
 
 
 namespace Gods98
 {; // !<---
+
+/**********************************************************************************
+ ******** Forward Declarations
+ **********************************************************************************/
+
+#pragma region Forward Declarations
+
+struct File;
+
+#pragma endregion
 
 /**********************************************************************************
  ******** Constants
@@ -239,7 +248,7 @@ static_assert(sizeof(APPOBJ) == 0x20, "");
 #pragma region Functions
 
 // <LegoRR.exe @0048c300>
-char* __cdecl lwExtractString(const char* str1, const char* str2, OPTIONAL OUT uint32* pos, OPTIONAL OUT uint32* len);
+const char* __cdecl lwExtractString(const char* str1, const char* str2, OPTIONAL OUT uint32* pos, OPTIONAL OUT uint32* len);
 
 // "YASD" Yet another `char* ::_strdup(const char*)`
 // <LegoRR.exe @0048c380>
@@ -274,7 +283,7 @@ bool32 __cdecl SURFprc(File* file, LWSIZE* sizeData, LWSURFACE** surf, sint32 cs
 
 // if (dflag) ... Error_Debug(...);
 // <LegoRR.exe @0048d580>
-bool32 __cdecl LoadLWOB(const char* fn, LWSIZE* size, real32** verts, LWPOLY** polys, LWSURFACE** surf, File** fileUV, bool32 dflag);
+bool32 __cdecl LoadLWOB(const char* fn, LWSIZE* sd, real32** verts, LWPOLY** polys, LWSURFACE** surfs, File** fileUV, bool32 dflag);
 
 // if (dflag) ... Error_Debug(...);
 // <LegoRR.exe @0048da80>

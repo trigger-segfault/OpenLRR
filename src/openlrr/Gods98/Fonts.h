@@ -3,7 +3,6 @@
 #include "../common.h"
 #include "../Types/geometry.h"
 //#include "Images.h"
-//#include "Maths.h"
 
 
 namespace Gods98
