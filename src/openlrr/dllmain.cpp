@@ -26,6 +26,17 @@ FILE* MakeConsole()
     return pConsoleFile;
 }
 
+DWORD WINAPI MainThread(LPVOID param) 
+{
+	g_hDllInstance = (HMODULE)param;
+	if (!isAttached) {
+		isAttached = true;
+	}
+    interop_hook_Gods98_WinMain();
+
+    return 0;
+}
+
 BOOL APIENTRY DllMain(HMODULE hModule,
                       DWORD   fdwReason,
                       LPVOID  lpReserved)
@@ -33,23 +44,25 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     switch (fdwReason)
     {
     case DLL_PROCESS_ATTACH:
+        DisableThreadLibraryCalls(hModule);
+        CreateThread(0, 0, MainThread, hModule, 0, 0);
         //::CreateThread(NULL, )
         /*if (::ResumeThread(ProcessInfo.hThread) == (DWORD)-1) {
             _tprintf(_T("ResumeThread failed\n"));
             return_error(-1);
         }*/
-        interop_hook_Gods98_WinMain();
+        //interop_hook_Gods98_WinMain();
         //MakeConsole();
         //std::printf("[0x%08x] DLL_PROCESS_ATTACH\n", ::timeGetTime());
-        g_hDllInstance = hModule;
-        if (!isAttached) {
+        //g_hDllInstance = hModule;
+        /*if (!isAttached) {
             //std::printf("[0x%08x] DLL_PROCESS_ATTACH starting...\n", ::timeGetTime());
 
             //interop_hook_WinMain_call();
             //interop_hook_all();
 
             isAttached = true;
-        }
+        }*/
         break;
     //case DLL_THREAD_ATTACH:
         //std::printf("[0x%08x] DLL_THREAD_ATTACH\n", ::timeGetTime());
