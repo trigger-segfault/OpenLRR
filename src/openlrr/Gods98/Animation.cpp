@@ -1,13 +1,14 @@
 // Animation.cpp : Definitions file for the C++ G98CAnimation implementation and C wrapper.
 //
-/// STATUS: [COMPLETE]
 
-#include "Animation.hpp"
-#include "Animation.h"
+#include "../Legacy/legacy_timeapi.h"
+#include "../Legacy/legacy_vfw.h"
 
 #include "DirectDraw.h"
 #include "Files.h"
 
+#include "Animation.hpp"
+#include "Animation.h"
 
 
 /**********************************************************************************
@@ -261,17 +262,17 @@ Gods98::G98CAnimation::G98CAnimation(const char* fName)
 	//if (!globals::g_AVIPlayer_IsDisabled) {
 	//	// fccType "sdiv" (as DWORD = 0x73646976) mmioFOURCC('v','i','d','s')
 	//	DWORD fccType = streamtypeVIDEO /*mmioFOURCC('v','i','d','s') "sdiv"*/;
-	//	if (::AVIStreamOpenFromFileA(&this->aviStream, datadirFilename, fccType, 0, 0, nullptr) != 0)
+	//	if (legacy::AVIStreamOpenFromFileA(&this->aviStream, datadirFilename, fccType, 0, 0, nullptr) != 0)
 	//		return; // failure
 	//	
-	//	this->aviFrame = ::AVIStreamGetFrameOpen(this->aviStream, (BITMAPINFOHEADER*)AVIGETFRAMEF_BESTDISPLAYFMT /*0x1*/);
+	//	this->aviFrame = legacy::AVIStreamGetFrameOpen(this->aviStream, (BITMAPINFOHEADER*)AVIGETFRAMEF_BESTDISPLAYFMT /*0x1*/);
 	//	if (this->aviFrame == nullptr)
 	//		return; // failure
 	//
-	//	if (::AVIStreamInfoA(this->aviStream, &this->streamInfo, sizeof(this->streamInfo) /*0x8c*/) != 0)
+	//	if (legacy::AVIStreamInfoA(this->aviStream, &this->streamInfo, sizeof(this->streamInfo) /*0x8c*/) != 0)
 	//		return; // failure
 	//
-	//	DWORD dwTime = ::timeGetTime();
+	//	DWORD dwTime = legacy::timeGetTime();
 	//	this->isOpen = true;
 	//	this->position = 0;
 	//	this->rect.top    = this->streamInfo.rcFrame.top;
@@ -297,13 +298,13 @@ Gods98::G98CAnimation::G98CAnimation(const char* fName)
 	this->m_movieRect.right  = 0;
 
 	if (!animationGlobs.g98NoAvis) {
-		if (::AVIStreamOpenFromFileA(&m_aviStream, name, streamtypeVIDEO, 0, OF_READ, nullptr) == S_OK) {
+		if (legacy::AVIStreamOpenFromFileA(&m_aviStream, name, streamtypeVIDEO, 0, OF_READ, nullptr) == S_OK) {
 			// Load the video stream
-			if (this->m_decompressFn = ::AVIStreamGetFrameOpen(m_aviStream,
+			if (this->m_decompressFn = legacy::AVIStreamGetFrameOpen(m_aviStream,
 				(LPBITMAPINFOHEADER)AVIGETFRAMEF_BESTDISPLAYFMT)) {
-				if (::AVIStreamInfoA(m_aviStream, &m_aviStreamInfo, sizeof(AVISTREAMINFOA)) == S_OK) {
+				if (legacy::AVIStreamInfoA(m_aviStream, &m_aviStreamInfo, sizeof(AVISTREAMINFOA)) == S_OK) {
 					// Get info - length, rectangle etc
-					this->m_startTime = ((real32)::timeGetTime()) / 1000.0f; // milliseconds (uint) -> seconds (float)
+					this->m_startTime = ((real32)legacy::timeGetTime()) / 1000.0f; // milliseconds (uint) -> seconds (float)
 					this->m_init = true;
 					this->m_currFrame = 0;
 
@@ -338,7 +339,7 @@ Gods98::G98CAnimation::~G98CAnimation()
 	//this->vftable = &G98CAnimation___vftable /*<LegoRR.exe @0049f9b0>*/;
 
 	if (!animationGlobs.g98NoAvis) {
-		if (m_aviStream) ::AVIStreamRelease(m_aviStream);
+		if (m_aviStream) legacy::AVIStreamRelease(m_aviStream);
 		if (m_movieSurf) delete m_movieSurf;
 	}
 }
@@ -438,7 +439,7 @@ bool Gods98::G98CAnimation::Update()
 
 	/// Get the pointer to the bitmap info
     BITMAPINFO* pbmi;
-    if (pbmi = (BITMAPINFO*)::AVIStreamGetFrame(this->m_decompressFn, this->m_currFrame)) {
+    if (pbmi = (BITMAPINFO*)legacy::AVIStreamGetFrame(this->m_decompressFn, this->m_currFrame)) {
 
 		// Copy the frame to the surface
 		this->BMICopy(pbmi);
@@ -446,7 +447,7 @@ bool Gods98::G98CAnimation::Update()
 //		m_dest->Copy(0, m_movieSurf, &r);
 
 		// Update to the next frame - do it here so that we can check the frame number to see if we have overrun
-		this->m_currTime		   = ((real32)::timeGetTime()) / 1000.0f; // milliseconds (uint) -> seconds (float)
+		this->m_currTime		   = ((real32)legacy::timeGetTime()) / 1000.0f; // milliseconds (uint) -> seconds (float)
 		real32 fElapsedTime = this->m_currTime - this->m_startTime;
 		this->m_aviTimeScale	   = ((real32)this->m_aviStreamInfo.dwRate) / this->m_aviStreamInfo.dwScale;
 		this->m_currFrame		   = (uint32) (fElapsedTime * this->m_aviTimeScale);
@@ -471,7 +472,7 @@ void Gods98::G98CAnimation::SetTime(uint32 time)
 
 	// Adjust the curr frame and start time so that the following frames time correctly.
 	this->m_currFrame = time;
-	this->m_currTime = (real32)::timeGetTime() / 1000.0f; // milliseconds (uint) -> seconds (float)
+	this->m_currTime = (real32)legacy::timeGetTime() / 1000.0f; // milliseconds (uint) -> seconds (float)
 	this->m_startTime = this->m_currTime - ((real32)this->m_currFrame / this->m_aviTimeScale);
 }
 
@@ -498,7 +499,7 @@ void __cdecl Gods98::Animation_Initialise(IDirectDraw4* directDraw)
 	log_firstcall();
 
 	animationGlobs.ddraw = directDraw;
-	::AVIFileInit();
+	legacy::AVIFileInit();
 }
 
 
@@ -507,7 +508,7 @@ void __cdecl Gods98::Animation_ShutDown(void)
 {
 	log_firstcall();
 
-	::AVIFileExit();
+	::AVIFileExit(); // no legacy for this
 }
 
 

@@ -1,3 +1,11 @@
+// Config.h : 
+//
+/// APIS: -
+/// DEPENDENCIES: Files, Keys, Maths, Utils, (Errors, Memory)
+/// DEPENDENTS: Containers, Advisor, Creature, Bubble, Building, Dependencies, Effects,
+///             Encyclopedia, FrontEnd, HelpWindow, Lego, LightEffects, Objective,
+///             ObjInfo, Panel, Priorities, PTL, Rewards, Stats, Upgrade, Vehicle, Weapons
+
 #pragma once
 
 #include "../common.h"

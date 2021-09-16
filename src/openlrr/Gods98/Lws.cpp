@@ -1,15 +1,20 @@
+// Lws.cpp : 
+//
 
 #include <d3drmwin.h>
 
-#include "Memory.h"
+#include "../Legacy/legacy_d3drm.h"
+
+#include "3DSound.h"
 #include "Errors.h"
 #include "Files.h"
-#include "Utils.h"
 #include "Main.h"
 #include "Maths.h"
+#include "Memory.h"
 #include "Mesh.h"
+#include "Utils.h"
+
 #include "Lws.h"
-#include "3DSound.h"
 
 
 /**********************************************************************************
@@ -36,9 +41,9 @@ Gods98::Lws_Info* __cdecl Gods98::Lws_Parse(const char* fname, bool32 looping)
 	Lws_Info* scene = nullptr;
 	char path[FILE_MAXPATH];
 
-#ifdef _DEBUG
+#ifdef _DEBUG_2
 	Error_Fatal(!lwsGlobs.initialised, "Lws_Initialise() has not been called");
-#endif _DEBUG
+#endif _DEBUG_2
 
 	std::sprintf(path, "%s.%s", fname, LWS_FILESUFFIX);
 
@@ -296,9 +301,9 @@ void __cdecl Gods98::Lws_Initialise(const char* sharedDir, LwsFindSFXIDFunc Find
 //	lwsGlobs.GetSoundFunc = GetSound;
 	lwsGlobs.SoundEnabledFunc = SoundEnabled;
 
-#ifdef _DEBUG
+#ifdef _DEBUG_2
 	lwsGlobs.initialised = true;
-#endif // _DEBUG
+#endif // _DEBUG_2
 }
 
 // <LegoRR.exe @00487a20>
@@ -393,7 +398,7 @@ void __cdecl Gods98::Lws_LoadMeshes(Lws_Info* scene, IDirect3DRMFrame3* parent)
 /*__inline*/ Gods98::Mesh* __cdecl Gods98::Lws_GetNodeMesh(Lws_Info* scene, Lws_Node* node) {
 
 	IUnknown* iunknown;
-	IDirect3DRMUserVisual* uv;
+	IDirect3DRMUserVisual* uv = nullptr; // dummy init
 	Mesh* mesh;
 	DWORD count;
 	HRESULT r;

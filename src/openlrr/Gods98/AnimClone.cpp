@@ -1,14 +1,18 @@
+// AnimClone.cpp : 
+//
 
 #include <d3drm.h>
 
-#include "Memory.h"
-#include "Maths.h"
-#include "Main.h"
-#include "Mesh.h"
-#include "Lws.h"
-#include "Containers.h"
-#include "AnimClone.h"
+#include "../Legacy/legacy_d3drm.h"
+
+#include "Containers.h"    // debug macro: Container_NoteCreation(o)
 #include "Errors.h"
+#include "Lws.h"
+#include "Main.h"          // accessor: lpD3DRM()
+#include "Memory.h"
+#include "Mesh.h"
+
+#include "AnimClone.h"
 
 
 /**********************************************************************************

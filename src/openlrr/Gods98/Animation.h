@@ -1,17 +1,19 @@
 // Animation.h : Header file for the C G98CAnimation wrapper around the C++ implementation.
 //
-/// STATUS: [COMPLETE]
 /// PURPOSE: Animation is only by the Credits looping starfield background AVI.
 ///          This uses the AVIFile API, and thus is likely restricted to this file format.
 ///          This is likely used over the VideoPlayer class, since it offers more flexibility
 ///          with rendering, which allows drawing the credits text over-top and manually handling
 ///          video looping.
 ///
-/// NAMESPACE: lego::video
-/// INITIALIZE: Call `Animation_Initialise(IDirectDraw4*)` once on startup. `IDirectDraw4*` is not owned by this module.
+/// INITIALISE: Call `Animation_Initialise(IDirectDraw4*)` once on startup. `IDirectDraw4*` is not owned by this module.
 ///             (no cleanup)
 /// GLOBALS: private
-/// FILEIO: Looks for a loose file ONLY in the local Data directory.
+/// FILEIO: Data[std]
+/// APIS: IDirectDraw4, IDirectDrawClipper(unused), IDirectDrawPalette, IDirectDrawSurface[14]
+///       IAVIStream, IGetFrame
+/// DEPENDENCIES: DirectDraw, Files
+/// DEPENDENTS: Credits
 
 #pragma once
 

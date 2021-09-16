@@ -1,15 +1,20 @@
+// Dxbug.cpp : 
+//
 
-#define DIRECTINPUT_VERSION				0x800
+//#define DIRECTINPUT_VERSION				0x0800
 #include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <process.h>
 #include <d3drmwin.h>
-#include <dinput.h>
+//#include <dinput.h>
 #include <ddraw.h>
 
+#include "../Legacy/legacy_dinput.h"
+
 #include "Errors.h"
+
 #include "Dxbug.h"
 
 

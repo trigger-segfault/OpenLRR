@@ -1,5 +1,6 @@
+// Compress.cpp : 
+//
 
-//#include "Errors.h"
 #include "Compress.h"
 
 

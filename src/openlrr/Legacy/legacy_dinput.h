@@ -1,15 +1,17 @@
-// Compress.h : 
-//
-/// APIS: -
-/// DEPENDENCIES: -
-/// DEPENDENTS: Wad
-
 #pragma once
 
 #include "../common.h"
 
+#ifndef DIRECTINPUT_VERSION
+#define DIRECTINPUT_VERSION 0x0500
+#elif DIRECTINPUT_VERSION != 0x0500
+#undef DIRECTINPUT_VERSION
+#define DIRECTINPUT_VERSION 0x0500
+#endif
+#include <dinput.h>
 
-namespace Gods98
+
+namespace legacy
 {; // !<---
 
 /**********************************************************************************
@@ -18,18 +20,7 @@ namespace Gods98
 
 #pragma region Constants
 
-#define COMPRESSION_UNPACK_BUFFER_EXTEND 20000
-
-#pragma endregion
-
-/**********************************************************************************
- ******** Enumerations
- **********************************************************************************/
-
-#pragma region Enums
-
-#define RNC_COMPRESS_BEST 1
-#define RNC_COMPRESS_FAST 2
+#define LEGACY_DIRECTINPUT_VERSION 0x0500
 
 #pragma endregion
 
@@ -39,8 +30,11 @@ namespace Gods98
 
 #pragma region Functions
 
-// <LegoRR.exe @0049ca80>
-uint32 __cdecl RNC_Uncompress(IN void* bufferIn, OUT void** bufferOut);
+// <LegoRR.exe @0049ca68>
+__inline HRESULT DirectInputCreateA(HINSTANCE hinst, DWORD dwVersion, LPDIRECTINPUTA* ppDI, LPUNKNOWN punkOuter)
+{
+	return ((HRESULT(__stdcall*)(HINSTANCE, DWORD, LPDIRECTINPUTA*, LPUNKNOWN))0x0049ca68)(hinst, dwVersion, ppDI, punkOuter);
+}
 
 #pragma endregion
 

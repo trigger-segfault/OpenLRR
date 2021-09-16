@@ -1,3 +1,9 @@
+// Wad.h : 
+//
+/// APIS: -
+/// DEPENDENCIES: Compress, (Memory)
+/// DEPENDENTS: Files
+
 #pragma once
 
 #include "../common.h"

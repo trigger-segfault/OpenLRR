@@ -1,14 +1,17 @@
+// Images.cpp : 
+//
 
 #include <ddraw.h>
 #include <d3drm.h>
 
-#include "Images.h"
-#include "DirectDraw.h"
 #include "Bmp.h"
-#include "Memory.h"
-#include "Files.h"
-#include "Errors.h"
+#include "DirectDraw.h"
 #include "Dxbug.h"
+#include "Errors.h"
+#include "Files.h"
+#include "Memory.h"
+
+#include "Images.h"
 
 
 /**********************************************************************************

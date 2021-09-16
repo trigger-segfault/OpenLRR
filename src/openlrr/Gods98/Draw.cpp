@@ -1,29 +1,14 @@
-
+// Draw.cpp : 
+//
 
 #include <ddraw.h>
 #include <d3drm.h>			// For Viewports.h
 
-#include "Memory.h"
 #include "DirectDraw.h"
-#include "Draw.h"
 #include "Errors.h"
 #include "Maths.h"
-//#include "Mesh.h"
-#include "Main.h"
-//#include "Viewports.h"
 
-
-/**********************************************************************************
- ******** Forward Global Namespace Declarations
- **********************************************************************************/
-
-#pragma region Forward Declarations
-
-/// TODO: Remove me once Maths module is finished
-//#define Maths_Cos(a)						(real32)std::cos((double)(a))
-//#define Maths_Sin(a)						(real32)std::sin((double)(a))
-
-#pragma endregion
+#include "Draw.h"
 
 
 /**********************************************************************************

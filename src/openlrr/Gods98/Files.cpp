@@ -1,10 +1,13 @@
+// Files.cpp : 
+//
 
-#include "Registry.h"
+#include "Errors.h"
 #include "Memory.h"
+#include "Registry.h"
 #include "Utils.h"
 #include "Wad.h"
+
 #include "Files.h"
-#include "Errors.h"
 
 
 /**********************************************************************************

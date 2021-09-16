@@ -1,11 +1,14 @@
+// Config.cpp : 
+//
 
 #include "Files.h"
-#include "Memory.h"
 #include "Errors.h"
-#include "Utils.h"
-#include "Config.h"
 #include "Keys.h"
-#include "Maths.h"
+#include "Maths.h"         // defines
+#include "Memory.h"
+#include "Utils.h"
+
+#include "Config.h"
 
 
 /**********************************************************************************
@@ -383,9 +386,9 @@ Gods98::Config* __cdecl Gods98::Config_Create(Config* prev)
 		newConfig->linkPrev = nullptr;
 	}
 
-//#ifdef _DEBUG
+//#ifdef _DEBUG_2
 //	newConfig->accessed = false;
-//#endif // _DEBUG
+//#endif // _DEBUG_2
 
 	return newConfig;
 }
@@ -398,9 +401,9 @@ void __cdecl Gods98::Config_Remove(Config* dead)
 	Config_CheckInit();
 	Error_Fatal(!dead, "NULL passed to Config_Remove()");
 
-//#ifdef _DEBUG
+//#ifdef _DEBUG_2
 //	if (configGlobs.debugLastFind == dead) configGlobs.debugLastFind = NULL;
-//#endif // _DEBUG
+//#endif // _DEBUG_2
 
 	dead->nextFree = configGlobs.freeList;
 	configGlobs.freeList = dead;
@@ -477,7 +480,7 @@ const Gods98::Config* __cdecl Gods98::Config_FindItem(const Config* conf, const 
 
 	Mem_Free(tempstring);
 
-//#ifdef _DEBUG
+//#ifdef _DEBUG_2
 //	if (foundConf) {
 //		configGlobs.debugLastFind = foundConf;
 //		foundConf->accessed = true;
@@ -485,7 +488,7 @@ const Gods98::Config* __cdecl Gods98::Config_FindItem(const Config* conf, const 
 //	else {
 //		foundConf = nullptr;
 //	}
-//#endif // _DEBUG
+//#endif // _DEBUG_2
 
 	return foundConf;
 }

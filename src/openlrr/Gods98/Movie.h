@@ -1,12 +1,13 @@
 // Movie.h : Header file for the C G98CMovie wrapper around the C++ implementation.
 //
-/// STATUS: [COMPLETE]
 /// PURPOSE: Movie is used by all types of AVI video playback EXCEPT the credits starfield loop
 ///          This uses the IAMMultiMediaStream system, so this is why other video types are supported.
 ///
-/// NAMESPACE: Gods98
-/// INITIALIZE: (none)
-/// FILEIO: Looks for a loose file in either the local Data directory or CDROM directory.
+/// FILEIO: Data[std,cd]
+/// APIS: IDirectDraw[24], IDirectDrawSurface[134], IDirectDrawStreamSample,
+///       IDirectDrawMediaStream, IMediaStream, IAMMultiMediaStream
+/// DEPENDENCIES: DirectDraw, Files
+/// DEPENDENTS: FrontEnd, Lego, Rewards
 
 #pragma once
 

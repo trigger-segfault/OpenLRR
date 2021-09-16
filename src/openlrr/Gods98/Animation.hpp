@@ -24,7 +24,7 @@ class G98CSurface // no CObject inheritance
 {
 public:
 	// /*00,4*/ vftable;
-	/*04,4*/ IDirectDrawClipper* m_clipper;
+	/*04,4*/ IDirectDrawClipper* m_clipper; // (unused)
 	/*08,1*/ bool m_surfaceLocked;
 	/*09,3*/ uint8 reserved1[3];
 	/*0c,4*/ sint32 m_bpp;

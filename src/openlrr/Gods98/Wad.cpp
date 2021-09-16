@@ -1,6 +1,9 @@
+// Wad.cpp : 
+//
 
 #include "Compress.h"
 #include "Memory.h"
+
 #include "Wad.h"
 
 
@@ -49,7 +52,8 @@ void __cdecl Gods98::Wad_Error(const char* msg, ...)
 	va_start(arg, msg);
 	std::vsprintf(buffer, msg, arg);
 	va_end(arg);
-	::OutputDebugStringA(buffer);
+	/// TEMPORARY: Stop logging all wad filenames
+	//::OutputDebugStringA(buffer);
 }
 
 

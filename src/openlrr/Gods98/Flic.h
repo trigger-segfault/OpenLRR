@@ -1,3 +1,9 @@
+// Flic.h : 
+//
+/// APIS: IDirectDraw4, IDirectDrawSurface4
+/// DEPENDENCIES: DirectDraw, Files, (Errors, Memory)
+/// DEPENDENTS: Main, TextWindow, Credits, FrontEnd, Panel, Pointer, Rewards
+
 #pragma once
 
 #include "../common.h"

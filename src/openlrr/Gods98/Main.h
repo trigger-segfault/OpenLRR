@@ -1,9 +1,34 @@
+// Main.h : 
+//
+/// APIS: IDirect3DRM3, IDirect3DRMDevice3, 
+///       IDirect3DDevice3
+///       IDirectDraw4, IDirectDrawSurface4
+/// DEPENDENCIES: Animation, Config, DirectDraw, Draw, Files, Input, Registry,
+///               Sound, Utils, Init, Gods_Go (Dxbug, Errors, Fonts, Images, Memory)
+/// DEPENDENTS: ...
+
 #pragma once
 
 #include <windows.h>
 
 #include "../common.h"
-
+/*
+#include "Animation.h"
+#include "Config.h"
+#include "DirectDraw.h"
+#include "Draw.h"
+#include "Dxbug.h"
+#include "Errors.h"
+#include "Files.h"
+#include "Fonts.h"
+#include "Images.h"
+#include "Input.h"
+#include "Memory.h"
+#include "Registry.h"
+#include "Sound.h"
+#include "Utils.h"
+#include "../Gods98Init/Init.h"
+*/
 
 /**********************************************************************************
  ******** Forward Global Namespace Declarations
@@ -18,38 +43,6 @@ enum _D3DRENDERSTATETYPE;
 typedef enum _D3DRENDERSTATETYPE D3DRENDERSTATETYPE;
 static_assert(sizeof(D3DRENDERSTATETYPE) == 0x4, "");
 
-namespace Idl
-{; // !<---
-
-/// TODO: We're currently just relying on the IID defined in LegoRR,
-///        since our `d3drm.lib` won't give it to us. Later on this should be manually defined.
-
-// {4a1b1be6-bfed-11d1-8ed8-00a0c967a482}
-// <LegoRR.exe @004a0958>
-extern IID & IID_IDirect3DRMViewport2;
-// {eb16cb03-d271-11ce-ac48-0000c03825a1}
-// <LegoRR.exe @004a0968>
-extern IID & IID_IDirect3DRMFrame;
-// {ff6b7f70-a40e-11d1-91f9-0000f8758e66}
-// <LegoRR.exe @004a0988>
-extern IID & IID_IDirect3DRMFrame3;
-// {a3a80d01-6e12-11cf-ac4a-0000c03825a1}
-// <LegoRR.exe @004a09a8>
-extern IID & IID_IDirect3DRMMesh;
-// {4516ec77-8f20-11d0-9b6d-0000c0781bc3}
-// <LegoRR.exe @004a09c8>
-extern IID & IID_IDirect3DRMMeshBuilder2;
-// {eb16cb09-d271-11ce-ac48-0000c03825a1}
-// <LegoRR.exe @004a0a18>
-extern IID & IID_IDirect3DRMTexture;
-// {59163de0-6d43-11cf-ac4a-0000c03825a1}
-// <LegoRR.exe @004a0b48>
-extern IID & IID_IDirect3DRMUserVisual;
-// {4516ec83-8f20-11d0-9b6d-0000c0781bc3}
-// <LegoRR.exe @004a0bd8>
-extern IID & IID_IDirect3DRM3;
-
-}
 #pragma endregion
 
 
@@ -96,33 +89,6 @@ typedef void (__cdecl* MainWindowCallback)(HWND hWnd, UINT message, WPARAM wPara
 
 #pragma region Enums
 
-/*#define MAIN_FLAG_UPDATED					0x00000001
-#define MAIN_FLAG_FULLSCREEN				0x00000002
-#define MAIN_FLAG_VIDEOTEXTURE				0x00000004
-#define MAIN_FLAG_MIPMAPENABLED				0x00000008
-#define MAIN_FLAG_PAUSED					0x00000010
-#define MAIN_FLAG_DONTMANAGETEXTURES		0x00000020
-#define MAIN_FLAG_BEST						0x00000040
-#define MAIN_FLAG_DUMPMODE					0x00000080
-#define MAIN_FLAG_WINDOW					0x00000100
-#define MAIN_FLAG_STARTLEVEL				0x00000200
-#define MAIN_FLAG_CLEANSAVES				0x00000400
-#define	MAIN_FLAG_SAVELANGFILE				0x00000800
-#define	MAIN_FLAG_LANGDUMPUNKNOWN			0x00001000
-#define MAIN_FLAG_DEBUGMODE					0x00002000
-#define MAIN_FLAG_DUALMOUSE					0x00004000
-#define MAIN_FLAG_DEBUGCOMPLETE				0x00008000
-#define MAIN_FLAG_TESTERCALL				0x00010000
-#define MAIN_FLAG_LEVELSOPEN				0x00020000
-#define MAIN_FLAG_FORCETEXTUREMANAGEMENT	0x00040000
-#define MAIN_FLAG_FORCEVERTEXFOG			0x00080000
-#define MAIN_FLAG_REDUCESAMPLES				0x00100000
-#define MAIN_FLAG_SHOWVERSION				0x00200000
-#define MAIN_FLAG_REDUCEANIMATION			0x00400000
-#define MAIN_FLAG_REDUCEPROMESHES			0x00800000
-#define MAIN_FLAG_REDUCEFLICS				0x01000000
-#define MAIN_FLAG_REDUCEIMAGES				0x02000000*/
-
 namespace _ns_MainFlags {
 enum MainFlags : uint32
 {
@@ -159,14 +125,12 @@ DEFINE_ENUM_FLAG_OPERATORS(MainFlags);
 static_assert(sizeof(MainFlags) == 0x4, "");
 } using MainFlags = _ns_MainFlags::MainFlags;
 
-/// REGEX: (0x)0+([A-Fa-f1-9][A-Fa-f0-9]*)
-/// REPLACE: $1$2
 
 namespace _ns_MainQuality {
 enum MainQuality : sint32
 {
 	WIREFRAME      = 0,
-	UNLITFLATSHADE = 1, // (unsupported in LegoRR)
+	UNLITFLATSHADE = 1, // (not parsed in Lego.cfg)
 	FLATSHADE      = 2,
 	GOURAUDSHADE   = 3,
 };
@@ -187,7 +151,7 @@ struct Main_State
 	/*4,4*/ MainStateMainLoop MainLoop;
 	/*8,4*/ MainStateShutdown Shutdown;
 	/*c*/
-};// Main_State, * lpMain_State;
+};
 static_assert(sizeof(Main_State) == 0xc, "");
 
 
@@ -196,7 +160,7 @@ struct Main_StateChangeData
 	/*0,4*/ uint32 origValue;
 	/*4,4*/ bool32 changed;
 	/*8*/
-};// Main_StateChangeData, * lpMain_StateChangeData;
+};
 static_assert(sizeof(Main_StateChangeData) == 0x8, "");
 
 
@@ -228,7 +192,7 @@ struct Main_Globs
 	/*894,4*/ MainWindowCallback windowCallback;
 	/*898*/
 
-};// Main_Globs;
+};
 static_assert(sizeof(Main_Globs) == 0x898, "");
 
 #pragma endregion

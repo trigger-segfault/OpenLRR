@@ -1,3 +1,13 @@
+// Containers.h : 
+//
+/// FILEIO: (Config,Shared:)Data[wad,std,cd]
+/// APIS: IDirect3DRM3, IDirect3DRMDevice3, IDirect3DRMFrame[13|Array], IDirect3DRMLight,
+///       IDirect3DRMMesh, IDirect3DRMMeshBuilder2, IDirect3DRMTexture[13], IDirect3DRMVisual,
+///       IDirectDraw4, IDirectDrawPalette, IDirectDrawSurface[14]
+/// DEPENDENCIES: 3DSound, Activities, AnimClone, Bmp, Config, DirectDraw, Files,
+///               Lws, Main, Mesh, Utils (Errors, Memory)
+/// DEPENDENTS: ...
+
 #pragma once
 
 #include "../common.h"

@@ -1,3 +1,9 @@
+// Registry.h : 
+//
+/// APIS: win32
+/// DEPENDENCIES: -
+/// DEPENDENTS: Files, Main
+
 #pragma once
 
 #include "../common.h"
@@ -5,9 +11,6 @@
 
 namespace Gods98
 {; // !<---
-
-///////////////////////////////////////////////////////////
-// Simple registry API
 
 /**********************************************************************************
  ******** Enumerations

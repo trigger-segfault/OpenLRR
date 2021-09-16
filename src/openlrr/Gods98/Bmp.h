@@ -1,3 +1,9 @@
+// Bmp.h : 
+//
+/// APIS: -, (struct D3DRMIMAGE)
+/// DEPENDENCIES: -, (Memory)
+/// DEPENDENTS: Containers, Image
+
 #pragma once
 
 #include "../common.h"

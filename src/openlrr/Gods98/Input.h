@@ -1,6 +1,47 @@
+// Input.h : 
+//
+/// APIS: IDirectInputA(8), IDirectInputDeviceA(8), IDirectInputDevice2A(unused)
+/// DEPENDENCIES: Main, (Dxbug, Errors)
+/// DEPENDENTS: Main, Credits, FrontEnd, NERPs, Objective, Panel, Priorities
+
 #pragma once
 
 #include "../common.h"
+
+#ifndef DIRECTINPUT_VERSION
+#define DIRECTINPUT_VERSION 0x0500
+#elif DIRECTINPUT_VERSION != 0x0500
+#undef DIRECTINPUT_VERSION
+#define DIRECTINPUT_VERSION 0x0500
+#endif
+#include "../Legacy/legacy_dinput.h"
+
+
+/**********************************************************************************
+ ******** Forward Global Namespace Declarations
+ **********************************************************************************/
+
+#pragma region Forward Declarations
+
+/*typedef struct _DIMOUSESTATE {
+	LONG    lX;
+	LONG    lY;
+	LONG    lZ;
+	BYTE    rgbButtons[4];
+} DIMOUSESTATE, * LPDIMOUSESTATE;*/
+
+#if DIRECTINPUT_VERSION == 0x0500
+struct IDirectInputA;
+struct IDirectInputDeviceA;
+
+#else
+struct IDirectInput8A;
+struct IDirectInputDevice8A;
+#endif
+
+struct IDirectInputDevice2A;
+
+#pragma endregion
 
 
 namespace Gods98
@@ -39,7 +80,7 @@ static_assert(sizeof(joystickType) == 0x20, "");
 
 struct DIcallbackData
 {
-#if DIRECTINPUT_VERSION == 0x500
+#if DIRECTINPUT_VERSION == 0x0500
 	/*0,4*/ IDirectInputA* di;
 #else
 	/*0,4*/ IDirectInput8A* di;
@@ -55,7 +96,7 @@ struct Input_Globs
 {
 	/*000,100*/ bool prevKey_Map[INPUT_MAXKEYS]; // Keyboard state
 	// [globs: start]
-#if DIRECTINPUT_VERSION == 0x500
+#if DIRECTINPUT_VERSION == 0x0500
 	/*100,4*/ IDirectInputA* lpdi;
 	/*104,4*/ IDirectInputDeviceA* lpdiKeyboard;
 	/*108,4*/ IDirectInputDeviceA* lpdiMouse;		// (unused)

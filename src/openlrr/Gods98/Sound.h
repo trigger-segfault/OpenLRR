@@ -1,3 +1,9 @@
+// Sound.h : 
+//
+/// APIS: mci, mmio
+/// DEPENDENCIES: 3DSound, Main, ...
+/// DEPENDENTS: 3DSound, ...
+
 #pragma once
 
 #include "../common.h"

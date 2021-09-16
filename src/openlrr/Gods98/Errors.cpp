@@ -1,11 +1,16 @@
+// Errors.cpp : 
+//
 
-#define DIRECTINPUT_VERSION				0x800
-#include <dinput.h>
+//#define DIRECTINPUT_VERSION				0x0800
+//#include <dinput.h>
 #include <process.h>
 
-#include "Files.h"
-#include "Errors.h"
+#include "../Legacy/legacy_dinput.h"
+
 #include "Config.h"
+#include "Files.h"
+
+#include "Errors.h"
 
 
 /// CUSTOM:

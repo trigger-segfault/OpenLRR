@@ -1,9 +1,11 @@
+// Maths.cpp : 
+//
 
 #include <d3drm.h>
 
-#include "Maths.h"
 #include "../legacy.h"
 
+#include "Maths.h"
 
 
 /**********************************************************************************

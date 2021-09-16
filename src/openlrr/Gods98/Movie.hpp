@@ -1,16 +1,10 @@
 // Movie.hpp : Header file for the C++ G98CMovie implementation.
 //
-/// STATUS: [COMPLETE]
-/// PURPOSE: See "Movie.h" for details.
 
 #pragma once
 
 #include <windows.h>
-//#include <dshow.h>
 #include <ddraw.h>
-//#include <dsound.h>
-//#include <dshow.h>
-//#include <mmsystem.h>
 #include <amstream.h>
 
 #include "../common.h"

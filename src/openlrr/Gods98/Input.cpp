@@ -1,18 +1,17 @@
+// Input.cpp : 
+//
 
-#define DIRECTINPUT_VERSION				0x800
+//#define DIRECTINPUT_VERSION				0x0800
 #include <d3drmwin.h>
-#include <dinput.h>
+//#include <dinput.h>
 
-#include "Input.h"
-#include "Main.h"
+#include "../Legacy/legacy_dinput.h"
+
 #include "Errors.h"
 #include "Dxbug.h"
+#include "Main.h"
 
-
-/*namespace Idl {
-	static IID IID_IDirectInput8A = { 0xbf798030, 0x483a, 0x4da2, 0xaa, 0x99, 0x5d, 0x64, 0xed, 0x36, 0x97, 0x00 }; // __uuidof(IDirectInput8A);// "BF798030-483A-4DA2-AA99-5D64ED369700");
-	static GUID GUID_SysKeyboard = { 0x6f1d2b61, 0xd5a0, 0x11cf, 0xbf, 0xc7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00 };
-}*/
+#include "Input.h"
 
 
 /**********************************************************************************
@@ -109,8 +108,8 @@ bool32 __cdecl Gods98::Input_InitKeysAndDI(void)
 	// CHKDI_F if an Errors.h macro
 
 	// Try to create DI object
-#if DIRECTINPUT_VERSION == 0x500
-	CHKDI_F(::DirectInputCreateA(Main_hInst(), DIRECTINPUT_VERSION, &INPUT.lpdi, nullptr));
+#if DIRECTINPUT_VERSION == 0x0500
+	CHKDI_F(legacy::DirectInputCreateA(Main_hInst(), DIRECTINPUT_VERSION, &INPUT.lpdi, nullptr));
 #else
 	CHKDI_F(::DirectInput8Create(Main_hInst(), DIRECTINPUT_VERSION, IID_IDirectInput8A, (void**)&INPUT.lpdi, nullptr));
 #endif

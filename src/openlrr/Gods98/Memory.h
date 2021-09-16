@@ -1,3 +1,9 @@
+// Memory.h : 
+//
+/// APIS: -
+/// DEPENDENCIES: -, (Errors)
+/// DEPENDENTS: Files
+
 #pragma once
 
 #include "../common.h"

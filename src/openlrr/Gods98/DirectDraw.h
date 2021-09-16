@@ -1,3 +1,12 @@
+// DirectDraw.h : 
+//
+/// APIS: IDirect3DRMDevice3,
+///       IDirect3D3,
+///       IDirectDraw[14], IDirectDrawClipper, IDirectDrawPalette, IDirectDrawSurface4
+/// DEPENDENCIES: Bmp, Files, Main, Maths, Utils, (Dxbug, Errors, Memory)
+/// DEPENDENTS: Animation, Containers, Draw, Flic, Image, Main, Movie, Init,
+///             Lego, Loader, NERPs, RadarMap
+
 #pragma once
 
 #include "../common.h"
@@ -15,8 +24,6 @@ struct IDirectDrawSurface4;
 struct IDirectDrawClipper;
 struct tagPALETTEENTRY;
 typedef struct tagPALETTEENTRY PALETTEENTRY;
-//struct PALETTEENTRY;
-//enum D3DRENDERSTATETYPE : uint32;
 
 #pragma endregion
 

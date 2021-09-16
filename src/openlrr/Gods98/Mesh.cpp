@@ -1,19 +1,21 @@
+// Mesh.cpp : 
+//
 
 #include <d3drm.h>
 
-#include "Memory.h"
-#include "Errors.h"
-#include "Main.h"
-#include "Lwt.h"
-#include "Files.h"
-#include "Viewports.h"
-#include "Mesh.h"
-#include "Containers.h"
-#include "Bmp.h"
-#include "DirectDraw.h"
-#include "Maths.h"
-#include "Utils.h"
+#include "../Legacy/legacy_d3drm.h"
 
+#include "Containers.h"
+#include "Errors.h"
+#include "Files.h"
+#include "Lwt.h"
+#include "Main.h"
+#include "Maths.h"
+#include "Memory.h"
+#include "Utils.h"
+#include "Viewports.h"
+
+#include "Mesh.h"
 
 
 #define RELEASE(x) { if (x != nullptr) {x->Release(); x = nullptr;} }

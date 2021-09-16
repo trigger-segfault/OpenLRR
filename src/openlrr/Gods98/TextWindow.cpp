@@ -1,8 +1,10 @@
+// TextWindow.cpp : 
+//
+
+#include "Fonts.h"
+#include "Memory.h"
 
 #include "TextWindow.h"
-#include "Memory.h"
-#include "Fonts.h"
-
 
 
 /**********************************************************************************
@@ -153,7 +155,8 @@ bool32 __cdecl Gods98::TextWindow_Update(TextWindow* window, uint32 posFromEnd, 
 	char c;
 	uint32 charWidth, wordWidth = 0;
 	uint32 lineWidthList[TEXTWINDOW_MAXLINES];
-	bool32  caretFlag;
+	/// FIX APPLY: dummy init
+	bool32  caretFlag = false;
 
 	if (lpLowestPoint) *lpLowestPoint = 0;
 
@@ -315,12 +318,12 @@ bool32 __cdecl Gods98::TextWindow_UpdateOverlay(TextWindow* window, real32 time,
 	log_firstcall();
 
 	uint32 sub, loop = 0, usedLines = 0;
-	uint32 lineList[TEXTWINDOW_MAXLINES];
+	uint32 lineList[TEXTWINDOW_MAXLINES]; // (shouldn't never overrun, don't init?)
 	char c;
 	sint32 currWidth = 0, currHeight;
 	uint32 charWidth, wordWidth = 0;
 	bool32 overRun = false;
-	uint32 lineWidthList[TEXTWINDOW_MAXLINES];
+	uint32 lineWidthList[TEXTWINDOW_MAXLINES]; // (shouldn't never overrun, don't init?)
 
 	lineList[usedLines++] = loop;
 
@@ -424,7 +427,8 @@ sint32 __cdecl Gods98::TextWindow_GetDrawPos(TextWindow* window, uint32 chrPos, 
 	uint32 firstLine=0, sub;
 	sint32 currWidth=0, currHeight;
 	uint32 wordWidth = 0;
-	uint32 lineWidthList[TEXTWINDOW_MAXLINES];
+	/// FIXME GODS98: Not initialised and then referenced
+	uint32 lineWidthList[TEXTWINDOW_MAXLINES] = { 0 }; // dummy init
 	uint32 posFromEnd = 0;
 	sint32		diff = 9999999;
 	sint32		charPos = 0;

@@ -1,4 +1,5 @@
-
+// Containers.cpp : 
+//
 
 //#define CONTAINER_MATCHHIDDENHIERARCHY
 //#define CONTAINER_DONTFLIPTEXTURES
@@ -8,31 +9,27 @@
 #include <d3drm.h>
 
 #include "../legacy.h"
-
+#include "../Legacy/legacy_d3drm.h"
 
 #ifdef LEGO_IMMEDIATEMODEMAP
 #define CONTAINER_USEOWNTEXTURELOAD
 #endif //LEGO_IMMEDIATEMODEMAP
 
-#include "Errors.h"
-#include "Maths.h"
-#include "Files.h"
-#include "Memory.h"
-#include "Utils.h"
-#include "Config.h"
-#include "Activities.h"
-#include "Main.h"
-#include "Images.h"
 #include "3DSound.h"
-#include "Lws.h"
+#include "Activities.h"    // defines
 #include "AnimClone.h"
-#include "Mesh.h"
-#include "Containers.h"
-#include "Viewports.h"
-#include "Materials.h"
-#include "DirectDraw.h"
 #include "Bmp.h"
-#include "Dxbug.h"
+#include "Config.h"
+#include "DirectDraw.h"
+#include "Errors.h"
+#include "Files.h"
+#include "Lws.h"
+#include "Main.h"
+#include "Memory.h"
+#include "Mesh.h"
+#include "Utils.h"
+
+#include "Containers.h"
 
 
 /**********************************************************************************
@@ -120,9 +117,9 @@ Gods98::Container* __cdecl Gods98::Container_Initialise(const char* gameName)
 	root->masterFrame->SetSortMode(D3DRMSORT_NONE);
 
 	/*
-	#ifdef _DEBUG
+	#ifdef _DEBUG_2
 		Container_Frame_FormatName(root->masterFrame, "Container Root Master Frame for %s", gameName);
-	#endif // _DEBUG
+	#endif // _DEBUG_2
 	*/
 	// Debuggy
 //	scene->AddChild(CDF(root->masterFrame));
@@ -171,9 +168,9 @@ void __cdecl Gods98::Container_Shutdown(void)
 	if (containerGlobs.sharedDir)
 		Mem_Free(containerGlobs.sharedDir);
 
-#ifdef _DEBUG
+#ifdef _DEBUG_2
 	if (unfreed) Error_Debug(Error_Format("Warning: %d Unremoved Container%s\n", unfreed, unfreed == 1 ? "" : "s"));
-#endif // _DEBUG
+#endif // _DEBUG_2
 
 #ifdef _HIERARCHY_DEBUG
 	Container_Debug_DumpCreationInfo();
@@ -385,13 +382,13 @@ void __cdecl Gods98::Container_Remove2(Container* dead, bool32 kill)
 		}
 	}
 
-#ifdef _DEBUG
+#ifdef _DEBUG_2
 	if (dead->type != Container_Type::Container_Reference) {
 		Container_Frame_FreeName(dead->masterFrame);
 		Container_Frame_FreeName(dead->activityFrame);
 	}
 	Container_Frame_FreeName(dead->hiddenFrame);
-#endif // _DEBUG
+#endif // _DEBUG_2
 
 	// Remove the typeData from the container and the AppData from the frames...
 	Container_FreeTypeData(dead);
@@ -630,13 +627,13 @@ Gods98::Container* __cdecl Gods98::Container_Load(Container* parent, const char*
 
 	}
 
-#ifdef _DEBUG
+#ifdef _DEBUG_2
 	if (cont) {
 		Container_Frame_FormatName(cont->masterFrame, "Master Frame (%s:%s)", name, typestr);
 		Container_Frame_FormatName(cont->activityFrame, "Activity Frame (%s:%s)", name, typestr);
 		Container_Frame_FormatName(cont->hiddenFrame, "Hidden Frame (%s:%s)", name, typestr);
 	}
-#endif // _DEBUG
+#endif // _DEBUG_2
 
 	return cont;
 }
@@ -791,9 +788,9 @@ Gods98::Container* __cdecl Gods98::Container_MakeLight(Container* parent, Contai
 		}
 		else Error_Fatal(TRUE, "Unable to create light");
 
-#ifdef _DEBUG
+#ifdef _DEBUG_2
 		Container_Frame_FormatName(cont->masterFrame, "Light type #%d (%0.2f,%0.2f,%0.2f)", type, r, g, b);
-#endif // _DEBUG
+#endif // _DEBUG_2
 
 	}
 
@@ -856,9 +853,9 @@ Gods98::Container* __cdecl Gods98::Container_MakeMesh2(Container* parent, Contai
 			else Error_Fatal(true, "Cannot create mesh object");
 		}
 
-#ifdef _DEBUG
+#ifdef _DEBUG_2
 		Container_Frame_FormatName(cont->masterFrame, "Mesh");
-#endif // _DEBUG
+#endif // _DEBUG_2
 
 	}
 
@@ -984,9 +981,9 @@ Gods98::Container* __cdecl Gods98::Container_Clone(Container* orig)
 		cont->activityFrame->AddVisual((IUnknown*)mesh);
 		mesh->AddRef();
 
-#ifdef _DEBUG
+#ifdef _DEBUG_2
 		Container_Frame_FormatName(cont->masterFrame, "Master Frame Mesh Clone (0x%0.8x)", orig->masterFrame);
-#endif // _DEBUG
+#endif // _DEBUG_2
 
 
 	}
@@ -1028,11 +1025,11 @@ Gods98::Container* __cdecl Gods98::Container_Clone(Container* orig)
 
 		if (cont->typeData) Container_SetActivity(cont, cont->typeData->name);
 
-#ifdef _DEBUG
+#ifdef _DEBUG_2
 		Container_Frame_FormatName(cont->masterFrame, "Master Frame Clone (0x%0.8x)", orig->masterFrame);
 		Container_Frame_FormatName(cont->activityFrame, "Activity Frame Clone (0x%0.8x)", orig->activityFrame);
 		Container_Frame_FormatName(cont->hiddenFrame, "Hidden Frame Clone (0x%0.8x)", orig->hiddenFrame);
-#endif // _DEBUG
+#endif // _DEBUG_2
 
 	}
 	else if (cont->type == Container_Type::Container_Anim) {
@@ -1452,7 +1449,7 @@ IDirectDrawSurface4* __cdecl Gods98::Container_LoadTextureSurface(const char* fn
 					else Error_Fatal(true, "Cannot create Palette");
 				}
 				else {
-#ifdef _DEBUG
+#ifdef _DEBUG_2
 					char error[128];
 
 					std::sprintf(error, "Texture file %s : Cannot lock surface ", fname);
@@ -1476,7 +1473,7 @@ IDirectDrawSurface4* __cdecl Gods98::Container_LoadTextureSurface(const char* fn
 					}
 
 					Error_Fatal(true, error);
-#endif // _DEBUG
+#endif // _DEBUG_2
 
 				}
 				if (surface->Release() == 0) surface = nullptr;
@@ -3430,7 +3427,7 @@ Gods98::AnimClone* __cdecl Gods98::Container_LoadAnimSet(const char* fname, IDir
 	AnimClone* animClone = nullptr;
 	uint32 fc;
 
-#ifdef _DEBUG
+#ifdef _DEBUG_2
 /*	{
 		static char nameList[1024][128];
 		static uint32 nameCount = 0;
@@ -3442,7 +3439,7 @@ Gods98::AnimClone* __cdecl Gods98::Container_LoadAnimSet(const char* fname, IDir
 		}
 		std::strcpy(nameList[nameCount++], fname);
 	}*/
-#endif // _DEBUG
+#endif // _DEBUG_2
 
 	Error_Debug(Error_Format("Attempting to load animation from xfile \"%s\"\n", fname));
 

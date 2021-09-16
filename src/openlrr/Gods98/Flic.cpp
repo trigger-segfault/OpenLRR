@@ -1,15 +1,15 @@
-
-#include "Files.h"
+// Flic.cpp : 
+//
 
 #include <windows.h>
 #include <ddraw.h>
 
-#include "Maths.h"
 #include "DirectDraw.h"
-#include "Files.h"
-#include "Flic.h"
 #include "Errors.h"
+#include "Files.h"
 #include "Memory.h"
+
+#include "Flic.h"
 
 
 /**********************************************************************************

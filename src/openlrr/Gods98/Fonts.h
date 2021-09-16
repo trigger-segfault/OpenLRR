@@ -1,8 +1,14 @@
+// Fonts.h : 
+//
+/// APIS: -
+/// DEPENDENCIES: Images, (Errors, Memory)
+/// DEPENDENTS: Main, TextWindow, Credits, FrontEnd, HelpWindow, Lego, LegoObject
+///             Loader, Objective, Panel, Rewards, ToolTip
+
 #pragma once
 
 #include "../common.h"
 #include "../Types/geometry.h"
-//#include "Images.h"
 
 
 namespace Gods98

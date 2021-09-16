@@ -1,3 +1,12 @@
+// Mesh.h : 
+//
+/// FILEIO: Shared:Data[wad,std,cd]
+/// APIS: IDirect3DRM3, IDirect3DRMFrame3, IDirect3DRMUserVisual, IDirect3DRMViewport[12],
+///       IDirect3D3, IDirect3DDevice[23], IDirect3DTexture2, IDirect3DViewport[13],
+///       IDirectDrawSurface4
+/// DEPENDENCIES: Containers, Files, Lwt, Main, Maths, Utils, Viewports, (Errors, Memory)
+/// DEPENDENTS: 
+
 #pragma once
 
 #include "../common.h"
@@ -518,7 +527,7 @@ extern Mesh_Globs & meshGlobs;
 #pragma region Macros
 
 
-//#ifdef _DEBUG
+//#ifdef _DEBUG_2
 
 #define Mesh_Debug_CheckIMDevice_Ptr(PTRTYPE)		{ if (lpIMDevice()==nullptr) return (PTRTYPE) 1; }
 //#define Mesh_Debug_CheckIMDevice_Ptr()		{ if (lpIMDevice()==nullptr) return (LPVOID) 1; }
@@ -532,7 +541,7 @@ extern Mesh_Globs & meshGlobs;
 #define Mesh_Debug_CheckIMDevice_Void()
 #define Mesh_Debug_CheckIMDevice_Int()
 
-#endif // _DEBUG
+#endif // _DEBUG_2
 */
 
 

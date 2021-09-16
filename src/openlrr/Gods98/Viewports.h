@@ -1,3 +1,10 @@
+// Viewports.h : 
+//
+/// APIS: IDirect3DRM3, IDirect3DRMDevice3, IDirect3DRMFrame3, IDirect3DRMViewport2,
+///       IDirect3DViewport[13]
+/// DEPENDENCIES: Containers, DirectDraw, Main, Maths, Mesh, (Dxbug, Errors, Memory)
+/// DEPENDENTS: 
+
 #pragma once
 
 #include "../common.h"
@@ -10,11 +17,8 @@
 
 #pragma region Forward Declarations
 
-//struct IDirect3DRM3;
-//struct IDirect3DRMDevice3;
 struct IDirect3DRMFrame3;
 struct IDirect3DRMViewport2;
-//enum D3DRENDERSTATETYPE : uint32;
 
 #pragma endregion
 
@@ -160,36 +164,48 @@ void __cdecl Viewport_Initialise(void);
 // <LegoRR.exe @00477040>
 void __cdecl Viewport_Shutdown(void);
 
+/// APIS: IDirect3DRMDevice3
 // <LegoRR.exe @00477080>
 Viewport* __cdecl Viewport_Create(real32 xPos, real32 yPos, real32 width, real32 height, Container* camera);
 
+/// APIS: IDirect3DRM3, IDirect3DRMDevice3, IDirect3DRMFrame3, IDirect3DRMViewport2
 // <LegoRR.exe @00477110>
 Viewport* __cdecl Viewport_CreatePixel(sint32 xPos, sint32 yPos, uint32 width, uint32 height, Container* camera);
 
+/// APIS: IDirect3DRMViewport2
 // <LegoRR.exe @004771d0>
 void __cdecl Viewport_GetSize(Viewport* vp, OUT uint32* width, OUT uint32* height);
 
+/// APIS: IDirect3DRMFrame3, IDirect3DRMViewport2
 // <LegoRR.exe @00477210>
 void __cdecl Viewport_SetCamera(Viewport* vp, Container* cont);
 
+/// APIS: IDirect3DRMFrame3, IDirect3DRMViewport2
 // <LegoRR.exe @00477230>
 Container* __cdecl Viewport_GetCamera(Viewport* vp);
 
+/// APIS: IDirect3DRMViewport2
 // <LegoRR.exe @00477270>
 void __cdecl Viewport_SetBackClip(Viewport* vp, real32 dist);
 
+/// APIS: IDirect3DRMViewport2
 // <LegoRR.exe @00477290>
 real32 __cdecl Viewport_GetBackClip(Viewport* vp);
 
+/// APIS: IDirect3DRMViewport2
 // <LegoRR.exe @004772b0>
 real32 __cdecl Viewport_GetFrontClip(Viewport* vp);
 
+/// APIS: IDirect3DRMFrame3, IDirect3DRMViewport2,
+///       IDirect3DViewport, IDirect3DViewport3
 // <LegoRR.exe @004772d0>
 void __cdecl Viewport_Clear(Viewport* vp, bool32 full);
 
+/// APIS: IDirect3DRMFrame3, IDirect3DRMViewport2
 // <LegoRR.exe @00477410>
 void __cdecl Viewport_Render(Viewport* vp, Container* root, real32 delta);
 
+/// APIS: IDirect3DRMViewport2
 // <LegoRR.exe @004774e0>
 void __cdecl Viewport_Remove(Viewport* dead);
 
@@ -197,28 +213,34 @@ void __cdecl Viewport_Remove(Viewport* dead);
 // <LegoRR.exe @00477500>
 void __cdecl Viewport_SmoothSetField(Viewport* vp, real32 fov);
 
+/// APIS: IDirect3DRMViewport2
 // (Field of View, FOV)
 // <LegoRR.exe @00477510>
 void __cdecl Viewport_SetField(Viewport* vp, real32 fov);
 
+/// APIS: IDirect3DRMViewport2
 // <LegoRR.exe @00477530>
 real32 __cdecl Viewport_GetField(Viewport* vp);
 
+/// APIS: IDirect3DRMViewport2
 // <LegoRR.exe @00477550>
 void __cdecl Viewport_InverseTransform(Viewport* vp, OUT Vector3F* dest, const Vector4F* src);
 
+/// APIS: IDirect3DRMViewport2
 // <LegoRR.exe @00477570>
 void __cdecl Viewport_Transform(Viewport* vp, OUT Vector4F* dest, const Vector3F* src);
 
 // <LegoRR.exe @00477590>
 Point2F* __cdecl Viewport_WorldToScreen(Viewport* vp, OUT Point2F* screen, const Vector3F* world);
 
+/// APIS: IDirect3DRMFrame3, IDirect3DRMViewport2
 // <LegoRR.exe @004775d0>
 IDirect3DRMFrame3* __cdecl Viewport_GetScene(Viewport* vp);
 
 // <LegoRR.exe @00477630>
 void __cdecl Viewport_AddList(void);
 
+/// APIS: IDirect3DRMViewport2
 // <LegoRR.exe @004776a0>
 void __cdecl Viewport_RemoveAll(void);
 

@@ -1,3 +1,9 @@
+// Draw.h : 
+//
+/// APIS: IDirectDrawSurface4
+/// DEPENDENCIES: DirectDraw, Maths, (Errors)
+/// DEPENDENTS: Main, ...
+
 #pragma once
 
 #include "../common.h"

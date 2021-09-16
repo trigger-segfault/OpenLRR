@@ -29,7 +29,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
+    <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -75,7 +75,7 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>$(SolutionDir)bin\tmp\$(ProjectName)\$(Configuration)\</IntDir>
-    <TargetName>OpenLRR-d</TargetName>
+    <TargetName>lrrmo</TargetName>
     <IncludePath>$(SolutionDir)lib\d3drm\inc\;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)lib\d3drm\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
@@ -97,8 +97,9 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;_WINDOWS;_USRDLL;_GODS98COMPILE;_GODS98_USEWAD_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -280,6 +281,7 @@
       </ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="legacy.cpp" />
+    <ClCompile Include="Legacy\legacy_d3drm.cpp" />
     <ClCompile Include="LegoRR\Advisor.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
@@ -469,6 +471,12 @@
       </ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="legacy.h" />
+    <ClInclude Include="Legacy\legacy_d3drm.h" />
+    <ClInclude Include="Legacy\legacy_ddraw.h" />
+    <ClInclude Include="Legacy\legacy_dinput.h" />
+    <ClInclude Include="Legacy\legacy_dsound.h" />
+    <ClInclude Include="Legacy\legacy_timeapi.h" />
+    <ClInclude Include="Legacy\legacy_vfw.h" />
     <ClInclude Include="LegoRR\Bubble.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClInclude>

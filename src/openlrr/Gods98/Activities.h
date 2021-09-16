@@ -1,3 +1,10 @@
+// Activities.h : 
+//
+/// FILEIO: Config:Data[wad,std,cd]
+/// APIS: -
+/// DEPENDENCIES: Config, Utils, (Errors)
+/// DEPENDENTS: Containers
+
 #pragma once
 
 #include "../common.h"

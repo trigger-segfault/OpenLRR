@@ -1,3 +1,10 @@
+// Lwt.h : 
+//
+/// FILEIO: Shared:Data[wad,std,cd]
+/// APIS: -
+/// DEPENDENCIES: Files, (Errors, Memory)
+/// DEPENDENTS: Mesh
+
 #pragma once
 
 #include "../common.h"

@@ -1,3 +1,5 @@
+// Sound.cpp : 
+//
 
 #include <stdio.h>
 #include <windows.h>
@@ -7,15 +9,17 @@
 #include <dsound.h>
 #include <process.h>
 
-#include "Main.h"
-#include "Errors.h"
-#include "Memory.h"
-#include "Sound.h"
-#include "Files.h"
+#include "../Legacy/legacy_timeapi.h"
+
 #include "3DSound.h"
+#include "Errors.h"
+#include "Files.h"
+#include "Main.h"
+#include "Memory.h"
+
+#include "Sound.h"
 
 //#pragma comment(lib, "dsound")
-
 
 
 /**********************************************************************************
@@ -99,7 +103,7 @@ void __cdecl Gods98::Sound_Update(bool32 cdtrack)
 
 	if (soundGlobs.initialised){
 		//static uint32 lastUpdate = 0;
-		uint32 time = ::timeGetTime();
+		uint32 time = legacy::timeGetTime();
 
 		if (time > (soundGlobs.s_Update_lastUpdate + 4000)) {
 			if (cdtrack) {

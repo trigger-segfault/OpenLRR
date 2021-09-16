@@ -1,3 +1,10 @@
+// Lws.h : 
+//
+/// FILEIO: Shared:Data[wad,std,cd]
+/// APIS: IDirect3DRM3, IDirect3DRMFrame3, IDirect3DRMUserVisual, IDirect3DRMVisual[*]
+/// DEPENDENCIES: 3DSound, Files, Main, Maths, Mesh, Utils (Errors, Memory)
+/// DEPENDENTS: AnimClone, Containers, ...
+
 #pragma once
 
 #include "../common.h"
@@ -246,10 +253,12 @@ void __cdecl Lws_SetupSoundTriggers(Lws_Info* scene);
 void __cdecl Lws_LoadMeshes(Lws_Info* scene, IDirect3DRMFrame3* parent);
 
 
+/// APIS: IDirect3DRMFrame3, IDirect3DRMUserVisual, IDirect3DRMVisual*
 // <inlined>
 /*__inline*/ Mesh* __cdecl Lws_GetNodeMesh(Lws_Info* scene, Lws_Node* node);
 
 
+/// APIS: IDirect3DRMFrame3
 // <LegoRR.exe @00487cc0>
 Lws_Info* __cdecl Lws_Clone(Lws_Info* scene, IDirect3DRMFrame3* parent);
 
@@ -280,6 +289,7 @@ void __cdecl Lws_SetDissolveLevel(Lws_Info* scene, Lws_Node* node, real32 level)
 // <LegoRR.exe @00488430>
 void __cdecl Lws_InterpolateKeys(Lws_Info* scene, Lws_Node* node, uint16 key, real32 delta);
 
+/// APIS: IDirect3DRMFrame3
 // <LegoRR.exe @004885a0>
 void __cdecl Lws_SetupNodeTransform(Lws_Info* scene, Lws_Node* node, const Vector3F* pos, const Vector3F* hpb, const Vector3F* scale);
 
@@ -292,6 +302,7 @@ Mesh* __cdecl Lws_SearchMeshPathList(Lws_MeshPath* list, uint32 count, const cha
 // <LegoRR.exe @00488a50>
 void __cdecl Lws_AddMeshPathEntry(Lws_MeshPath* list, IN OUT uint32* count, const char* path, Mesh* mesh);
 
+/// APIS: IDirect3DRM3, IDirect3DRMFrame3
 // <LegoRR.exe @00488a80>
 void __cdecl Lws_CreateFrames(Lws_Info* scene, Lws_Node* node, IDirect3DRMFrame3* parent, IN OUT uint16* frameCount);
 

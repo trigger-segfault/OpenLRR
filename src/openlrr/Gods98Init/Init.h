@@ -1,3 +1,9 @@
+// Init/Init.h : 
+//
+/// APIS: -
+/// DEPENDENCIES: Main, DirectDraw, (Errors)
+/// DEPENDENTS: Main
+
 #pragma once
 
 #include "../common.h"

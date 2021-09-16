@@ -1,18 +1,14 @@
 // Movie.cpp : Definitions file for the C++ Movie implementation and C wrapper.
 //
-/// STATUS: [COMPLETE]
 
 #include "DirectDraw.h"
 #include "Files.h"
-#include "Utils.h"
+
 #include "Movie.hpp"
 #include "Movie.h"
 
-#include "Memory.h"
-
 // <https://docs.microsoft.com/en-us/previous-versions/windows/embedded/aa451220(v=msdn.10)>
 #pragma comment(lib, "Strmbase.lib")		// IAMMultiMediaStream
-#pragma comment(lib, "Strmiids.lib")		// IAMMultiMediaStream
 #pragma comment(lib, "Strmiids.lib")		// IAMMultiMediaStream
 
 
@@ -33,11 +29,9 @@ bool Gods98::G98CMovie::InitSample(IAMMultiMediaStream* lpAMMMStream)
 		this->m_err = this->m_sampleBaseStream->QueryInterface(IID_IDirectDrawMediaStream, (void**)&this->m_sampleStream);
 		if (this->m_err >= 0) {
 
-			// IDirectDrawMediaStream->CreateSample(this, IDirectDrawSurface* pSurface, const RECT* pRect, DWORD dwFlags, IDirectDrawStreamSample** ppSample)
 			this->m_err = this->m_sampleStream->CreateSample(nullptr, nullptr, 0, &this->m_sample);
 			if (this->m_err >= 0) {
 
-				// IDirectDrawStreamSample->GetSurface(this, IDirectDrawSurface** ppDirectDrawSurface, RECT* pRect)
 				this->m_err = this->m_sample->GetSurface(&this->m_baseSurf, &this->m_movieRect);
 				if (this->m_err >= 0) {
 
@@ -114,8 +108,7 @@ Gods98::G98CMovie::G98CMovie(const char* fName, IDirectDrawSurface3* bSurf3, IDi
 	::CoInitialize(nullptr);
 
 	if (fName != nullptr && std::strlen(fName) != 0) {
-		this->m_filename = Util_StrCpy(fName); // ::_strdup can be used if we also switch to std::free 
-		//this->m_filename = ::_strdup(fName);
+		this->m_filename = ::_strdup(fName);
 
 		if (this->OpenAMStream(fName, &this->m_amStream, ddraw2)) {
 			this->InitSample(this->m_amStream);
@@ -148,8 +141,7 @@ Gods98::G98CMovie::~G98CMovie()
 		this->m_amStream->Release();
 
 	if (this->m_filename != nullptr)
-		Mem_Free(this->m_filename); // std::free can be used if we switch to ::_strdup
-		//std::free(this->m_filename);
+		std::free(this->m_filename);
 }
 
 // float speed parameter is unused (name is assumed as 1.0f is always passed)
@@ -162,6 +154,7 @@ bool Gods98::G98CMovie::Update(real32 speed, const RECT* destRect)
 	// Update playback (and renders to draw surface?)
 	if (this->m_sample->Update(0 /*no flags*/, nullptr, nullptr, (DWORD_PTR)nullptr) != DD_OK) {
 		// On failure... SHUTDOWN EVERYTHING!
+		// This also probably executes once the movie is finished
 		this->m_sampleBaseStream->Release();
 		this->m_sampleBaseStream = nullptr;
 

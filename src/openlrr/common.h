@@ -18,8 +18,8 @@
 #define WIN32_LEAN_AND_MEAN
 // dinput.h version. NOTE: Normally this is 0x500 (v5) in LegoRR,
 //  but we don't need to try to support that.
-#define DIRECTINPUT_VERSION				0x800
-//#define DIRECTINPUT_VERSION				0x500
+//#define DIRECTINPUT_VERSION				0x0800
+//#define DIRECTINPUT_VERSION				0x0500
 #pragma endregion
 
 // Header File Includes:
@@ -57,7 +57,7 @@
 #include <d3d.h>						// Direct3D
 #include <ddraw.h>						// DirectDraw
 #include <dsound.h>						// DirectSound
-#include <dinput.h>						// DirectInput 8.0
+//#include <dinput.h>						// DirectInput 8.0
 // Reintroduced legacy support:
 
 //////////////////////

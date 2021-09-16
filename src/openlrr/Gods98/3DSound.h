@@ -1,3 +1,11 @@
+// 3DSound.h : 
+//
+/// FILEIO: Data[wad,std,cd]
+/// APIS: IDirect3DRMFrame3,
+///       IDirectSound, IDirectSoundBuffer, IDirectSound3DBuffer, IDirectSound3DListener
+/// DEPENDENCIES: Containers, Files, Sound, (Errors, Memory)
+/// DEPENDENTS: Sound, ...
+
 #pragma once
 
 #include "../common.h"

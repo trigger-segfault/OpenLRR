@@ -1,3 +1,5 @@
+// 3DSound.cpp : 
+//
 
 #include <d3drm.h>
 #include <dsound.h>
@@ -6,12 +8,13 @@
 #include <windowsx.h>
 #include <mmsystem.h>
 
-#include "Sound.h"
-#include "Errors.h"
-#include "Memory.h"
 #include "Containers.h"
-#include "3DSound.h"
+#include "Errors.h"
 #include "Files.h"
+#include "Memory.h"
+#include "Sound.h"
+
+#include "3DSound.h"
 
 
 /**********************************************************************************

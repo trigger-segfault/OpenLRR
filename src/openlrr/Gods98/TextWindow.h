@@ -1,8 +1,13 @@
+// TextWindow.h : 
+//
+/// APIS: -
+/// DEPENDENCIES: Fonts, (Memory)
+/// DEPENDENTS: 
+
 #pragma once
 
 #include "../common.h"
 #include "../Types/geometry.h"
-//#include "Fonts.h"
 
 
 namespace Gods98

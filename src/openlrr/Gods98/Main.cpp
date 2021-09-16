@@ -1,26 +1,29 @@
-
+// Main.cpp : 
+//
 
 #include <d3drmwin.h>
 
-#include "DirectDraw.h"
-#include "Input.h"
-//#include "3DSound.h"
-#include "Draw.h"
-#include "Memory.h"
-#include "Files.h"
-#include "Config.h"
-#include "Errors.h"
-#include "Dxbug.h"
-#include "Utils.h"
-#include "Main.h"
-#include "Registry.h"
-#include "../Gods98Init/Init.h"
-#include "Sound.h"
+#include "../Legacy/legacy_d3drm.h"
+#include "../Legacy/legacy_timeapi.h"
+#include "../Types/geometry.h"
+
 #include "Animation.h"
+#include "Config.h"
+#include "DirectDraw.h"
+#include "Draw.h"
+#include "Dxbug.h"
+#include "Errors.h"
+#include "Files.h"
 #include "Fonts.h"
 #include "Images.h"
+#include "Input.h"
+#include "Memory.h"
+#include "Registry.h"
+#include "Sound.h"
+#include "Utils.h"
+#include "../Gods98Init/Init.h"
 
-#include "../Types/geometry.h"
+#include "Main.h"
 
 #include "../LegoRR/Lego.h"  // Gods_Go
 
@@ -30,35 +33,6 @@
  **********************************************************************************/
 
 #pragma region Forward Declarations
-
-/// TODO: We're currently just relying on the IID defined in LegoRR,
-///        since our `d3drm.lib` won't give it to us. Later on this should be manually defined.
-
-// {4a1b1be6-bfed-11d1-8ed8-00a0c967a482}
-// <LegoRR.exe @004a0958>
-IID & Idl::IID_IDirect3DRMViewport2 = *(IID*)0x004a0958;
-// {eb16cb03-d271-11ce-ac48-0000c03825a1}
-// <LegoRR.exe @004a0968>
-IID & Idl::IID_IDirect3DRMFrame = *(IID*)0x004a0968;
-// {ff6b7f70-a40e-11d1-91f9-0000f8758e66}
-// <LegoRR.exe @004a0988>
-IID & Idl::IID_IDirect3DRMFrame3 = *(IID*)0x004a0988;
-// {a3a80d01-6e12-11cf-ac4a-0000c03825a1}
-// <LegoRR.exe @004a09a8>
-IID & Idl::IID_IDirect3DRMMesh = *(IID*)0x004a09a8;
-// {4516ec77-8f20-11d0-9b6d-0000c0781bc3}
-// <LegoRR.exe @004a09c8>
-IID & Idl::IID_IDirect3DRMMeshBuilder2 = *(IID*)0x004a09c8;
-// {eb16cb09-d271-11ce-ac48-0000c03825a1}
-// <LegoRR.exe @004a0a18>
-IID & Idl::IID_IDirect3DRMTexture = *(IID*)0x004a0a18;
-// {59163de0-6d43-11cf-ac4a-0000c03825a1}
-// <LegoRR.exe @004a0b48>
-IID & Idl::IID_IDirect3DRMUserVisual = *(IID*)0x004a0b48;
-// {4516ec83-8f20-11d0-9b6d-0000c0781bc3}
-// <LegoRR.exe @004a0bd8>
-IID & Idl::IID_IDirect3DRM3 = *(IID*)0x004a0bd8;
-
 
 /*#define Input_InitKeysAndDI ((void (__cdecl*)(void))0x0047f050)
 #define Input_ReadKeys ((void (__cdecl*)(void))0x0047f1b0)
@@ -242,7 +216,7 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 	char noHALMsg[1024];
 
 	/// NEW GODS98: Not called in LegoRR WinMain
-	//::CoInitialize(nullptr);
+	::CoInitialize(nullptr);
 
 
 	/// OLD LEGORR: Mutex setup is called at the very beginning in LegoRR
@@ -397,12 +371,12 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 					}
 				}
 
-#ifdef _DEBUG
+#ifdef _DEBUG_2
 			// REMOVED: This debug code isn't helpful
 			/*{
 				File* logFile = File_Open("notthere.dat", "rb");		// Log a failed file open in FileMon
 			}*/
-#endif // _DEBUG
+#endif // _DEBUG_2
 
 
 				// If? a main loop is specified then run it until it returns false...
@@ -413,7 +387,7 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 					real32 time = 1.0f;
 					//uint32 currTime;
 
-					uint32 lastTime = ::timeGetTime();
+					uint32 lastTime = legacy::timeGetTime();
 
 					while (!mainGlobs.exit) {
 						
@@ -447,10 +421,10 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 						} else if (mainGlobs.flags & MainFlags::MAIN_FLAG_PAUSED) {
 							// In LegoRR, this state is never reachable because Main_SetPaused is never used.
 							time = 0.0f;
-							lastTime = ::timeGetTime();
+							lastTime = legacy::timeGetTime();
 						} else if (mainGlobs.fixedFrameTiming == 0.0f) { // no fps defined
 							// Measure the time taken over the last frame (to be passed next loop)
-							uint32 currTime = ::timeGetTime();
+							uint32 currTime = legacy::timeGetTime();
 							time = ((real32)(currTime - lastTime)) / (1000.0f / STANDARD_FRAMERATE);
 							lastTime = currTime;
 #ifndef _UNLIMITEDUPDATETIME
@@ -462,17 +436,17 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 
 						} else {
 							time = mainGlobs.fixedFrameTiming;
-							lastTime = ::timeGetTime();
+							lastTime = legacy::timeGetTime();
 						}
 					}
 				}
 
-#ifdef _DEBUG
+#ifdef _DEBUG_2
 			// REMOVED: This debug code isn't helpful
 			/*{
 				File* logFile = File_Open("notthere.dat", "rb");
 			}*/
-#endif // _DEBUG
+#endif // _DEBUG_2
 
 			/*
 #ifdef CONFIG_DEVELOPMENTMODE
@@ -519,7 +493,7 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 	Error_Shutdown();
 
 	/// NEW GODS98: Not called in LegoRR WinMain
-	//::CoUninitialize();
+	::CoUninitialize();
 
 	return 0;
 }
@@ -760,7 +734,7 @@ uint32 __cdecl Gods98::Main_GetTime(void)
 {
 	log_firstcall();
 
-	return ::timeGetTime();
+	return legacy::timeGetTime();
 }
 
 
@@ -870,7 +844,7 @@ bool32 __cdecl Gods98::Main_SetupDirect3D(const DirectDraw_Device* dev, IDirectD
 //	LPDIRECT3D3 d3d3;
 //	LPDIRECT3DDEVICE3 d3ddev3;
 	HRESULT r;
-	LPDIRECTDRAWSURFACE surf1;
+	LPDIRECTDRAWSURFACE surf1 = nullptr; // dummy init
 	
 	if (dev) {
 		guid = const_cast<GUID*>(&dev->guid);

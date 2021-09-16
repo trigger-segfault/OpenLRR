@@ -5,6 +5,7 @@
 #include "dllmain.h"
 
 #include "Gods98/Main.h"
+#include "Legacy/legacy_timeapi.h"
 
 
 //#define make_func(ADDR, RETURN, CONV, ...) ((RETURN (CONV*)(__VA_ARGS__)) (ADDR))
@@ -19,7 +20,7 @@ int __stdcall OpenLRR_WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPST
 {
     MakeConsole();
     // currently this just wraps LegoRR.exe!WinMain, to let us know the hook worked
-    std::printf("[0x%08x] OpenLRRWinMain\n", ::timeGetTime());
+    std::printf("[0x%08x] OpenLRRWinMain\n", legacy::timeGetTime());
 
     interop_hook_all();
 

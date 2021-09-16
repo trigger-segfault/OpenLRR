@@ -1,3 +1,11 @@
+// Images.h : 
+//
+/// APIS: IDirectDraw4, IDirectDrawSurface4
+/// DEPENDENCIES: Bmp, DirectDraw, Files, (Dxbug, Errors, Memory)
+/// DEPENDENTS: Fonts, Bubble, FrontEnd, HelpWindow, Info, Interface, Lego, Loader,
+///             NERPs, Objective, ObjInfo, Panel, Pointer, Priorities, Rewards,
+///             ScrollInfo, Text, ToolTip
+
 #pragma once
 
 #include "../common.h"
@@ -14,7 +22,6 @@ struct _D3DRMIMAGE;
 typedef struct _D3DRMIMAGE D3DRMIMAGE;
 struct IDirectDraw4;
 struct IDirectDrawSurface4;
-struct IDirectDrawClipper;
 struct _DDSURFACEDESC2;
 typedef struct _DDSURFACEDESC2 DDSURFACEDESC2;
 struct tagPALETTEENTRY;

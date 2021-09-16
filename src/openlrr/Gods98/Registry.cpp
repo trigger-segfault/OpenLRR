@@ -1,3 +1,5 @@
+// Registry.cpp : 
+//
 
 #include <windows.h>
 

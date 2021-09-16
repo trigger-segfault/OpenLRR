@@ -72,6 +72,16 @@ bool hook_write(void* address, const uint8* newData, size_t size, OPTIONAL uint8
         return false;
     }
 
+    //if (backupProtect & PAGE_GUARD)
+    //    std::printf("VirtualProtect PAGE_GUARD @ 0x%p (flags: 0x%08x)\n", address, backupProtect);
+    //else if (backupProtect == PAGE_EXECUTE)
+    //    std::printf("");
+    //else if (backupProtect == PAGE_EXECUTE_READ)
+    //    std::printf("");
+    //else
+    //    std::printf("VirtualProtect @ 0x%p (flags: 0x%08x)\n", address, backupProtect);
+
+
     if (backup) std::memcpy(backup, address, size);  // make backup
     std::memcpy(address, newData, size); // write new data
 

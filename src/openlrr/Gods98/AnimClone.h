@@ -1,3 +1,10 @@
+// AnimClone.h : 
+//
+/// APIS: IDirect3DRM3, IDirect3DRMAnimationSet2, IDirect3DRMFrame[13|Array],
+///       IDirect3DRMUserVisual, IDirect3DRMVisual
+/// DEPENDENCIES: Lws, Main, Mesh, (Containers, Errors, Memory)
+/// DEPENDENTS: Containers
+
 #pragma once
 
 #include "../common.h"

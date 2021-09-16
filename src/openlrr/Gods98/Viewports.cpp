@@ -1,15 +1,20 @@
+// Viewports.cpp : 
+//
 
 #include <d3drm.h>
 
-#include "Errors.h"
-#include "Memory.h"
-#include "Main.h"
-#include "Mesh.h"
+#include "../Legacy/legacy_d3drm.h"
+
 #include "Containers.h"
-#include "Viewports.h"
-#include "Maths.h"
 #include "DirectDraw.h"
 #include "Dxbug.h"
+#include "Errors.h"
+#include "Main.h"
+#include "Maths.h"
+#include "Memory.h"
+#include "Mesh.h"
+
+#include "Viewports.h"
 
 
 /**********************************************************************************

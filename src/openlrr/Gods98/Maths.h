@@ -1,3 +1,11 @@
+// Maths.h : 
+//
+/// APIS: -
+/// DEPENDENCIES: -
+/// DEPENDENTS: Draw, Lws, Mesh, AITask, DynamicPM, ElectricFence, Erode, Fallin,
+///             Flocks, Lego, LegoCamera, LegoObject, LightEffects, Map3D, RadarMap,
+///             Roof, Smoke, Vehicle
+
 #pragma once
 
 #include "../common.h"

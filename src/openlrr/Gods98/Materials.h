@@ -1,3 +1,9 @@
+// Materials.h : 
+//
+/// APIS: IDirect3DRM3, IDirect3DRMMaterial[12]
+/// DEPENDENCIES: Main, (Errors)
+/// DEPENDENTS: Map3D
+
 #pragma once
 
 #include "../common.h"

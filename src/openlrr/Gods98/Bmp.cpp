@@ -1,8 +1,11 @@
+// Bmp.cpp : 
+//
 
 #include <d3drmwin.h>
 
-#include "Bmp.h"
 #include "Memory.h"
+
+#include "Bmp.h"
 
 
 /**********************************************************************************

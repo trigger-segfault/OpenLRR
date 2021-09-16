@@ -1,12 +1,16 @@
+// DirectDraw.cpp : 
+//
 
 #include <windows.h>
 #include <ddraw.h>
 #include <d3drm.h>
 
-#include "Errors.h"
-#include "Dxbug.h"
-#include "Files.h"
+#include "../Legacy/legacy_ddraw.h"
+
 #include "Bmp.h"
+#include "Dxbug.h"
+#include "Errors.h"
+#include "Files.h"
 #include "Main.h"
 #include "Memory.h"
 
@@ -92,7 +96,7 @@ bool32 __cdecl Gods98::DirectDraw_EnumDrivers(OUT DirectDraw_Driver* list, OUT u
 
 	directDrawGlobs.driverList = list;
 	// Enumerate each driver and record its GUID and description
-	::DirectDrawEnumerateA(DirectDraw_EnumDriverCallback, nullptr);
+	legacy::DirectDrawEnumerateA(DirectDraw_EnumDriverCallback, nullptr);
 
 	*count = directDrawGlobs.driverCount;
 	return true;
@@ -135,7 +139,7 @@ bool32 __cdecl Gods98::DirectDraw_EnumDevices(const DirectDraw_Driver* driver, O
 	if (driver->flags & DirectDraw_DriverFlags::DIRECTDRAW_FLAG_DRIVER_PRIMARY) guid = nullptr;
 	else guid = const_cast<GUID*>(&driver->guid);
 
-	if (::DirectDrawCreate(const_cast<GUID*>(&driver->guid), &lpDD1, nullptr) == DD_OK) {
+	if (legacy::DirectDrawCreate(const_cast<GUID*>(&driver->guid), &lpDD1, nullptr) == DD_OK) {
 		if (lpDD1->QueryInterface(IID_IDirectDraw4, (void**)&lpDD) == DD_OK) {
 
 			if (lpDD->QueryInterface(IID_IDirect3D3, (void**)&lpD3D) == DD_OK) {
@@ -209,7 +213,7 @@ bool32 __cdecl Gods98::DirectDraw_EnumModes(const DirectDraw_Driver* driver, boo
 			if (driver->flags & DirectDraw_DriverFlags::DIRECTDRAW_FLAG_DRIVER_PRIMARY) guid = nullptr;
 			else guid = const_cast<GUID*>(&driver->guid);
 
-			if (::DirectDrawCreate(guid, &lpDD1, nullptr) == DD_OK){
+			if (legacy::DirectDrawCreate(guid, &lpDD1, nullptr) == DD_OK){
 				if (lpDD1->QueryInterface(IID_IDirectDraw4, (void**)&lpDD) == DD_OK){
 					
 					directDrawGlobs.modeList = list;
@@ -281,7 +285,7 @@ bool32 __cdecl Gods98::DirectDraw_Setup(bool32 fullscreen, const DirectDraw_Driv
 
 	Main_SetupDisplay(fullscreen, xPos, yPos, width, height);
 
-	if (::DirectDrawCreate(guid, &ddraw1, 0) == DD_OK){
+	if (legacy::DirectDrawCreate(guid, &ddraw1, 0) == DD_OK){
 		if (ddraw1->QueryInterface(IID_IDirectDraw4, (void**)&directDrawGlobs.lpDirectDraw) == DD_OK){
 			if (directDrawGlobs.lpDirectDraw->SetCooperativeLevel(directDrawGlobs.hWnd, fullscreen?(DDSCL_EXCLUSIVE|DDSCL_FULLSCREEN):DDSCL_NORMAL) == DD_OK){
 				if (fullscreen) r = directDrawGlobs.lpDirectDraw->SetDisplayMode(width, height, bpp, 0, 0);
