@@ -1,6 +1,7 @@
 // Utils.cpp : 
 //
 
+#include "Errors.h"
 #include "Memory.h"
 
 #include "Utils.h"
@@ -12,12 +13,10 @@
 
 #pragma region Functions
 
-//typedef char* Util_StringMatrix[4][4];
-
 // <missing>
 char* __cdecl Gods98::Util_GetLine(IN OUT char** buffer, const char* bufferEnd)
 {
-	bool32 foundEnd = FALSE;
+	bool32 foundEnd = false;
 	char* s;
 	char* line = *buffer;
 
@@ -42,10 +41,10 @@ uint32 __cdecl Gods98::Util_Tokenise(IN OUT char* str, OUT char** argv, const ch
 {
 	log_firstcall();
 
+	if (str[0] == '\0') return 0;
+
 	char* s = str;
 	uint32 count = 0, sl = std::strlen(sep);
-
-	if (str[0] == '\0') return 0;
 
 	argv[count++] = str;
 	while (*s != '\0') {
@@ -64,18 +63,19 @@ uint32 __cdecl Gods98::Util_WSTokenise(IN OUT char* str, OUT char** argv)
 {
 	log_firstcall();
 
+	if (str[0] == '\0') return 0;
+
 	char* s = str;
 	uint32 count = 0;
 
-	if (str[0] == '\0') return 0;
-
 	argv[count++] = str;
-	while (*s != '\0'){
-		if (std::isspace(*(uchar8*)s)) {
+	while (*s != '\0') {
+		if (std::isspace((uchar8)*s)) {
 			*s++ = '\0';
-			while (std::isspace(*(uchar8*)s)) s++;
+			while (std::isspace((uchar8)*s)) s++;
 			argv[count++] = s;
-		} else s++;
+		}
+		else s++;
 	}
 
 	return count;
@@ -97,40 +97,35 @@ char* __cdecl Gods98::Util_RemoveUnderscores(const char* str, ...)
 {
 	log_firstcall();
 
-	const char* s;
-	char* t;
-	char completeString[UTIL_MAXSTRINGLENGTH], buffer[UTIL_MAXSTRINGLENGTH];
-	uint32 len;
-	std::va_list args;
-	char* result;
+	// string passed through vsprintf
+	char completeString[UTIL_MAXSTRINGLENGTH];
 
+	// output formatted string with ('_' -> ' ') and ('\\n' -> '\n')
+	// There is no circumstance where initialization is required,
+	//  buffer is always null-terminated, and only read after this action.
+	char buffer[UTIL_MAXSTRINGLENGTH];// = { 0 }; // dummy init
+
+	std::va_list args;
 
 	va_start(args, str);
-	len = std::vsprintf(completeString, str, args);
-	//Error_Fatal(len > UTIL_MAXSTRINGLENGTH, Error_Format("String too big for 'Util_RemoveUnderscores'.", str));
+	uint32 len = std::vsprintf(completeString, str, args);
+	Error_Fatal(len > UTIL_MAXSTRINGLENGTH, Error_Format("String too big for 'Util_RemoveUnderscores'.", str));
 	va_end(args);
 
-	t = buffer;
-	for (s = completeString; '\0' != *s; s++)
-	{
-		if (('\\' == *s) && ('n' == *(s + 1)))
-		{
+	char* t = buffer;
+	for (const char* s = completeString; *s != '\0'; s++, t++) {
+		if (*s == '\\' && s[1] == 'n') {
 			*t = '\n';
 			s++;
 		}
-		else if ('_' == *s)
+		else if (*s == '_')
 			*t = ' ';
 		else
 			*t = *s;
-
-		t++;
 	}
 	*t = '\0';
 
-	//result = /*Util_StrCpy*/((char* (__cdecl*)(const char*))0x00477810)(str);
-	result = Util_StrCpy(str);
-
-	return result;
+	return Util_StrCpy(buffer);
 }
 
 // <LegoRR.exe @004778d0>
@@ -142,14 +137,18 @@ char* __cdecl Gods98::Util_StrIStr(char* str1, const char* str2)
 	uint32 len2 = std::strlen(str2);
 
 	if (!len1 || !len2)
-		return NULL;
-
-	for (uint32 i = 0; i < len1; i++)
-	{
+		return nullptr;
+	
+	for (char* str = str1; *str != '\0'; str++) {
+		if (::_strnicmp(str, str2, len2) == 0) {
+//			str+=len2;
+			return str;
+		}
+	}
+	for (uint32 i = 0; i < len1; i++) {
 		char* str = str1 + i;
-		if (::_strnicmp(str, str2, len2) == 0)
-		{
-			//			str+=len2;
+		if (::_strnicmp(str, str2, len2) == 0) {
+//			str+=len2;
 			return str;
 		}
 	}
@@ -173,10 +172,14 @@ uint32 __cdecl Gods98::Util_HashString(const char* str, bool32 bIgnoreBlanks, bo
 	uint32 index = 1;
 
 	while (*str != '\0') {
-		if (bIgnoreBlanks) while (std::isspace(*(uchar8*)str)) str++;
-		uchar8 c = (*(uchar8*)str++);
-		if (upperCase) c = std::toupper(c);
-		sum += multiple * index++ * c;
+		if (bIgnoreBlanks) {
+			while (std::isspace((uchar8)*str)) str++;
+		}
+
+		uchar8 uc = (uchar8)(*str++);
+		if (upperCase) uc = std::toupper(uc);
+
+		sum += multiple * index++ * uc;
 		multiple *= UTIL_LARGENUMBER;
 	}
 	return sum;
@@ -185,8 +188,11 @@ uint32 __cdecl Gods98::Util_HashString(const char* str, bool32 bIgnoreBlanks, bo
 // <missing>
 bool32 __cdecl Gods98::Util_IsNumber(const char* str)
 {
+	/// FIX APPLY: The Gods98 implementation forgot to incremenet str,
+	///             causing an infinite loop for non-empty strings.
 	while (*str != '\0') {
-		if (!std::isdigit(*(uchar8*)str) && *str != '.') return false;
+		if (!std::isdigit((uchar8)*str) && *str != '.') return false;
+		str++;
 	}
 
 	return true;
