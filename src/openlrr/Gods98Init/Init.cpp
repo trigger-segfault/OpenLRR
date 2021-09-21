@@ -7,9 +7,29 @@
 #include "../Gods98/Errors.h"
 #include "../Gods98/Main.h"
 
-#include "resource.h"
 #include "Init.h"
 
+
+/**********************************************************************************
+ ******** Resource IDs
+ **********************************************************************************/
+
+#pragma region Resource IDs
+
+/// NOTE: These are the original resource IDs present in LegoRR.exe.
+///       There may be no relation to resource IDs in OpenLRR unless otherwise stated.
+
+#define IDD_MODEDIALOG                  101   // 1033 : DIALOG : "Mode Selection"
+#define IDI_LEGORR						113   // 2057 : ICON_GROUP : (main icon)
+
+#define IDC_DRIVER                      1000  // IDD_MODEDIALOG : LISTBOX : "Driver"
+#define IDC_DEVICE                      1002  // IDD_MODEDIALOG : LISTBOX : "Device"
+#define IDC_MODE                        1003  // IDD_MODEDIALOG : LISTBOX : "Screen Mode" | "Window Size"
+#define IDC_FULLSCREEN                  1004  // IDD_MODEDIALOG : RADIO BUTTON : "Full Screen"
+#define IDC_WINDOW                      1005  // IDD_MODEDIALOG : RADIO BUTTON : "Window"
+#define IDC_MODELISTTEXT                1006  // IDD_MODEDIALOG : STATIC : "Screen Mode" | "Window Size"
+
+#pragma endregion
 
 /**********************************************************************************
  ******** Globals
@@ -169,11 +189,11 @@ BOOL __stdcall Gods98::Init_DialogProc(HWND hWndDlg, UINT uMsg, WPARAM wParam, L
 	
 			} else if (LOWORD(wParam) == IDC_MODE){
 
-				uint32 num;
-				char desc[1024];
+				// buffer should be filled by SendMessage LB_GETTEXT, unless it fails
+				char desc[1024] = { 0 }; // dummy init
 				uint32 mode;
 
-				num = ::SendMessageA((HWND)lParam, LB_GETCURSEL, 0, 0);
+				uint32 num = ::SendMessageA((HWND)lParam, LB_GETCURSEL, 0, 0);
 				::SendMessageA((HWND)lParam, LB_GETTEXT, num, (LPARAM) desc);
 				if (Init_GetMode(desc, &mode)) initGlobs.selMode = &initGlobs.modes[mode];
 
