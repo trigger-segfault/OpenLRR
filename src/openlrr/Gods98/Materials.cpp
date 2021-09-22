@@ -16,7 +16,7 @@
 #pragma region Functions
 
 // <LegoRR.exe @00489780>
-Gods98::Material_Dummy* __cdecl Gods98::Material_Create(real32 emissiveRed, real32 emissiveGreen, real32 emissiveBlue,
+Gods98::Material* __cdecl Gods98::Material_Create(real32 emissiveRed, real32 emissiveGreen, real32 emissiveBlue,
 									real32 specularRed, real32 specularGreen, real32 specularBlue, real32 power)
 {
 	log_firstcall();
@@ -26,7 +26,7 @@ Gods98::Material_Dummy* __cdecl Gods98::Material_Create(real32 emissiveRed, real
 	if (lpD3DRM()->CreateMaterial(power, &mat) == D3DRM_OK) {
 		mat->SetEmissive(emissiveRed, emissiveGreen, emissiveBlue);
 		mat->SetSpecular(specularRed, specularGreen, specularBlue);
-		return (Material_Dummy*) mat;
+		return (Material*) mat;
 	}
 
 	return nullptr;
@@ -34,7 +34,7 @@ Gods98::Material_Dummy* __cdecl Gods98::Material_Create(real32 emissiveRed, real
 
 
 // <unused?>
-void __cdecl Gods98::Material_Remove(Material_Dummy* material)
+void __cdecl Gods98::Material_Remove(Material* material)
 {
 
 	/// FIXME GODS98: using IDirect3DRMMaterial* instead of IDirect3DRMMaterial2*
@@ -46,7 +46,7 @@ void __cdecl Gods98::Material_Remove(Material_Dummy* material)
 }
 
 // <unused?>
-void __cdecl Gods98::Material_SetEmissive(Material_Dummy* material, real32 emissiveRed, real32 emissiveGreen, real32 emissiveBlue)
+void __cdecl Gods98::Material_SetEmissive(Material* material, real32 emissiveRed, real32 emissiveGreen, real32 emissiveBlue)
 {
 	/// FIXME GODS98: using IDirect3DRMMaterial* instead of IDirect3DRMMaterial2*
 	IDirect3DRMMaterial* mat = (IDirect3DRMMaterial*) material;
@@ -57,7 +57,7 @@ void __cdecl Gods98::Material_SetEmissive(Material_Dummy* material, real32 emiss
 }
 
 // <unused?>
-void __cdecl Gods98::Material_SetSpecular(Material_Dummy* material, real32 specularRed, real32 specularGreen, real32 specularBlue, real32 power)
+void __cdecl Gods98::Material_SetSpecular(Material* material, real32 specularRed, real32 specularGreen, real32 specularBlue, real32 power)
 {
 	/// FIXME GODS98: using IDirect3DRMMaterial* instead of IDirect3DRMMaterial2*
 	IDirect3DRMMaterial* mat = (IDirect3DRMMaterial*) material;
