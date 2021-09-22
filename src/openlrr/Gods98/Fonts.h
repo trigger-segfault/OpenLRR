@@ -103,7 +103,7 @@ struct Font
 	/*bec,4*/ FontFlags flags;
 	/*bf0,4*/ Font* nextFree;
 	/*bf4*/
-};// Font, * lpFont;
+};
 static_assert(sizeof(Font) == 0xbf4, "");
 
 

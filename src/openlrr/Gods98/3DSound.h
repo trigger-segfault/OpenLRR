@@ -100,7 +100,7 @@ enum Sound3D_Play : sint32 // Sound3D_PlayTAG
 	Sound3D_Play_OnPos   = 1,
 	Sound3D_Play_Normal  = 2,
 
-};// Sound3D_Play;
+};
 static_assert(sizeof(Sound3D_Play) == 0x4, "");
 } using Sound3D_Play = _ns_Sound3D_Play::Sound3D_Play;
 
@@ -130,7 +130,7 @@ struct Sound3D_WaveData
 	/*4c,4*/ bool32 bLoopFile;	    // Should we loop playback?
 	/*50,4*/ bool32 bFoundEnd;	    // Timer found file end
 	/*54*/
-};// Sound3D_WaveData, * lpSound3D_WaveData;
+};
 static_assert(sizeof(Sound3D_WaveData) == 0x54, "");
 
 
@@ -141,7 +141,7 @@ struct Sound3D_StreamData
 	//DWORD dsbCheckPos[NUM_PLAY_NOTIFICATIONS + 1];
 	/*58,4*/ bool32 playing;
 	/*c*/
-};// Sound3D_StreamData, * lpSound3D_StreamData;
+};
 static_assert(sizeof(Sound3D_StreamData) == 0x5c, "");
 
 
@@ -152,7 +152,7 @@ struct Sound3D_SoundRecord
 	/*08,4*/ IDirectSound3DBuffer* sound3DBuff;
 	/*0c,4*/ Sound3D_SoundRecord* next;
 	/*10*/
-};// Sound3D_SoundRecord, * lpSound3D_SoundRecord;
+};
 static_assert(sizeof(Sound3D_SoundRecord) == 0x10, "");
 
 
@@ -163,7 +163,7 @@ struct Sound3D_SoundFrameRecord
 	/*04,c*/ Vector3F pos;
 	/*10,4*/ Sound3D_SoundFrameRecord* next;
 	/*14*/
-};// Sound3D_SoundFrameRecord, * lpSound3D_SoundFrameRecord;
+};
 static_assert(sizeof(Sound3D_SoundFrameRecord) == 0x14, "");
 
 
@@ -181,7 +181,7 @@ struct Sound3D_SoundData
 	/*12c,4*/ uint32 voice;
 	/*130,4*/ Sound3DFlags flags;
 	/*134*/
-};// Sound3D_SoundData, * lpSound3D_SoundData;
+};
 static_assert(sizeof(Sound3D_SoundData) == 0x134, "");
 
 

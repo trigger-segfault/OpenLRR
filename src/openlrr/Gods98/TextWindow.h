@@ -81,7 +81,7 @@ struct TextWindow
 	/*828,4*/ real32 displayDelay;
 	/*82c,4*/ TextWindowFlags flags;
 	/*830*/
-};// TextWindow, * lpTextWindow;
+};
 static_assert(sizeof(TextWindow) == 0x830, "");
 
 #pragma endregion

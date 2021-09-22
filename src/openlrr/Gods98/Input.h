@@ -74,7 +74,7 @@ struct joystickType
 	/*18,4*/ sint32						xaxis;
 	/*1c,4*/ sint32						yaxis;
 	/*20*/
-};// joystickType, * lpjoystickType;
+};
 static_assert(sizeof(joystickType) == 0x20, "");
 
 

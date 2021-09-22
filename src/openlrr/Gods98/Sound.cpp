@@ -13,9 +13,7 @@
 
 #include "3DSound.h"
 #include "Errors.h"
-#include "Files.h"
 #include "Main.h"
-#include "Memory.h"
 
 #include "Sound.h"
 

@@ -97,7 +97,7 @@ struct Config
 	/*18,4*/ Config* linkPrev;
 	/*1c,4*/ Config* nextFree; // (listSet field)
 	/*20*/
-};// Config, * lpConfig;
+};
 static_assert(sizeof(Config) == 0x20, "");
 
 

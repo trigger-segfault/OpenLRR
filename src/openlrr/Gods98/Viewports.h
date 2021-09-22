@@ -91,7 +91,7 @@ struct Viewport
 	/*18,4*/ bool32 rendering;
 	/*1c,4*/ Viewport* nextFree;
 	/*20*/
-};// Viewport, * lpViewport;
+};
 static_assert(sizeof(Viewport) == 0x20, "");
 
 
@@ -102,7 +102,7 @@ struct Viewport_PickInfo
 	/*08,4*/ uint32 face;
 	/*0c,c*/ Vector3F position;
 	/*18*/
-};// Viewport_PickInfo, * lpViewport_PickInfo;
+};
 static_assert(sizeof(Viewport_PickInfo) == 0x18, "");
 
 
@@ -111,7 +111,7 @@ struct Viewport_Pick
 	/*0,4*/ Viewport_PickInfo* pickArray;
 	/*4,4*/ uint32 pickCount;
 	/*8*/
-};// Viewport_Pick, * lpViewport_Pick;
+};
 static_assert(sizeof(Viewport_Pick) == 0x8, "");
 
 

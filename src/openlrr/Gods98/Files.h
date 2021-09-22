@@ -127,7 +127,7 @@ struct File
 		WADFILE* wad;
 	};
 	/*8*/
-};// File, * lpFile;
+};
 static_assert(sizeof(File) == 0x8, "");
 
 

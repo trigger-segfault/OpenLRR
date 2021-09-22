@@ -5,7 +5,7 @@
 ///       IDirect3DRMMesh, IDirect3DRMMeshBuilder2, IDirect3DRMTexture[13], IDirect3DRMVisual,
 ///       IDirectDraw4, IDirectDrawPalette, IDirectDrawSurface[14]
 /// DEPENDENCIES: 3DSound, Activities, AnimClone, Bmp, Config, DirectDraw, Files,
-///               Lws, Main, Mesh, Utils (Errors, Memory)
+///               Lws, Main, Mesh, Utils, (Errors, Memory)
 /// DEPENDENTS: ...
 
 #pragma once
@@ -323,7 +323,7 @@ struct Container_TypeData
 	/*08,4*/ IDirect3DRMMesh* mesh;
 	/*0c,4*/ Mesh* transMesh;
 	/*10*/
-};// Container_TypeData, * lpContainer_TypeData;
+};
 static_assert(sizeof(Container_TypeData) == 0x10, "");
 
 
@@ -337,7 +337,7 @@ static_assert(sizeof(Container_TypeData) == 0x10, "");
 //	/*08,c*/ Vector3F vector;
 //	/*14,4*/ real32 angle;
 //	/*18*/
-//};// Container_RotationData, *lpContainer_RotationData;
+//};
 //static_assert(sizeof(Container_RotationData) == 0x18, "");
 
 
@@ -355,7 +355,7 @@ struct Container
 	/*24,4*/ Container_CloneData* cloneData;			// Only used by animsets.
 	/*28,4*/ Container* nextFree;
 	/*2c*/
-};// Container, * lpContainer;
+};
 static_assert(sizeof(Container) == 0x2c, "");
 
 
@@ -367,7 +367,7 @@ struct Container_CloneData
 	/*0c,4*/ uint32 cloneNumber;		// Total number of clones made and clone's number in the list.
 	/*10,4*/ bool32 used;
 	/*14*/
-};// Container_CloneData, * lpContainer_CloneData;
+};
 static_assert(sizeof(Container_CloneData) == 0x14, "");
 
 
@@ -385,7 +385,7 @@ struct Container_AppData
 	/*20,4*/ uint32 trigger;
 	/*24,4*/ Sound3D_SoundFrameRecord* soundList;		// For 'Sound3D'
 	/*28*/
-};// Container_AppData;
+};
 static_assert(sizeof(Container_AppData) == 0x28, "");
 
 
@@ -397,7 +397,7 @@ struct Container_MeshAppData
 	/*0c,4*/ bool32 groupZeroHidden;
 	/*10,4*/ bool32 firstAddGroup;
 	/*14*/
-};// Container_MeshAppData, * lpContainer_MeshAppData;
+};
 static_assert(sizeof(Container_MeshAppData) == 0x14, "");
 
 
@@ -411,7 +411,7 @@ struct Container_SearchData
 	/*14,4*/ uint32 mode;
 	/*18,4*/ uint32 matchNumber;
 	/*1c*/
-};// Container_SearchData, * lpContainer_SearchData;
+};
 static_assert(sizeof(Container_SearchData) == 0x1c, "");
 
 
@@ -420,7 +420,7 @@ struct Container_TextureRef
 	/*0,4*/ char* fileName;
 	/*4,4*/ IDirect3DRMTexture3* texture;
 	/*8*/
-};// Container_TextureRef, * lpContainer_TextureRef;
+};
 static_assert(sizeof(Container_TextureRef) == 0x8, "");
 
 
@@ -429,7 +429,7 @@ struct Container_TextureData
 	/*0,4*/ const char* xFileName;
 	/*4,4*/ Container_TextureFlags flags;
 	/*8*/
-};// Container_TextureData, * lpContainer_TextureData;
+};
 static_assert(sizeof(Container_TextureData) == 0x8, "");
 
 
@@ -437,7 +437,7 @@ static_assert(sizeof(Container_TextureData) == 0x8, "");
 //{
 //	/*0,4*/ uint32 dummy;
 //	/*4*/
-//};// Container_DummyTexture, *lpContainer_Texture;
+//};
 //static_assert(sizeof(Container_DummyTexture) == 0x4, "");
 
 
@@ -447,7 +447,7 @@ struct Container_Texture
 	/*4,4*/ IDirect3DRMTexture3* texture;
 	/*8,4*/ bool32 colourKey;
 	/*c*/
-};// Container_Texture, * lpContainer_Texture;
+};
 static_assert(sizeof(Container_Texture) == 0xc, "");
 
 
@@ -455,7 +455,7 @@ static_assert(sizeof(Container_Texture) == 0xc, "");
 //{
 //	/*0,4*/ uint32 dummy;
 //	/*4*/
-//};// Container_DummyMaterial, *lpContainer_Material;
+//};
 //static_assert(sizeof(Container_DummyMaterial) == 0x4, "");
 
 

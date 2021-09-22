@@ -80,7 +80,7 @@ struct Draw_Rect
 	/*14,4*/ real32 g;
 	/*18,4*/ real32 b;
 	/*1c*/
-};// Draw_Rect, * lpDraw_Rect;
+};
 static_assert(sizeof(Draw_Rect) == 0x1c, "");
 
 
@@ -89,7 +89,7 @@ struct DrawLineVertex
 	/*00,c*/ Vector3F position;
 	/*0c,4*/ uint32 colour;
 	/*10*/
-};// DrawLineVertex, * lpDrawLineVertex;
+};
 static_assert(sizeof(DrawLineVertex) == 0x10, "");
 
 

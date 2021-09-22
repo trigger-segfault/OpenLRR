@@ -78,6 +78,10 @@ void __cdecl Gods98::SE(const char* error, const char* errdesc)
 	Error_Warn(true, dxbugGlobs.DXErrorString);
 }
 
+
+#pragma warning(push)
+#pragma warning(disable : 4065)  // suppress "switch statement contains 'default' but no 'case' labels"
+
 // <LegoRR.exe @0048a090>
 HRESULT __cdecl Gods98::Error_SetDXError(HRESULT err, DxbugModule DXModule, const char* File, sint32 Line)
 {
@@ -314,5 +318,7 @@ HRESULT __cdecl Gods98::Error_SetDXError(HRESULT err, DxbugModule DXModule, cons
 	};
 	return err;
 }
+
+#pragma warning(pop) // disable : 4065
 
 #pragma endregion

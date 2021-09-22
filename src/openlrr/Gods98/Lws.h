@@ -2,7 +2,7 @@
 //
 /// FILEIO: Shared:Data[wad,std,cd]
 /// APIS: IDirect3DRM3, IDirect3DRMFrame3, IDirect3DRMUserVisual, IDirect3DRMVisual[*]
-/// DEPENDENCIES: 3DSound, Files, Main, Maths, Mesh, Utils (Errors, Memory)
+/// DEPENDENCIES: 3DSound, Files, Main, Maths, Mesh, Utils, (Errors, Memory)
 /// DEPENDENTS: AnimClone, Containers, ...
 
 #pragma once
@@ -126,7 +126,7 @@ struct Lws_SoundTrigger
 	/*cc,2*/ uint16 count;
 	/*ce,2*/ uint16 padding1;
 	/*d0*/
-};// Lws_SoundTrigger, * lpLws_SoundTrigger;
+};
 static_assert(sizeof(Lws_SoundTrigger) == 0xd0, "");
 
 
@@ -138,7 +138,7 @@ struct Lws_KeyInfo
 	/*24,2*/ uint16 frame;
 	/*26,2*/ uint16 padding1;
 	/*28*/
-};// Lws_KeyInfo, * lpLws_KeyInfo;
+};
 static_assert(sizeof(Lws_KeyInfo) == 0x28, "");
 
 
@@ -160,7 +160,7 @@ struct Lws_Node
 	/*2c,4*/ Lws_Node* childList;
 	/*30,4*/ Lws_Node* next;
 	/*34*/
-};// Lws_Node, * lpLws_Node;
+};
 static_assert(sizeof(Lws_Node) == 0x34, "");
 
 
@@ -185,7 +185,7 @@ struct Lws_Info
 	/*34,1*/ LwsFlags flags;
 	/*35,3*/ uint8 padding2[3];
 	/*38*/
-};// Lws_Info, * lpLws_Info;
+};
 static_assert(sizeof(Lws_Info) == 0x38, "");
 
 
@@ -194,7 +194,7 @@ struct Lws_MeshPath
 	/*0,4*/ char* path;
 	/*4,4*/ Mesh* mesh;
 	/*8*/
-};// Lws_MeshPath, * lpLws_MeshPath;
+};
 static_assert(sizeof(Lws_MeshPath) == 0x8, "");
 
 
@@ -211,7 +211,7 @@ struct Lws_Globs
 	/*4024,4*/ LwsSoundEnabledFunc SoundEnabledFunc;
 	/*4028,4*/ LwsPlaySample3DFunc PlaySample3DFunc;
 	/*402c*/
-};// Lws_Globs;
+};
 static_assert(sizeof(Lws_Globs) == 0x402c, "");
 
 #pragma endregion

@@ -72,7 +72,7 @@ struct AnimClone
 	/*18,4*/ uint32 partCount;
 	/*1c,4*/ uint32 frameCount;
 	/*20*/
-};// AnimClone, * lpAnimClone;
+};
 static_assert(sizeof(AnimClone) == 0x20, "");
 
 #pragma endregion

@@ -1,8 +1,8 @@
 // Sound.h : 
 //
 /// APIS: mci, mmio
-/// DEPENDENCIES: 3DSound, Main, ...
-/// DEPENDENTS: 3DSound, ...
+/// DEPENDENCIES: 3DSound, Main, (Errors)
+/// DEPENDENTS: 3DSound, Main, ...
 
 #pragma once
 
@@ -125,7 +125,7 @@ struct Sound
 {
 	/*0,4*/ uint32 handle;
 	/*4*/
-};// Sound, * lpSound;
+};
 static_assert(sizeof(Sound) == 0x4, "");
 
 

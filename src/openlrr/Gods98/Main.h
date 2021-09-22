@@ -4,7 +4,7 @@
 ///       IDirect3DDevice3
 ///       IDirectDraw4, IDirectDrawSurface4
 /// DEPENDENCIES: Animation, Config, DirectDraw, Draw, Files, Input, Registry,
-///               Sound, Utils, Init, Gods_Go (Dxbug, Errors, Fonts, Images, Memory)
+///               Sound, Utils, Init, Gods_Go, (Dxbug, Errors, Fonts, Images, Memory)
 /// DEPENDENTS: ...
 
 #pragma once

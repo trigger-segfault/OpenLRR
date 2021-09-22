@@ -387,7 +387,7 @@ struct Mesh_LightWave_Surface
 	/*34,4*/ LightWave_TexFlags texFlags;
 	/*38,4*/ sint32 texSeqOffset;
 	/*3c*/
-};// Mesh_LightWave_Surface, * lpMesh_LightWave_Surface;
+};
 static_assert(sizeof(Mesh_LightWave_Surface) == 0x3c, "");
 
 
@@ -397,7 +397,7 @@ struct Mesh_TextureStateChangeData
 	/*0,4*/ uint32 origValue; // type not guaranteed
 	/*4,4*/ bool32 changed;
 	/*8*/
-};// Mesh_TextureStateChangeData, * lpMesh_TextureStateChangeData;
+};
 static_assert(sizeof(Mesh_TextureStateChangeData) == 0x8, "");
 
 
@@ -407,7 +407,7 @@ struct Mesh_RenderDesc
 	/*4,4*/ void* renderCallbackData;
 	/*8,4*/ Mesh_RenderFlags renderFlags;
 	/*c*/
-};// Mesh_RenderDesc, * lpMesh_RenderDesc;
+};
 static_assert(sizeof(Mesh_RenderDesc) == 0xc, "");
 
 
@@ -419,7 +419,7 @@ struct Mesh_Vertex
 	/*18,4*/ real32 tu;
 	/*1c,4*/ real32 tv;
 	/*20*/
-};// Mesh_Vertex, * lpMesh_Vertex;
+};
 static_assert(sizeof(Mesh_Vertex) == 0x20, "");
 
 
@@ -435,7 +435,7 @@ struct Mesh_Group
 	/*68,4*/ Mesh_LightWave_Surface* lightWaveSurfaceInfo;
 	/*6c,4*/ Mesh_GroupFlags flags;
 	/*70*/
-};// Mesh_Group, * lpMesh_Group;
+};
 static_assert(sizeof(Mesh_Group) == 0x70, "");
 
 
@@ -457,7 +457,7 @@ struct Mesh
 	/// NEW GODS98: Not part of LegoRR
 	//MeshTextureRenderCallback textureRenderCallback;
 	//void* textureRenderCallbackData;
-};// Mesh, * lpMesh;
+};
 static_assert(sizeof(Mesh) == 0x34, "");
 
 
@@ -467,7 +467,7 @@ struct Mesh_PostRenderInfo
 	/*04,40*/ D3DMATRIX matWorld;
 	/*44,4*/ Mesh_PostRenderInfo* next;
 	/*48*/
-};// Mesh_PostRenderInfo, * lpMesh_PostRenderInfo;
+};
 static_assert(sizeof(Mesh_PostRenderInfo) == 0x48, "");
 
 
@@ -477,7 +477,7 @@ struct Mesh_TextureReference
 	/*4,4*/ char* path;
 	/*8,4*/ bool32 trans;
 	/*c*/
-};// Mesh_TextureReference, * lpMesh_TextureReference;
+};
 static_assert(sizeof(Mesh_TextureReference) == 0xc, "");
 
 

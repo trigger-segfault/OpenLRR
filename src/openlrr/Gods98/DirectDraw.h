@@ -131,7 +131,7 @@ struct DirectDraw_Driver
 	/*010,100*/ char desc[DIRECTDRAW_DRIVERSTRINGLEN];
 	/*110,4*/ DirectDraw_DriverFlags flags;
 	/*114*/
-};// DirectDraw_Driver, * lpDirectDraw_Driver;
+};
 static_assert(sizeof(DirectDraw_Driver) == 0x114, "");
 
 
@@ -141,7 +141,7 @@ struct DirectDraw_Device
 	/*010,100*/ char desc[DIRECTDRAW_DEVICESTRINGLEN];
 	/*110,4*/ DirectDraw_DeviceFlags flags;
 	/*114*/
-};// DirectDraw_Device, * lpDirectDraw_Device;
+};
 static_assert(sizeof(DirectDraw_Device) == 0x114, "");
 
 
@@ -153,7 +153,7 @@ struct DirectDraw_Mode
 	/*00c,100*/ char desc[DIRECTDRAW_DEVICESTRINGLEN];
 	/*10c,4*/ DirectDraw_ModeFlags flags;
 	/*110*/
-};// DirectDraw_Mode, * lpDirectDraw_Mode;
+};
 static_assert(sizeof(DirectDraw_Mode) == 0x110, "");
 
 
