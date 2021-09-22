@@ -437,6 +437,9 @@ void __cdecl Gods98::Wad_FileClose(sint32 handle)
 	log_firstcall();
 
 	if (wadGlobs.fileHandles[handle].active) {
+		///WARNING: If RNC_Uncompress is not not implemented,
+		///          we need to use legacy::free(data) for compression == 2
+		///         However, currently it is implemented.
 		std::free(wadGlobs.fileHandles[handle].data);
 		wadGlobs.fileHandles[handle].active = false;
 	}

@@ -224,8 +224,10 @@ bool interop_hook_Gods98_Bmp(void)
 
 bool interop_hook_Gods98_Compress(void)
 {   bool result = true;
-	// not ready yet, do not hook!
-	//result &= hook_write_jmpret(0x0049ca80, Gods98::RNC_Uncompress);
+
+	// this and one subfunction are implemented, but beyond that, everything is calling native code
+	result &= hook_write_jmpret(0x0049ca80, Gods98::RNC_Uncompress);
+
 	return_interop(result);
 }
 
@@ -1451,7 +1453,7 @@ bool interop_hook_all(void)
 	result &= interop_hook_Gods98_Animation();
 	result &= interop_hook_Gods98_AnimClone();
 	result &= interop_hook_Gods98_Bmp();
-	//result &= interop_hook_Gods98_Compress(); // not ready yet, don't hook in for now, since RNC is a pain
+	result &= interop_hook_Gods98_Compress();
 	result &= interop_hook_Gods98_Config();
 	result &= interop_hook_Gods98_Containers();
 	result &= interop_hook_Gods98_DirectDraw();
