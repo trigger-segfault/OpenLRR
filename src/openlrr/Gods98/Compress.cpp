@@ -14,6 +14,15 @@
 #define BE_uint16(val) ((uint16)_byteswap_ushort((val)))
 #define BE_uint32(val) ((uint32)_byteswap_ulong((val)))
 
+// shorthand for an N-bit mask applied to a value
+#define RNC_Mask(bits, value) (((1 << ((bits) & 0x1f)) - 1U) & (value))
+
+// Extra safety bounds checking (only half-implemented for Method1)
+#define RNC_BOUNDS_CHECKING
+
+// Call the original uncompress functions when defined
+//#define RNC_NATIVE_UNCOMPRESS
+
 #pragma endregion
 
 /**********************************************************************************
@@ -33,14 +42,12 @@ Gods98::RNC_Globs & Gods98::rncGlobs = *(Gods98::RNC_Globs*)0x00558d68;
 
 #pragma region Functions
 
+//#pragma optimize("", off)
+
 // <LegoRR.exe @0049ca80>
-uint32 __cdecl Gods98::RNC_Uncompress(IN void* bufferIn, OUT void** bufferOut)
+uint32 __cdecl Gods98::RNC_Uncompress(IN const void* bufferIn, OUT void** bufferOut)
 {
-	// There are a lot of potential issues implementing this, and little benefit.
-	// 
-	// No existing WAD files EVER use this method, and no tools are available to
-	//  easily create WADs using this compression method.
-	//return ((uint32(__cdecl*)(void*, void**))0x0049ca80)(bufferIn, bufferOut);
+	log_firstcall();
 
 	const RNC_Header* hdr = (const RNC_Header*)bufferIn;
 
@@ -64,9 +71,9 @@ uint32 __cdecl Gods98::RNC_Uncompress(IN void* bufferIn, OUT void** bufferOut)
 
 // Expects an allocated bufferOut of the required size
 // <LegoRR.exe @0049cb00>
-Gods98::RNCError __cdecl Gods98::_RNC_Uncompress(IN void* bufferIn, OUT void* bufferOut)
+Gods98::RNCError __cdecl Gods98::_RNC_Uncompress(IN const void* bufferIn, OUT void* bufferOut)
 {
-	//return ((Gods98::RNCError(__cdecl*)(void*, void*))0x0049cb00)(bufferIn, bufferOut);
+	log_firstcall();
 
 	const RNC_Header* hdr = (const RNC_Header*)bufferIn;
 
@@ -76,67 +83,213 @@ Gods98::RNCError __cdecl Gods98::_RNC_Uncompress(IN void* bufferIn, OUT void* bu
 
 	switch (hdr->compression) {
 	case RNCCompression::RNC_COMPRESS_STORE /*0*/:
-		std::memcpy(bufferOut, (const uint8*)bufferIn + 0x12 /*hdr->data*/, BE_uint32(hdr->beOrigSize));
+		//std::printf("RNC_COMPRESS_STORE\n");
+		std::memcpy(bufferOut, (const uint8*)hdr->data, BE_uint32(hdr->beOrigSize));
 		return RNCError::RNC_OK /*0*/;
 
 	case RNCCompression::RNC_COMPRESS_BEST /*1*/:
-		return _RNC_Uncompress_Method1(bufferIn, bufferOut);
-	
+		//std::printf("RNC_COMPRESS_BEST\n");
+		return RNC_M1_Uncompress(bufferIn, bufferOut);
+
 	case RNCCompression::RNC_COMPRESS_FAST /*2*/:
-		return _RNC_Uncompress_Method2(bufferIn, bufferOut);
+		//std::printf("RNC_COMPRESS_FAST\n");
+		return RNC_M2_Uncompress(bufferIn, bufferOut);
 
 	default:
 		return RNCError::RNC_INVALIDCOMPRESSION /*-2*/;
 	}
 }
 
+//#pragma optimize("", on)
+
 // <LegoRR.exe @0049cba0>
-Gods98::RNCError __cdecl Gods98::_RNC_Uncompress_Method1(IN void* bufferIn, OUT void* bufferOut)
+Gods98::RNCError __cdecl Gods98::RNC_M1_Uncompress(IN const void* bufferIn, OUT void* bufferOut)
 {
-	return ((Gods98::RNCError(__cdecl*)(void*, void*))0x0049cba0)(bufferIn, bufferOut);
+	log_firstcall();
+
+#ifdef RNC_NATIVE_UNCOMPRESS
+	return ((Gods98::RNCError(__cdecl*)(const void*, void*))0x0049cba0)(bufferIn, bufferOut);
+
+#else
+
+	RNC_BitStreamInit(bufferIn, bufferOut);
+
+	RNC_M1_BitStreamAdvance(2); // skip the first 2 bits
+
+	while (rncGlobs.Output < rncGlobs.OutputEnd) {
+		RNC_M1_ReadHuffmanTable(rncGlobs.HuffmanTable_Raw, 16);
+		RNC_M1_ReadHuffmanTable(rncGlobs.HuffmanTable_Dst, 16);
+		RNC_M1_ReadHuffmanTable(rncGlobs.HuffmanTable_Len, 16);
+
+		uint16 runCount = (uint16)RNC_M1_BitStreamAdvance(16);
+
+		assert(runCount != 0);
+		bool isDataRun = true;
+		while (runCount) {
+		//for (sint32 j = 0; j < runCount; j++) {
+			if (isDataRun) {
+				////// DATA RUN //////
+				uint16 runDataLength = (uint16)RNC_M1_ReadHuffman(rncGlobs.HuffmanTable_Raw);
+
+				#ifdef BOUNDS_CHECKING
+				if (rncGlobs.Output + runDataLength > rncGlobs.OutputEnd)
+					return RNCError::RNC_INVALIDCOMPRESSION;
+				#endif
+
+				//std::memcpy(rncGlobs.Output, rncGlobs.Input, runDataLength);
+				for (sint32 i = 0; i < runDataLength; i++) {
+					*rncGlobs.Output++ = *rncGlobs.Input++;
+				}
+
+				// no idea what the purpose of this is
+				uint32 input24 = ((uint32)rncGlobs.Input[2]<<16) | ((uint32)rncGlobs.Input[1]<<8) | (uint32)rncGlobs.Input[0];
+				rncGlobs.BitBuffer = (input24 << (rncGlobs.BitCount & 0x1f)) | RNC_Mask(rncGlobs.BitCount, rncGlobs.BitBuffer);
+
+				runCount--;
+			}
+			else {
+				////// COPY RUN //////
+				uint16 prevRunOffset = (uint16)RNC_M1_ReadHuffman(rncGlobs.HuffmanTable_Dst);
+				const uint8* prevOutput = rncGlobs.Output - (uint32)prevRunOffset - 1; // minimum of -1 offset
+				uint16 runCopyLength = (uint16)RNC_M1_ReadHuffman(rncGlobs.HuffmanTable_Len);
+
+				// This is an overlapped copy, meaning any new data copied into
+				//  rncGlobs.Output can still be used, as a sort-of auto-repeat mechanism.
+				// Overlapped copy is a common occurance in compression algorithms.
+
+				// The assembly for this is really muddled, but the condition is that
+				//  the for loop will NEVER iterate for more than SHRT_MAX times
+				//  as the original `if (runCopyLength != -2)` ensures that the
+				//  `(runCopyLength+1 & 0xffff) + 1` count will never be 0x10000.
+
+				runCopyLength += 2; // copy a minimum of 2 bytes
+				
+				#ifdef BOUNDS_CHECKING
+				if (rncGlobs.Output + runCopyLength > rncGlobs.OutputEnd)
+					return RNCError::RNC_INVALIDCOMPRESSION;
+				#endif
+
+				//overlapped_memcpy(rncGlobs.Output, prevOutput, runCopyLength);
+				for (sint32 i = 0; i < runCopyLength; i++) {
+					*rncGlobs.Output++ = *prevOutput++;
+				}
+
+				// runCount is not decremented on the copy command, I'm not sure how that's supposed to work
+			}
+
+			isDataRun = !isDataRun;
+		}
+	}
+	return RNCError::RNC_OK;
+#endif
 }
 
 // <LegoRR.exe @0049cd20>
-Gods98::RNCError __cdecl Gods98::_RNC_Uncompress_Method2(IN void* bufferIn, OUT void* bufferOut)
+Gods98::RNCError __cdecl Gods98::RNC_M2_Uncompress(IN const void* bufferIn, OUT void* bufferOut)
 {
-	return ((Gods98::RNCError(__cdecl*)(void*, void*))0x0049cd20)(bufferIn, bufferOut);
+	log_firstcall();
+
+#ifdef RNC_NATIVE_UNCOMPRESS
+	return ((Gods98::RNCError(__cdecl*)(const void*, void*))0x0049cd20)(bufferIn, bufferOut);
+
+#else
+
+	RNC_BitStreamInit(bufferIn, bufferOut);
+
+	RNC_M2_BitStreamAdvance(2); // skip the first 2 bits
+
+	while (rncGlobs.Output < rncGlobs.OutputEnd) {
+
+		if (!RNC_M2_BitStreamAdvance(1)) { // single byte data run //
+			*rncGlobs.Output++ = *rncGlobs.Input++;
+		}
+		else if (!RNC_M2_BitStreamAdvance(1)) { // data run or copy run //
+			uint16 runCode;
+
+			if ((runCode = RNC_M2_ReadLengthCode()) == 9) { // 9 is max return from RNC_M2_ReadLengthCode
+				// data run //
+				uint16 runDataLength = (uint16)RNC_M2_BitStreamAdvance(4);
+
+				runDataLength = (uint16)((uint32)runDataLength * 4 + 12);
+
+				//std::memcpy(rncGlobs.Output, rncGlobs.Input, runDataLength);
+				for (sint32 i = 0; i < runDataLength; i++) {
+					*rncGlobs.Output++ = *rncGlobs.Input++;
+				}
+			}
+			else {
+				// basic copy run //
+				uint16 runCopyLength = runCode;
+				uint16 prevRunOffset = RNC_M2_ReadOffsetCode();
+				const uint8* prevOutput = rncGlobs.Output - (uint32)prevRunOffset;
+
+				//overlapped_memcpy(rncGlobs.Output, prevOutput, runCopyLength);
+				for (sint32 i = 0; i < runCopyLength; i++) {
+					*rncGlobs.Output++ = *prevOutput++;
+				}
+			}
+		}
+		else { // other copy runs -or- no copy run //
+			uint16 runCopyLength;
+			uint16 prevRunOffset;
+
+			if (!RNC_M2_BitStreamAdvance(1)) {
+				runCopyLength = 2;
+				prevRunOffset = (*rncGlobs.Input++) + 1;
+			}
+			else if (!RNC_M2_BitStreamAdvance(1)) {
+				runCopyLength = 3;
+				prevRunOffset = (uint32)RNC_M2_ReadOffsetCode();
+			}
+			else if ((runCopyLength = (*rncGlobs.Input++)) != 0) {
+				runCopyLength += 8;
+				prevRunOffset = (uint32)RNC_M2_ReadOffsetCode();
+			}
+			else {
+				// no copy run //
+				RNC_M2_BitStreamAdvance(1); // skip next 1 bit
+				continue;
+			}
+
+			const uint8* prevOutput = rncGlobs.Output - (uint32)prevRunOffset;
+
+			//overlapped_memcpy(rncGlobs.Output, prevOutput, runLength);
+			for (sint32 i = 0; i < runCopyLength; i++) {
+				*rncGlobs.Output++ = *prevOutput++;
+			}
+		}
+	}
+	return RNCError::RNC_OK;
+#endif
 }
 
-// Everything beyond this point is not reachable in the call tree yet.
-//  _RNC_Uncompress_Method1 and _RNC_Uncompress_Method2 are both pretty complicated.
-//  And hooking individual functions for testing may cause side effects as I believe
-//  this module is written in assembly, and some weird optimizations may make this a pain.
-
 // <LegoRR.exe @0049cf30>
-void __cdecl Gods98::RNC_BitStreamInit(void* bufferIn, void* bufferOut)
+void __cdecl Gods98::RNC_BitStreamInit(const void* bufferIn, void* bufferOut)
 {
 	const RNC_Header* hdr = (const RNC_Header*)bufferIn;
 
 	rncGlobs.BitCount = 0;
-	rncGlobs.Input = (const uint8*)bufferIn + 0x12; //hdr->data;
+	rncGlobs.Input = (const uint8*)hdr->data; // bufferIn + 0x12;
 	rncGlobs.Output = (uint8*)bufferOut;
 	rncGlobs.OutputEnd = (const uint8*)bufferOut + BE_uint32(hdr->beOrigSize);
 }
 
-// Method 1 exclusive
 // <LegoRR.exe @0049cf80>
 uint32 __cdecl Gods98::RNC_M1_BitStreamAdvance(uint8 bits)
 {
 	uint32 result = 0;
 	for (sint32 k = 0; k < bits; k++) {
 		if (rncGlobs.BitCount == 0) {
-			// Refill BitBuffer with current Input WORD ptr, then increment
-			// Although this is loaded as a dword ptr, there should
-			//  logically never be a case where BitBuffer > USHORT_MAX.
-			// Some of these awkward decompilations convince me this was written in assembly.
-			rncGlobs.BitBuffer = *(uint32*)((uint16*)rncGlobs.Input++); // get DWORD ptr, then increment as WORD ptr
-			//rncGlobs.Input = (rncGlobs.Input + 2); // (uint16*)Input++
+			// Refill BitBuffer with current Input DWORD ptr
+			rncGlobs.BitBuffer = *(uint32*)rncGlobs.Input; // get DWORD ptr
+			rncGlobs.Input += 2; // then increment as WORD ptr...
 			rncGlobs.BitCount = 16;
 		}
 
 		if (rncGlobs.BitBuffer & 0x1) {
 			result |= (1 << k);
 		}
+
 		rncGlobs.BitBuffer >>= 1;
 		rncGlobs.BitCount--;
 	}
@@ -144,22 +297,23 @@ uint32 __cdecl Gods98::RNC_M1_BitStreamAdvance(uint8 bits)
 	return result;
 }
 
-// Method 2 exclusive
 // <LegoRR.exe @0049cff0>
 uint32 __cdecl Gods98::RNC_M2_BitStreamAdvance(uint8 bits)
 {
 	uint32 result = 0;
 	for (sint32 k = 0; k < bits; k++) {
 		if (rncGlobs.BitCount == 0) {
-			// Refill ByteBuffer with current Input BYTE ptr, then increment
-			rncGlobs.ByteBuffer = *rncGlobs.Input++;
+			// Refill ByteBuffer with current Input BYTE ptr
+			rncGlobs.ByteBuffer = *rncGlobs.Input; // get BYTE ptr
+			rncGlobs.Input += 1; // then increment as BYTE ptr
 			rncGlobs.BitCount = 8;
 		}
 
 		result <<= 1;
-		if ((rncGlobs.ByteBuffer & 0x80) != 0) {
-			result |= 0x1; // result++; // I think this is just |= 0x1;
+		if (rncGlobs.ByteBuffer & 0x80) {
+			result |= 0x1;
 		}
+
 		rncGlobs.ByteBuffer <<= 1;
 		rncGlobs.BitCount--;
 	}
@@ -167,10 +321,10 @@ uint32 __cdecl Gods98::RNC_M2_BitStreamAdvance(uint8 bits)
 	return result;
 }
 
-// Method 1 exclusive
 // <LegoRR.exe @0049d050>
 void __cdecl Gods98::RNC_M1_ReadHuffmanTable(HuffmanLeaf* table, uint8 bits)
 {
+	// Probably reset the last (or max) number of bits used by the table
 	RNC_M1_HuffmanReset(table, bits);
 
 	uint8 bits2 = (uint8)RNC_M1_BitStreamAdvance(5);
@@ -185,26 +339,38 @@ void __cdecl Gods98::RNC_M1_ReadHuffmanTable(HuffmanLeaf* table, uint8 bits)
 	}
 }
 
-// Method 1 exclusive
 // <LegoRR.exe @0049d0c0>
 uint16 __cdecl Gods98::RNC_M1_ReadHuffman(HuffmanLeaf* table)
 {
 	uint8 k = 0;
-	while (!table[k].count_2 || (((1 << (uint8)table[k].count_2) - 1U) & rncGlobs.BitBuffer) != table[k].value_2) {
+	
+	#ifdef RNC_BOUNDS_CHECKING
+	for (k = 0; k < 16; k++) {
+		// count_2 shouldn't be zero, as that would result in a mask of 0x0
+		if (table[k].count_2 && RNC_Mask(table[k].count_2, rncGlobs.BitBuffer) == table[k].value_2)
+			break;
+	}
+	assert(k != 16);
+
+	#else
+	while (!table[k].count_2 || RNC_Mask(table[k].count_2, rncGlobs.BitBuffer) != table[k].value_2) {
 		k++;
 	}
 
-	RNC_M1_BitStreamAdvance((uint8)table->count_2);
+	#endif
+
+	// under current circumstances, count_2 should never be > 16. So we don't apply the hiword mask.
+	uint32 hiword = RNC_M1_BitStreamAdvance((uint8)table[k].count_2);
 	if (k < 2) {
+		//return hiword & 0xffff0000 | (uint32)k;
 		return (uint16)k; // no additional data to shift/add in, return k
 	}
 
-	return (uint16)(1 << (k - 1)) | (uint16)RNC_M1_BitStreamAdvance(k - 1);
+	return (uint16)RNC_M1_BitStreamAdvance(k - 1) | (uint16)(1 << ((k - 1) & 0x1f));
 }
 
-// Method 2 exclusive
 // <LegoRR.exe @0049d130>
-uint16 __cdecl Gods98::RNC_M2_ReadWindow(void)
+uint16 __cdecl Gods98::RNC_M2_ReadLengthCode(void)
 {
 	// returns value in the range: 4 -> 9
 	uint16 num1 = (uint16)RNC_M2_BitStreamAdvance(1); // A (bit 0)
@@ -219,13 +385,11 @@ uint16 __cdecl Gods98::RNC_M2_ReadWindow(void)
 	// 0b0000011C if (!A)
 	// 0 = 0xfffe, 1 = 0xffff
 	sint16 num2 = (sint16)RNC_M2_BitStreamAdvance(1); // C (bit 2)
-	//return 0x4 | (num1 << 1) | 
-	return ((sint16)num2 - 2) + ((num1 | 0x4) << 1);
+	return (uint16)( ((sint16)num2 - 2) + ((num1 | 0x4) << 1) );
 }
 
-// Method 2 exclusive
 // <LegoRR.exe @0049d170>
-uint16 __cdecl Gods98::RNC_M2_ReadCode(void)
+uint16 __cdecl Gods98::RNC_M2_ReadOffsetCode(void)
 {
 	uint16 value = 0;
 
@@ -256,22 +420,21 @@ uint16 __cdecl Gods98::RNC_M2_ReadCode(void)
 	}
 
 	// +1 for minimum of 1
-	return (value << 8) + 1 + (uint16)*rncGlobs.Input++;
+	return (value << 8) + 1 + (uint16)(*rncGlobs.Input++);
 }
 
-// Method 1 exclusive
 // <LegoRR.exe @0049d210>
 void __cdecl Gods98::RNC_M1_HuffmanReset(HuffmanLeaf* table, uint8 bits)
 {
-	for (sint32 k = 0; k < bits; k++) {
-		table[k].value_1 = 0;
-		table[k].count_1 = 0xffff; // USHRT_MAX
-		table[k].value_2 = 0;
-		table[k].count_2 = 0;
+	for (sint32 i = 0; i < bits; i++) {
+		table[i].value_1 = 0;      // (unused in decompression)
+		table[i].count_1 = 0xffff; // (unused in decompression) USHRT_MAX
+
+		table[i].value_2 = 0;
+		table[i].count_2 = 0;
 	}
 }
 
-// Method 1 exclusive
 // <LegoRR.exe @0049d250>
 void __cdecl Gods98::RNC_M1_HuffmanAssignValues(HuffmanLeaf* table, uint8 bits)
 {
@@ -291,7 +454,6 @@ void __cdecl Gods98::RNC_M1_HuffmanAssignValues(HuffmanLeaf* table, uint8 bits)
 	}
 }
 
-// Method 1 exclusive
 // <LegoRR.exe @0049d2c0>
 uint32 __cdecl Gods98::RNC_M1_MirrorBits(uint32 value, uint8 bits)
 {
@@ -304,5 +466,7 @@ uint32 __cdecl Gods98::RNC_M1_MirrorBits(uint32 value, uint8 bits)
 	}
 	return result;
 }
+
+//#pragma optimize("", on)
 
 #pragma endregion
