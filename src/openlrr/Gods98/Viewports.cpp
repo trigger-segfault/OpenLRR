@@ -243,11 +243,12 @@ void __cdecl Gods98::Viewport_Clear(Viewport* vp, bool32 full)
 		{
 			IDirect3DViewport* view1;
 			IDirect3DViewport3* view3;
-			D3DRECT rect = {
-				(uint32) area.x,
-				(uint32) area.y,
-				(uint32) (area.x + area.width),
-				(uint32) (area.y + area.height)
+			/// FIXME: Cast from float to unsigned
+			D3DRECT rect = { // sint32 casts to stop compiler from complaining
+				(sint32) (uint32) area.x,
+				(sint32) (uint32) area.y,
+				(sint32) (uint32) (area.x + area.width),
+				(sint32) (uint32) (area.y + area.height),
 			};
 			HRESULT r = vp->lpVP->GetDirect3DViewport(&view1);
 			r = view1->QueryInterface(IID_IDirect3DViewport3, (void**)&view3);

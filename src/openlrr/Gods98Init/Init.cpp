@@ -119,7 +119,7 @@ bool32 __cdecl Gods98::Init_Initialise(bool32 setup, bool32 debug, bool32 best, 
 					::MessageBoxA(nullptr, "Please install DirectX version 6 or later", "Error", MB_OK);
 					return false;
 				}
-				if (found == true) break; // yes, this really checked for `== TRUE`
+				if (found) break;
 			}
 
 			if (!found) {

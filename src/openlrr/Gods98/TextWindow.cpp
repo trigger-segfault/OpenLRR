@@ -269,8 +269,8 @@ bool32 __cdecl Gods98::TextWindow_Update(TextWindow* window, uint32 posFromEnd, 
 					else
 					{
 						// if caretFlag is TRUE then the char before was the caret, safe to draw it now
-						/// FIXME: == true BAAAD
-						if (caretFlag == true)
+						/// FIX APPLY: == true BAAAD
+						if (caretFlag)
 						{
 							int temp;
 							// reset the caretFlag
@@ -288,8 +288,8 @@ bool32 __cdecl Gods98::TextWindow_Update(TextWindow* window, uint32 posFromEnd, 
 
 					if ( ++sub == (window->windowBufferSize+1) ) sub = 0;
 
-					/// FIXME: == true BAAAAAAAD
-					if ((sub == window->lineList[loop+1]) && (caretFlag == true))
+					/// FIX APPLY: == true BAAAAAAAD
+					if ((sub == window->lineList[loop+1]) && caretFlag)
 					{
 						Font_OutputChar(window->font, currWidth-4, currHeight, (char)203, true);
 						caretFlag = false;
@@ -460,8 +460,8 @@ sint32 __cdecl Gods98::TextWindow_GetDrawPos(TextWindow* window, uint32 chrPos, 
 		{
 			char c = window->windowBuffer[sub];
 			
-			/// FIXME: == true... BAD BAD BAD
-			if (check == true)
+			/// FIX APPLY: == true... BAD BAD BAD
+			if (check)
 			{
 				if (sub == chrPos)	return currWidth;
 			}
@@ -495,8 +495,8 @@ sint32 __cdecl Gods98::TextWindow_GetRow(TextWindow* window, sint32 chrPos, sint
 			if (newRow >= window->maxLines)	return chrPos;
 
 			// I know what row we want.  Need to find out the drawPos of the 2 rows.
-			sint32 xpos1 = TextWindow_GetDrawPos(window, chrPos, loop, 0, TRUE);
-			sint32 xpos2 = TextWindow_GetDrawPos(window, chrPos, newRow, xpos1, FALSE);
+			sint32 xpos1 = TextWindow_GetDrawPos(window, chrPos, loop, 0, true);
+			sint32 xpos2 = TextWindow_GetDrawPos(window, chrPos, newRow, xpos1, false);
 
 			if (dir > 0) return xpos2-1;
 			return xpos2;

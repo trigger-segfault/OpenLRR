@@ -779,11 +779,11 @@ void __cdecl Gods98::Main_SetupDisplay(bool32 fullScreen, uint32 xPos, uint32 yP
 	if (!fullScreen) {
 		// Adjust the window to any new settings...
 		
-		RECT rect = {
-			xPos,
-			yPos,
-			xPos + width,
-			yPos + height,
+		RECT rect = { // sint32 casts to stop compiler from complaining
+			(sint32) xPos,
+			(sint32) yPos,
+			(sint32) (xPos + width),
+			(sint32) (yPos + height),
 		};
 		mainGlobs.style = WS_POPUP | WS_SYSMENU | WS_CAPTION;
 		

@@ -462,19 +462,19 @@ void __cdecl Gods98::DirectDraw_BlitBuffers(void)
 	//	::GetClientRect(directDrawGlobs.hWnd, &dest);
 
 	POINT pt = { 0, 0 };
-	RECT dest = {
+	RECT dest = { // sint32 casts to stop compiler from complaining
 		0, 0,
-		directDrawGlobs.width,
-		directDrawGlobs.height
+		(sint32) directDrawGlobs.width,
+		(sint32) directDrawGlobs.height,
 	};
 	::ClientToScreen(directDrawGlobs.hWnd, &pt);
 	::OffsetRect(&dest, pt.x, pt.y);
 
 	// Fill out the source of the blit
-	RECT src = {
+	RECT src = { // sint32 casts to stop compiler from complaining
 		0, 0,
-		directDrawGlobs.width,
-		directDrawGlobs.height
+		(sint32) directDrawGlobs.width,
+		(sint32) directDrawGlobs.height,
 	};
 
 	HRESULT r = directDrawGlobs.fSurf->Blt(&dest, directDrawGlobs.bSurf, &src, DDBLT_WAIT, nullptr);
@@ -569,11 +569,12 @@ void __cdecl Gods98::DirectDraw_Clear(const Area2F* window, uint32 colour)
 	bltFX.dwFillColor = DirectDraw_GetColour(directDrawGlobs.bSurf, colour);
 
 	if (window) {
-		RECT rect = {
-			(uint32) window->x,
-			(uint32) window->y,
-			(uint32) (window->x + window->width),
-			(uint32) (window->y + window->height)
+		/// FIXME: Cast from float to unsigned
+		RECT rect = { // sint32 casts to stop compiler from complaining
+			(sint32) (uint32) window->x,
+			(sint32) (uint32) window->y,
+			(sint32) (uint32) (window->x + window->width),
+			(sint32) (uint32) (window->y + window->height)
 		};
 		directDrawGlobs.bSurf->Blt(&rect, nullptr, nullptr, DDBLT_COLORFILL|DDBLT_WAIT, &bltFX);
 	} else directDrawGlobs.bSurf->Blt(nullptr, nullptr, nullptr, DDBLT_COLORFILL|DDBLT_WAIT, &bltFX);

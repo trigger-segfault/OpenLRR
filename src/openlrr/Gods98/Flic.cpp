@@ -70,7 +70,7 @@ bool32 __cdecl Gods98::Flic_Setup(const char* filename, OUT FLICSTRUCT** fsp, Fl
 	ddsd.dwHeight = ysize;
 	(*fsp)->fsXsize = xsize;
 	(*fsp)->fsYsize = ysize;
-	if (hr = (*lpDD)->CreateSurface(&ddsd, &(*fsp)->fsSurface, nullptr)) {
+	if ((hr = (*lpDD)->CreateSurface(&ddsd, &(*fsp)->fsSurface, nullptr)) != DD_OK) {
 		Error_Fatal(true, "Failed to create surface for flic");
 	}
 	ColourKey.dwColorSpaceLowValue = 0;
@@ -230,8 +230,14 @@ bool32 __cdecl Gods98::Flic_Animate(FLICSTRUCT* fsp, const Area2F* destArea, boo
 	IDirectDrawSurface4* *lpBB = &BackBuffer;
 
 	/// FIXME FUTURE: This will be partly responsible for clipping an
-	//                 animated pointer cursor to the screen bounds.
-	RECT destRect = { (uint32) destArea->x, (uint32) destArea->y, (uint32) destArea->x + (uint32) destArea->width, (uint32) destArea->y + (uint32) destArea->height };
+	///                animated pointer cursor to the screen bounds.
+	/// FIXME: Cast from float to unsigned
+	RECT destRect = { // sint32 casts to stop compiler from complaining
+		(sint32) (uint32) destArea->x,
+		(sint32) (uint32) destArea->y,
+		(sint32) ((uint32) destArea->x + (uint32) destArea->width),
+		(sint32) ((uint32) destArea->y + (uint32) destArea->height),
+	};
 	RECT *dest = &destRect;
 	FlicError flicRetVal = FlicError::FLICNOERROR;
 
@@ -626,13 +632,15 @@ Gods98::FlicError __cdecl Gods98::Flic_LoadPointers(FLICSTRUCT* fsp)
 
         File_Seek(fsp->filehandle,fsp->pointerposition,SEEK_SET);
         File_Read(source,flicmaxchunk,1,fsp->filehandle);
-        }
-
-		chunkcount=(flicmaxchunk/8);
-		source=(sint8 *)source+6;
+    }
 
 
-//			fsp->fsPointer = malloc( flicmaxchunk );
+	/// FIXME GODS98: This is not initialized for `FLICRESIDE == FLICMEMORY`!!!!
+	chunkcount=(flicmaxchunk/8);
+	source=(sint8 *)source+6;
+
+
+//	fsp->fsPointer = std::malloc( flicmaxchunk );
 
     return(FlicError::FLICNOERROR);
 }
