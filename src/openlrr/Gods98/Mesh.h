@@ -9,13 +9,12 @@
 
 #pragma once
 
+// no getting around this include without some very ugly work-arounds :(
+#include "../platform/d3drm.h"		// <d3d.h>
+
 #include "../common.h"
 #include "../Types/geometry.h"
 #include "../Types/colour.h"
-
-
-// no getting around this include without some very ugly work-arounds :(
-#include <d3d.h>
 
 
 /**********************************************************************************

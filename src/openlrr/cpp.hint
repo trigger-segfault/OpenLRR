@@ -15,5 +15,45 @@ inline constexpr ENUMTYPE operator ^ (ENUMTYPE a, ENUMTYPE b) throw() { return E
 inline ENUMTYPE &operator ^= (ENUMTYPE &a, ENUMTYPE b) throw() { return (ENUMTYPE &)(((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type &)a) ^= ((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type)b)); } \
 }
 
+// Gets the name of a symbol as a C string
+#define nameof_(symbol) #symbol
+#define nameof(symbol) nameof_(symbol)
+
+#define assert_sizeof(type, size) static_assert(sizeof(type) == (size), "Improper type size for " nameof(type))
+
+// Shorthand cast to unsigned character for GODS string comparisons
+#define uchr(c) ((uansi)(c))
+#define ustr(c) ((uansi_str)(c))
+#define ucstr(c) ((const_uansi_str)(c))
+
 
 #define noinline(funcname) _noinline_ ##funcname
+
+
+#define enum_scoped(name) \
+	namespace _ns_ ##name { \
+	enum name
+
+#define flags_scoped(name) enum_scoped(name)
+
+
+#define enum_scoped_end(name, size) \
+	assert_sizeof(name, size); \
+	} using name = _ns_ ##name## :: ##name
+
+#define flags_scoped_end(name, size) \
+	DEFINE_ENUM_FLAG_OPERATORS(name); \
+	enum_scoped_end(name, size)
+
+
+#define enum_end(name, size) \
+	assert_sizeof(name, size)
+
+#define flags_end(name, size) \
+	DEFINE_ENUM_FLAG_OPERATORS(name); \
+	assert_sizeof(name, size)
+
+
+#define log_firstcall() { static bool _log_firstcallbool = false; \
+	if (!_log_firstcallbool) {_log_firstcallbool = true; \
+		std::printf("%s called\n", __FUNCTION__); } }

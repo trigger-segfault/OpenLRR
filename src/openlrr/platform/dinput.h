@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../common.h"
+#include "windows.h"
 
 #ifndef DIRECTINPUT_VERSION
 #define DIRECTINPUT_VERSION 0x0500
@@ -8,6 +8,7 @@
 #undef DIRECTINPUT_VERSION
 #define DIRECTINPUT_VERSION 0x0500
 #endif
+
 #include <dinput.h>
 
 

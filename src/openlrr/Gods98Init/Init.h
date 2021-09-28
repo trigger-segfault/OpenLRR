@@ -6,8 +6,30 @@
 
 #pragma once
 
+#include "../platform/windows.h"
+
 #include "../common.h"
 #include "../Gods98/DirectDraw.h"
+
+
+/**********************************************************************************
+ ******** Forward Global Namespace Declarations
+ **********************************************************************************/
+
+#pragma region Forward Declarations
+
+struct IDirectDraw;
+struct IDirectDrawSurface4;
+struct IDirect3DRM3;
+struct IDirect3DRMDevice3;
+struct IDirect3DDevice3;
+enum _D3DRENDERSTATETYPE;
+typedef enum _D3DRENDERSTATETYPE D3DRENDERSTATETYPE;
+static_assert(sizeof(D3DRENDERSTATETYPE) == 0x4, "");
+struct tagRECT;
+typedef struct tagRECT RECT;
+
+#pragma endregion
 
 
 namespace Gods98
@@ -57,8 +79,8 @@ extern Init_Globs & initGlobs;
 
 #pragma region Functions
 
- // Entry point for Init "Mode Selection" dialog.
- //  Calls the appropriate DirectDraw_Setup function after a mode has been selected.
+// Entry point for Init "Mode Selection" dialog.
+//  Calls the appropriate DirectDraw_Setup function after a mode has been selected.
 // <LegoRR.exe @0049d2f0>
 bool32 __cdecl Init_Initialise(bool32 setup, bool32 debug, bool32 best, bool32 window, const char* noHALMsg);
 

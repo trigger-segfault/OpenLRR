@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <windows.h>
-#include <ddraw.h>
+#include "../platform/windows.h"
+#include "../platform/ddraw.h"
 #include <amstream.h>
 
 #include "../common.h"

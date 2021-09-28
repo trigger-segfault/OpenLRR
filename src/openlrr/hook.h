@@ -1,8 +1,9 @@
+// hook.h : 
+//
+
 #pragma once
 
 #include "common.h"
-
-//#define DEFINE_AUTOINJECT(rvAddress, function) InjectFunction func_ ##function = InjectFunction((void*)( rvAddress ), (function), #function , true)
 
 
 uint32 hook_to_dist(void* src, void* dst, sint32 srcOffset, sint32 dstOffset);
@@ -34,26 +35,10 @@ bool hook_write(void* address, const uint8* newData, size_t size, OPTIONAL uint8
 inline bool hook_write(uint32 address, const uint8* newData, size_t size, OPTIONAL uint8* backup = nullptr) {
     return hook_write((void*)address, newData, size, backup); }
 
-//uint32 hook_to_dist(void* src, void* dst, sint32 srcOffset, sint32 dstOffset);
-//void* hook_from_dist(void* src, uint32 dist, sint32 srcOffset, sint32 distOffset);
+bool hook_read(void* address, uint8* data, size_t size);
+inline bool hook_read(uint32 address, uint8* data, size_t size) {
+    return hook_read((void*)address, data, size); }
 
-/*static uint32 hook_get_dist(uint32 src, void* dst, sint32 srcOffset, sint32 dstOffset)
-{
-    return hook_get_dist((void*)src, dst, srcOffset, dstOffset);
-}
-static uint32 hook_get_dist(void* src, uint32 dst, sint32 srcOffset, sint32 dstOffset)
-{
-    return hook_get_dist(src, (void*)dst, srcOffset, dstOffset);
-}
-static uint32 hook_get_dist(uint32 src, uint32 dst, sint32 srcOffset, sint32 dstOffset)
-{
-    return hook_get_dist((void*)src, (void*)dst, srcOffset, dstOffset);
-}*/
-
-/*bool __cdecl hook_call(void* address, void* callAddress, OPTIONAL void** backup);
-bool __cdecl hook_jmp(void* address, void* callAddress, OPTIONAL void** backup);
-bool __cdecl hook_jmpret(void* address, void* callAddress, OPTIONAL void** backup);
-
-bool __cdecl hook_write(void* address, const uint8* newData, size_t size, OPTIONAL uint8* backup);*/
-
-//void __cdecl hook_func()
+sint32 hook_cmp(void* address, const uint8* data, size_t size);
+inline sint32 hook_cmp(uint32 address, const uint8* data, size_t size) {
+    return hook_cmp((void*)address, data, size); }

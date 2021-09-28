@@ -6,10 +6,8 @@
 
 #define CONTAINER_DISABLEFRAMESETTINGS
 
-#include <d3drm.h>
-
+#include "../platform/d3drm.h"
 #include "../legacy.h"
-#include "../Legacy/legacy_d3drm.h"
 
 #ifdef LEGO_IMMEDIATEMODEMAP
 #define CONTAINER_USEOWNTEXTURELOAD

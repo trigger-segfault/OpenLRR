@@ -1,3 +1,7 @@
+// hook.cpp : 
+//
+
+#include "platform/windows.h"
 
 #include "hook.h"
 
@@ -68,7 +72,7 @@ bool hook_write(void* address, const uint8* newData, size_t size, OPTIONAL uint8
     DWORD newProtect = PAGE_EXECUTE_READWRITE;
     DWORD backupProtect, dummy;
     if (!::VirtualProtect(address, size, newProtect, &backupProtect)) {
-        std::printf("VirtualProtect PREPARE failed %i\n", (int)::GetLastError());
+        std::printf("VirtualProtect PREPARE failed %i\n", (sint32)::GetLastError());
         return false;
     }
 
@@ -86,10 +90,46 @@ bool hook_write(void* address, const uint8* newData, size_t size, OPTIONAL uint8
     std::memcpy(address, newData, size); // write new data
 
     if (!::VirtualProtect(address, size, backupProtect, &dummy)) {
-        std::printf("VirtualProtect RESTORE failed %i\n", (int)::GetLastError());
+        std::printf("VirtualProtect RESTORE failed %i\n", (sint32)::GetLastError());
         return false;
     }
     return true;
+}
+
+bool hook_read(void* address, uint8* data, size_t size)
+{
+    DWORD newProtect = PAGE_EXECUTE_READWRITE;
+    DWORD backupProtect, dummy;
+    if (!::VirtualProtect(address, size, newProtect, &backupProtect)) {
+        std::printf("VirtualProtect PREPARE failed %i\n", (sint32)::GetLastError());
+        return false;
+    }
+
+    std::memcpy(data, address, size); // read into data
+
+    if (!::VirtualProtect(address, size, backupProtect, &dummy)) {
+        std::printf("VirtualProtect RESTORE failed %i\n", (sint32)::GetLastError());
+        return false;
+    }
+    return true;
+}
+
+sint32 hook_cmp(void* address, const uint8* data, size_t size)
+{
+    DWORD newProtect = PAGE_EXECUTE_READWRITE;
+    DWORD backupProtect, dummy;
+    if (!::VirtualProtect(address, size, newProtect, &backupProtect)) {
+        std::printf("VirtualProtect PREPARE failed %i\n", (sint32)::GetLastError());
+        return INT_MIN;// -2;
+    }
+
+    sint32 cmp = std::memcmp(address, data, size); // compare with data
+
+    if (!::VirtualProtect(address, size, backupProtect, &dummy)) {
+        std::printf("VirtualProtect RESTORE failed %i\n", (sint32)::GetLastError());
+        return INT_MIN;// -2;
+    }
+    return cmp;
 }
 
 

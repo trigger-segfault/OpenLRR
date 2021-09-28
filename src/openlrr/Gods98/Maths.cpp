@@ -1,7 +1,7 @@
 // Maths.cpp : 
 //
 
-#include <d3drm.h>
+#include "../platform/d3drm.h"
 
 #include "../legacy.h"
 

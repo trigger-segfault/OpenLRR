@@ -23,7 +23,6 @@
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{9f8362b3-b3ff-4fc3-b98e-8ab77fa17583}</ProjectGuid>
     <RootNamespace>openlrr</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>openlrr</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -75,9 +74,10 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>$(SolutionDir)bin\tmp\$(ProjectName)\$(Configuration)\</IntDir>
-    <TargetName>lrrmo</TargetName>
     <IncludePath>$(SolutionDir)lib\d3drm\inc\;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)lib\d3drm\;$(LibraryPath)</LibraryPath>
+    <EmbedManifest>false</EmbedManifest>
+    <TargetName>openlrr-d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -85,7 +85,8 @@
     <IntDir>$(SolutionDir)bin\tmp\$(ProjectName)\$(Configuration)\</IntDir>
     <IncludePath>$(SolutionDir)lib\d3drm\inc\;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)lib\d3drm\;$(LibraryPath)</LibraryPath>
-    <TargetName>OpenLRR</TargetName>
+    <EmbedManifest>false</EmbedManifest>
+    <TargetName>openlrr</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -100,6 +101,7 @@
       <PreprocessorDefinitions>WIN32;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;_WINDOWS;_USRDLL;_GODS98COMPILE;_GODS98_USEWAD_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <DisableSpecificWarnings>26812;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -115,6 +117,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;_WINDOWS;_USRDLL;_GODS98COMPILE;_GODS98_USEWAD_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <DisableSpecificWarnings>26812;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -154,608 +157,206 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="Gods98Init\Init.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\3DSound.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="Gods98Init\Init.cpp" />
+    <ClCompile Include="Gods98\3DSound.cpp" />
     <ClCompile Include="Gods98\Activities.cpp" />
-    <ClCompile Include="Gods98\Animation.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\AnimClone.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\Bmp.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\Compress.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\Config.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\Containers.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\DirectDraw.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\Draw.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\Dxbug.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\Errors.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\Files.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\Flic.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\Fonts.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\Images.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\Input.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\Keys.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\Lws.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\Lwt.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\Materials.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\Maths.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\Mesh.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\Sound.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\TextWindow.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\Utils.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\Viewports.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="Gods98\Animation.cpp" />
+    <ClCompile Include="Gods98\AnimClone.cpp" />
+    <ClCompile Include="Gods98\Bmp.cpp" />
+    <ClCompile Include="Gods98\Compress.cpp" />
+    <ClCompile Include="Gods98\Config.cpp" />
+    <ClCompile Include="Gods98\Containers.cpp" />
+    <ClCompile Include="Gods98\DirectDraw.cpp" />
+    <ClCompile Include="Gods98\Draw.cpp" />
+    <ClCompile Include="Gods98\Dxbug.cpp" />
+    <ClCompile Include="Gods98\Errors.cpp" />
+    <ClCompile Include="Gods98\Files.cpp" />
+    <ClCompile Include="Gods98\Flic.cpp" />
+    <ClCompile Include="Gods98\Fonts.cpp" />
+    <ClCompile Include="Gods98\Images.cpp" />
+    <ClCompile Include="Gods98\Input.cpp" />
+    <ClCompile Include="Gods98\Keys.cpp" />
+    <ClCompile Include="Gods98\Lws.cpp" />
+    <ClCompile Include="Gods98\Lwt.cpp" />
+    <ClCompile Include="Gods98\Materials.cpp" />
+    <ClCompile Include="Gods98\Maths.cpp" />
+    <ClCompile Include="Gods98\Mesh.cpp" />
+    <ClCompile Include="Gods98\Sound.cpp" />
+    <ClCompile Include="Gods98\TextWindow.cpp" />
+    <ClCompile Include="Gods98\Utils.cpp" />
+    <ClCompile Include="Gods98\Viewports.cpp" />
     <ClCompile Include="hook.cpp" />
     <ClCompile Include="interop.cpp" />
-    <ClCompile Include="Gods98\Main.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\Memory.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\Registry.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\Wad.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="Gods98\Main.cpp" />
+    <ClCompile Include="Gods98\Memory.cpp" />
+    <ClCompile Include="Gods98\Registry.cpp" />
+    <ClCompile Include="Gods98\Wad.cpp" />
     <ClCompile Include="legacy.cpp" />
-    <ClCompile Include="Legacy\legacy_d3drm.cpp" />
-    <ClCompile Include="LegoRR\Advisor.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Bubble.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Building.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Construction.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Creature.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Credits.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\DamageFont.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Dependencies.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Effects.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\ElectricFence.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Encyclopedia.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Erode.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Fallin.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Flocks.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\FrontEnd.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\HelpWindow.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Info.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Interface.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Lego.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\LegoCamera.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\LegoObject.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\LightEffects.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Loader.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Map3D.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Message.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\NERPs\NERPFunc.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\NERPs\NERPsFile.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\NERPs\NERPsRuntime.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Objective.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\ObjInfo.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Panels.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Pointer.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Priorities.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\PTL.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\RadarMap.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Rewards.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Roof.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\ScrollInfo.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\SelectPlace.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\SFX.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Smoke.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\SpiderWeb.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Stats.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Teleporter.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Text.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\ToolTip.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Upgrade.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Vehicle.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Water.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="LegoRR\Weapons.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Gods98\Movie.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="platform\d3drm.cpp" />
+    <ClCompile Include="LegoRR\Advisor.cpp" />
+    <ClCompile Include="LegoRR\Bubble.cpp" />
+    <ClCompile Include="LegoRR\Building.cpp" />
+    <ClCompile Include="LegoRR\Construction.cpp" />
+    <ClCompile Include="LegoRR\Creature.cpp" />
+    <ClCompile Include="LegoRR\Credits.cpp" />
+    <ClCompile Include="LegoRR\DamageFont.cpp" />
+    <ClCompile Include="LegoRR\Dependencies.cpp" />
+    <ClCompile Include="LegoRR\Effects.cpp" />
+    <ClCompile Include="LegoRR\ElectricFence.cpp" />
+    <ClCompile Include="LegoRR\Encyclopedia.cpp" />
+    <ClCompile Include="LegoRR\Erode.cpp" />
+    <ClCompile Include="LegoRR\Fallin.cpp" />
+    <ClCompile Include="LegoRR\Flocks.cpp" />
+    <ClCompile Include="LegoRR\FrontEnd.cpp" />
+    <ClCompile Include="LegoRR\HelpWindow.cpp" />
+    <ClCompile Include="LegoRR\Info.cpp" />
+    <ClCompile Include="LegoRR\Interface.cpp" />
+    <ClCompile Include="LegoRR\Lego.cpp" />
+    <ClCompile Include="LegoRR\LegoCamera.cpp" />
+    <ClCompile Include="LegoRR\LegoObject.cpp" />
+    <ClCompile Include="LegoRR\LightEffects.cpp" />
+    <ClCompile Include="LegoRR\Loader.cpp" />
+    <ClCompile Include="LegoRR\Map3D.cpp" />
+    <ClCompile Include="LegoRR\Message.cpp" />
+    <ClCompile Include="LegoRR\NERPs\NERPFunc.cpp" />
+    <ClCompile Include="LegoRR\NERPs\NERPsFile.cpp" />
+    <ClCompile Include="LegoRR\NERPs\NERPsRuntime.cpp" />
+    <ClCompile Include="LegoRR\Objective.cpp" />
+    <ClCompile Include="LegoRR\ObjInfo.cpp" />
+    <ClCompile Include="LegoRR\Panels.cpp" />
+    <ClCompile Include="LegoRR\Pointer.cpp" />
+    <ClCompile Include="LegoRR\Priorities.cpp" />
+    <ClCompile Include="LegoRR\PTL.cpp" />
+    <ClCompile Include="LegoRR\RadarMap.cpp" />
+    <ClCompile Include="LegoRR\Rewards.cpp" />
+    <ClCompile Include="LegoRR\Roof.cpp" />
+    <ClCompile Include="LegoRR\ScrollInfo.cpp" />
+    <ClCompile Include="LegoRR\SelectPlace.cpp" />
+    <ClCompile Include="LegoRR\SFX.cpp" />
+    <ClCompile Include="LegoRR\Smoke.cpp" />
+    <ClCompile Include="LegoRR\SpiderWeb.cpp" />
+    <ClCompile Include="LegoRR\Stats.cpp" />
+    <ClCompile Include="LegoRR\Teleporter.cpp" />
+    <ClCompile Include="LegoRR\Text.cpp" />
+    <ClCompile Include="LegoRR\ToolTip.cpp" />
+    <ClCompile Include="LegoRR\Upgrade.cpp" />
+    <ClCompile Include="LegoRR\Vehicle.cpp" />
+    <ClCompile Include="LegoRR\Water.cpp" />
+    <ClCompile Include="LegoRR\Weapons.cpp" />
+    <ClCompile Include="Gods98\Movie.cpp" />
     <ClCompile Include="openlrr.cpp" />
+    <ClCompile Include="platform\windows.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h" />
-    <ClInclude Include="Gods98Init\Init.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\3DSound.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
+    <ClInclude Include="Gods98Init\Init.h" />
+    <ClInclude Include="Gods98\3DSound.h" />
     <ClInclude Include="Gods98\Activities.h" />
-    <ClInclude Include="Gods98\Animation.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Animation.hpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\AnimClone.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Bmp.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
+    <ClInclude Include="Gods98\Animation.h" />
+    <ClInclude Include="Gods98\Animation.hpp" />
+    <ClInclude Include="Gods98\AnimClone.h" />
+    <ClInclude Include="Gods98\Bmp.h" />
     <ClInclude Include="legacy.h" />
-    <ClInclude Include="Legacy\legacy_d3drm.h" />
-    <ClInclude Include="Legacy\legacy_ddraw.h" />
-    <ClInclude Include="Legacy\legacy_dinput.h" />
-    <ClInclude Include="Legacy\legacy_dsound.h" />
-    <ClInclude Include="Legacy\legacy_timeapi.h" />
-    <ClInclude Include="Legacy\legacy_vfw.h" />
-    <ClInclude Include="LegoRR\Bubble.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Building.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Creature.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Credits.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\DamageFont.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Dependencies.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Effects.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\ElectricFence.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Encyclopedia.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\HelpWindow.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Info.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\LightEffects.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Loader.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Map3D.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Message.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\NERPs\NERPFunc.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\NERPs\NERPsFile.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\NERPs\NERPsRuntime.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Objective.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\ObjInfo.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Panels.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Pointer.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Priorities.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\PTL.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\RadarMap.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Rewards.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\ScrollInfo.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\SelectPlace.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Smoke.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\SpiderWeb.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Teleporter.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Text.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Todo\AITask.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
+    <ClInclude Include="platform\d3drm.h" />
+    <ClInclude Include="platform\ddraw.h" />
+    <ClInclude Include="platform\dinput.h" />
+    <ClInclude Include="platform\dsound.h" />
+    <ClInclude Include="platform\timeapi.h" />
+    <ClInclude Include="platform\vfw.h" />
+    <ClInclude Include="LegoRR\Bubble.h" />
+    <ClInclude Include="LegoRR\Building.h" />
+    <ClInclude Include="LegoRR\Creature.h" />
+    <ClInclude Include="LegoRR\Credits.h" />
+    <ClInclude Include="LegoRR\DamageFont.h" />
+    <ClInclude Include="LegoRR\Dependencies.h" />
+    <ClInclude Include="LegoRR\Effects.h" />
+    <ClInclude Include="LegoRR\ElectricFence.h" />
+    <ClInclude Include="LegoRR\Encyclopedia.h" />
+    <ClInclude Include="LegoRR\HelpWindow.h" />
+    <ClInclude Include="LegoRR\Info.h" />
+    <ClInclude Include="LegoRR\LightEffects.h" />
+    <ClInclude Include="LegoRR\Loader.h" />
+    <ClInclude Include="LegoRR\Map3D.h" />
+    <ClInclude Include="LegoRR\Message.h" />
+    <ClInclude Include="LegoRR\NERPs\NERPFunc.h" />
+    <ClInclude Include="LegoRR\NERPs\NERPsFile.h" />
+    <ClInclude Include="LegoRR\NERPs\NERPsRuntime.h" />
+    <ClInclude Include="LegoRR\Objective.h" />
+    <ClInclude Include="LegoRR\ObjInfo.h" />
+    <ClInclude Include="LegoRR\Panels.h" />
+    <ClInclude Include="LegoRR\Pointer.h" />
+    <ClInclude Include="LegoRR\Priorities.h" />
+    <ClInclude Include="LegoRR\PTL.h" />
+    <ClInclude Include="LegoRR\RadarMap.h" />
+    <ClInclude Include="LegoRR\Rewards.h" />
+    <ClInclude Include="LegoRR\ScrollInfo.h" />
+    <ClInclude Include="LegoRR\SelectPlace.h" />
+    <ClInclude Include="LegoRR\Smoke.h" />
+    <ClInclude Include="LegoRR\SpiderWeb.h" />
+    <ClInclude Include="LegoRR\Teleporter.h" />
+    <ClInclude Include="LegoRR\Text.h" />
+    <ClInclude Include="LegoRR\Todo\AITask.h" />
     <ClInclude Include="dllmain.h" />
-    <ClInclude Include="LegoRR\Todo\DynamicPM.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Todo\MeshPoly.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Roof.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\ToolTip.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Upgrade.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Vehicle.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Water.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Movie.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Movie.hpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
+    <ClInclude Include="LegoRR\Todo\DynamicPM.h" />
+    <ClInclude Include="LegoRR\Todo\MeshPoly.h" />
+    <ClInclude Include="LegoRR\Roof.h" />
+    <ClInclude Include="LegoRR\ToolTip.h" />
+    <ClInclude Include="LegoRR\Upgrade.h" />
+    <ClInclude Include="LegoRR\Vehicle.h" />
+    <ClInclude Include="LegoRR\Water.h" />
+    <ClInclude Include="Gods98\Movie.h" />
+    <ClInclude Include="Gods98\Movie.hpp" />
     <ClInclude Include="openlrr.h" />
-    <ClInclude Include="Types\colour.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Compress.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Config.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Containers.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\DirectDraw.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Draw.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Dxbug.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Errors.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Files.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Flic.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Fonts.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Types\geometry.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Images.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Input.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Keys.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Lws.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Lwt.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Materials.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Maths.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Mesh.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Sound.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\TextWindow.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Utils.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Viewports.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
+    <ClInclude Include="platform\windows.h" />
+    <ClInclude Include="Types\colour.h" />
+    <ClInclude Include="Gods98\Compress.h" />
+    <ClInclude Include="Gods98\Config.h" />
+    <ClInclude Include="Gods98\Containers.h" />
+    <ClInclude Include="Gods98\DirectDraw.h" />
+    <ClInclude Include="Gods98\Draw.h" />
+    <ClInclude Include="Gods98\Dxbug.h" />
+    <ClInclude Include="Gods98\Errors.h" />
+    <ClInclude Include="Gods98\Files.h" />
+    <ClInclude Include="Gods98\Flic.h" />
+    <ClInclude Include="Gods98\Fonts.h" />
+    <ClInclude Include="Types\geometry.h" />
+    <ClInclude Include="Gods98\Images.h" />
+    <ClInclude Include="Gods98\Input.h" />
+    <ClInclude Include="Gods98\Keys.h" />
+    <ClInclude Include="Gods98\Lws.h" />
+    <ClInclude Include="Gods98\Lwt.h" />
+    <ClInclude Include="Gods98\Materials.h" />
+    <ClInclude Include="Gods98\Maths.h" />
+    <ClInclude Include="Gods98\Mesh.h" />
+    <ClInclude Include="Gods98\Sound.h" />
+    <ClInclude Include="Gods98\TextWindow.h" />
+    <ClInclude Include="Gods98\Utils.h" />
+    <ClInclude Include="Gods98\Viewports.h" />
     <ClInclude Include="hook.h" />
     <ClInclude Include="interop.h" />
-    <ClInclude Include="Gods98\Main.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Memory.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Registry.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Gods98\Wad.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Advisor.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Construction.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Erode.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Fallin.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Flocks.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\FrontEnd.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Interface.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Lego.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\LegoCamera.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\LegoObject.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\SFX.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Stats.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="LegoRR\Weapons.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
+    <ClInclude Include="Gods98\Main.h" />
+    <ClInclude Include="Gods98\Memory.h" />
+    <ClInclude Include="Gods98\Registry.h" />
+    <ClInclude Include="Gods98\Wad.h" />
+    <ClInclude Include="LegoRR\Advisor.h" />
+    <ClInclude Include="LegoRR\Construction.h" />
+    <ClInclude Include="LegoRR\Erode.h" />
+    <ClInclude Include="LegoRR\Fallin.h" />
+    <ClInclude Include="LegoRR\Flocks.h" />
+    <ClInclude Include="LegoRR\FrontEnd.h" />
+    <ClInclude Include="LegoRR\Interface.h" />
+    <ClInclude Include="LegoRR\Lego.h" />
+    <ClInclude Include="LegoRR\LegoCamera.h" />
+    <ClInclude Include="LegoRR\LegoObject.h" />
+    <ClInclude Include="LegoRR\SFX.h" />
+    <ClInclude Include="LegoRR\Stats.h" />
+    <ClInclude Include="LegoRR\Weapons.h" />
+    <ClInclude Include="platform\resource.h" />
+    <ClInclude Include="platform\targetver.h" />
+    <ClInclude Include="Types\undefined.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="platform\openlrr.rc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

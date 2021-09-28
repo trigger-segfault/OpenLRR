@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "../platform/windows.h"
+
 #include "../common.h"
 
 

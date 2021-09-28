@@ -1,8 +1,8 @@
 // Animation.cpp : Definitions file for the C++ G98CAnimation implementation and C wrapper.
 //
 
-#include "../Legacy/legacy_timeapi.h"
-#include "../Legacy/legacy_vfw.h"
+#include "../platform/timeapi.h"
+#include "../platform/vfw.h"
 
 #include "DirectDraw.h"
 #include "Files.h"

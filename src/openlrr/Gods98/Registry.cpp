@@ -1,7 +1,7 @@
 // Registry.cpp : 
 //
 
-#include <windows.h>
+#include "../platform/windows.h"
 
 #include "Registry.h"
 

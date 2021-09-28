@@ -1,3 +1,7 @@
+// openlrr.cpp : 
+//
+
+#include "platform/windows.h"
 
 #include "openlrr.h"
 #include "hook.h"
@@ -5,30 +9,90 @@
 #include "dllmain.h"
 
 #include "Gods98/Main.h"
-#include "Legacy/legacy_timeapi.h"
 
 
-//#define make_func(ADDR, RETURN, CONV, ...) ((RETURN (CONV*)(__VA_ARGS__)) (ADDR))
-//#define make_func2(ADDR, RETURN, CONV, ...) ((RETURN (CONV*) __VA_ARGS__) (ADDR))
+/**********************************************************************************
+ ******** Globals
+ **********************************************************************************/
 
-/*int (APIENTRY* LegoRR_WinMain)(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int cmdShow)
+#pragma region Globals
+
+/// TODO: Test if assigning this beforehand causes any slowdown and risks a race
+///        condition when hooking WinMain.
+OpenLRR_Globs openlrrGlobs = { nullptr };
+
+OpenLRR_Config openlrrConfig = { 0 };
+
+#pragma endregion
+
+/**********************************************************************************
+ ******** Functions
+ **********************************************************************************/
+
+#pragma region Functions
+
+FILE* MakeConsole(void)
 {
-    std::printf("[0x%08x] OpenLRRWinMain\n", ::timeGetTime());
-}*/
+    FILE* pConsoleFile = nullptr;
+    ::AllocConsole();
+    ::freopen_s(&pConsoleFile, "CONOUT$", "w", stdout);
+    ::SetConsoleTitleA("");
+    CONSOLE_CURSOR_INFO conCursorInfo;
+    ::GetConsoleCursorInfo(::GetStdHandle(STD_OUTPUT_HANDLE), &conCursorInfo);
+    conCursorInfo.bVisible = false;
+    ::SetConsoleCursorInfo(::GetStdHandle(STD_OUTPUT_HANDLE), &conCursorInfo);
+    return pConsoleFile;
+}
 
-int __stdcall OpenLRR_WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int cmdShow)
+bool InjectOpenLRR(HINSTANCE hInstanceDll)
 {
-    MakeConsole();
-    // currently this just wraps LegoRR.exe!WinMain, to let us know the hook worked
-    std::printf("[0x%08x] OpenLRRWinMain\n", legacy::timeGetTime());
+    // Store our dll instance so we can access it for loading custom OpenLRR resources later on.
+    openlrrGlobs.hInstDll = hInstanceDll;
+    openlrrGlobs.method = InjectMethod::DllImport;
 
+
+    // Determine if openlrr-injector was used to load this dll.
+    static const constexpr uint8 eipPatch[2]        = { 0xEB, 0xFE }; // infinite jmp to itself
+    static const constexpr uint32 PROCESS_EIP       = 0x0048F2C0; // LegoRR.exe!entry
+    static const constexpr uint32 PROCESS_WINMAIN   = 0x00477a60; // LegoRR.exe!WinMain
+
+    if (hook_cmp(PROCESS_EIP, eipPatch, sizeof(eipPatch)) == 0)
+        openlrrGlobs.method = InjectMethod::Injector;
+
+
+    // Redirect `LegoRR.exe!WinMain` to immediately jump to `openlrr.dll!StartOpenLRR`.
+    bool result = hook_write_jmpret(PROCESS_WINMAIN, StartOpenLRR);
+
+    // Alternate hook method. Less stable, and not supported by openlrr-injector.
+    //// Replaces `LegoRR.exe!entry`'s call to `LegoRR.exe!WinMain` with `openlrr.dll!StartOpenLRR`.
+    //bool result = hook_write_call(0x0048f3fa, StartOpenLRR, nullptr);
+
+    return result;
+}
+
+extern "C" __declspec(dllexport) sint32 __stdcall StartOpenLRR(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, sint32 nCmdShow)
+{
+    openlrrGlobs.conout = MakeConsole();
+
+    const char* methodName;
+    switch (openlrrGlobs.method) {
+    case InjectMethod::Unknown:     methodName = "Unknown";     break;
+    case InjectMethod::NotAttached: methodName = "NotAttached"; break;
+    case InjectMethod::Injector:    methodName = "Injector";    break;
+    case InjectMethod::DllImport:   methodName = "DllImport";   break;
+    default:                        methodName = "<???>";       break;
+    }
+    std::printf("InjectMethod::%s\n", methodName);
+    //::system("pause");
+
+    // Hook all functions that aren't being called through OpenLRR code.
     interop_hook_all();
 
-    // call LegoRR.exe!WinMain @ 0x00477a60
-    //make_func2(0x00477a60, int,APIENTRY,(HINSTANCE,HINSTANCE,LPSTR,int))(hInstance, hPrevInstance, lpszCmdLine, cmdShow);
-    //return ((int (APIENTRY*)(HINSTANCE, HINSTANCE, LPSTR, int))0x00477a60)(hInstance, hPrevInstance, lpszCmdLine, cmdShow);
-
-    //#define Main_WinMain ((int (APIENTRY*)(HINSTANCE, HINSTANCE, LPSTR, int))0x00477a60)
-    //return Main_WinMain(hInstance, hPrevInstance, lpszCmdLine, cmdShow);
-    return Gods98::Main_WinMain(hInstance, hPrevInstance, lpszCmdLine, cmdShow);
+    return Gods98::Main_WinMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 }
+
+extern "C" __declspec(dllexport) void __cdecl Dummy(void)
+{
+}
+
+#pragma endregion

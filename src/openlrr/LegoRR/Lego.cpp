@@ -39,6 +39,13 @@ void __cdecl Gods98::Gods_Go(const char* programName)
 	std::memset(/*&*/legoGlobs, 0, 0xef8 /*sizeof(legoGlobs)*/);
 	*legoGlobs_gameName = programName;
 
+
+	/// FLUFF OPENLRR: Wrap the program name in parenthesis and start with "OpenLRR"
+	char buff[1024];
+	if (std::strcmp(programName, "OpenLRR") != 0) {
+		std::sprintf(buff, "%s (%s)", "OpenLRR", programName);
+		programName = buff;
+	}
 	Main_SetTitle(programName);
 
 	Main_State mainState;

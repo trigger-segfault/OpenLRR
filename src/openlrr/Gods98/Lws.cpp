@@ -1,9 +1,7 @@
 // Lws.cpp : 
 //
 
-#include <d3drmwin.h>
-
-#include "../Legacy/legacy_d3drm.h"
+#include "../platform/d3drm.h"		// <d3drmwin.h>
 
 #include "3DSound.h"
 #include "Errors.h"

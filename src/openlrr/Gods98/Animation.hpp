@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <windows.h>
-#include <ddraw.h>
-#include <vfw.h>
+#include "../platform/windows.h"
+#include "../platform/ddraw.h"
+#include "../platform/vfw.h"
 
 #include "../common.h"
 

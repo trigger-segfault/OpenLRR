@@ -1,18 +1,12 @@
+// dllmain.h : 
+//
+
 #pragma once
+
+#include "platform/windows.h"
 
 #include "common.h"
 
-extern HINSTANCE g_hDllInstance;
-
-/// LEGACY:
-// Community Edition/LRRMonitor requires that this function be exported by LRRCE.DLL/LRRMO.DLL
-// This requires `extern "C"` and `__cdecl` to avoid function name mangling.
-extern "C" __declspec(dllexport) void __cdecl Dummy(void);
-
-FILE* MakeConsole();
-
-// Entry point where we inject any desired functions.
+// Entry point where we inject our OpenLRR hook.
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved);
-
-
 

@@ -1,3 +1,7 @@
+// legacy.h : Header file for access to legacy standard library functions in
+//            LegoRR native code.
+//
+
 #pragma once
 
 #include "common.h"

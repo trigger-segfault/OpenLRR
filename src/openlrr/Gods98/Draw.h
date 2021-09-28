@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "../platform/windows.h"
+
 #include "../common.h"
 #include "../Types/geometry.h"
 

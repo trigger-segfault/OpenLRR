@@ -1,7 +1,7 @@
 // Materials.cpp : 
 //
 
-#include <d3drm.h>
+#include "../platform/d3drm.h"
 
 #include "Errors.h"
 #include "Main.h"

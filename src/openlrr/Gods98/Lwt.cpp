@@ -1,9 +1,9 @@
 // Lwt.cpp : 
 //
 
-#include <windows.h>
-#include <d3drm.h>
-#include <stdio.h>
+#include "../platform/windows.h"
+#include "../platform/d3drm.h"
+//#include <stdio.h>
 
 #include "../Types/geometry.h"
 

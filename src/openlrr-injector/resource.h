@@ -1,9 +1,14 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by OpenLRR-Injector.rc
 
-#define IDI_MAINICON					104
 
+/////////////////////////////////////////////////////////////////////
+// Used by openlrr-injector.rc
+//
+#define IDI_OPENLRR						105
+
+
+/////////////////////////////////////////////////////////////////////
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED

@@ -1,11 +1,9 @@
 // DirectDraw.cpp : 
 //
 
-#include <windows.h>
-#include <ddraw.h>
-#include <d3drm.h>
-
-#include "../Legacy/legacy_ddraw.h"
+#include "../platform/windows.h"
+#include "../platform/ddraw.h"
+#include "../platform/d3drm.h"
 
 #include "Bmp.h"
 #include "Dxbug.h"

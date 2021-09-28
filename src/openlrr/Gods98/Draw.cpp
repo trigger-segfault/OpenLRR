@@ -1,8 +1,8 @@
 // Draw.cpp : 
 //
 
-#include <ddraw.h>
-#include <d3drm.h>			// For Viewports.h
+#include "../platform/ddraw.h"
+#include "../platform/d3drm.h"			// For Viewports.h
 
 #include "DirectDraw.h"
 #include "Errors.h"

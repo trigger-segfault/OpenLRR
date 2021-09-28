@@ -1,8 +1,8 @@
 // Images.cpp : 
 //
 
-#include <ddraw.h>
-#include <d3drm.h>
+#include "../platform/ddraw.h"
+#include "../platform/d3drm.h"
 
 #include "Bmp.h"
 #include "DirectDraw.h"

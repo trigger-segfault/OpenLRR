@@ -1,11 +1,7 @@
 // Input.cpp : 
 //
 
-//#define DIRECTINPUT_VERSION				0x0800
-#include <d3drmwin.h>
-//#include <dinput.h>
-
-#include "../Legacy/legacy_dinput.h"
+#include "../platform/dinput.h"
 
 #include "Errors.h"
 #include "Dxbug.h"

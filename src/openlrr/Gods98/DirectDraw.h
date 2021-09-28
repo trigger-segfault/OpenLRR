@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include "../platform/windows.h"
+
 #include "../common.h"
 #include "../Types/geometry.h"
 
@@ -19,11 +21,16 @@
 
 #pragma region Forward Declarations
 
+struct IDirectDraw;
 struct IDirectDraw4;
 struct IDirectDrawSurface4;
 struct IDirectDrawClipper;
 struct tagPALETTEENTRY;
 typedef struct tagPALETTEENTRY PALETTEENTRY;
+struct _D3DDeviceDesc;
+typedef struct _D3DDeviceDesc			* LPD3DDEVICEDESC;
+struct _DDSURFACEDESC2;
+typedef struct _DDSURFACEDESC2          FAR* LPDDSURFACEDESC2;
 
 #pragma endregion
 

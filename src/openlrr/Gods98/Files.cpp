@@ -1,6 +1,8 @@
 // Files.cpp : 
 //
 
+#include "../platform/windows.h"
+
 #include "Errors.h"
 #include "Memory.h"
 #include "Registry.h"

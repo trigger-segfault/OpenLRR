@@ -1,23 +1,19 @@
 // Sound.cpp : 
 //
 
-#include <stdio.h>
-#include <windows.h>
+#include "../platform/windows.h"
+#include "../platform/d3drm.h"
+#include "../platform/dsound.h"
+#include "../platform/timeapi.h"
 #include <windowsx.h>
-#include <d3drm.h>
 #include <mmsystem.h>
-#include <dsound.h>
 #include <process.h>
-
-#include "../Legacy/legacy_timeapi.h"
 
 #include "3DSound.h"
 #include "Errors.h"
 #include "Main.h"
 
 #include "Sound.h"
-
-//#pragma comment(lib, "dsound")
 
 
 /**********************************************************************************

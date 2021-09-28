@@ -2,6 +2,7 @@
 #include "hook.h"
 #include "interop.h"
 #include "openlrr.h"
+
 #include "Gods98/3DSound.h"
 #include "Gods98/Activities.h"
 #include "Gods98/Animation.h"
@@ -42,14 +43,14 @@
 
 bool interop_hook_WinMain_call(void)
 {   bool result = true;
-	result &= hook_write_call(0x0048f3fa, OpenLRR_WinMain, nullptr);
+	result &= hook_write_call(0x0048f3fa, StartOpenLRR, nullptr);
 	return_interop(result);
 }
 
 bool interop_hook_Gods98_WinMain(void)
 {   bool result = true;
 	//result &= hook_write_jmpret(0x00477a60, Gods98::Main_WinMain);
-	result &= hook_write_jmpret(0x00477a60, OpenLRR_WinMain);
+	result &= hook_write_jmpret(0x00477a60, StartOpenLRR);
 	//return_interop(result);
 	return result;
 }

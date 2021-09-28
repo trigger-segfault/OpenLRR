@@ -1,7 +1,7 @@
 // Bmp.cpp : 
 //
 
-#include <d3drmwin.h>
+#include "../platform/d3drm.h"
 
 #include "Memory.h"
 

@@ -9,26 +9,10 @@
 
 #pragma once
 
-#include <windows.h>
+#include "../platform/windows.h"
 
 #include "../common.h"
-/*
-#include "Animation.h"
-#include "Config.h"
-#include "DirectDraw.h"
-#include "Draw.h"
-#include "Dxbug.h"
-#include "Errors.h"
-#include "Files.h"
-#include "Fonts.h"
-#include "Images.h"
-#include "Input.h"
-#include "Memory.h"
-#include "Registry.h"
-#include "Sound.h"
-#include "Utils.h"
-#include "../Gods98Init/Init.h"
-*/
+
 
 /**********************************************************************************
  ******** Forward Global Namespace Declarations
@@ -36,12 +20,16 @@
 
 #pragma region Forward Declarations
 
+struct IDirectDraw;
+struct IDirectDrawSurface4;
 struct IDirect3DRM3;
 struct IDirect3DRMDevice3;
 struct IDirect3DDevice3;
 enum _D3DRENDERSTATETYPE;
 typedef enum _D3DRENDERSTATETYPE D3DRENDERSTATETYPE;
 static_assert(sizeof(D3DRENDERSTATETYPE) == 0x4, "");
+struct tagRECT;
+typedef struct tagRECT RECT;
 
 #pragma endregion
 

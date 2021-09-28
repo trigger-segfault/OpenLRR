@@ -1,9 +1,7 @@
 // AnimClone.cpp : 
 //
 
-#include <d3drm.h>
-
-#include "../Legacy/legacy_d3drm.h"
+#include "../platform/d3drm.h"
 
 #include "Containers.h"    // debug macro: Container_NoteCreation(o)
 #include "Errors.h"

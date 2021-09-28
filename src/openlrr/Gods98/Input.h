@@ -14,7 +14,7 @@
 #undef DIRECTINPUT_VERSION
 #define DIRECTINPUT_VERSION 0x0500
 #endif
-#include "../Legacy/legacy_dinput.h"
+#include "../platform/dinput.h"
 
 
 /**********************************************************************************
@@ -41,6 +41,9 @@ struct IDirectInputDevice8A;
 
 struct IDirectInputDevice2A;
 
+struct tagRECT;
+typedef struct tagRECT RECT;
+
 #pragma endregion
 
 
@@ -54,9 +57,9 @@ namespace Gods98
 #pragma region Constants
 
 // looked at the win98 joystick stuff and it doesn't let you have more than 4 buttons
-#define						MAX_JOYSTICK_BUTTONS		4
+#define	MAX_JOYSTICK_BUTTONS		4
 
-#define INPUT_MAXKEYS		256
+#define INPUT_MAXKEYS				256
 
 #pragma endregion
 

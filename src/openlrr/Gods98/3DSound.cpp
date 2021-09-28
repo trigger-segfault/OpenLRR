@@ -1,10 +1,9 @@
 // 3DSound.cpp : 
 //
 
-#include <d3drm.h>
-#include <dsound.h>
-#include <stdio.h>
-#include <windows.h>
+#include "../platform/windows.h"
+#include "../platform/d3drm.h"
+#include "../platform/dsound.h"
 #include <windowsx.h>
 #include <mmsystem.h>
 

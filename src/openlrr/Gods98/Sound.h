@@ -6,7 +6,27 @@
 
 #pragma once
 
+#include "../platform/windows.h"
+
+// no getting around this include without some very ugly work-arounds :(
+#include <mmsystem.h>
+
 #include "../common.h"
+
+
+/**********************************************************************************
+ ******** Forward Global Namespace Declarations
+ **********************************************************************************/
+
+#pragma region Forward Declarations
+
+struct IDirectSoundBuffer;
+//struct MMCKINFO;
+//struct tWAVEFORMATEX;
+//typedef struct tWAVEFORMATEX WAVEFORMATEX, * PWAVEFORMATEX, FAR* LPWAVEFORMATEX;
+//typedef long MCIERROR;
+
+#pragma endregion
 
 
 namespace Gods98

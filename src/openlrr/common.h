@@ -1,34 +1,22 @@
-// common.h : include file for standard system include files,
+// common.h : include file for standard C runtime include files,
 //            or project specific include files.
 //
 
 #pragma once
 
-//#include "targetver.h"
 
+#pragma warning (push)
+#pragma warning (disable : 4005)
 
-// Header File Preprocessors:
-#pragma region Include Defines
-// suppress C4996 (moved to preprocessor)
-//#define _CRT_SECURE_NO_WARNINGS
+#pragma region Windows Includes
 
-// Include constants such as M_PI
-#define _USE_MATH_DEFINES
-// Exclude rarely-used stuff from Windows headers
-#define WIN32_LEAN_AND_MEAN
-// dinput.h version. NOTE: Normally this is 0x500 (v5) in LegoRR,
-//  but we don't need to try to support that.
-//#define DIRECTINPUT_VERSION				0x0800
-//#define DIRECTINPUT_VERSION				0x0500
+// I give up on trying to remove windows.h from common.h....
+#include "platform/windows.h"
+
 #pragma endregion
 
-// Header File Includes:
-#pragma region Windows Header File
-// Windows Header Files
-#include <windows.h>
-#pragma endregion
 
-#pragma region C/C++ RunTime Header Files
+#pragma region C/C++ RunTime Includes
 // C++ RunTime Header Files
 #include <cmath>
 #include <cstring>
@@ -37,7 +25,8 @@
 #include <cstdarg>
 #include <cassert>
 #include <ctime>
-//#include <typeinfo>
+#include <cstdint>
+
 // C++ STL Header Files
 #include <string>
 #include <array>
@@ -45,58 +34,22 @@
 #include <map>
 #include <functional>
 #include <type_traits>
+//#include <typeinfo>
 
 // Windows C RunTime Header Files
 #include <direct.h>
 #include <io.h>
 #pragma endregion
 
-#pragma region API Header Files
-// Direct X Header Files and Library
-#include <mmsystem.h>					// Multimedia System
-#include <d3d.h>						// Direct3D
-#include <ddraw.h>						// DirectDraw
-#include <dsound.h>						// DirectSound
-//#include <dinput.h>						// DirectInput 8.0
-// Reintroduced legacy support:
-
-//////////////////////
-// TODO: re-add me
-//#include <d3drmwin.h>                         // now available as additional include
-////#include "../DirectX/D3DRM/d3drmwin.h"		// Direct3DRM
-//////////////////////
-
-#include <vfw.h>						// AVIFile
-#include <timeapi.h>					// timeGetTime()
-
-// Windows Process and memory management (for inspecting runnings instance of LegoRR.exe)
-#include <memoryapi.h>					// ReadProcessMemory()
-#include <psapi.h>						// EnumProcesses() + OpenProcess()
-#pragma endregion
-
-// Library Comments for Header Files:
-#pragma region Library Comments
-// Direct X Header Files and Library
-#pragma comment(lib, "ddraw.lib")		// DirectDraw
-#pragma comment(lib, "dsound.lib")		// DirectSound
-#pragma comment(lib, "dinput8.lib")		// DirectInput 8.0
-#pragma comment(lib, "winmm.lib")		// Multimedia System and timeGetTime()
-#pragma comment(lib, "dxguid.lib")		// GUID + IID constants
-
-// Reintroduced legacy support:
-//#pragma comment(lib, "d3drm.lib")		// Direct3DRM
-//#pragma comment(lib, "d3d8.lib")		// Direct3D 8.0
-
-#pragma comment(lib, "vfw32.lib")		// AVIFile
-
-// Windows Process and memory management (for inspecting runnings instance of LegoRR.exe)
-//#pragma comment(lib, "psapi.lib")		// EnumProcesses() + OpenProcess()
-#pragma endregion
+#pragma warning (pop)
 
 
-// Project-global Defines:
 // Most of these are from older projects, and will be refactored-away later
 #pragma region Global Configuration Settings
+
+// Use `int32_t`, `uint32_t`, etc. over `int`, `unsigned int` for typedefs.
+#define USE_STDINT_TYPEDEFS
+
 
 // Always show cursor? (default is false)
 #define SHOWCURSOR true
@@ -115,7 +68,7 @@
 
 #pragma endregion
 
-// Project-debug Defines:
+
 #pragma region Debug Configuration Settings
 
 // Removes sections of code that initialize unused features
@@ -129,29 +82,136 @@
 
 #pragma endregion
 
+
+#pragma region GODS constants
+
+// Standard Gods engine FPS constant. Used everywhere
 #define STANDARD_FRAMERATE		25.0f
 
+#pragma endregion
 
 
-typedef char char8;
-typedef signed char schar8;
-typedef unsigned char uchar8;
+#pragma region Basic type definitions
+
+// Ansi single-byte/multi-byte character strings
+typedef char			ansi;
+typedef ansi*			ansi_str;
+typedef const ansi*		const_ansi_str;
+
+// unsigned ansi for scenarios where GODS uses unsigned character comparisons.
+typedef unsigned char	uansi;
+typedef uansi*			uansi_str;
+typedef const uansi*	const_uansi_str;
+
+// Informative typedefs for single-byte characters that should never be > 0x7f
+typedef ansi			ascii;
+typedef ascii*			ascii_str;
+typedef const ascii*	const_ascii_str;
+
+// Wide 2-byte unicode character strings (Windows specific)
+typedef wchar_t			wide;
+typedef wide*			wide_str;
+typedef const wide*		const_wide_str;
+
+/*typedef wchar_t			utf16;
+typedef utf16*			utf16_str;
+typedef const utf16*	const_utf16_str;
+
+typedef wchar_t			unicode;
+typedef unicode*		unicode_str;
+typedef const unicode*	const_unicode_str;*/
 
 
-typedef signed char sint8;
-typedef unsigned char uint8;
-typedef short sint16;
-typedef unsigned short uint16;
-typedef int sint32;
-typedef unsigned int uint32;
-typedef long long sint64;
-typedef unsigned long long uint64;
+/// REMOVEME: Old char typedefs
+typedef char			char8;
+typedef signed char		schar8;
+typedef unsigned char	uchar8;
 
-typedef float real32;
 
-typedef int bool32;
+#ifdef USE_STDINT_TYPEDEFS
 
-typedef unsigned int colour32;
+typedef int8_t			sint8;
+typedef uint8_t			uint8;
+typedef int16_t			sint16;
+typedef uint16_t		uint16;
+typedef int32_t			sint32;
+typedef uint32_t		uint32;
+typedef int64_t			sint64;
+typedef uint64_t		uint64;
+
+#else
+
+typedef signed char			sint8;
+typedef unsigned char		uint8;
+typedef short				sint16;
+typedef unsigned short		uint16;
+typedef int					sint32;
+typedef unsigned int		uint32;
+typedef long long			sint64;
+typedef unsigned long long	uint64;
+
+#endif
+
+
+typedef float			real32;
+typedef double			real64;
+
+typedef sint32			bool32; // WIN BOOL
+
+typedef uint32			colour32;
+
+#pragma endregion
+
+
+#pragma region Macro functions
+
+// Gets the name of a symbol as a C string
+#define nameof_(symbol) #symbol
+#define nameof(symbol) nameof_(symbol)
+
+#define assert_sizeof(type, size) static_assert(sizeof(type) == (size), "Improper type size for " nameof(type))
+
+// Shorthand cast to unsigned character for GODS string comparisons
+#define uchr(c) ((uansi)(c))
+#define ustr(c) ((uansi_str)(c))
+#define ucstr(c) ((const_uansi_str)(c))
+
+
+#define noinline(funcname) _noinline_ ##funcname
+
+
+#define enum_scoped(name) \
+	namespace _ns_ ##name { \
+	enum name
+
+#define flags_scoped(name) enum_scoped(name)
+
+
+#define enum_scoped_end(name, size) \
+	assert_sizeof(name, size); \
+	} using name = _ns_ ##name## :: ##name
+
+#define flags_scoped_end(name, size) \
+	DEFINE_ENUM_FLAG_OPERATORS(name); \
+	enum_scoped_end(name, size)
+
+
+#define enum_end(name, size) \
+	assert_sizeof(name, size)
+
+#define flags_end(name, size) \
+	DEFINE_ENUM_FLAG_OPERATORS(name); \
+	assert_sizeof(name, size)
+
+
+#define log_firstcall() { static bool _log_firstcallbool = false; \
+	if (!_log_firstcallbool) {_log_firstcallbool = true; \
+		std::printf("%s called\n", __FUNCTION__); } }
+
+#pragma endregion
+
+
+#pragma region Basic enum types
 
 enum BoolTri : bool32
 {
@@ -159,21 +219,7 @@ enum BoolTri : bool32
 	BOOL3_TRUE  = 1,
 	BOOL3_ERROR = 2, // would `BOOL3_ERR` be better?
 };
-static_assert(sizeof(BoolTri) == 0x4, "");
+assert_sizeof(BoolTri, 0x4);
 
+#pragma endregion
 
-#define log_firstcall() { static bool _log_firstcallbool = false; \
-	if (!_log_firstcallbool) {_log_firstcallbool = true; \
-		std::printf("%s called\n", __FUNCTION__); } }
-
-#define noinline(funcname) _noinline_ ##funcname
-
-#define def_inline(ret, funcname, ...) ret __cdecl noinline(funcname) ##__VA_ARGS__ ; __inline ret funcname ##__VA_ARGS__
-// a slapdash approach for standardizing no-inlined method names that can be safely hooked
-//#define noinline(funcname) _noinline_ ##funcname
-
-
-//#define enum_scoped(name) namespace _ns_ ##name { \
-//	enum name
-
-//#define enum_scoped_end(name) } using name = _ns_ ##name## :: ##name

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../common.h"
+#include "windows.h"
 #include <d3drmwin.h>
 
 

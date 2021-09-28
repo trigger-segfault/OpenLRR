@@ -7,10 +7,6 @@
 #include "Movie.hpp"
 #include "Movie.h"
 
-// <https://docs.microsoft.com/en-us/previous-versions/windows/embedded/aa451220(v=msdn.10)>
-#pragma comment(lib, "Strmbase.lib")		// IAMMultiMediaStream
-#pragma comment(lib, "Strmiids.lib")		// IAMMultiMediaStream
-
 
 /**********************************************************************************
  ******** Class Functions

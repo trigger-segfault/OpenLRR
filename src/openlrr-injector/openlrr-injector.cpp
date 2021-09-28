@@ -12,11 +12,16 @@
 /////////////////////////////////////////////////////////////////////
 // Defines
 
-#define DLL_NAME _T("OpenLRR.dll")
+#ifdef _DEBUG
+#define DLL_NAME _T("openlrr-d.dll")
+#else
+#define DLL_NAME _T("openlrr.dll")
+#endif
 #define EXE_NAME _T("LegoRR.exe")
 //#define LRR_DIR _T("C:\\Program Files (x86)\\LEGO Media\\Games\\Rock Raiders")
 // entrypoint for LegoRR.exe (masterpiece)
 #define PROCESS_EIP 0x48F2C0
+#define PROCESS_WINMAIN 0x477a60
 
 // (unused)
 // WinMain function for LegoRR.exe (masterpiece)
@@ -320,7 +325,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 	do {
 		loops++;
-		if (!::ReadProcessMemory(ProcessInfo.hProcess, (LPVOID)0x00477a60, &wmainBuff, sizeof(wmainBuff), NULL)) {
+		if (!::ReadProcessMemory(ProcessInfo.hProcess, (LPVOID)PROCESS_WINMAIN, &wmainBuff, sizeof(wmainBuff), NULL)) {
 			_tprintf(_T("ReadProcessMemory WinMain first byte failed... "));
 			return_error(-1);
 		}
@@ -332,8 +337,9 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	if (!::WriteProcessMemory(ProcessInfo.hProcess, (LPVOID)PROCESS_EIP, &eipBackup, sizeof(eipBackup), NULL)) {
 		_tprintf(_T("Failed\n"));
 	}
-
-	_tprintf(_T("OK\n"));
+	else {
+		_tprintf(_T("OK\n"));
+	}
 
 	::system("pause"); // optional pause at end to check log output (will not pause startup of OpenLRR)
 

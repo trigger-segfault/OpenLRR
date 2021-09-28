@@ -1,7 +1,7 @@
 // Init/Init.cpp : 
 //
 
-#include <windows.h>
+#include "../platform/windows.h"
 
 #include "../Gods98/DirectDraw.h"
 #include "../Gods98/Errors.h"

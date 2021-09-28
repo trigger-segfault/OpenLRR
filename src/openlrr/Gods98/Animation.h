@@ -20,6 +20,19 @@
 #include "../common.h"
 
 
+/**********************************************************************************
+ ******** Forward Global Namespace Declarations
+ **********************************************************************************/
+
+#pragma region Forward Declarations
+
+struct IDirectDraw4;
+struct tagRECT;
+typedef struct tagRECT RECT;
+
+#pragma endregion
+
+
 namespace Gods98
 {; // !<---
 

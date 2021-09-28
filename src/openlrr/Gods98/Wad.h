@@ -30,7 +30,7 @@ namespace Gods98
 // debug      = TRUE for debug-specific messages (mostly compression-related)
 // currentMsg = progress message for current file. (not passed when stateMsg is passed)
 // stateMsg   = message for current progress state/pass etc. (only passed when changed)
-typedef void (__cdecl* WadProgressUpdate)(int percent, bool32 debug, const char* currentMsg, const char* stateMsg);
+typedef void (__cdecl* WadProgressUpdate)(sint32 percent, bool32 debug, const char* currentMsg, const char* stateMsg);
 
 #pragma endregion
 
@@ -113,8 +113,8 @@ struct Wad
 {
 	/*00,4*/ char* fName;
 	/*04,4*/ bool32 active;
-	/*08,4*/ HANDLE hFile;
-	/*0c,4*/ HANDLE hFileMapping;
+	/*08,4*/ void* hFile;			// (unused) HANDLE
+	/*0c,4*/ void* hFileMapping;	// (unused) HANDLE
 	/*10,4*/ FILE* fWad;					// File handle of the wad
 										// Each of the file names in the wad
 	/*14,4*/ char** fileNames;			// Names of actual files
@@ -139,7 +139,7 @@ static_assert(sizeof(Wad_FileHandle) == 0x10, "");
 
 struct Wad_Globs
 {
-	/*000,4*/ DWORD computerNameLength; // (address not known)
+	/*000,4*/ uint32 computerNameLength; // (address not known)
 	/*004,4*/ bool32 wadLogFileAccess;    // (address not known)
 	/*008,4*/ FILE* s_ErrorFile_f;      // (address not known)
 	/*00c,168*/ Wad wads[MAX_WADS];				// Wad structures

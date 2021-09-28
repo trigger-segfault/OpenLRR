@@ -59,28 +59,24 @@ typedef void (__cdecl* FontRunThroughListsCallback)(Font* font, void* data);
 
 #pragma region Enums
 
-//#define FONT_FLAG_INITIALISED	0x00000001
-//#define FONT_FLAG_WINDOWSET		0x00000002 // (unused)
-//#define FONT_FLAG_WINDOWWRAPPED	0x00000004 // (unused)
-
-
 namespace _ns_Font_GlobFlags {
 enum Font_GlobFlags : uint32
 {
-	FONT_FLAG_NONE = 0,
-	FONT_FLAG_INITIALISED = 0x1,
+	FONT_FLAG_NONE			= 0,
+	FONT_FLAG_INITIALISED	= 0x1,
 };
 DEFINE_ENUM_FLAG_OPERATORS(Font_GlobFlags);
 static_assert(sizeof(Font_GlobFlags) == 0x4, "");
 } using Font_GlobFlags = _ns_Font_GlobFlags::Font_GlobFlags;
 
+
 namespace _ns_FontFlags {
 enum FontFlags : uint32
 {
-	FONT_FLAG_NONE = 0, // (unused)
+	FONT_FLAG_NONE			= 0, // (unused)
 
-	FONT_FLAG_WINDOWSET = 0x2, // (unused)
-	FONT_FLAG_WINDOWWRAPPED = 0x4, // (unused)
+	FONT_FLAG_WINDOWSET		= 0x2, // (unused)
+	FONT_FLAG_WINDOWWRAPPED	= 0x4, // (unused)
 };
 DEFINE_ENUM_FLAG_OPERATORS(FontFlags);
 static_assert(sizeof(FontFlags) == 0x4, "");

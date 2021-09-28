@@ -1,9 +1,7 @@
 // Mesh.cpp : 
 //
 
-#include <d3drm.h>
-
-#include "../Legacy/legacy_d3drm.h"
+#include "../platform/d3drm.h"
 
 #include "Containers.h"
 #include "Errors.h"

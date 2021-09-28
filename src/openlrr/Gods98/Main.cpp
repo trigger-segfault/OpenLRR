@@ -1,11 +1,14 @@
 // Main.cpp : 
 //
 
-#include <d3drmwin.h>
+#include "../platform/windows.h"
+#include "../platform/d3drm.h"		// <d3drmwin.h>
+#include "../platform/timeapi.h"
 
-#include "../Legacy/legacy_d3drm.h"
-#include "../Legacy/legacy_timeapi.h"
 #include "../Types/geometry.h"
+
+#include "../platform/resource.h"
+#include "../openlrr.h"
 
 #include "Animation.h"
 #include "Config.h"
@@ -26,33 +29,6 @@
 #include "Main.h"
 
 #include "../LegoRR/Lego.h"  // Gods_Go
-
-
-/**********************************************************************************
- ******** Forward Global Namespace Declarations
- **********************************************************************************/
-
-#pragma region Forward Declarations
-
-/*#define Input_InitKeysAndDI ((void (__cdecl*)(void))0x0047f050)
-#define Input_ReadKeys ((void (__cdecl*)(void))0x0047f1b0)
-#define Input_ReadMouse2 ((void (__cdecl*)(void))0x0047f2d0)
-#define Input_ReleaseKeysAndDI ((void (__cdecl*)(void))0x0047f290)*/
-
-
-/// TODO: Remove me once Sound module is finished
-//#define Sound_Initialise ((bool32(__cdecl*)(bool32))0x00488e10)
-
-/// TODO: Remove me once Animation module is finished
-//#define Animation_Initialise ((void(__cdecl*)(IDirectDraw4*))0x0047ef40)
-/// TODO: Remove me once Animation module is finished
-//#define Draw_Initialise ((void(__cdecl*)(const Area2F*))0x00486140)
-/// TODO: Remove/choose to add me once Images module and Lego_Initialise are finished
-//#define Image_Initialise ((void(__cdecl*)(void*))0x0047d6d0)
-/// TODO: Remove me once Gods_Go function is implemented
-//#define Gods_Go ((void (__cdecl*)(const char*))0x0041f950)
-
-#pragma endregion
 
 
 /**********************************************************************************
@@ -265,12 +241,15 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 		// this name without extension will be the basis for many constant lookups
 		::_strupr(s);																	// Ensure .exe is in upper case.
 		if (s = std::strstr(mainGlobs.programName, ".EXE")) *s = '\0';					// Strip off .EXE
+
+		/// OPENLRR TEMP: Use the '-' as a separator for the base exe name
+		if (s = std::strstr(mainGlobs.programName, "-")) *s = '\0';					// Strip off '-'
 	}
 	Mem_Free(getCL); // no longer used
 
 
 	/// OLD LEGORR: Product mutex name was hardcoded to this:
-	productName = "Lego Rock Raiders";
+	productName = MUTEX_NAME; // "Lego Rock Raiders";
 	/// NEW GODS98: Mutex setup is called later than in LegoRR
 	//productName = mainGlobs.programName;
 	productRegistry = "SOFTWARE\\LEGO Media\\Games\\Rock Raiders";

@@ -1,8 +1,8 @@
 // Flic.cpp : 
 //
 
-#include <windows.h>
-#include <ddraw.h>
+#include "../platform/windows.h"
+#include "../platform/ddraw.h"
 
 #include "DirectDraw.h"
 #include "Errors.h"
