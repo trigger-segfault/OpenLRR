@@ -308,7 +308,7 @@
     <ClInclude Include="Gods98\Movie.hpp" />
     <ClInclude Include="openlrr.h" />
     <ClInclude Include="platform\windows.h" />
-    <ClInclude Include="Types\colour.h" />
+    <ClInclude Include="types\colour.h" />
     <ClInclude Include="Gods98\Compress.h" />
     <ClInclude Include="Gods98\Config.h" />
     <ClInclude Include="Gods98\Containers.h" />
@@ -319,7 +319,7 @@
     <ClInclude Include="Gods98\Files.h" />
     <ClInclude Include="Gods98\Flic.h" />
     <ClInclude Include="Gods98\Fonts.h" />
-    <ClInclude Include="Types\geometry.h" />
+    <ClInclude Include="types\geometry.h" />
     <ClInclude Include="Gods98\Images.h" />
     <ClInclude Include="Gods98\Input.h" />
     <ClInclude Include="Gods98\Keys.h" />
@@ -353,7 +353,7 @@
     <ClInclude Include="LegoRR\Weapons.h" />
     <ClInclude Include="platform\resource.h" />
     <ClInclude Include="platform\targetver.h" />
-    <ClInclude Include="Types\undefined.h" />
+    <ClInclude Include="types\undefined.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="platform\openlrr.rc" />

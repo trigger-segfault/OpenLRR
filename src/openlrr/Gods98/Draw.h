@@ -9,7 +9,7 @@
 #include "../platform/windows.h"
 
 #include "../common.h"
-#include "../Types/geometry.h"
+#include "../types/geometry.h"
 
 
 namespace Gods98
@@ -101,7 +101,7 @@ struct Draw_Globs
 	/*00,4*/ DrawPixelFunc drawPixelFunc;
 	/*04,8*/ Point2F clipStart;
 	/*0c,8*/ Point2F clipEnd;
-	/*14,10*/ RECT lockRect;
+	/*14,10*/ Rect2I lockRect;
 	/*24,4*/ void* buffer;
 	/*28,4*/ uint32 pitch;
 	/*2c,4*/ uint32 bpp;

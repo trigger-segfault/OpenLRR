@@ -7,6 +7,7 @@
 #pragma once
 
 #include "../common.h"
+#include "../types/geometry.h"
 
 #ifndef DIRECTINPUT_VERSION
 #define DIRECTINPUT_VERSION 0x0500
@@ -40,9 +41,6 @@ struct IDirectInputDevice8A;
 #endif
 
 struct IDirectInputDevice2A;
-
-struct tagRECT;
-typedef struct tagRECT RECT;
 
 #pragma endregion
 
@@ -110,7 +108,7 @@ struct Input_Globs
 #endif
 	/*10c,4*/ bool32 fKeybdAcquired;
 	/*110,4*/ bool32 fMouseAcquired;							// (unused)
-	/*114,10*/ RECT MouseBounds;						// Bounding box in which mouse may move
+	/*114,10*/ Rect2I MouseBounds;						// Bounding box in which mouse may move
 	/*124,4*/ sint32 msx;
 	/*128,4*/ sint32 msy;
 	/*12c,4*/ sint32 prev_msx;
@@ -162,12 +160,10 @@ extern Input_Globs & INPUT;
 // <LegoRR.exe @00410a60>
 sint32 __cdecl noinline(msx)(void);
 __inline sint32 msx(void) { return INPUT.msx; }		// Mouse positions
-///*__inline*/ sint32 __cdecl msx(void);// { return INPUT.msx; }		// Mouse positions
 
 // <LegoRR.exe @00410a70>
 sint32 __cdecl noinline(msy)(void);
 __inline sint32 msy(void) { return INPUT.msy; }
-//def_inline(sint32, msy, (void)) { return INPUT.msy; }
 
 
 // <LegoRR.exe @00410a80>
@@ -219,7 +215,7 @@ BOOL __cdecl Input_SetCursorPos(sint32 x, sint32 y);
 
 
 // Initialize the mouse
-//bool32 __cdecl Input_InitMouse(bool32 GrabExclusiveAccess, sint32 sx, sint32 sy, RECT Bounds);
+//bool32 __cdecl Input_InitMouse(bool32 GrabExclusiveAccess, sint32 sx, sint32 sy, Rect2I Bounds);
 
 /*// Release the mouse
 void __cdecl Input_ReleaseMouse(void);

@@ -7,7 +7,6 @@
 #include "../platform/timeapi.h"
 #include <windowsx.h>
 #include <mmsystem.h>
-#include <process.h>
 
 #include "3DSound.h"
 #include "Errors.h"

@@ -9,7 +9,7 @@
 #pragma once
 
 #include "../common.h"
-#include "../Types/geometry.h"
+#include "../types/geometry.h"
 
 
 /**********************************************************************************
@@ -35,7 +35,18 @@ typedef unsigned long COLORREF;
 
 namespace Gods98
 {; // !<---
-	
+
+/**********************************************************************************
+ ******** Forward Declarations
+ **********************************************************************************/
+
+#pragma region Forward Declarations
+
+struct BMP_PaletteEntry;
+struct BMP_Image;
+
+#pragma endregion
+
 /**********************************************************************************
  ******** Constants
  **********************************************************************************/
@@ -51,10 +62,6 @@ namespace Gods98
  **********************************************************************************/
 
 #pragma region Enums
-	
-//#define IMAGE_FLAG_INITIALISED	0x00000001
-//#define IMAGE_FLAG_TRANS		0x00000002
-//#define IMAGE_FLAG_TEXTURE		0x00000004
 
 // used by `Image_DisplayScaled2` for
 //  `IDirect3DDevice3->DrawPrimitive(D3DPT_TRIANGLESTRIP, IMAGE_VERTEXFLAGS, vertices, 4, D3DDP_DONOTLIGHT|D3DDP_WAIT)`
@@ -71,6 +78,7 @@ DEFINE_ENUM_FLAG_OPERATORS(Image_GlobFlags);
 static_assert(sizeof(Image_GlobFlags) == 0x4, "");
 } using Image_GlobFlags = _ns_Image_GlobFlags::Image_GlobFlags;
 
+
 namespace _ns_ImageFlags {
 enum ImageFlags : uint32
 {
@@ -82,6 +90,7 @@ enum ImageFlags : uint32
 DEFINE_ENUM_FLAG_OPERATORS(ImageFlags);
 static_assert(sizeof(ImageFlags) == 0x4, "");
 } using ImageFlags = _ns_ImageFlags::ImageFlags;
+
 
 enum Image_TextureMode : sint32
 {
@@ -106,18 +115,18 @@ static_assert(sizeof(Image_TextureMode) == 0x4, "");
 
 #pragma region Structs
 
-typedef struct ImageVertex
+struct ImageVertex
 {
 	/*00,10*/ Vector4F position;
 	/*10,4*/ uint32 colour;
 	/*14,4*/ real32 tu;
 	/*18,4*/ real32 tv;
 	/*1c*/
-} ImageVertex, *lpImageVertex;
+};
 static_assert(sizeof(ImageVertex) == 0x1c, "");
 
 
-typedef struct Image
+struct Image
 {
 	/*00,4*/ IDirectDrawSurface4* surface;
 	//IDirect3DTexture2* texture;
@@ -130,11 +139,11 @@ typedef struct Image
 	/*18,4*/ ImageFlags flags;
 	/*1c,4*/ Image *nextFree;
 	/*20*/
-} Image, *lpImage;
+};
 static_assert(sizeof(Image) == 0x20, "");
 
 
-typedef struct Image_Globs
+struct Image_Globs
 {
 	// [globs: start]
 	/*00,80*/ Image* listSet[IMAGE_MAXLISTS];		// Images list
@@ -143,7 +152,7 @@ typedef struct Image_Globs
 	/*88,4*/ Image_GlobFlags flags;
 	// [globs: end]
 	/*8c*/
-} Image_Globs;
+};
 static_assert(sizeof(Image_Globs) == 0x8c, "");
 
 #pragma endregion
@@ -179,10 +188,10 @@ void __cdecl Image_Shutdown(void);
 void __cdecl Image_Remove(Image* dead);
 
 // <LegoRR.exe @0047d750>
-bool32 __cdecl Image_CopyToDataToSurface(IDirectDrawSurface4* surface, D3DRMIMAGE* image);
+bool32 __cdecl Image_CopyToDataToSurface(IDirectDrawSurface4* surface, BMP_Image* image);
 
 // <LegoRR.exe @0047d7e0>
-bool32 __cdecl Image_8BitSourceCopy(DDSURFACEDESC2* desc, D3DRMIMAGE* image);
+bool32 __cdecl Image_8BitSourceCopy(const DDSURFACEDESC2* desc, BMP_Image* image);
 
 // <LegoRR.exe @0047d9c0>
 uint32 __cdecl Image_CountMaskBits(uint32 mask);
@@ -191,10 +200,10 @@ uint32 __cdecl Image_CountMaskBits(uint32 mask);
 uint32 __cdecl Image_CountMaskBitShift(uint32 mask);
 
 // <LegoRR.exe @0047da00>
-void __cdecl Image_FlipSurface(DDSURFACEDESC2* desc);
+void __cdecl Image_FlipSurface(const DDSURFACEDESC2* desc);
 
 // <LegoRR.exe @0047dac0>
-bool32 __cdecl Image_24BitSourceCopy(DDSURFACEDESC2* desc, D3DRMIMAGE* image);
+bool32 __cdecl Image_24BitSourceCopy(const DDSURFACEDESC2* desc, BMP_Image* image);
 
 // <LegoRR.exe @0047dc90>
 Image* __cdecl Image_LoadBMPScaled(const char* fileName, uint32 width, uint32 height);

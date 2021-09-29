@@ -8,6 +8,7 @@
 #include "../platform/vfw.h"
 
 #include "../common.h"
+#include "../types/geometry.h"
 
 
 namespace Gods98
@@ -140,7 +141,7 @@ public:
 	/*98,1*/ bool m_colourKeySet; // (unused)
 	/*99,1*/ bool m_init;
 	/*9a,2*/ uint16 reserved1;
-	/*9c,10*/ RECT m_movieRect;
+	/*9c,10*/ Rect2I m_movieRect;
 	/*ac,4*/ real32 m_startTime;
 	/*b0,4*/ real32 m_currTime;
 	/*b4,4*/ real32 m_aviTimeScale;
@@ -175,7 +176,7 @@ public:
 	IDirectDrawSurface4* GetSurface() { return this->m_movieSurf->GetSurface(); }
 
 	// <missing>
-	const RECT* GetRect() const { return &this->m_movieRect; }
+	const Rect2I* GetRect() const { return &this->m_movieRect; }
 
 	// <missing>
 	bool IsOk() const { return this->m_init; }

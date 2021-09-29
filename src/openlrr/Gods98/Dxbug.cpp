@@ -1,11 +1,9 @@
 // Dxbug.cpp : 
 //
 
-#include "../platform/windows.h"
 #include "../platform/d3drm.h"
 #include "../platform/ddraw.h"
 #include "../platform/dinput.h"
-#include <process.h>
 
 #include "Errors.h"
 

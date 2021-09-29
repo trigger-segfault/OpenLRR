@@ -13,8 +13,8 @@
 #include "../platform/d3drm.h"		// <d3d.h>
 
 #include "../common.h"
-#include "../Types/geometry.h"
-#include "../Types/colour.h"
+#include "../types/geometry.h"
+#include "../types/colour.h"
 
 
 /**********************************************************************************
@@ -656,11 +656,11 @@ void __cdecl Mesh_Scale(Mesh* mesh, real32 x, real32 y, real32 z);
 
 // <LegoRR.exe @004826a0>
 void __cdecl Mesh_SetVertices(Mesh* mesh, uint32 groupID, uint32 index,
-							uint32 count, const Vertex3F* vertices);
+							uint32 count, const Vertex* vertices);
 
 // <LegoRR.exe @00482730>
 void __cdecl Mesh_GetVertices(Mesh* mesh, uint32 groupID, uint32 index,
-							uint32 count, OUT Vertex3F* vertices);
+							uint32 count, OUT Vertex* vertices);
 
 // <LegoRR.exe @004827c0>
 void __cdecl Mesh_SetVertices_PointNormalAt(Mesh* mesh, uint32 groupID, uint32 index,

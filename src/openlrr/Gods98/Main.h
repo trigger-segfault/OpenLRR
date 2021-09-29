@@ -12,6 +12,7 @@
 #include "../platform/windows.h"
 
 #include "../common.h"
+#include "../types/geometry.h"
 
 
 /**********************************************************************************
@@ -315,7 +316,7 @@ void __cdecl Main_SetupDisplay(bool32 fullScreen, uint32 xPos, uint32 yPos, uint
 bool32 __cdecl Main_SetupDirect3D(const DirectDraw_Device* dev, IDirectDraw* ddraw1, IDirectDrawSurface4* backSurf, bool32 doubleBuffered);
 
 // <LegoRR.exe @004785d0>
-void __cdecl Main_AdjustWindowRect(IN OUT RECT* rect);
+void __cdecl Main_AdjustWindowRect(IN OUT Rect2I* rect);
 
 // <LegoRR.exe @004785f0>
 void __cdecl Main_Setup3D(MainQuality renderQuality, bool32 dither, bool32 linearFilter, bool32 mipMap,
@@ -342,7 +343,7 @@ LRESULT __cdecl Main_WndProc_Windowed(HWND hWnd, UINT message, WPARAM wParam, LP
 LRESULT __stdcall Main_WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 // <LegoRR.exe @00478b90>
-void __cdecl Main_ChangeRenderState(D3DRENDERSTATETYPE dwRenderStateType, DWORD dwRenderState);
+void __cdecl Main_ChangeRenderState(D3DRENDERSTATETYPE dwRenderStateType, uint32 dwRenderState);
 
 /// NOTE: newer engine version has argument: BOOL force, but LegoRR DOES NOT have this argument.
 ///        (it's possible this argument has been inlined, as it negates calling the entire function body.)

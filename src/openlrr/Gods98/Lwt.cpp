@@ -3,9 +3,8 @@
 
 #include "../platform/windows.h"
 #include "../platform/d3drm.h"
-//#include <stdio.h>
 
-#include "../Types/geometry.h"
+#include "../types/geometry.h"
 
 #include "Errors.h"
 #include "Files.h"

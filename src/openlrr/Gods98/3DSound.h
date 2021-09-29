@@ -14,7 +14,7 @@
 #include <mmsystem.h>
 
 #include "../common.h"
-#include "../Types/geometry.h"
+#include "../types/geometry.h"
 
 
 /**********************************************************************************

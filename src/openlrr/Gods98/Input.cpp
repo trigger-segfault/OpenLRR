@@ -212,8 +212,8 @@ void __cdecl Gods98::Input_ReadMouse2(void)
 {
 	log_firstcall();
 
-	RECT rect;
-	if (::GetClientRect(Main_hWnd(), &rect)){
+	RECT dummy; // dummy so we can check return value of GetClientRect
+	if (::GetClientRect(Main_hWnd(), &dummy)){
 
 		POINT cursorPos;
 		POINT clientPos = { 0, 0 };

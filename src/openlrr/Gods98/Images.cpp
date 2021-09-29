@@ -81,7 +81,7 @@ void __cdecl Gods98::Image_Remove(Image* dead)
 }
 
 // <LegoRR.exe @0047d750>
-bool32 __cdecl Gods98::Image_CopyToDataToSurface(IDirectDrawSurface4* surface, D3DRMIMAGE* image)
+bool32 __cdecl Gods98::Image_CopyToDataToSurface(IDirectDrawSurface4* surface, BMP_Image* image)
 {
 	log_firstcall();
 
@@ -121,7 +121,7 @@ bool32 __cdecl Gods98::Image_CopyToDataToSurface(IDirectDrawSurface4* surface, D
 }
 
 // <LegoRR.exe @0047d7e0>
-bool32 __cdecl Gods98::Image_8BitSourceCopy(DDSURFACEDESC2* desc, D3DRMIMAGE* image)
+bool32 __cdecl Gods98::Image_8BitSourceCopy(const DDSURFACEDESC2* desc, BMP_Image* image)
 {
 	log_firstcall();
 
@@ -135,9 +135,9 @@ bool32 __cdecl Gods98::Image_8BitSourceCopy(DDSURFACEDESC2* desc, D3DRMIMAGE* im
 		/// HARDCODED 16-BIT IMAGE HANDLING
 		uint32 bmpLineLength = image->bytes_per_line;
 		uint32 surfaceLineLength = ((uint32) desc->lPitch) / 2;
-		LPD3DRMPALETTEENTRY pal = image->palette;
+		const BMP_PaletteEntry* pal = image->palette; // D3DRMPALETTEENTRY
 
-		uint8* bmpPtr =  (uint8*) image->buffer1;
+		const uint8* bmpPtr =  (uint8*) image->buffer1;
 		uint16* surfPtr = (uint16*) desc->lpSurface;
 
 		uint32 rMask = desc->ddpfPixelFormat.dwRBitMask;
@@ -215,7 +215,7 @@ uint32 __cdecl Gods98::Image_CountMaskBitShift(uint32 mask)
 }
 
 // <LegoRR.exe @0047da00>
-void __cdecl Gods98::Image_FlipSurface(DDSURFACEDESC2* desc)
+void __cdecl Gods98::Image_FlipSurface(const DDSURFACEDESC2* desc)
 {
 	log_firstcall();
 
@@ -238,7 +238,7 @@ void __cdecl Gods98::Image_FlipSurface(DDSURFACEDESC2* desc)
 }
 
 // <LegoRR.exe @0047dac0>
-bool32 __cdecl Gods98::Image_24BitSourceCopy(DDSURFACEDESC2* desc, D3DRMIMAGE* image)
+bool32 __cdecl Gods98::Image_24BitSourceCopy(const DDSURFACEDESC2* desc, BMP_Image* image)
 {
 	log_firstcall();
 
@@ -254,7 +254,7 @@ bool32 __cdecl Gods98::Image_24BitSourceCopy(DDSURFACEDESC2* desc, D3DRMIMAGE* i
 		uint32 bmpLineLength = image->bytes_per_line;
 		uint32 surfaceLineLength = ((uint32) desc->lPitch) / 2;
 
-		uint8* bmpPtr =  (uint8*)  image->buffer1;
+		const uint8* bmpPtr =  (uint8*)  image->buffer1;
 		uint16* surfPtr = (uint16*) desc->lpSurface;
 
 		uint32 rMask = desc->ddpfPixelFormat.dwRBitMask;
@@ -273,9 +273,9 @@ bool32 __cdecl Gods98::Image_24BitSourceCopy(DDSURFACEDESC2* desc, D3DRMIMAGE* i
 		{
 			for (sint32 w=0; w<image->width; w++)
 			{
-				uint8 b = *bmpPtr; bmpPtr++;
-				uint8 g = *bmpPtr; bmpPtr++;
-				uint8 r = *bmpPtr; bmpPtr++;
+				uint8 b = *bmpPtr++;
+				uint8 g = *bmpPtr++;
+				uint8 r = *bmpPtr++;
 
 				// Mix the colours
 				uint16 surfaceValue =
@@ -311,7 +311,7 @@ Gods98::Image* __cdecl Gods98::Image_LoadBMPScaled(const char* fileName, uint32 
 
 	void* buffer = 0;
 	uint32 size = 0;
-	D3DRMIMAGE image = { 0 };
+	BMP_Image image = { 0 };  // D3DRMIMAGE
 	DDSURFACEDESC2 ddsd = { 0 };
 	IDirectDrawSurface4* surface = 0;
 	COLORREF penZero, pen255;
@@ -427,8 +427,9 @@ void __cdecl Gods98::Image_SetupTrans(Image* image, real32 lowr, real32 lowg, re
 // <LegoRR.exe @0047df70>
 void __cdecl Gods98::Image_DisplayScaled(Image* image, const Area2F* src, const Point2F* destPos, const Point2F* destSize)
 {
-	// taken from: `if (!(image->flags & ImageFlags::IMAGE_FLAG_TEXTURE))` of `Image_DisplayScaled2`
 	log_firstcall();
+
+	// taken from: `if (!(image->flags & ImageFlags::IMAGE_FLAG_TEXTURE))` of `Image_DisplayScaled2`
 
 	RECT r_src, r_dst;
 
@@ -694,18 +695,18 @@ void __cdecl Gods98::Image_GetScreenshot(OUT Image* image, uint32 xsize, uint32 
 	desc.dwHeight = ysize;
 	desc.ddsCaps.dwCaps=DDSCAPS_OFFSCREENPLAIN | DDSCAPS_SYSTEMMEMORY;
 	desc.dwFlags=DDSD_WIDTH | DDSD_HEIGHT | DDSD_CAPS;
-	if (hr=DirectDraw()->CreateSurface(&desc, &surf, nullptr))
+	if ((hr = DirectDraw()->CreateSurface(&desc, &surf, nullptr)) != DD_OK)
 	{
 		CHKDD(hr);
 		return;
 	}
 	// Blit back buffer onto here.
 	{
-		RECT dest;
-		dest.left=0;
-		dest.top=0;
-		dest.right=xsize;
-		dest.bottom=ysize;
+		RECT dest = {
+			0, 0,
+			(sint32) xsize,
+			(sint32) ysize,
+		};
 		surf->Blt(&dest, DirectDraw_bSurf(), nullptr, 0, nullptr);
 	}
 	// Create image

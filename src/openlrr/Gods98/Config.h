@@ -9,8 +9,8 @@
 #pragma once
 
 #include "../common.h"
-//#include "../Types/geometry.h"
-//#include "../Types/colour.h"
+//#include "../types/geometry.h"
+//#include "../types/colour.h"
 //#include "Keys.h"
 
 

@@ -28,7 +28,7 @@ bool Gods98::G98CMovie::InitSample(IAMMultiMediaStream* lpAMMMStream)
 			this->m_err = this->m_sampleStream->CreateSample(nullptr, nullptr, 0, &this->m_sample);
 			if (this->m_err >= 0) {
 
-				this->m_err = this->m_sample->GetSurface(&this->m_baseSurf, &this->m_movieRect);
+				this->m_err = this->m_sample->GetSurface(&this->m_baseSurf, (RECT*)&this->m_movieRect);
 				if (this->m_err >= 0) {
 
 					this->m_err = this->m_baseSurf->QueryInterface(IID_IDirectDrawSurface3, (void**)&this->m_surf);
@@ -142,7 +142,7 @@ Gods98::G98CMovie::~G98CMovie()
 
 // float speed parameter is unused (name is assumed as 1.0f is always passed)
 // <LegoRR.exe @00472760>
-bool Gods98::G98CMovie::Update(real32 speed, const RECT* destRect)
+bool Gods98::G98CMovie::Update(real32 speed, const Rect2I* destRect)
 {
 	if (this->m_sample == nullptr)
 		return false;
@@ -171,7 +171,7 @@ bool Gods98::G98CMovie::Update(real32 speed, const RECT* destRect)
 	}
 
 	// Copy from draw surface to render surface
-	HRESULT r = this->m_bSurf->Blt(const_cast<RECT*>(destRect), this->m_surf, nullptr, DDBLT_WAIT /*0x1000000*/, nullptr);
+	HRESULT r = this->m_bSurf->Blt(const_cast<RECT*>((const RECT*)destRect), this->m_surf, nullptr, DDBLT_WAIT /*0x1000000*/, nullptr);
 	return (r == DD_OK);
 }
 
@@ -262,7 +262,7 @@ sint64 __cdecl Gods98::Movie_GetDuration(Movie_t* mov)
 
 // float speed parameter is unused (name is assumed as 1.0f is always passed)
 // <LegoRR.exe @00472990>
-bool32 __cdecl Gods98::Movie_Update(Movie_t* mov, real32 speed, const RECT* destRect)
+bool32 __cdecl Gods98::Movie_Update(Movie_t* mov, real32 speed, const Rect2I* destRect)
 {
 	log_firstcall();
 

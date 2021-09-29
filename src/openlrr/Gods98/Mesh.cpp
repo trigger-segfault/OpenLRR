@@ -1175,7 +1175,7 @@ void __cdecl Gods98::Mesh_Scale(Mesh* mesh, real32 x, real32 y, real32 z)
 
 // <LegoRR.exe @004826a0>
 void __cdecl Gods98::Mesh_SetVertices(Mesh* mesh, uint32 groupID, uint32 index,
-							uint32 count, const Vertex3F* vertices)
+							uint32 count, const Vertex* vertices)
 {
 	if (groupID < mesh->groupCount) {
 
@@ -1197,7 +1197,7 @@ void __cdecl Gods98::Mesh_SetVertices(Mesh* mesh, uint32 groupID, uint32 index,
 
 // <LegoRR.exe @00482730>
 void __cdecl Gods98::Mesh_GetVertices(Mesh* mesh, uint32 groupID, uint32 index,
-							uint32 count, OUT Vertex3F* vertices)
+							uint32 count, OUT Vertex* vertices)
 {
 	if (groupID < mesh->groupCount) {
 

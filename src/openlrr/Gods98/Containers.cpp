@@ -405,7 +405,7 @@ void __cdecl Gods98::Container_Remove2(Container* dead, bool32 kill)
 //		}
 //		r = dead->activityFrame->Release();
 
-	if (dead->type == Container_Type::Container_Reference){
+	if (dead->type != Container_Type::Container_Reference) {
 
 		dead->masterFrame->GetParent(&parentFrame);
 //		parentFrame = CUF(tempFrame1);
@@ -1317,7 +1317,7 @@ IDirectDrawSurface4* __cdecl Gods98::Container_LoadTextureSurface(const char* fn
 {
 	uint8* fileData;
 	uint32 size;
-	D3DRMIMAGE image;
+	BMP_Image image;  // D3DRMIMAGE
 	IDirectDrawSurface4* surface = nullptr;
 	DDSURFACEDESC2 desc, descBak;
 	IDirectDrawPalette* palette;
@@ -1405,7 +1405,7 @@ IDirectDrawSurface4* __cdecl Gods98::Container_LoadTextureSurface(const char* fn
 									IDirectDrawSurface4* oldSurface = surface;
 									if (DirectDraw()->CreateSurface(&descBak, &surface, nullptr) == D3DRM_OK) {
 
-										if (descBak.ddpfPixelFormat.dwRGBBitCount == 16) DirectDraw_Blt8To16(surface, oldSurface, (LPPALETTEENTRY)image.palette);
+										if (descBak.ddpfPixelFormat.dwRGBBitCount == 16) DirectDraw_Blt8To16(surface, oldSurface, image.palette);
 
 										oldSurface->Release();
 
@@ -1419,7 +1419,7 @@ IDirectDrawSurface4* __cdecl Gods98::Container_LoadTextureSurface(const char* fn
 								if (Container_GetDecalColour(fname, &decalColour)) {
 									DDCOLORKEY ddck;
 
-									//									if(desc.ddpfPixelFormat.dwRGBBitCount > 8)
+//									if(desc.ddpfPixelFormat.dwRGBBitCount > 8)
 									if (copy) {
 										r = image.palette[decalColour].red;
 										g = image.palette[decalColour].green;
@@ -2034,7 +2034,7 @@ bool32 __cdecl Gods98::Container_Mesh_GetGroup(Container* cont, uint32 groupID,
 
 // <LegoRR.exe @00474f80>
 uint32 __cdecl Gods98::Container_Mesh_GetVertices(Container* cont, uint32 groupID, uint32 index,
-								uint32 count, OUT Vertex3F* retArray)
+								uint32 count, OUT Vertex* retArray)
 {
 	Mesh* transmesh;
 
@@ -2070,7 +2070,7 @@ uint32 __cdecl Gods98::Container_Mesh_GetVertices(Container* cont, uint32 groupI
 
 // <LegoRR.exe @00474ff0>
 uint32 __cdecl Gods98::Container_Mesh_SetVertices(Container* cont, uint32 groupID, uint32 index,
-								uint32 count, const Vertex3F* values)
+								uint32 count, const Vertex* values)
 {
 	Mesh* transmesh;
 
@@ -2136,7 +2136,7 @@ void __cdecl Gods98::Container_Mesh_SetTexture(Container* cont, uint32 groupID, 
 
 		if (texture) {
 			r = texture->QueryInterface(Idl::IID_IDirect3DRMTexture, (void**)&text1);
-			Error_Fatal(r, "Unable to query texture1");
+			Error_Fatal(r != D3DRM_OK, "Unable to query texture1");
 		}
 		else text1 = nullptr;
 
@@ -2977,7 +2977,7 @@ uint32 __cdecl Gods98::Container_GetActivities(Container* cont, OUT IDirect3DRMF
 					children->GetElement(loop, &frame1);
 
 					r = frame1->QueryInterface(Idl::IID_IDirect3DRMFrame3, (void**)&childFrame);
-					Error_Fatal(r, "Cannot query frame3");
+					Error_Fatal(r != D3DRM_OK, "Cannot query frame3");
 					frame1->Release();
 
 					childFrame->GetName(&nameLen, nullptr);
@@ -3127,7 +3127,7 @@ IDirect3DRMFrame3* __cdecl Gods98::Container_Frame_Find(Container* cont, const c
 			children->GetElement(loop, &frame1);
 
 			r = frame1->QueryInterface(Idl::IID_IDirect3DRMFrame3, (void**)&childFrame);
-			Error_Fatal(r, "Error getting frame3");
+			Error_Fatal(r != D3DRM_OK, "Error getting frame3");
 			frame1->Release();
 
 			childFrame->GetName(&nameLen, nullptr);

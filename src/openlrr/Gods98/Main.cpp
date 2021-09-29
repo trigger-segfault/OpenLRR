@@ -5,7 +5,7 @@
 #include "../platform/d3drm.h"		// <d3drmwin.h>
 #include "../platform/timeapi.h"
 
-#include "../Types/geometry.h"
+#include "../types/geometry.h"
 
 #include "../platform/resource.h"
 #include "../openlrr.h"
@@ -779,7 +779,7 @@ void __cdecl Gods98::Main_SetupDisplay(bool32 fullScreen, uint32 xPos, uint32 yP
 	if (!fullScreen) {
 		// Adjust the window to any new settings...
 		
-		RECT rect = { // sint32 casts to stop compiler from complaining
+		Rect2I rect = { // sint32 casts to stop compiler from complaining
 			(sint32) xPos,
 			(sint32) yPos,
 			(sint32) (xPos + width),
@@ -833,7 +833,7 @@ bool32 __cdecl Gods98::Main_SetupDirect3D(const DirectDraw_Device* dev, IDirectD
 
 #pragma message ( "CAPS testing is a complete waste of time for this" )
 	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_FORCEVERTEXFOG) &&
-		(dev->flags & DirectDraw_DeviceFlags::DIRECTDRAW_FLAG_DEVICE_HARDWARE))
+		dev && (dev->flags & DirectDraw_DeviceFlags::DIRECTDRAW_FLAG_DEVICE_HARDWARE))
 	{
 		Main_SetFogMethod(D3DRMFOGMETHOD_TABLE);
 	} else {
@@ -899,12 +899,12 @@ bool32 __cdecl Gods98::Main_SetupDirect3D(const DirectDraw_Device* dev, IDirectD
 }
 
 // <LegoRR.exe @004785d0>
-void __cdecl Gods98::Main_AdjustWindowRect(IN OUT RECT* rect)
+void __cdecl Gods98::Main_AdjustWindowRect(IN OUT Rect2I* rect)
 {
 	log_firstcall();
 
 	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_FULLSCREEN)) {
-		::AdjustWindowRect(rect, mainGlobs.style, false);
+		::AdjustWindowRect((RECT*)rect, mainGlobs.style, false);
 	}
 }
 
@@ -1426,7 +1426,7 @@ LRESULT __stdcall Gods98::Main_WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 }
 
 // <LegoRR.exe @00478b90>
-void __cdecl Gods98::Main_ChangeRenderState(D3DRENDERSTATETYPE dwRenderStateType, DWORD dwRenderState)
+void __cdecl Gods98::Main_ChangeRenderState(D3DRENDERSTATETYPE dwRenderStateType, uint32 dwRenderState)
 {
 	log_firstcall();
 

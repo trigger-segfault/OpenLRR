@@ -11,7 +11,7 @@
 #pragma once
 
 #include "../common.h"
-#include "../Types/geometry.h"
+#include "../types/geometry.h"
 
 
 /**********************************************************************************
@@ -668,11 +668,11 @@ bool32 __cdecl Container_Mesh_GetGroup(Container* cont, uint32 groupID,
 
 // <LegoRR.exe @00474f80>
 uint32 __cdecl Container_Mesh_GetVertices(Container* cont, uint32 groupID, uint32 index,
-								uint32 count, OUT Vertex3F* retArray);
+								uint32 count, OUT Vertex* retArray);
 
 // <LegoRR.exe @00474ff0>
 uint32 __cdecl Container_Mesh_SetVertices(Container* cont, uint32 groupID, uint32 index,
-								uint32 count, const Vertex3F* values);
+								uint32 count, const Vertex* values);
 
 // <LegoRR.exe @00475060>
 void __cdecl Container_Mesh_SetTexture(Container* cont, uint32 groupID, Container_Texture* itext);

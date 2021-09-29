@@ -12,6 +12,7 @@
 #pragma once
 
 #include "../common.h"
+#include "../types/geometry.h"
 
 
 namespace Gods98
@@ -49,7 +50,7 @@ sint64 __cdecl Movie_GetDuration(Movie_t* mov);
 // also performs BlitToBackBuffer
 // float speed parameter is unused (name is assumed as 1.0f is always passed)
 // <LegoRR.exe @00472990>
-bool32 __cdecl Movie_Update(Movie_t* mov, real32 speed, const RECT* destRect);
+bool32 __cdecl Movie_Update(Movie_t* mov, real32 speed, const Rect2I* destRect);
 
 // <LegoRR.exe @004729b0>
 void __cdecl Movie_Free(Movie_t* mov);

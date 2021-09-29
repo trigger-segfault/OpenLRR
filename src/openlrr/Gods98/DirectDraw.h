@@ -12,7 +12,7 @@
 #include "../platform/windows.h"
 
 #include "../common.h"
-#include "../Types/geometry.h"
+#include "../types/geometry.h"
 
 
 /**********************************************************************************
@@ -39,6 +39,16 @@ namespace Gods98
 {; // !<---
 
 /**********************************************************************************
+ ******** Forward Declarations
+ **********************************************************************************/
+
+#pragma region Forward Declarations
+
+struct BMP_PaletteEntry;
+
+#pragma endregion
+
+/**********************************************************************************
  ******** Constants
  **********************************************************************************/
 
@@ -59,27 +69,6 @@ namespace Gods98
 #pragma region Enums
 
 //#define DIRECTDRAW_FLAG_VALID					0x00000001
-
-/*#define DIRECTDRAW_FLAG_DRIVER_PRIMARY			0x00000010
-#define DIRECTDRAW_FLAG_DRIVER_WINDOWOK			0x00000020
-
-#define DIRECTDRAW_FLAG_DEVICE_DEPTH8			0x00000010
-#define DIRECTDRAW_FLAG_DEVICE_DEPTH16			0x00000020
-#define DIRECTDRAW_FLAG_DEVICE_DEPTH24			0x00000040
-#define DIRECTDRAW_FLAG_DEVICE_DEPTH32			0x00000080
-#define DIRECTDRAW_FLAG_DEVICE_ZBUFF8			0x00000100
-#define DIRECTDRAW_FLAG_DEVICE_ZBUFF16			0x00000200
-#define DIRECTDRAW_FLAG_DEVICE_ZBUFF24			0x00000400
-#define DIRECTDRAW_FLAG_DEVICE_ZBUFF32			0x00000800
-#define DIRECTDRAW_FLAG_DEVICE_COLOUR			0x00001000
-#define DIRECTDRAW_FLAG_DEVICE_HARDWARE			0x00002000
-#define DIRECTDRAW_FLAG_DEVICE_VIDEOTEXTURE		0x00004000
-#define DIRECTDRAW_FLAG_DEVICE_SYSTEMTEXTURE	0x00008000
-
-/// CUSTOM:
-#define DIRECTDRAW_FLAG_DRIVER_VALID			0x00000001
-#define DIRECTDRAW_FLAG_DEVICE_VALID			0x00000001
-#define DIRECTDRAW_FLAG_MODE_VALID				0x00000001*/
 
 enum DirectDraw_DriverFlags : uint32
 {
@@ -285,7 +274,7 @@ void __cdecl DirectDraw_Clear(const Area2F* window, uint32 colour);
 bool32 __cdecl DirectDraw_CreateClipper(bool32 fullscreen, uint32 width, uint32 height);
 
 // <LegoRR.exe @0047d2c0>
-void __cdecl DirectDraw_Blt8To16(IDirectDrawSurface4* target, IDirectDrawSurface4* source, PALETTEENTRY* palette);
+void __cdecl DirectDraw_Blt8To16(IDirectDrawSurface4* target, IDirectDrawSurface4* source, BMP_PaletteEntry* palette);
 
 // <LegoRR.exe @0047d590>
 uint32 __cdecl DirectDraw_GetColour(IDirectDrawSurface4* surf, uint32 colour);

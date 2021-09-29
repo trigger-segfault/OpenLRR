@@ -8,6 +8,7 @@
 #include <amstream.h>
 
 #include "../common.h"
+#include "../types/geometry.h"
 
 
 namespace Gods98
@@ -32,7 +33,7 @@ public:
 	/*14,4*/ IDirectDrawSurface3* m_surf; // DDS3 surface for IDirectDrawStreamSample* m_sample
 	/*18,4*/ IDirectDrawStreamSample* m_sample;
 	/*1c,4*/ IDirectDrawSurface3* m_bSurf; // render target passed in by constructor
-	/*2c,10*/ RECT m_movieRect; // rect for IDirectDrawStreamSample* m_sample
+	/*2c,10*/ Rect2I m_movieRect; // rect for IDirectDrawStreamSample* m_sample
 	/*30,4*/ char* m_filename;
 	/*34,4*/ IDirectDraw2* m_ddraw2;
 	/*38*/
@@ -51,7 +52,7 @@ public:
 
 	// float speed parameter is unused (name is assumed as 1.0f is always passed)
 	// <LegoRR.exe @00472760>
-	bool Update(real32 speed, const RECT* destRect);
+	bool Update(real32 speed, const Rect2I* destRect);
 	// cannot be const, due to using IMultiMedia-type interface
 	// <LegoRR.exe @004727f0>
 	sint64 GetDuration();

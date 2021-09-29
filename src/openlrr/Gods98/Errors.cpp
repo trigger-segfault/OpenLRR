@@ -1,8 +1,9 @@
 // Errors.cpp : 
 //
 
+#include "../platform/windows.h"
 #include "../platform/dinput.h"
-#include <process.h>
+#include <process.h>				// _getpid()
 
 #include "Config.h"
 #include "Files.h"

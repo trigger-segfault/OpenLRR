@@ -12,26 +12,6 @@
 #include "../Gods98/DirectDraw.h"
 
 
-/**********************************************************************************
- ******** Forward Global Namespace Declarations
- **********************************************************************************/
-
-#pragma region Forward Declarations
-
-struct IDirectDraw;
-struct IDirectDrawSurface4;
-struct IDirect3DRM3;
-struct IDirect3DRMDevice3;
-struct IDirect3DDevice3;
-enum _D3DRENDERSTATETYPE;
-typedef enum _D3DRENDERSTATETYPE D3DRENDERSTATETYPE;
-static_assert(sizeof(D3DRENDERSTATETYPE) == 0x4, "");
-struct tagRECT;
-typedef struct tagRECT RECT;
-
-#pragma endregion
-
-
 namespace Gods98
 {; // !<---
 

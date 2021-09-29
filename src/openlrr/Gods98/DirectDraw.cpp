@@ -630,16 +630,11 @@ bool32 __cdecl Gods98::DirectDraw_CreateClipper(bool32 fullscreen, uint32 width,
 }
 
 // <LegoRR.exe @0047d2c0>
-void __cdecl Gods98::DirectDraw_Blt8To16(IDirectDrawSurface4* target, IDirectDrawSurface4* source, PALETTEENTRY* palette)
+void __cdecl Gods98::DirectDraw_Blt8To16(IDirectDrawSurface4* target, IDirectDrawSurface4* source, BMP_PaletteEntry* palette)
 {
 	log_firstcall();
 
 	DDSURFACEDESC2 tDesc, sDesc;
-	uint32 rBits, gBits, bBits;
-	uint8 index, r, g, b;
-	//uint32 read, write;
-	//uint32 x, y;
-	sint32 loop;
 
 	std::memset(&tDesc, 0, sizeof(tDesc));
 	std::memset(&sDesc, 0, sizeof(sDesc));
@@ -651,6 +646,8 @@ void __cdecl Gods98::DirectDraw_Blt8To16(IDirectDrawSurface4* target, IDirectDra
 			if (target->Lock(nullptr, &tDesc, DDLOCK_WAIT, nullptr) == DD_OK) {
 				if (tDesc.ddpfPixelFormat.dwRGBBitCount == 16 && tDesc.dwWidth == sDesc.dwWidth && tDesc.dwHeight == sDesc.dwHeight) {
 
+					uint32 rBits, gBits, bBits;
+					sint32 loop;
 					for (rBits=loop=0 ; loop<32 ; loop++) if ((tDesc.ddpfPixelFormat.dwRBitMask >> loop) & 1) rBits++;
 					for (gBits=loop=0 ; loop<32 ; loop++) if ((tDesc.ddpfPixelFormat.dwGBitMask >> loop) & 1) gBits++;
 					for (bBits=loop=0 ; loop<32 ; loop++) if ((tDesc.ddpfPixelFormat.dwBBitMask >> loop) & 1) bBits++;
@@ -662,10 +659,10 @@ void __cdecl Gods98::DirectDraw_Blt8To16(IDirectDrawSurface4* target, IDirectDra
 							uint32 read = ((uint32*) (&((uint8*) sDesc.lpSurface)[(y * sDesc.lPitch) + x]))[0];
 							for (loop=3 ; loop>=0 ; loop--) {
 								
-								index = (uint8) (read >> (8 * loop));
-								r = palette[index].peRed >> (8 - rBits);
-								g = palette[index].peGreen >> (8 - gBits);
-								b = palette[index].peBlue >> (8 - bBits);
+								uint8 index = (uint8) (read >> (8 * loop));
+								uint8 r = palette[index].peRed   >> (8 - rBits);
+								uint8 g = palette[index].peGreen >> (8 - gBits);
+								uint8 b = palette[index].peBlue  >> (8 - bBits);
 
 								if (loop & 1) write = ((r << (gBits + bBits)) | (g << bBits) | b) << 16;
 								else {
@@ -696,19 +693,18 @@ uint32 __cdecl Gods98::DirectDraw_GetColour(IDirectDrawSurface4* surf, uint32 co
 	log_firstcall();
 
 	DDPIXELFORMAT pf;
-	uint32 rbc, gbc, bbc, r, g, b;
 
-	r = (colour & 0x00ff0000) >> 16; 
-	g = (colour & 0x0000ff00) >> 8;
-	b = (colour & 0x000000ff);
+	uint32 r = (colour & 0x00ff0000) >> 16;
+	uint32 g = (colour & 0x0000ff00) >> 8;
+	uint32 b = (colour & 0x000000ff);
 
 	std::memset(&pf, 0, sizeof(pf));
 	pf.dwSize = sizeof(pf);
 	surf->GetPixelFormat(&pf);
 	if (pf.dwFlags & DDPF_RGB) {
-		rbc = DirectDraw_GetNumberOfBits(pf.dwRBitMask);
-		gbc = DirectDraw_GetNumberOfBits(pf.dwGBitMask);
-		bbc = DirectDraw_GetNumberOfBits(pf.dwBBitMask);
+		uint32 rbc = DirectDraw_GetNumberOfBits(pf.dwRBitMask);
+		uint32 gbc = DirectDraw_GetNumberOfBits(pf.dwGBitMask);
+		uint32 bbc = DirectDraw_GetNumberOfBits(pf.dwBBitMask);
 
 		r = r >> (8 - rbc);
 		g = g >> (8 - gbc);

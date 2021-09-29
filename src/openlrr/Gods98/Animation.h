@@ -18,6 +18,7 @@
 #pragma once
 
 #include "../common.h"
+#include "../types/geometry.h"
 
 
 /**********************************************************************************
@@ -27,8 +28,6 @@
 #pragma region Forward Declarations
 
 struct IDirectDraw4;
-struct tagRECT;
-typedef struct tagRECT RECT;
 
 #pragma endregion
 
@@ -97,7 +96,7 @@ Animation_t* __cdecl Animation_Load(const char* fName);
 bool32 __cdecl Animation_Update(Animation_t* anim);
 
 // <LegoRR.exe @0047efc0>
-void __cdecl Animation_BlitToBackBuffer(Animation_t* anim, const RECT* destRect);
+void __cdecl Animation_BlitToBackBuffer(Animation_t* anim, const Rect2I* destRect);
 
 // Sets the animation time in frame units.
 // <LegoRR.exe @0047f000>
