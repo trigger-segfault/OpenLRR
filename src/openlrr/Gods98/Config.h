@@ -224,11 +224,11 @@ void __cdecl Config_AddList(void);
 
 #define Config_GetIntValue(c,s)		std::atoi(Gods98::Config_GetTempStringValue((c),(s))?Gods98::Config_GetTempStringValue((c),(s)):"")
 #define Config_GetRealValue(c,s)	(float)std::atof(Gods98::Config_GetTempStringValue((c),(s))?Gods98::Config_GetTempStringValue((c),(s)):"")
-#define Config_Get3DCoord(c,s,v)	Config_GetCoord((c),(s),&((v)->x),&((v)->y),&((v)->z))
-#define Config_Get2DCoord(c,s,x,y)	Config_GetCoord((c),(s),(x),(y),nullptr)
+#define Config_Get3DCoord(c,s,v)	Gods98::Config_GetCoord((c),(s),&((v)->x),&((v)->y),&((v)->z))
+#define Config_Get2DCoord(c,s,x,y)	Gods98::Config_GetCoord((c),(s),(x),(y),nullptr)
 
 /// CUSTOM:
-#define Config_ID(s, ...) Config_BuildStringID(s, __VA_ARGS__, nullptr)
+#define Config_ID(s, ...) Gods98::Config_BuildStringID(s, __VA_ARGS__, nullptr)
 
 #pragma endregion
 

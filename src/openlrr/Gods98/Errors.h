@@ -94,12 +94,12 @@ extern Error_Globs & errorGlobs;
 
 #define Error_Debug(s)
 
-#define Error_Warn(b,s)						{ if (b) { Error_Out(false, "%s(%i): Warning: %s\n", __FILE__, __LINE__, (s)); Error_SetWarn(); } }
-#define Error_Fatal(b,s)					{ if (b) { Error_Out(true, "%s(%i): Fatal: %s\n", __FILE__, __LINE__, (s)); } }
-//#define Error_Debug(s)						Error_Out(false, "%s", (s))
-#define Error_LogLoad(b,s)					{ Error_Log( errorGlobs.loadLogFile, (b), "%s\n", (s) ); }
-#define Error_LogLoadError(b,s)				{ Error_Log( errorGlobs.loadErrorLogFile, (b), "%s\n", (s) ); }
-#define Error_LogRedundantFile(b,s)			{ Error_Log( errorGlobs.redundantLogFile, (b), "%s\n", (s) ); }
+#define Error_Warn(b,s)						{ if (b) { Gods98::Error_Out(false, "%s(%i): Warning: %s\n", __FILE__, __LINE__, (s)); Gods98::Error_SetWarn(); } }
+#define Error_Fatal(b,s)					{ if (b) { Gods98::Error_Out(true, "%s(%i): Fatal: %s\n", __FILE__, __LINE__, (s)); } }
+//#define Error_Debug(s)						Gods98::Error_Out(false, "%s", (s))
+#define Error_LogLoad(b,s)					{ Gods98::Error_Log( errorGlobs.loadLogFile, (b), "%s\n", (s) ); }
+#define Error_LogLoadError(b,s)				{ Gods98::Error_Log( errorGlobs.loadErrorLogFile, (b), "%s\n", (s) ); }
+#define Error_LogRedundantFile(b,s)			{ Gods98::Error_Log( errorGlobs.redundantLogFile, (b), "%s\n", (s) ); }
 
 /*#else
 
