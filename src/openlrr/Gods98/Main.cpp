@@ -2,12 +2,12 @@
 //
 
 #include "../platform/windows.h"
+#include "../platform/resource.h"
 #include "../platform/d3drm.h"		// <d3drmwin.h>
 #include "../platform/timeapi.h"
 
 #include "../types/geometry.h"
 
-#include "../platform/resource.h"
 #include "../openlrr.h"
 
 #include "Animation.h"

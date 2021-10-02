@@ -2,6 +2,7 @@
 //
 
 #include "platform/windows.h"
+#include "platform/resource.h"
 
 #include "openlrr.h"
 #include "hook.h"

@@ -2,6 +2,7 @@
 //
 
 #include "../platform/windows.h"
+#include "../platform/resource.h"
 
 #include "../Gods98/DirectDraw.h"
 #include "../Gods98/Errors.h"
