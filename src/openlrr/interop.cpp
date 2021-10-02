@@ -35,7 +35,7 @@
 #include "Gods98/Utils.h"
 #include "Gods98/Viewports.h"
 #include "Gods98/Wad.h"
-#include "Gods98Init/Init.h"
+#include "Gods98/Init.h"
 
 
 #define return_interop(result) { std::printf("%s %s\n", __FUNCTION__, (result?"OK":"failed")); } return result;
@@ -1427,7 +1427,7 @@ bool interop_hook_Gods98_Wad(void)
 	return_interop(result);
 }
 
-bool interop_hook_Gods98Init_Init(void)
+bool interop_hook_Gods98_Init(void)
 {   bool result = true;
 
 	// used by: WinMain
@@ -1481,7 +1481,7 @@ bool interop_hook_all(void)
 	result &= interop_hook_Gods98_Utils();
 	result &= interop_hook_Gods98_Viewports();
 	//result &= interop_hook_Gods98_Wad(); // no need to hook, used by: Files
-	//result &= interop_hook_Gods98Init_Init(); // no need to hook, used by: WinMain
+	//result &= interop_hook_Gods98_Init(); // no need to hook, used by: WinMain
 
 	return_interop(result);
 }

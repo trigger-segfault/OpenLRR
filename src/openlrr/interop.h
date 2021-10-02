@@ -37,7 +37,7 @@ bool interop_hook_Gods98_TextWindow(void);
 bool interop_hook_Gods98_Utils(void);
 bool interop_hook_Gods98_Viewports(void);
 bool interop_hook_Gods98_Wad(void);
-bool interop_hook_Gods98Init_Init(void);
+bool interop_hook_Gods98_Init(void);
 
 bool interop_hook_all(void);
 

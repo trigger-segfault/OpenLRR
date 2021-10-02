@@ -1,12 +1,12 @@
-// Init/Init.cpp : 
+// Init.cpp : 
 //
 
 #include "../platform/windows.h"
 #include "../platform/resource.h"
 
-#include "../Gods98/DirectDraw.h"
-#include "../Gods98/Errors.h"
-#include "../Gods98/Main.h"
+#include "DirectDraw.h"
+#include "Errors.h"
+#include "Main.h"
 
 #include "Init.h"
 

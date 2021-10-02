@@ -24,7 +24,7 @@
 #include "Registry.h"
 #include "Sound.h"
 #include "Utils.h"
-#include "../Gods98Init/Init.h"
+#include "Init.h"
 
 #include "Main.h"
 

@@ -1,4 +1,4 @@
-// Init/Init.h : 
+// Init.h : 
 //
 /// APIS: -
 /// DEPENDENCIES: Main, DirectDraw, (Errors)
@@ -9,7 +9,8 @@
 #include "../platform/windows.h"
 
 #include "../common.h"
-#include "../Gods98/DirectDraw.h"
+
+#include "DirectDraw.h"
 
 
 namespace Gods98
