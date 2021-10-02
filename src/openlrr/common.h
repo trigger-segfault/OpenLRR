@@ -44,6 +44,18 @@
 #pragma warning (pop)
 
 
+#pragma region undef min max
+
+#ifdef min
+#undef min
+#endif
+#ifdef max
+#undef max
+#endif
+
+#pragma endregion
+
+
 // Most of these are from older projects, and will be refactored-away later
 #pragma region Global Configuration Settings
 
