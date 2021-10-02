@@ -78,53 +78,48 @@ typedef void (__cdecl* MainWindowCallback)(HWND hWnd, UINT message, WPARAM wPara
 
 #pragma region Enums
 
-namespace _ns_MainFlags {
-enum MainFlags : uint32
+flags_scoped(MainFlags) : uint32
 {
 	MAIN_FLAG_NONE						= 0,
 
-	MAIN_FLAG_UPDATED					= 0x1,
-	MAIN_FLAG_FULLSCREEN				= 0x2,
-	MAIN_FLAG_VIDEOTEXTURE				= 0x4,
-	MAIN_FLAG_MIPMAPENABLED				= 0x8,
-	MAIN_FLAG_PAUSED					= 0x10,
-	MAIN_FLAG_DONTMANAGETEXTURES		= 0x20,
-	MAIN_FLAG_BEST						= 0x40,
-	MAIN_FLAG_DUMPMODE					= 0x80,
-	MAIN_FLAG_WINDOW					= 0x100,
-	MAIN_FLAG_STARTLEVEL				= 0x200,
-	MAIN_FLAG_CLEANSAVES				= 0x400,
-	MAIN_FLAG_SAVELANGFILE				= 0x800,
-	MAIN_FLAG_LANGDUMPUNKNOWN			= 0x1000,
-	MAIN_FLAG_DEBUGMODE					= 0x2000,
-	MAIN_FLAG_DUALMOUSE					= 0x4000,
-	MAIN_FLAG_DEBUGCOMPLETE				= 0x8000,
-	MAIN_FLAG_TESTERCALL				= 0x10000,
-	MAIN_FLAG_LEVELSOPEN				= 0x20000,
-	MAIN_FLAG_FORCETEXTUREMANAGEMENT	= 0x40000,
-	MAIN_FLAG_FORCEVERTEXFOG			= 0x80000,
-	MAIN_FLAG_REDUCESAMPLES				= 0x100000,
-	MAIN_FLAG_SHOWVERSION				= 0x200000,
-	MAIN_FLAG_REDUCEANIMATION			= 0x400000,
-	MAIN_FLAG_REDUCEPROMESHES			= 0x800000,
-	MAIN_FLAG_REDUCEFLICS				= 0x1000000,
-	MAIN_FLAG_REDUCEIMAGES				= 0x2000000,
+	MAIN_FLAG_UPDATED					= 0x1,			// (runtime) D3D (retained) engine has been updated this loop
+	MAIN_FLAG_FULLSCREEN				= 0x2,			// (runtime) App is in fullscreen mode
+	MAIN_FLAG_VIDEOTEXTURE				= 0x4,			// (runtime) Set if `device->flags & DIRECTDRAW_FLAG_DEVICE_VIDEOTEXTURE`
+	MAIN_FLAG_MIPMAPENABLED				= 0x8,			// (runtime) 
+	MAIN_FLAG_PAUSED					= 0x10,			// (runtime) Game loop elapsed time is 0.0 (different from in-game pause)
+	MAIN_FLAG_DONTMANAGETEXTURES		= 0x20,			// -nm : (runtime: Set if not -ftm)
+	MAIN_FLAG_BEST						= 0x40,			// -best : Choose best-fit driver/device/screen mode on startup
+	MAIN_FLAG_DUMPMODE					= 0x80,			// (runtime)
+	MAIN_FLAG_WINDOW					= 0x100,		// -window : App WILL launch in windowed mode with -best
+	MAIN_FLAG_STARTLEVEL				= 0x200,		// -startlevel : mainGlobs.startLevel buffer is valid
+	MAIN_FLAG_CLEANSAVES				= 0x400,		// -cleansaves : Remove all save data
+	MAIN_FLAG_SAVELANGFILE				= 0x800,		// -langsuffix : (disabled)
+	MAIN_FLAG_LANGDUMPUNKNOWN			= 0x1000,		// -langdump : (disabled)
+	MAIN_FLAG_DEBUGMODE					= 0x2000,		// -debug : Basic debug mode features
+	MAIN_FLAG_DUALMOUSE					= 0x4000,		// -nodualmouse : (negate) 
+	MAIN_FLAG_DEBUGCOMPLETE				= 0x8000,		// -debugcomplete : full debug mode features, triggers -debug
+	MAIN_FLAG_TESTERCALL				= 0x10000,		// -testercall : Similar to -testlevels, but with extended behaviour
+	MAIN_FLAG_LEVELSOPEN				= 0x20000,		// -testlevels : All levels are unlocked
+	MAIN_FLAG_FORCETEXTUREMANAGEMENT	= 0x40000,		// -ftm : 
+	MAIN_FLAG_FORCEVERTEXFOG			= 0x80000,		// -fvf : 
+	MAIN_FLAG_REDUCESAMPLES				= 0x100000,		// -reducesamples : '!' key prefix ignores Samples
+	MAIN_FLAG_SHOWVERSION				= 0x200000,		// -showversion : 
+	MAIN_FLAG_REDUCEANIMATION			= 0x400000,		// -reduceanimation : '!' key prefix ignores Animations
+	MAIN_FLAG_REDUCEPROMESHES			= 0x800000,		// -reducepromeshes : '!' key prefix ignores Promeshes(?)
+	MAIN_FLAG_REDUCEFLICS				= 0x1000000,	// -reduceflics : '!' key prefix ignores Flics (.flh)
+	MAIN_FLAG_REDUCEIMAGES				= 0x2000000,	// -reduceimages : '!' key prefix ignores Images
 };
-DEFINE_ENUM_FLAG_OPERATORS(MainFlags);
-static_assert(sizeof(MainFlags) == 0x4, "");
-} using MainFlags = _ns_MainFlags::MainFlags;
+flags_scoped_end(MainFlags, 0x4);
 
 
-namespace _ns_MainQuality {
-enum MainQuality : sint32
+enum_scoped(MainQuality) : sint32
 {
 	WIREFRAME      = 0,
 	UNLITFLATSHADE = 1, // (not parsed in Lego.cfg)
 	FLATSHADE      = 2,
 	GOURAUDSHADE   = 3,
 };
-static_assert(sizeof(MainQuality) == 0x4, "");
-} using MainQuality = _ns_MainQuality::MainQuality;
+enum_scoped_end(MainQuality, 0x4);
 
 #pragma endregion
 
@@ -141,7 +136,7 @@ struct Main_State
 	/*8,4*/ MainStateShutdown Shutdown;
 	/*c*/
 };
-static_assert(sizeof(Main_State) == 0xc, "");
+assert_sizeof(Main_State, 0xc);
 
 
 struct Main_StateChangeData
@@ -150,39 +145,40 @@ struct Main_StateChangeData
 	/*4,4*/ bool32 changed;
 	/*8*/
 };
-static_assert(sizeof(Main_StateChangeData) == 0x8, "");
+assert_sizeof(Main_StateChangeData, 0x8);
 
 
 struct Main_Globs
 {
-	/*000,4*/ HWND hWnd;
-	/*004,4*/ HINSTANCE hInst;
-	/*008,4*/ bool32 active;
-	/*00c,4*/ bool32 exit;
-	/*010,4*/ const char* className;
-	/*014,100*/ char programName[256];
-	/*114,4*/ IDirect3DRM3* lpD3DRM;
-	/*118,4*/ IDirect3DRMDevice3* device;
-	/*11c,4*/ IDirect3DDevice3* imDevice;
-	/*120,4*/ uint32 fogMethod;
-	/*124,4*/ uint32 appWidth;
-	/*128,4*/ uint32 appHeight;
-	/*12c,c*/ Main_State currState;
-	/*138,4*/ bool32 stateSet;
-	/*13c,4*/ real32 fixedFrameTiming;
-	/*140,640*/ Main_StateChangeData renderStateData[MAIN_MAXRENDERSTATES];
-	/*780,4*/ uint32 style;
-	/*784,4*/ MainFlags flags;
-	/*788,4*/ uint32 programmerLevel;
-	/*78c,80*/ char startLevel[128];
-	/*80c,80*/ char languageName[128];
-	/*88c,4*/ uint32 clFlags;
-	/*890,4*/ HACCEL accels;
-	/*894,4*/ MainWindowCallback windowCallback;
+	/*000,4*/	HWND hWnd;					// Handle for the LegoRR window
+	/*004,4*/	HINSTANCE hInst;			// Handle for the LegoRR module/instance
+	/*008,4*/	bool32 active;				// App has focus (forced to true for FullScreen)
+	/*00c,4*/	bool32 exit;				// App will quit at the end of the current WinMain loop
+	/*010,4*/	const char* className;		// Name of the window class
+	/*014,100*/	char programName[256];		// Name of the program (with ".exe" stripped)
+	/*114,4*/	IDirect3DRM3* lpD3DRM;		// D3D (retained) engine
+	/*118,4*/	IDirect3DRMDevice3* device;	// D3D (retained) device
+	/*11c,4*/	IDirect3DDevice3* imDevice;	// D3D (immediate) engine
+	/*120,4*/	uint32 fogMethod;			// D3D (retained) scene fog method
+	/*124,4*/	uint32 appWidth;			// App resolution width
+	/*128,4*/	uint32 appHeight;			// App resolution height
+	/*12c,c*/	Main_State currState;		// State holding Initialise/MainLoop/Shutdown callbacks
+	/*138,4*/	bool32 stateSet;			// currState has been initialised
+	/*13c,4*/	real32 fixedFrameTiming;	// Enforced elapsed-time passed to currState.MainLoop
+	/*140,640*/	Main_StateChangeData renderStateData[MAIN_MAXRENDERSTATES];	// D3D (retained) render states
+	/*780,4*/	uint32 style;				// Window (normal) style
+	/*784,4*/	MainFlags flags;			// Cmdline settings and dynamic runtime flags
+	/*788,4*/	uint32 programmerLevel;
+	/*78c,80*/	char startLevel[128];
+	/*80c,80*/	char languageName[128];
+	/*88c,4*/	uint32 clFlags;				// Cmdline -flags for enabling WIP features
+	/*890,4*/	HACCEL accels;
+	/*894,4*/	MainWindowCallback windowCallback;
 	/*898*/
+};
+assert_sizeof(Main_Globs, 0x898);
 
 };
-static_assert(sizeof(Main_Globs) == 0x898, "");
 
 #pragma endregion
 
@@ -202,6 +198,9 @@ extern Main_Globs & mainGlobs;
  **********************************************************************************/
 
 #pragma region Functions
+
+/// CUSTOM: A wrapper for the WINAPI Sleep function.
+void __cdecl Main_Sleep(uint32 milliseconds);
 
  // <inlined>
 __inline IDirect3DRM3* lpD3DRM(void) { return mainGlobs.lpD3DRM; }

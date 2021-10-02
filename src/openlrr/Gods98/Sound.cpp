@@ -96,7 +96,7 @@ void __cdecl Gods98::Sound_Update(bool32 cdtrack)
 
 	if (soundGlobs.initialised){
 		//static uint32 lastUpdate = 0;
-		uint32 time = legacy::timeGetTime();
+		uint32 time = Main_GetTime();
 
 		if (time > (soundGlobs.s_Update_lastUpdate + 4000)) {
 			if (cdtrack) {

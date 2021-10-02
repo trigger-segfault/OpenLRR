@@ -71,110 +71,34 @@ Gods98::Main_Globs & Gods98::mainGlobs = *(Gods98::Main_Globs*)0x00506800;
 
 #pragma region Functions
 
-/*
-// <inlined>
-__inline IDirect3DRM3* __cdecl Gods98::lpD3DRM()
+/// CUSTOM: A wrapper for the WINAPI Sleep function.
+void __cdecl Gods98::Main_Sleep(uint32 milliseconds)
 {
-	return mainGlobs.lpD3DRM;
+	::Sleep(milliseconds);
 }
 
-// <inlined>
-__inline IDirect3DRMDevice3* __cdecl Gods98::lpDevice()
-{
-	return mainGlobs.device;
-}
-
-// <inlined>
-__inline IDirect3DDevice3* __cdecl Gods98::lpIMDevice()
-{
-	return mainGlobs.imDevice;
-}
-
-// <missing>
-__inline bool32 __cdecl Gods98::Main_VideoTexture()
-{
-	return mainGlobs.flags & MainFlags::MAIN_FLAG_VIDEOTEXTURE;
-}
-
-// <inlined>
-__inline bool32 __cdecl Gods98::Main_MIPMapEnabled()
-{
-	return mainGlobs.flags & MainFlags::MAIN_FLAG_MIPMAPENABLED;
-}
-
-// <inlined>
-__inline bool32 __cdecl Gods98::Main_FullScreen()
-{
-	return mainGlobs.flags & MainFlags::MAIN_FLAG_FULLSCREEN;
-}
-
-// <inlined>
-__inline uint32 __cdecl Gods98::Main_GetFogMethod()
-{
-	return mainGlobs.fogMethod;
-}
-
-// <inlined>
-__inline void __cdecl Gods98::Main_SetFogMethod(uint32 m)
-{
-	mainGlobs.fogMethod = m;
-}
-
-// <inlined>
-__inline HWND __cdecl Gods98::Main_hWnd(void)
-{
-	return mainGlobs.hWnd;
-}
-
-// <inlined>
-__inline HINSTANCE __cdecl Gods98::Main_hInst(void)
-{
-	return mainGlobs.hInst;
-}
-
-// <inlined>
-__inline bool32 __cdecl Gods98::Main_AppActive()
-{
-	return mainGlobs.active;
-}
-
-// <inlined>
-__inline Gods98::MainFlags __cdecl Gods98::Main_GetFlags()
-{
-	return mainGlobs.flags;
-}
-*/
 
 // <LegoRR.exe @00401b30>
 uint32 __cdecl Gods98::noinline(Main_ProgrammerMode)(void)
 {
-	log_firstcall();
-
 	return Main_ProgrammerMode();
 }
 
 // <LegoRR.exe @00401b40>
 const char* __cdecl Gods98::noinline(Main_GetStartLevel)(void)
 {
-	log_firstcall();
-
 	return Main_GetStartLevel();
-	//return (mainGlobs.flags & MainFlags::MAIN_FLAG_STARTLEVEL) ? mainGlobs.startLevel : nullptr;
 }
 
 // <LegoRR.exe @00401b70>
 sint32 __cdecl Gods98::noinline(appWidth)(void)
 {
-	log_firstcall();
-
 	return appWidth();
 }
 
 // <LegoRR.exe @00401b80>
 sint32 __cdecl Gods98::noinline(appHeight)(void)
 {
-	log_firstcall();
-
 	return appHeight();
 }
 
@@ -366,7 +290,7 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 					real32 time = 1.0f;
 					//uint32 currTime;
 
-					uint32 lastTime = legacy::timeGetTime();
+					uint32 lastTime = Main_GetTime();
 
 					while (!mainGlobs.exit) {
 						
@@ -400,10 +324,10 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 						} else if (mainGlobs.flags & MainFlags::MAIN_FLAG_PAUSED) {
 							// In LegoRR, this state is never reachable because Main_SetPaused is never used.
 							time = 0.0f;
-							lastTime = legacy::timeGetTime();
+							lastTime = Main_GetTime();
 						} else if (mainGlobs.fixedFrameTiming == 0.0f) { // no fps defined
 							// Measure the time taken over the last frame (to be passed next loop)
-							uint32 currTime = legacy::timeGetTime();
+							uint32 currTime = Main_GetTime();
 							time = ((real32)(currTime - lastTime)) / (1000.0f / STANDARD_FRAMERATE);
 							lastTime = currTime;
 #ifndef _UNLIMITEDUPDATETIME
@@ -414,8 +338,9 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 #endif // _UNLIMITEDUPDATETIME
 
 						} else {
+							// Always update with the same time, regardless of actual time passed.
 							time = mainGlobs.fixedFrameTiming;
-							lastTime = legacy::timeGetTime();
+							lastTime = Main_GetTime();
 						}
 					}
 				}
@@ -669,8 +594,6 @@ void __cdecl Gods98::Main_LoopUpdate(bool32 clear)
 // <LegoRR.exe @00478230>
 uint32 __cdecl Gods98::Main_GetCLFlags(void)
 {
-	log_firstcall();
-
 	return mainGlobs.clFlags;
 }
 

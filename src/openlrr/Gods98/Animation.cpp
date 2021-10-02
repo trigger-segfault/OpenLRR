@@ -6,6 +6,7 @@
 
 #include "DirectDraw.h"
 #include "Files.h"
+#include "Main.h"
 
 #include "Animation.hpp"
 #include "Animation.h"
@@ -304,7 +305,7 @@ Gods98::G98CAnimation::G98CAnimation(const char* fName)
 				(LPBITMAPINFOHEADER)AVIGETFRAMEF_BESTDISPLAYFMT)) {
 				if (legacy::AVIStreamInfoA(m_aviStream, &m_aviStreamInfo, sizeof(AVISTREAMINFOA)) == S_OK) {
 					// Get info - length, rectangle etc
-					this->m_startTime = ((real32)legacy::timeGetTime()) / 1000.0f; // milliseconds (uint) -> seconds (float)
+					this->m_startTime = ((real32)Main_GetTime()) / 1000.0f; // milliseconds (uint) -> seconds (float)
 					this->m_init = true;
 					this->m_currFrame = 0;
 
@@ -447,7 +448,7 @@ bool Gods98::G98CAnimation::Update()
 //		m_dest->Copy(0, m_movieSurf, &r);
 
 		// Update to the next frame - do it here so that we can check the frame number to see if we have overrun
-		this->m_currTime		   = ((real32)legacy::timeGetTime()) / 1000.0f; // milliseconds (uint) -> seconds (float)
+		this->m_currTime		   = ((real32)Main_GetTime()) / 1000.0f; // milliseconds (uint) -> seconds (float)
 		real32 fElapsedTime = this->m_currTime - this->m_startTime;
 		this->m_aviTimeScale	   = ((real32)this->m_aviStreamInfo.dwRate) / this->m_aviStreamInfo.dwScale;
 		this->m_currFrame		   = (uint32) (fElapsedTime * this->m_aviTimeScale);
@@ -472,7 +473,7 @@ void Gods98::G98CAnimation::SetTime(uint32 time)
 
 	// Adjust the curr frame and start time so that the following frames time correctly.
 	this->m_currFrame = time;
-	this->m_currTime = (real32)legacy::timeGetTime() / 1000.0f; // milliseconds (uint) -> seconds (float)
+	this->m_currTime = (real32)Main_GetTime() / 1000.0f; // milliseconds (uint) -> seconds (float)
 	this->m_startTime = this->m_currTime - ((real32)this->m_currFrame / this->m_aviTimeScale);
 }
 
