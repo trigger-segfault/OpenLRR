@@ -30,7 +30,7 @@ Gods98::Animation_Globs & Gods98::animationGlobs = *(Gods98::Animation_Globs*)0x
 #pragma region G98CSurface class definition
 
 // <LegoRR.exe @0047e720>
-// G98CSurface* Gods98::G98CSurface::deletor(unsigned char flag)
+// G98CSurface* Gods98::G98CSurface::deletor(uint8 flag)
 // {
 // 	this->~G98CSurface();
 // 	if (flag & 0x1) {
@@ -120,7 +120,7 @@ bool Gods98::G98CSurface::Init(sint32 width, sint32 height, sint32 bpp, bool vra
 			this->m_desc.ddpfPixelFormat.dwFlags = DDPF_RGB;
 		} else if (bpp == 8) { // 8-bpp (indexed)
 			this->m_desc.ddpfPixelFormat.dwRBitMask = 0xff0000;		// I Doubt that the masks are valid 
-			this->m_desc.ddpfPixelFormat.dwGBitMask = 0x00ff00;		// but wont seem to work otherwise
+			this->m_desc.ddpfPixelFormat.dwGBitMask = 0x00ff00;		// but wont seem to work otherwise - DDI
 			this->m_desc.ddpfPixelFormat.dwBBitMask = 0x0000ff;
 			this->m_desc.ddpfPixelFormat.dwFlags = DDPF_PALETTEINDEXED8 | DDPF_RGB;
 		}
@@ -188,13 +188,13 @@ void Gods98::G98CSurface::PreInit(bool fullScreen /*unused*/)
 }
 
 // <LegoRR.exe @0047ea00>
-unsigned int Gods98::G98CSurface::Width() const
+uint32 Gods98::G98CSurface::Width() const
 {
 	return this->m_desc.dwWidth;
 }
 
 // <LegoRR.exe @0047ea10>
-unsigned int Gods98::G98CSurface::Height() const
+uint32 Gods98::G98CSurface::Height() const
 {
 	return this->m_desc.dwHeight;
 }
@@ -323,7 +323,7 @@ Gods98::G98CAnimation::G98CAnimation(const char* fName)
 }
 
 // <LegoRR.exe @0047ec40>
-// G98CAnimation* Gods98::G98CAnimation::deletor(unsigned char flag)
+// G98CAnimation* Gods98::G98CAnimation::deletor(uint8 flag)
 // {
 // 	this->~G98CAnimation();
 // 	if (flag & 0x1) {
@@ -352,12 +352,12 @@ void Gods98::G98CAnimation::BMICopy(const BITMAPINFO* bmi)
 	if (!this->renderer->isLocked && this->renderer->LockSurface())
 		result = true;
 
-	int width  = this->rect.right - this->rect.left;
-	int height = this->rect.bottom - this->rect.top;
-	int stride = (int)this->renderer->surfDesc.lPitch;
-	// int stride_2 = (int)this->renderer->surfDesc.lPitch / 2;
+	sint32 width  = this->rect.right - this->rect.left;
+	sint32 height = this->rect.bottom - this->rect.top;
+	sint32 stride = (sint32)this->renderer->surfDesc.lPitch;
+	// sint32 stride_2 = (sint32)this->renderer->surfDesc.lPitch / 2;
 
-	unsigned int depth = 15;
+	uint32 depth = 15;
 	if (!this->renderer->isBPP15)
 		depth = this->renderer->surfDesc.ddpfPixelFormat.dwRGBBitCount;
 
@@ -371,10 +371,10 @@ void Gods98::G98CAnimation::BMICopy(const BITMAPINFO* bmi)
 	/// LIMITATION: Only 16-bpp-type depths are supported here
 	if (depth == 15 || depth == 16) { // 15-bpp (treated as 16-bpp) || 16-bpp (proper)
 		// pointer to start of last row (we need to copy *and* vertically flip data)
-		unsigned char* srcRow = (unsigned char*)((unsigned char*)frameData + *(int *)frameData + (height - 1) * stride);
-		unsigned char* dstRow = (unsigned char*)this->renderer->surfDesc.lpSurface;
+		uint8* srcRow = (uint8*)((uint8*)frameData + *(sint32 *)frameData + (height - 1) * stride);
+		uint8* dstRow = (uint8*)this->renderer->surfDesc.lpSurface;
 
-		for (int y = 0; y < height; y++) {
+		for (sint32 y = 0; y < height; y++) {
 			std::memcpy(dstData, srcData, (size_t)(width * 2));
 
 			srcRow -= stride; // previous row
@@ -444,7 +444,7 @@ bool Gods98::G98CAnimation::Update()
 
 		// Copy the frame to the surface
 		this->BMICopy(pbmi);
-//		G98CRect<int> r(destRect.left, destRect.top, destRect.right - destRect.left, destRect.bottom - destRect.top);
+//		G98CRect<sint32> r(destRect.left, destRect.top, destRect.right - destRect.left, destRect.bottom - destRect.top);
 //		m_dest->Copy(0, m_movieSurf, &r);
 
 		// Update to the next frame - do it here so that we can check the frame number to see if we have overrun
@@ -461,7 +461,7 @@ bool Gods98::G98CAnimation::Update()
 // <LegoRR.exe @0047eea0>
 uint32 Gods98::G98CAnimation::Length() const
 {
-	//int len = 0; // (kept -but commented out- in-case this idiotically breaks things)
+	//sint32 len = 0; // (kept -but commented out- in-case this idiotically breaks things)
 	if (animationGlobs.g98NoAvis) return 0;
 	return (uint32)this->m_aviStreamInfo.dwLength;
 }
