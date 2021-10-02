@@ -36,6 +36,7 @@ char* __cdecl Gods98::Util_GetLine(IN OUT char** buffer, const char* bufferEnd)
 	return line;
 }
 
+// <CLGen.exe @00401440>
 // <LegoRR.exe @00477700>
 uint32 __cdecl Gods98::Util_Tokenise(IN OUT char* str, OUT char** argv, const char* sep)
 {

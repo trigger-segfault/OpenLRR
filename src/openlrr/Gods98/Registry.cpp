@@ -12,8 +12,8 @@
 
 #pragma region Functions
 
-// <LegoRR.exe @0048b5f0>
 // <CLGen.exe @00401660>
+// <LegoRR.exe @0048b5f0>
 const char* __cdecl Gods98::Registry_GetKeyFromPath(const char* path, OUT char* str)
 {
 	log_firstcall();

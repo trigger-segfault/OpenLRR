@@ -34,8 +34,8 @@ static_assert(sizeof(RegistryType) == 0x4, "");
 
 #pragma region Functions
 
-// <LegoRR.exe @0048b5f0>
 // <CLGen.exe @00401660>
+// <LegoRR.exe @0048b5f0>
 const char* __cdecl Registry_GetKeyFromPath(const char* path, OUT char* str);
 
 

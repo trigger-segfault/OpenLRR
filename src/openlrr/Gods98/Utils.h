@@ -35,6 +35,7 @@ namespace Gods98
 // <missing>
 char* __cdecl Util_GetLine(IN OUT char** buffer, const char* bufferEnd);
 
+// <CLGen.exe @00401440>
 // <LegoRR.exe @00477700>
 uint32 __cdecl Util_Tokenise(IN OUT char* str, OUT char** argv, const char* sep);
 
