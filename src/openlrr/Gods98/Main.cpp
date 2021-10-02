@@ -8,7 +8,7 @@
 
 #include "../types/geometry.h"
 
-#include "../openlrr.h"
+//#include "../openlrr.h"
 
 #include "Animation.h"
 #include "Config.h"
@@ -62,6 +62,8 @@ namespace Gods98
 
 // <LegoRR.exe @00506800>
 Gods98::Main_Globs & Gods98::mainGlobs = *(Gods98::Main_Globs*)0x00506800;
+
+Gods98::Main_Globs2 Gods98::mainGlobs2 = { 0 };
 
 #pragma endregion
 
@@ -323,7 +325,14 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 
 						} else if (mainGlobs.flags & MainFlags::MAIN_FLAG_PAUSED) {
 							// In LegoRR, this state is never reachable because Main_SetPaused is never used.
-							time = 0.0f;
+							if (mainGlobs2.advanceFrames > 0) {
+								mainGlobs2.advanceFrames--;
+								// We could bulk-execute this, but it'll likely break the engine.
+								time = 1.0f; // ((mainGlobs.fixedFrameTiming == 0.0f) ? 1.0f : mainGlobs.fixedFrameTiming);
+							}
+							else {
+								time = 0.0f;
+							}
 							lastTime = Main_GetTime();
 						} else if (mainGlobs.fixedFrameTiming == 0.0f) { // no fps defined
 							// Measure the time taken over the last frame (to be passed next loop)
@@ -429,7 +438,6 @@ void __cdecl Gods98::Main_ParseCommandLine(const char* lpCmdLine, OUT bool32* no
 	log_firstcall();
 
 	const char* loc;
-	char langDir[128];
 
 	if (Util_StrIStr(lpCmdLine, "-insistOnCD")) *insistOnCD = true;
 	if (Util_StrIStr(lpCmdLine, "-nosound")) *nosound = true;
@@ -450,6 +458,8 @@ void __cdecl Gods98::Main_ParseCommandLine(const char* lpCmdLine, OUT bool32* no
 	if (Util_StrIStr(lpCmdLine, "-reduceflics")) mainGlobs.flags |= MainFlags::MAIN_FLAG_REDUCEFLICS;
 	if (Util_StrIStr(lpCmdLine, "-reduceimages")) mainGlobs.flags |= MainFlags::MAIN_FLAG_REDUCEIMAGES;
 #ifdef CONFIG_DEVELOPMENTMODE
+	char langDir[128];
+
 	if (Util_StrIStr(lpCmdLine, "-langdump")) mainGlobs.flags |= MainFlags::MAIN_FLAG_LANGDUMPUNKNOWN;
 	if (loc = Util_StrIStr(lpCmdLine, "-langsuffix")) {
 		const char* s;
@@ -545,7 +555,7 @@ void __cdecl Gods98::Main_ParseCommandLine(const char* lpCmdLine, OUT bool32* no
 		mainGlobs.startLevel[index] = '\0';
 		mainGlobs.flags |= MainFlags::MAIN_FLAG_STARTLEVEL;
 	}
-	if (loc = Util_StrIStr(lpCmdLine, "-flags")) mainGlobs.clFlags = std::atoi(&loc[std::strlen("-flags")]);
+	if (loc = Util_StrIStr(lpCmdLine, "-flags")) mainGlobs.clFlags = (MainCLFlags)std::atoi(&loc[std::strlen("-flags")]);
 	if (loc = Util_StrIStr(lpCmdLine, "-fpslock")) {
 		uint32 fps = std::atoi(&loc[std::strlen("-fpslock")]);
 		if (fps) mainGlobs.fixedFrameTiming = STANDARD_FRAMERATE / (real32) fps;
@@ -557,6 +567,9 @@ void __cdecl Gods98::Main_ParseCommandLine(const char* lpCmdLine, OUT bool32* no
 
 	// Set this to cause reinitialisation of the save games.
 	if (Util_StrIStr(lpCmdLine, "-cleansaves")) mainGlobs.flags |= MainFlags::MAIN_FLAG_CLEANSAVES;
+
+	// Save this so we can choose when to modify commandline options.
+	mainGlobs2.cmdlineParsed = true;
 }
 
 
@@ -592,9 +605,9 @@ void __cdecl Gods98::Main_LoopUpdate(bool32 clear)
 }
 
 // <LegoRR.exe @00478230>
-uint32 __cdecl Gods98::Main_GetCLFlags(void)
+Gods98::MainCLFlags __cdecl Gods98::noinline(Main_GetCLFlags)(void)
 {
-	return mainGlobs.clFlags;
+	return Main_GetCLFlags();
 }
 
 // <LegoRR.exe @00478240>
@@ -668,8 +681,7 @@ void __cdecl Gods98::Main_HandleIO(void)
 	// Look at windows messages (if there are any)
 
 	/// NEW GODS98: New API to pair with the Main_SetAccel function
-	if (mainGlobs.accels != nullptr)
-	{
+	if (mainGlobs.accels != nullptr) {
 		while (::PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE)) {
 			if (!::TranslateAcceleratorA(Main_hWnd(), mainGlobs.accels, &msg)) {
 				::TranslateMessage(&msg);
@@ -677,8 +689,7 @@ void __cdecl Gods98::Main_HandleIO(void)
 			}
 		}
 	}
-	else
-	{
+	else {
 		while (::PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE)) {
 			if (Main_DispatchMessage(&msg)) {
 				::TranslateMessage(&msg);
@@ -723,13 +734,19 @@ void __cdecl Gods98::Main_SetupDisplay(bool32 fullScreen, uint32 xPos, uint32 yP
 	} else {
 		HWND hWndDesktop = ::GetDesktopWindow();
 
-		RECT rect;
-		::GetWindowRect(hWndDesktop, &rect);
+		Rect2I rect = { 0 }; // dummy init
+		::GetWindowRect(hWndDesktop, (RECT*)&rect);
+
 		::SetWindowPos(mainGlobs.hWnd, nullptr, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
 
-		// Shows an empty/no(?) cursor in the fullscreen window
-		::SetCursor((HCURSOR)false); // NOTE: false was used here by Gods98, though it may be a mistake
+		/// FIX APPLY: (by removing) Show cursor over title bar
+		///  This has been removed along with DirectDraw_Setup's fullscreen ShowCursor(false).
+		///  The fix is then handled with the Main_WndProc message WM_SETCURSOR.
+		//::SetCursor(nullptr);
 	}
+
+	// We need to track this state for menu assignment and window resizing.
+	mainGlobs2.displaySetup = true;
 
 	::ShowWindow(mainGlobs.hWnd, SW_SHOW);
 	::SetActiveWindow(mainGlobs.hWnd);
@@ -827,7 +844,10 @@ void __cdecl Gods98::Main_AdjustWindowRect(IN OUT Rect2I* rect)
 	log_firstcall();
 
 	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_FULLSCREEN)) {
-		::AdjustWindowRect((RECT*)rect, mainGlobs.style, false);
+		/// CUSTOM: Added menu
+		::AdjustWindowRect((RECT*)rect, mainGlobs.style, Main_GetMenu() != nullptr);// false);
+
+		//::AdjustWindowRect((RECT*)rect, mainGlobs.style, false);
 	}
 }
 
@@ -901,7 +921,6 @@ bool32 __cdecl Gods98::Main_InitApp(HINSTANCE hInstance)
 	log_firstcall();
 
 	WNDCLASSA wc = { 0 }; // dummy init
-	//	DWORD WIN_STYLE;
 	
 	// Register the window style
 	wc.style = CS_DBLCLKS;
@@ -909,9 +928,11 @@ bool32 __cdecl Gods98::Main_InitApp(HINSTANCE hInstance)
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
 	wc.hInstance = hInstance;
-	/// CHANGE: Load small icon into main window title bar
-	wc.hIcon = ::LoadIconA(hInstance, MAKEINTRESOURCEA(113));
-	//wc.hIcon = nullptr;
+
+	// Don't assign anything to wc.hIcon so that we
+	// can keep <none> as our default class icon.
+	wc.hIcon = nullptr;
+
 //	wc.hCursor = ::LoadCursor( nullptr, IDC_ARROW );
 //	wc.hbrBackground = ::GetStockObject(BLACK_BRUSH);
 	wc.hCursor = nullptr;
@@ -929,6 +950,18 @@ bool32 __cdecl Gods98::Main_InitApp(HINSTANCE hInstance)
 			0, 0, 100, 100,
 			nullptr, nullptr, hInstance, nullptr))
 		{
+			/// CUSTOM: Now is the time to add in our icon/menu
+			///         if one was previously given to us.
+
+			if (mainGlobs2.icon) {
+				// NOTE: Always set ICON_SMALL before ICON_BIG
+				::SendMessageA(mainGlobs.hWnd, WM_SETICON, ICON_SMALL, (LPARAM)mainGlobs2.icon);
+				::SendMessageA(mainGlobs.hWnd, WM_SETICON, ICON_BIG,   (LPARAM)mainGlobs2.icon);
+			}
+
+			if (mainGlobs2.menu) {
+				::SetMenu(mainGlobs.hWnd, mainGlobs2.menu);
+			}
 			
 			::SetFocus(mainGlobs.hWnd);
 			
@@ -1325,17 +1358,30 @@ LRESULT __stdcall Gods98::Main_WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 	
 	/// APPLY FIX: Show cursor in when hovering over title bar
 	/// <https://stackoverflow.com/a/14134212/7517185>
-    if (message == WM_SETCURSOR)
-    {
-		// are we inside the client area? If so, erase the cursor like normal
-        if (LOWORD(lParam) == HTCLIENT)
-        {
-            ::SetCursor(nullptr);
-            return (LRESULT)true;
-        }
+	if (message == WM_SETCURSOR) {
 
-		// Otherwise, show the cursor again
-        return ::DefWindowProcA(hWnd, message, wParam, lParam);
+		// Only handle if mouse is inside the main window.
+		if ((HWND)wParam == Main_hWnd()) {
+			switch (mainGlobs2.cursorVisibility) {
+			case CursorVisibility::Never:
+				::SetCursor(nullptr);
+				return (LRESULT)true;
+
+			case CursorVisibility::TitleBar:
+				// are we inside the client area? If so, erase the cursor like normal
+				if (LOWORD(lParam) == HTCLIENT) {
+					::SetCursor(nullptr);
+					return (LRESULT)true;
+				}
+				break;
+
+			case CursorVisibility::Always:
+				break; // nothing to handle, default cursor will be shown
+			}
+
+			// Show the cursor as normal
+			return ::DefWindowProcA(hWnd, message, wParam, lParam);
+		}
     }
 
 	if (mainGlobs.flags & MainFlags::MAIN_FLAG_FULLSCREEN)
@@ -1405,6 +1451,8 @@ void __cdecl Gods98::Main_PauseApp(bool32 pause)
 	else
 		mainGlobs.flags &= ~MainFlags::MAIN_FLAG_PAUSED;
 
+	/// CUSTOM:
+	Main_SetAdvanceFrames(0);
 }
 
 // <missing>
@@ -1561,10 +1609,164 @@ void __cdecl Gods98::Main_SetWindowCallback(MainWindowCallback callback)
 	mainGlobs.windowCallback = callback;
 }
 
+
+// This is kept for backwards compatibility,
+//  if we ever work with unoptimized Beta builds.
 // <missing>
-void __cdecl Gods98::Main_SetAccel(HACCEL accels)
+void __cdecl Gods98::Main_SetAccel1(HACCEL accels)
 {
-	mainGlobs.accels = accels;
+	Main_SetAccel(accels, false); // no ownership management (original behavior)
+}
+
+
+/// EXTENDED: Added ownership parameter and handling.
+void __cdecl Gods98::Main_SetAccel(HACCEL newAccels, bool32 owner)
+{
+	if (mainGlobs.accels != newAccels) {
+		if (mainGlobs.accels && mainGlobs2.accelsOwner) {
+			// Perform cleanup if we took ownership of the previous accels.
+			::DestroyAcceleratorTable(mainGlobs.accels);
+		}
+
+		mainGlobs.accels = newAccels;
+		mainGlobs2.accelsOwner = (owner && newAccels != nullptr);
+
+		// No setup required, accels is simply used in Main_HandleIO.
+	}
+}
+
+/// CUSTOM:
+void __cdecl Gods98::Main_SetIcon(HICON newIcon, bool32 owner)
+{
+	if (mainGlobs2.icon != newIcon) {
+		if (mainGlobs2.icon && mainGlobs2.iconOwner) {
+			// Perform cleanup if we took ownership of the previous icon.
+			::DestroyIcon(mainGlobs2.icon);
+		}
+
+		mainGlobs2.icon = newIcon;
+		mainGlobs2.iconOwner = (owner && newIcon != nullptr);
+
+		if (Main_hWnd() && Main_IsDisplaySetup()) {
+			// NOTE: Always set ICON_SMALL before ICON_BIG
+			::SendMessageA(Main_hWnd(), WM_SETICON, ICON_SMALL, (LPARAM)newIcon);
+			::SendMessageA(Main_hWnd(), WM_SETICON, ICON_BIG,   (LPARAM)newIcon);
+		}
+	}
+}
+
+/// CUSTOM:
+void __cdecl Gods98::Main_SetMenu(HMENU newMenu, bool32 owner)
+{
+	if (mainGlobs2.menu != newMenu) {
+		if (mainGlobs2.menu && mainGlobs2.menuOwner) {
+			// Perform cleanup if we took ownership of the previous menu.
+			::DestroyMenu(mainGlobs2.menu);
+		}
+
+		mainGlobs2.menu = newMenu;
+		mainGlobs2.menuOwner = (owner && newMenu != nullptr);
+
+		if (Main_hWnd()) {
+			::SetMenu(Main_hWnd(), newMenu);
+
+			if (Main_IsDisplaySetup() && !Main_FullScreen()) {
+				// Re-adjust window size to account for difference with/without menu.
+
+				Rect2I rect = { 0 }; // dummy init
+				::GetWindowRect(Main_hWnd(), (RECT*)&rect);
+				rect.right  = rect.left + appWidth();
+				rect.bottom = rect.top + appHeight();
+
+				Main_AdjustWindowRect(&rect);
+				// Don't pass position, since we're not modifying that.
+				::SetWindowPos(Main_hWnd(), nullptr, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
+			}
+		}
+	}
+}
+
+/// CUSTOM: Set behavior for mouse cursor visibility.
+void __cdecl Gods98::Main_SetCursorVisibility(CursorVisibility newCursorVisibility)
+{
+	if (newCursorVisibility != mainGlobs2.cursorVisibility) {
+		// Make any changes to transition out of the current Cursor fix setting.
+		switch (mainGlobs2.cursorVisibility) {
+		case CursorVisibility::Never:
+			::ShowCursor(true); // Raise our ShowCursor count back up to 1
+			break;
+
+		case CursorVisibility::TitleBar:
+			break; // fully handled by WM_SETCURSOR
+
+		case CursorVisibility::Always:
+			break; // fully handled by WM_SETCURSOR
+		}
+
+		mainGlobs2.cursorVisibility = newCursorVisibility;
+
+		// Transition into the new cursor fix setting.
+		switch (newCursorVisibility) {
+		case CursorVisibility::Never:
+			::ShowCursor(false); // Lower our ShowCursor count back down to 0
+			break;
+
+		case CursorVisibility::TitleBar:
+			break; // fully handled by WM_SETCURSOR
+
+		case CursorVisibility::Always:
+			/*// This is not required, as WM_SETCURSOR will trigger the
+			//  moment the cursor moves or produces another related event.
+			if (mouseInsideWindow && ::GetCursor() == nullptr) {
+				// Force-display of the cursor now, without moving.
+				::SetCursor(mainGlobs2.hCursorArrow);
+			}*/
+			break;
+		}
+
+	}
+}
+
+/// CUSTOM: Get number of frames advance to when in the Main_Paused state (always returns >= 0).
+sint32 __cdecl Gods98::Main_GetAdvanceFrames(void)
+{
+	if (mainGlobs.flags & MainFlags::MAIN_FLAG_PAUSED) { // alt: if (Main_IsPaused()) {
+		return std::max(0, mainGlobs2.advanceFrames);
+	}
+	return 0;
+}
+
+/// CUSTOM: Set to advance one frame when in the Main_Paused state.
+void __cdecl Gods98::Main_AdvanceFrame(void)
+{
+	Main_SetAdvanceFrames(1);
+}
+
+/// CUSTOM: Set number of frames advance to when in the Main_Paused state.
+void __cdecl Gods98::Main_SetAdvanceFrames(sint32 frames)
+{
+	if (mainGlobs.flags & MainFlags::MAIN_FLAG_PAUSED) { // alt: if (Main_IsPaused()) {
+		mainGlobs2.advanceFrames = std::max(0, frames);
+	}
+}
+
+/// CUSTOM: Add number of frames advance to when in the Main_Paused state.
+void __cdecl Gods98::Main_AddAdvanceFrames(sint32 frames)
+{
+	Main_SetAdvanceFrames(mainGlobs2.advanceFrames + frames);
+}
+
+/// CUSTOM: Get if the mouse is currently over a visible section of the main window.
+bool32 __cdecl Gods98::Main_MouseInsideWindow(void)
+{
+	POINT cursorPos = { 0, 0 };
+	if (::GetCursorPos(&cursorPos)) {
+		HWND hWndTarget = WindowFromPoint(cursorPos);
+		if (hWndTarget == Main_hWnd()) {
+			return true;
+		}
+	}
+	return false;
 }
 
 #pragma endregion

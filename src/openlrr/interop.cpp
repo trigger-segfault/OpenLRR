@@ -961,7 +961,7 @@ bool interop_hook_Gods98_Main(void)
 	result &= hook_write_jmpret(0x004781f0, Gods98::Main_LoopUpdate);
 
 	// used by: Level_BlockUpdateSurface
-	result &= hook_write_jmpret(0x00478230, Gods98::Main_GetCLFlags);
+	result &= hook_write_jmpret(0x00478230, Gods98::noinline(Main_GetCLFlags));
 
 	// used by: DirectDraw_EnumModeCallback, Init_SetModeList
 	//result &= hook_write_jmpret(0x00478240, Gods98::Main_GetWindowsBitDepth);

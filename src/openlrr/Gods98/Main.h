@@ -112,6 +112,19 @@ flags_scoped(MainFlags) : uint32
 flags_scoped_end(MainFlags, 0x4);
 
 
+// Experimental commandline flags used by LegoRR
+flags_scoped(MainCLFlags) : uint32
+{
+	CL_FLAG_NONE		= 0,
+
+	// Blocks will fade between textures. Looks neat with Power Paths lighting up with power.
+	// Only seems to work correctly with -ftm(?) commandline option.
+	// Otherwise there's just a delay, then instant-texture-change.
+	CL_FLAG_BLOCKFADE	= 0x8000,
+};
+flags_scoped_end(MainCLFlags, 0x4);
+
+
 enum_scoped(MainQuality) : sint32
 {
 	WIREFRAME      = 0,
@@ -120,6 +133,19 @@ enum_scoped(MainQuality) : sint32
 	GOURAUDSHADE   = 3,
 };
 enum_scoped_end(MainQuality, 0x4);
+
+
+/// CUSTOM: Behaviour for correcting 100% invisible mouse cursor in windowed mode.
+enum class CursorVisibility
+{
+	Never,		// Never show the mouse cursor over the window or its border.
+	TitleBar,	// Show mouse cursor over the title bar (and system menu).
+	Always,		// Always show mouse cursor, even when inside the client area.
+
+	Count,
+
+	Default = Never,
+};
 
 #pragma endregion
 
@@ -171,13 +197,35 @@ struct Main_Globs
 	/*788,4*/	uint32 programmerLevel;
 	/*78c,80*/	char startLevel[128];
 	/*80c,80*/	char languageName[128];
-	/*88c,4*/	uint32 clFlags;				// Cmdline -flags for enabling WIP features
-	/*890,4*/	HACCEL accels;
+	/*88c,4*/	MainCLFlags clFlags;		// Cmdline -flags for enabling WIP features
+	/*890,4*/	HACCEL accels;				// Gods98 functionality has been modified and extended.
 	/*894,4*/	MainWindowCallback windowCallback;
 	/*898*/
 };
 assert_sizeof(Main_Globs, 0x898);
 
+
+/// CUSTOM: Extension of `Main_Globs` for OpenLRR-exclusive globals
+struct Main_Globs2
+{
+	/// STATE:
+	bool32				cmdlineParsed;	// Main_ParseCommandLine has been called
+	bool32				displaySetup;	// Main_SetupDisplay has been called
+
+	/// USER-SPECIFIED:
+	HICON				icon;			// Icon assigned to the titlebar and Windows taskbar
+	HMENU				menu;			// System menu shown at the top of the window
+	HCURSOR				cursor;			// (unused) Cursor shown over the window client area
+	bool32				iconOwner;		// Cleanup is performed on icon
+	bool32				menuOwner;		// Cleanup is performed on menu
+	bool32				cursorOwner;	// Cleanup is performed on cursor
+	bool32				accelsOwner;	// Cleanup is performed on accels (accels is in mainGlobs)
+
+	/// FIXES:
+	CursorVisibility	cursorVisibility;	// Mouse cursor visibilty fix behaviour
+
+	/// CONTROL:
+	sint32				advanceFrames;	// Number of frames to advance when in the Main_IsPaused state
 };
 
 #pragma endregion
@@ -191,6 +239,9 @@ assert_sizeof(Main_Globs, 0x898);
 // <LegoRR.exe @00506800>
 extern Main_Globs & mainGlobs;
 
+/// CUSTOM: Extension of `Main_Globs` for OpenLRR-exclusive globals
+extern Main_Globs2 mainGlobs2;
+
 #pragma endregion
 
 /**********************************************************************************
@@ -199,10 +250,34 @@ extern Main_Globs & mainGlobs;
 
 #pragma region Functions
 
+/// CUSTOM:
+__inline HACCEL Main_GetAccel(void) { return mainGlobs.accels; }
+
+/// CUSTOM:
+__inline HICON Main_GetIcon(void) { return mainGlobs2.icon; }
+
+/// CUSTOM:
+__inline HMENU Main_GetMenu(void) { return mainGlobs2.menu; }
+
+/// CUSTOM: Get type of behaviour for mouse cursor visibility fix.
+__inline CursorVisibility Main_GetCursorVisibility(void) { return mainGlobs2.cursorVisibility; }
+
+/// CUSTOM: Get if Main_InitApp has been called. (just checks hWnd)
+__inline bool32 Main_IsWindowSetup(void) { return mainGlobs.hWnd != nullptr; }
+
+/// CUSTOM: Get if Main_ParseCommandLine has been called.
+__inline bool32 Main_IsCommandLineParsed(void) { return mainGlobs2.cmdlineParsed; }
+
+/// CUSTOM: Get if Main_SetupDisplay has been called.
+__inline bool32 Main_IsDisplaySetup(void) { return mainGlobs2.displaySetup; }
+
+
 /// CUSTOM: A wrapper for the WINAPI Sleep function.
 void __cdecl Main_Sleep(uint32 milliseconds);
 
- // <inlined>
+
+
+// <inlined>
 __inline IDirect3DRM3* lpD3DRM(void) { return mainGlobs.lpD3DRM; }
 
 // <inlined>
@@ -283,7 +358,8 @@ bool32 __cdecl Main_DumpUnknownPhrases(void);
 void __cdecl Main_LoopUpdate(bool32 clear);
 
 // <LegoRR.exe @00478230>
-uint32 __cdecl Main_GetCLFlags(void);
+__inline MainCLFlags Main_GetCLFlags(void) { return mainGlobs.clFlags; }
+MainCLFlags __cdecl noinline(Main_GetCLFlags)(void);
 
 // <LegoRR.exe @00478240>
 uint32 __cdecl Main_GetWindowsBitDepth(void);
@@ -379,8 +455,37 @@ __inline bool32 Main_GetCDVolume(OUT real32* leftVolume, OUT real32* rightVolume
 // <missing>
 void __cdecl Main_SetWindowCallback(MainWindowCallback callback);
 
+// This is kept for backwards compatibility,
+//  if we ever work with unoptimized Beta builds.
 // <missing>
-void __cdecl Main_SetAccel(HACCEL accels);
+void __cdecl Main_SetAccel1(HACCEL accels);
+
+/// EXTENDED: Added ownership parameter and handling.
+void __cdecl Main_SetAccel(HACCEL accels, bool32 owner);
+
+/// CUSTOM:
+void __cdecl Main_SetIcon(HICON icon, bool32 owner);
+
+/// CUSTOM:
+void __cdecl Main_SetMenu(HMENU menu, bool32 owner);
+
+/// CUSTOM: Set type of behaviour for mouse cursor visibility fix.
+void __cdecl Main_SetCursorVisibility(CursorVisibility newCursorVisibility);
+
+/// CUSTOM: Get number of frames advance to when in the Main_IsPaused state (always returns >= 0).
+sint32 __cdecl Main_GetAdvanceFrames(void);
+
+/// CUSTOM: Set to advance one frame when in the Main_IsPaused state.
+void __cdecl Main_AdvanceFrame(void);
+
+/// CUSTOM: Set number of frames advance to when in the Main_IsPaused state.
+void __cdecl Main_SetAdvanceFrames(sint32 frames);
+
+/// CUSTOM: Add number of frames advance to when in the Main_IsPaused state.
+void __cdecl Main_AddAdvanceFrames(sint32 frames);
+
+/// CUSTOM: Get if the mouse is currently over a visible section of the main window.
+bool32 __cdecl Main_MouseInsideWindow(void);
 
 #pragma endregion
 

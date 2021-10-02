@@ -23,6 +23,19 @@ enum class InjectMethod
 	DllImport,   // Community Edition method. An existing executable that imports `openlrr.dll`
 };
 
+// User-selectable icon to display with the window.
+enum class OpenLRRIcon
+{
+	None,
+	Native,		// Whatever is present at resource 113 in the native-loaded executable.
+	OpenLRR,	// Teal rim with "OR" letters
+	Teal,		// Teal rim						(not included by default)
+	Gold,		// Gold rim						(not included by default)
+	CDROM,		// Teal rim with "RR" letters	(not included by default)
+
+	Count,
+};
+
 #pragma endregion
 
 /**********************************************************************************
@@ -38,12 +51,14 @@ struct OpenLRR_Globs
 	HINSTANCE		hInstMain; // EXE instance handle passed by `WinMain`
 	FILE*			conout;    // CONOUT$ file opened by `MakeConsole`
 	InjectMethod	method;    // How OpenLRR has been injected and attached to `LegoRR.exe`
-};
 
-// Configuration settings for OpenLRR
-struct OpenLRR_Config
-{
-	uint32 dummy; // keep until we have some fields added
+	HICON			iconList[(uint32)OpenLRRIcon::Count];
+	HMENU			menu;
+	HACCEL			accels;
+
+
+	// Game variables backup:
+	uint32			orig_programmerLevel;
 };
 
 #pragma endregion
@@ -55,8 +70,6 @@ struct OpenLRR_Config
 #pragma region Globals
 
 extern OpenLRR_Globs openlrrGlobs;
-
-extern OpenLRR_Config openlrrConfig;
 
 #pragma endregion
 
@@ -70,8 +83,7 @@ extern OpenLRR_Config openlrrConfig;
 inline HINSTANCE OpenLRR_hInstDll(void)		{ return openlrrGlobs.hInstDll; }
 // EXE instance handle passed by `WinMain`.
 inline HINSTANCE OpenLRR_hInstMain(void)	{ return openlrrGlobs.hInstMain; }
-// CONOUT$ file opened by `MakeConsole`.
-inline FILE* OpenLRR_conout(void)			{ return openlrrGlobs.conout; }
+
 // How OpenLRR has been injected and attached to `LegoRR.exe`.
 inline InjectMethod OpenLRR_GetMethod(void)	{ return openlrrGlobs.method; }
 // State how OpenLRR has been injected and attached to `LegoRR.exe`.
