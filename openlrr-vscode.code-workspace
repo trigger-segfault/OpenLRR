@@ -1,0 +1,116 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+  ],
+
+  "settings": {
+    // It's best to enforce tabs when browsing full decompiled Ghidra program exports (?)
+    "[c|cpp]": {
+      "editor.useTabStops": true,
+      "editor.tabSize": 4,
+      "files.eol": "\n"
+    },
+
+    // Visual Studio project files (stay consistent with existing standards)
+    "[xml]": {
+      "editor.useTabStops": false,
+      "editor.tabSize": 2,
+      "files.eol": "\r\n"
+    },
+
+    // Visual Studio Code workspace file
+    "[json|jsonc]": {
+      "editor.useTabStops": false,
+      "editor.tabSize": 2,
+      "files.eol": "\n"
+    },
+
+
+    // NOTE: Cafeteria expects CRLF line endings for mod-script and cfg-like files
+    "[plaintext]": {
+      "files.eol": "\r\n"
+    },
+
+    // Custom VSCode syntax highlighting for Lego.cfg
+    // <https://github.com/trigger-segfault/legorockraiders-analysis/tree/main/plugin/vscode-lrr>
+    "[lrr-lego-cfg]": {
+      "editor.useTabStops": true,
+      "editor.tabSize": 4,
+      "files.eol": "\r\n"
+    },
+    // Custom VSCode syntax highlighting for CLGen.dat (purely fluff, and not required)
+    "[lrr-clgen]": {
+      // NOTE: CLGen.dat shouldn't have any indentation... at all.
+      //       This setting is a lazy way of forcing the user to notice.
+      "editor.useTabStops": false,
+      "editor.tabSize": 1,
+      "files.eol": "\r\n"
+    },
+    
+    // For those realllly long lines
+    "editor.wordWrap": "on",
+    
+    ////////////////////////////////////////////////////
+    // Extra file associations
+
+    "files.associations": {
+      // Visual studio other project xml files (automatically handled)
+      //"*.vcxproj.filters": "xml",
+      //"*.vcxproj.user": "xml",
+
+      // Visual Studio resource file
+      "*.rc": "c",
+      // Visual Studio C++ macros hint file
+      "cpp.hint": "cpp",
+      // Executable manifest file (or use .xml extension)
+      "*.manifest": "xml",
+
+      ////////////////////////////////////////////////////
+      // Cafeteria mod script file (for reference only)
+      //"script.txt": "plaintext",
+
+      ////////////////////////////////////////////////////
+      // LEGORR: All file format extensions (for reference only)
+      // TEXT FORMATS //
+      //"*.cfg": "lrr-lego-cfg",  // Main game configuration file
+      //"*.ae":  "lrr-lego-cfg",  // Main game configuration file
+      //"*.ol":  "lrr-lego-cfg",  // Main game configuration file
+      //"*.ptl": "lrr-lego-cfg",  // Main game configuration file
+      //"CLGen.dat": "lrr-clgen", // "Command-line Generator config file (purely fluff, and not required)
+      //"*.nrm": "plaintext", // NERPs processed source file
+      //"*.nrn": "c",         // NERPs C original source file
+      //"nerpnrn.h": "c",     // NERPs standard header include file
+      //"*.LEV": "plaintext", // (old) level map file list
+      //"*.lws": "plaintext", // LightWave scene file
+      //"*.uv":  "plaintext", // Texture UV file(?)
+      //"*.x":   "plaintext", // Mesh file
+      //"*.epb": "plaintext", // Encyclopedia text information
+      //"LoaderProfile.txt":        "plaintext", // List the number of bytes loaded per section (for loading bar)
+      //"LoaderProfileNoSound.txt": "plaintext", // LoaderProfile when -nosound option is used
+
+      // BINARY FORMATS //
+      //"*.blk": "raw", // DDI's map editor: (old) 16-bit icons for specified map type
+      //"*.blx": "raw", // DDI's map editor: (new) 16-bit icons for specified map type
+      //"*.map": "raw", // Map data of a specified type
+      //"*.npl": "raw", // NERPs compiled bytecode
+      //"*.osf": "raw", // Object Recall save data
+      //"[0-5].dat": "raw", // Save data thumbnail (BMP with a different extension)
+      //"[0-5].sav": "raw", // Save data game information
+      //"*.flh": "raw",  // AutoDesk Flic animation file
+      //"*.lwo": "raw",  // LightWave object file
+      //"*.wad": "raw",  // WAD file archive
+      //"*.wadp": "raw", // WAD patch file archive (for Cafeteria, same format as .wad)
+      //"cd.key": "raw",     // File that just needs to exist for CD detection. Contents: `DE AD`
+      //"LegoRR.icd": "raw", // SafeDisc DRM executable binary
+    },
+    
+    ////////////////////////////////////////////////////
+    // VSCode Extensions Configuration
+
+    // [vscode-ext-color-highlight]
+    "color-highlight.enable": true,
+    
+  }
+}
