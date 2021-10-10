@@ -146,13 +146,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\resources\resource-injector.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\resources\OpenLRR-Injector.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\resources\logo\icon.ico" />
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="openlrr-injector.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="resource.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="openlrr-injector.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
