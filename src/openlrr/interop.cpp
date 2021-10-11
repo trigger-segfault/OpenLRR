@@ -37,6 +37,8 @@
 #include "engine/core/Wad.h"
 #include "engine/Init.h"
 
+#include "game/object/BezierCurve.h"
+#include "game/Game.h"
 #include "game/audio/SFX.h"
 
 
@@ -1502,6 +1504,15 @@ bool interop_hook_all(void)
 	// Only a few functions from each of these have been
 	// defined in order to fix certain original bugs.
 	result &= interop_hook_LegoRR_SFX();
+
+	//result &= hook_write_jmpret(0x0042c260, LegoRR::Level_HandleEmergeTriggers);
+
+	/*result &= hook_write_jmpret(0x00406520, LegoRR::Routing_Curve);
+	result &= hook_write_jmpret(0x00406660, LegoRR::Routing_Vector2DDistance);
+	result &= hook_write_jmpret(0x00406690, LegoRR::Routing_Vector2DChangeLength);
+	result &= hook_write_jmpret(0x004066e0, LegoRR::Routing_UpdateDistances);
+	result &= hook_write_jmpret(0x00406750, LegoRR::Routing_BuildPoints);
+	result &= hook_write_jmpret(0x004067f0, LegoRR::Routing_Interpolate);*/
 
 	return_interop(result);
 }
