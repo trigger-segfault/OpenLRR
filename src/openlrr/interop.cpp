@@ -38,6 +38,7 @@
 #include "engine/Init.h"
 
 #include "game/object/BezierCurve.h"
+#include "game/front/FrontEnd.h"
 #include "game/Game.h"
 #include "game/audio/SFX.h"
 
@@ -1450,6 +1451,17 @@ bool interop_hook_Gods98_Init(void)
 }
 
 
+bool interop_hook_LegoRR_FrontEnd(void)
+{   bool result = true;
+
+	// QoL apply for always-skippable splash screens and movies
+	result &= hook_write_jmpret(0x00415630, LegoRR::Front_PlayMovie);
+	result &= hook_write_jmpret(0x004156f0, LegoRR::Front_ShowIntroSplash);
+	result &= hook_write_jmpret(0x00415840, LegoRR::Front_ShowIntroMovie);
+
+	return_interop(result);
+}
+
 bool interop_hook_LegoRR_SFX(void)
 {   bool result = true;
 
@@ -1503,6 +1515,7 @@ bool interop_hook_all(void)
 
 	// Only a few functions from each of these have been
 	// defined in order to fix certain original bugs.
+	result &= interop_hook_LegoRR_FrontEnd();
 	result &= interop_hook_LegoRR_SFX();
 
 	//result &= hook_write_jmpret(0x0042c260, LegoRR::Level_HandleEmergeTriggers);
