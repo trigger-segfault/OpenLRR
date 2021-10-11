@@ -37,6 +37,8 @@
 #include "engine/core/Wad.h"
 #include "engine/Init.h"
 
+#include "game/audio/SFX.h"
+
 
 #define return_interop(result) { std::printf("%s %s\n", __FUNCTION__, (result?"OK":"failed")); } return result;
 
@@ -1446,6 +1448,19 @@ bool interop_hook_Gods98_Init(void)
 }
 
 
+bool interop_hook_LegoRR_SFX(void)
+{   bool result = true;
+
+	// Ensure data is initialized to zero, testing if NERPs in-game messages are using garbage data
+	result &= hook_write_jmpret(0x00464a00, LegoRR::SFX_InitHashNames);
+
+	// Fix apply for sound groups cutting out the first-listed sound
+	result &= hook_write_jmpret(0x00464fc0, LegoRR::SFX_Sample_LoadProperty);
+
+	return_interop(result);
+}
+
+
 bool interop_hook_all(void)
 {   bool result = true;
 
@@ -1482,6 +1497,11 @@ bool interop_hook_all(void)
 	result &= interop_hook_Gods98_Viewports();
 	//result &= interop_hook_Gods98_Wad(); // no need to hook, used by: Files
 	//result &= interop_hook_Gods98_Init(); // no need to hook, used by: WinMain
+
+
+	// Only a few functions from each of these have been
+	// defined in order to fix certain original bugs.
+	result &= interop_hook_LegoRR_SFX();
 
 	return_interop(result);
 }
