@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include "../platform/windows.h"
+#include "../../platform/windows.h"
 
-#include "../common.h"
+#include "../../common.h"
 
 
 namespace Gods98

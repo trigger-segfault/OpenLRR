@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "../common.h"
-#include "../types/geometry.h"
+#include "../../common.h"
+#include "../geometry.h"
 
 #ifndef DIRECTINPUT_VERSION
 #define DIRECTINPUT_VERSION 0x0500
@@ -15,7 +15,7 @@
 #undef DIRECTINPUT_VERSION
 #define DIRECTINPUT_VERSION 0x0500
 #endif
-#include "../platform/dinput.h"
+#include "../../platform/dinput.h"
 
 
 /**********************************************************************************

@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "../common.h"
-#include "../legacy.h"
+#include "../../common.h"
+#include "../../legacy.h"
 
 
 namespace Gods98

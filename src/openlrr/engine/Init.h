@@ -10,7 +10,7 @@
 
 #include "../common.h"
 
-#include "DirectDraw.h"
+#include "drawing/DirectDraw.h"
 
 
 namespace Gods98

@@ -9,10 +9,10 @@
 
 #pragma once
 
-#include "../platform/windows.h"
+#include "../../platform/windows.h"
 
-#include "../common.h"
-#include "../types/geometry.h"
+#include "../../common.h"
+#include "../geometry.h"
 
 
 /**********************************************************************************

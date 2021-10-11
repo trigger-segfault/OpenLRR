@@ -1,16 +1,16 @@
 // DirectDraw.cpp : 
 //
 
-#include "../platform/windows.h"
-#include "../platform/ddraw.h"
-#include "../platform/d3drm.h"
+#include "../../platform/windows.h"
+#include "../../platform/ddraw.h"
+#include "../../platform/d3drm.h"
 
+#include "../core/Errors.h"
+#include "../core/Files.h"
+#include "../core/Memory.h"
+#include "../util/Dxbug.h"
+#include "../Main.h"
 #include "Bmp.h"
-#include "Dxbug.h"
-#include "Errors.h"
-#include "Files.h"
-#include "Main.h"
-#include "Memory.h"
 
 #include "DirectDraw.h"
 

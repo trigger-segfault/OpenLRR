@@ -1,6 +1,7 @@
 
-#include "Lego.h"
-#include "../Gods98/Main.h"
+#include "../engine/Main.h"
+
+#include "Game.h"
 
 
 /**********************************************************************************

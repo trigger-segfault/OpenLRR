@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "../common.h"
+#include "../../common.h"
 
 
 namespace Gods98

@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include "../platform/windows.h"
-#include "../platform/ddraw.h"
-#include "../platform/vfw.h"
+#include "../../platform/windows.h"
+#include "../../platform/ddraw.h"
+#include "../../platform/vfw.h"
 
-#include "../common.h"
-#include "../types/geometry.h"
+#include "../../common.h"
+#include "../geometry.h"
 
 
 namespace Gods98

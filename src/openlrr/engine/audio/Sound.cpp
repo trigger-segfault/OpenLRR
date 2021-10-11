@@ -1,16 +1,16 @@
 // Sound.cpp : 
 //
 
-#include "../platform/windows.h"
-#include "../platform/d3drm.h"
-#include "../platform/dsound.h"
-#include "../platform/timeapi.h"
+#include "../../platform/windows.h"
+#include "../../platform/d3drm.h"
+#include "../../platform/dsound.h"
+#include "../../platform/timeapi.h"
 #include <windowsx.h>
 #include <mmsystem.h>
 
+#include "../core/Errors.h"
+#include "../Main.h"
 #include "3DSound.h"
-#include "Errors.h"
-#include "Main.h"
 
 #include "Sound.h"
 

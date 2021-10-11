@@ -1,11 +1,11 @@
 // Dxbug.cpp : 
 //
 
-#include "../platform/d3drm.h"
-#include "../platform/ddraw.h"
-#include "../platform/dinput.h"
+#include "../../platform/d3drm.h"
+#include "../../platform/ddraw.h"
+#include "../../platform/dinput.h"
 
-#include "Errors.h"
+#include "../core/Errors.h"
 
 #include "Dxbug.h"
 

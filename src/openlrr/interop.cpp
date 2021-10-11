@@ -3,39 +3,39 @@
 #include "interop.h"
 #include "openlrr.h"
 
-#include "Gods98/3DSound.h"
-#include "Gods98/Activities.h"
-#include "Gods98/Animation.h"
-#include "Gods98/AnimClone.h"
-#include "Gods98/Bmp.h"
-#include "Gods98/Compress.h"
-#include "Gods98/Config.h"
-#include "Gods98/Containers.h"
-#include "Gods98/DirectDraw.h"
-#include "Gods98/Draw.h"
-#include "Gods98/Dxbug.h"
-#include "Gods98/Errors.h"
-#include "Gods98/Files.h"
-#include "Gods98/Flic.h"
-#include "Gods98/Fonts.h"
-#include "Gods98/Images.h"
-#include "Gods98/Input.h"
-#include "Gods98/Keys.h"
-#include "Gods98/Lws.h"
-#include "Gods98/Lwt.h"
-#include "Gods98/Main.h"
-#include "Gods98/Materials.h"
-#include "Gods98/Maths.h"
-#include "Gods98/Memory.h"
-#include "Gods98/Mesh.h"
-#include "Gods98/Movie.h"
-#include "Gods98/Registry.h"
-#include "Gods98/Sound.h"
-#include "Gods98/TextWindow.h"
-#include "Gods98/Utils.h"
-#include "Gods98/Viewports.h"
-#include "Gods98/Wad.h"
-#include "Gods98/Init.h"
+#include "engine/audio/3DSound.h"
+#include "engine/gfx/Activities.h"
+#include "engine/video/Animation.h"
+#include "engine/gfx/AnimClone.h"
+#include "engine/drawing/Bmp.h"
+#include "engine/util/Compress.h"
+#include "engine/core/Config.h"
+#include "engine/gfx/Containers.h"
+#include "engine/drawing/DirectDraw.h"
+#include "engine/drawing/Draw.h"
+#include "engine/util/Dxbug.h"
+#include "engine/core/Errors.h"
+#include "engine/core/Files.h"
+#include "engine/drawing/Flic.h"
+#include "engine/drawing/Fonts.h"
+#include "engine/drawing/Images.h"
+#include "engine/input/Input.h"
+#include "engine/input/Keys.h"
+#include "engine/gfx/Lws.h"
+#include "engine/gfx/Lwt.h"
+#include "engine/Main.h"
+#include "engine/gfx/Materials.h"
+#include "engine/core/Maths.h"
+#include "engine/core/Memory.h"
+#include "engine/gfx/Mesh.h"
+#include "engine/video/Movie.h"
+#include "engine/util/Registry.h"
+#include "engine/audio/Sound.h"
+#include "engine/drawing/TextWindow.h"
+#include "engine/core/Utils.h"
+#include "engine/gfx/Viewports.h"
+#include "engine/core/Wad.h"
+#include "engine/Init.h"
 
 
 #define return_interop(result) { std::printf("%s %s\n", __FUNCTION__, (result?"OK":"failed")); } return result;
@@ -193,7 +193,7 @@ bool interop_hook_Gods98_AnimClone(void)
 	// (shared) "AnimClone_IsLws__Flic_GetWidth"
 	// THIS FUNCTION MUST BE HOOKED ON AN INDIVIDUAL BASIS
 	// There are 5 calls made to this:
-	//  type:FLICSTRUCT (Flic_GetWidth)  -> FUN_004120e0  <@004120f7>
+	//  type:Flic (Flic_GetWidth)  -> FUN_004120e0  <@004120f7>
 	//                                      Panel_FUN_0045a9f0  <@0045ab17>
 	//                                      Pointer_DrawPointer  <@0045cfc8>
 	//  type:FlocksData (Flocks_???)     -> LiveObject_Flocks_FUN_0044bef0  <@0044bfc3>
@@ -717,7 +717,7 @@ bool interop_hook_Gods98_Flic(void)
 	// (shared) "AnimClone_IsLws__Flic_GetWidth"
 	// THIS FUNCTION MUST BE HOOKED ON AN INDIVIDUAL BASIS
 	// There are 5 calls made to this:
-	//  type:FLICSTRUCT (Flic_GetWidth)  -> FUN_004120e0  <@004120f7>
+	//  type:Flic (Flic_GetWidth)  -> FUN_004120e0  <@004120f7>
 	//                                      Panel_FUN_0045a9f0  <@0045ab17>
 	//                                      Pointer_DrawPointer  <@0045cfc8>
 	//  type:FlocksData (Flocks_???)     -> LiveObject_Flocks_FUN_0044bef0  <@0044bfc3>

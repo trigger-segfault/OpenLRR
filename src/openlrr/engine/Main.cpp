@@ -2,33 +2,33 @@
 //
 
 #include "../platform/windows.h"
-#include "../platform/resource.h"
 #include "../platform/d3drm.h"		// <d3drmwin.h>
 #include "../platform/timeapi.h"
+#include "../../../resources/resource.h"
 
-#include "../types/geometry.h"
+#include "geometry.h"
 
 //#include "../openlrr.h"
 
-#include "Animation.h"
-#include "Config.h"
-#include "DirectDraw.h"
-#include "Draw.h"
-#include "Dxbug.h"
-#include "Errors.h"
-#include "Files.h"
-#include "Fonts.h"
-#include "Images.h"
-#include "Input.h"
-#include "Memory.h"
-#include "Registry.h"
-#include "Sound.h"
-#include "Utils.h"
+#include "audio/Sound.h"
+#include "video/Animation.h"
+#include "core/Config.h"
+#include "core/Errors.h"
+#include "core/Files.h"
+#include "core/Memory.h"
+#include "core/Utils.h"
+#include "drawing/DirectDraw.h"
+#include "drawing/Draw.h"
+#include "drawing/Fonts.h"
+#include "drawing/Images.h"
+#include "input/Input.h"
+#include "util/Dxbug.h"
+#include "util/Registry.h"
 #include "Init.h"
 
 #include "Main.h"
 
-#include "../LegoRR/Lego.h"  // Gods_Go
+#include "../game/Game.h"  // Gods_Go
 
 
 /**********************************************************************************

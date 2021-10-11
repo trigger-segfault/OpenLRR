@@ -1,12 +1,12 @@
 // Draw.cpp : 
 //
 
-#include "../platform/ddraw.h"
-#include "../platform/d3drm.h"			// For Viewports.h
+#include "../../platform/ddraw.h"
+#include "../../platform/d3drm.h"			// For Viewports.h
 
+#include "../core/Errors.h"
+#include "../core/Maths.h"
 #include "DirectDraw.h"
-#include "Errors.h"
-#include "Maths.h"
 
 #include "Draw.h"
 

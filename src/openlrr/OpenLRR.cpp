@@ -2,14 +2,14 @@
 //
 
 #include "platform/windows.h"
-#include "platform/resource.h"
+#include "../../../resources/resource.h"
 
 #include "openlrr.h"
 #include "hook.h"
 #include "interop.h"
 #include "dllmain.h"
 
-#include "Gods98/Main.h"
+#include "engine/Main.h"
 
 
 /**********************************************************************************

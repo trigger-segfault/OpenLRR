@@ -75,7 +75,6 @@ void __cdecl srand(uint32 seed);
 
 /// PRNG: MS Quick C - Linear Congruential Generator (LCG)
 // Although this returns a value between [0,0x7fff], an sint32 type is still returned.
-// Although this returns a value between [0,0x7fff], an sint32 type is still returned.
 // <LegoRR.exe @0048e430>
 sint32 __cdecl rand(void);
 

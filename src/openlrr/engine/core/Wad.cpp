@@ -1,7 +1,7 @@
 // Wad.cpp : 
 //
 
-#include "Compress.h"
+#include "../util/Compress.h"
 #include "Memory.h"
 
 #include "Wad.h"

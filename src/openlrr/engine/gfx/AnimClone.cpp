@@ -1,13 +1,13 @@
 // AnimClone.cpp : 
 //
 
-#include "../platform/d3drm.h"
+#include "../../platform/d3drm.h"
 
-#include "Containers.h"    // debug macro: Container_NoteCreation(o)
-#include "Errors.h"
+#include "../core/Errors.h"
+#include "../core/Memory.h"
+#include "../Main.h"		// accessor: lpD3DRM()
+#include "Containers.h"		// debug macro: Container_NoteCreation(o)
 #include "Lws.h"
-#include "Main.h"          // accessor: lpD3DRM()
-#include "Memory.h"
 #include "Mesh.h"
 
 #include "AnimClone.h"
@@ -137,13 +137,13 @@ void __cdecl Gods98::AnimClone_Remove(AnimClone* dead)
 
 // This function performs the same accessor,
 // shared between 3 different structure types.
-//  uint32 __cdecl Flic_GetWidth(FLICSTRUCT* fsp);
+//  uint32 __cdecl Flic_GetWidth(Flic* fsp);
 //  bool32 __cdecl AnimClone_IsLws(AnimClone* clone);
 //  uint32 __cdecl Flocks_GetNumSubdata(Flocks* flocksData);
 // (shared) "AnimClone_IsLws__Flic_GetWidth"
 // THIS FUNCTION MUST BE HOOKED ON AN INDIVIDUAL BASIS
 // There are 5 calls made to this:
-//  type:FLICSTRUCT (Flic_GetWidth)  -> FUN_004120e0  <@004120f7>
+//  type:Flic (Flic_GetWidth)  -> FUN_004120e0  <@004120f7>
 //                                      Panel_FUN_0045a9f0  <@0045ab17>
 //                                      Pointer_DrawPointer  <@0045cfc8>
 //  type:FlocksData (Flocks_GetNumSubdata) -> LiveObject_Flocks_FUN_0044bef0  <@0044bfc3>

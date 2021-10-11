@@ -1,7 +1,8 @@
 #pragma once
 
-#include "../Gods98/Config.h"
 #include "../common.h"
+
+#include "../engine/core/Config.h"
 
 
 /**********************************************************************************

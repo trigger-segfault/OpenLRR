@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "../common.h"
-#include "../types/geometry.h"
+#include "../../common.h"
+#include "../geometry.h"
 
 
 /**********************************************************************************

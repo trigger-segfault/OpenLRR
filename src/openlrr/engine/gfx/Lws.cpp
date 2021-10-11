@@ -1,16 +1,16 @@
 // Lws.cpp : 
 //
 
-#include "../platform/d3drm.h"		// <d3drmwin.h>
+#include "../../platform/d3drm.h"		// <d3drmwin.h>
 
-#include "3DSound.h"
-#include "Errors.h"
-#include "Files.h"
-#include "Main.h"
-#include "Maths.h"
-#include "Memory.h"
+#include "../audio/3DSound.h"
+#include "../core/Errors.h"
+#include "../core/Files.h"
+#include "../core/Maths.h"
+#include "../core/Memory.h"
+#include "../core/Utils.h"
+#include "../Main.h"
 #include "Mesh.h"
-#include "Utils.h"
 
 #include "Lws.h"
 

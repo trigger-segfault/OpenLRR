@@ -1,17 +1,17 @@
 // Mesh.cpp : 
 //
 
-#include "../platform/d3drm.h"
+#include "../../platform/d3drm.h"
 
 #include "Containers.h"
-#include "Errors.h"
-#include "Files.h"
 #include "Lwt.h"
-#include "Main.h"
-#include "Maths.h"
-#include "Memory.h"
-#include "Utils.h"
 #include "Viewports.h"
+#include "../core/Errors.h"
+#include "../core/Files.h"
+#include "../core/Maths.h"
+#include "../core/Memory.h"
+#include "../core/Utils.h"
+#include "../Main.h"
 
 #include "Mesh.h"
 

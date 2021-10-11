@@ -1,8 +1,8 @@
 // Movie.cpp : Definitions file for the C++ Movie implementation and C wrapper.
 //
 
-#include "DirectDraw.h"
-#include "Files.h"
+#include "../drawing/DirectDraw.h"
+#include "../core/Files.h"
 
 #include "Movie.hpp"
 #include "Movie.h"

@@ -1,9 +1,9 @@
 // Activities.cpp : 
 //
 
-#include "Config.h"
-#include "Errors.h"
-#include "Utils.h"
+#include "../core/Config.h"
+#include "../core/Errors.h"
+#include "../core/Utils.h"
 
 #include "Activities.h"
 

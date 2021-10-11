@@ -1,10 +1,10 @@
 // Materials.cpp : 
 //
 
-#include "../platform/d3drm.h"
+#include "../../platform/d3drm.h"
 
-#include "Errors.h"
-#include "Main.h"
+#include "../core/Errors.h"
+#include "../Main.h"
 
 #include "Materials.h"
 

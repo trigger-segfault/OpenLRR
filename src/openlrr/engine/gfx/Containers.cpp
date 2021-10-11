@@ -6,26 +6,26 @@
 
 #define CONTAINER_DISABLEFRAMESETTINGS
 
-#include "../platform/d3drm.h"
-#include "../legacy.h"
+#include "../../platform/d3drm.h"
+#include "../../legacy.h"
 
 #ifdef LEGO_IMMEDIATEMODEMAP
 #define CONTAINER_USEOWNTEXTURELOAD
 #endif //LEGO_IMMEDIATEMODEMAP
 
-#include "3DSound.h"
+#include "../audio/3DSound.h"
+#include "../core/Config.h"
+#include "../core/Errors.h"
+#include "../core/Files.h"
+#include "../core/Memory.h"
+#include "../core/Utils.h"
+#include "../drawing/Bmp.h"
+#include "../drawing/DirectDraw.h"
+#include "../Main.h"
 #include "Activities.h"    // defines
 #include "AnimClone.h"
-#include "Bmp.h"
-#include "Config.h"
-#include "DirectDraw.h"
-#include "Errors.h"
-#include "Files.h"
 #include "Lws.h"
-#include "Main.h"
-#include "Memory.h"
 #include "Mesh.h"
-#include "Utils.h"
 
 #include "Containers.h"
 

@@ -1,9 +1,9 @@
 // Fonts.cpp : 
 //
 
-#include "Errors.h"
+#include "../core/Errors.h"
+#include "../core/Memory.h"
 #include "Images.h"
-#include "Memory.h"
 
 #include "Fonts.h"
 

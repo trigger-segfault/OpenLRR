@@ -8,13 +8,13 @@
 
 #pragma once
 
-#include "../platform/windows.h"
+#include "../../platform/windows.h"
 
 // no getting around this include without some very ugly work-arounds :(
 #include <mmsystem.h>
 
-#include "../common.h"
-#include "../types/geometry.h"
+#include "../../common.h"
+#include "../geometry.h"
 
 
 /**********************************************************************************

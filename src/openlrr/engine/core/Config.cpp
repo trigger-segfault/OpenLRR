@@ -1,9 +1,9 @@
 // Config.cpp : 
 //
 
+#include "../input/Keys.h"
 #include "Files.h"
 #include "Errors.h"
-#include "Keys.h"
 #include "Maths.h"         // defines
 #include "Memory.h"
 #include "Utils.h"

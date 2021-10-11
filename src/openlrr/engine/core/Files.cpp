@@ -1,11 +1,11 @@
 // Files.cpp : 
 //
 
-#include "../platform/windows.h"
+#include "../../platform/windows.h"
 
+#include "../util/Registry.h"
 #include "Errors.h"
 #include "Memory.h"
-#include "Registry.h"
 #include "Utils.h"
 #include "Wad.h"
 

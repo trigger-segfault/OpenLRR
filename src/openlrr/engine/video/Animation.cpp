@@ -1,12 +1,12 @@
 // Animation.cpp : Definitions file for the C++ G98CAnimation implementation and C wrapper.
 //
 
-#include "../platform/timeapi.h"
-#include "../platform/vfw.h"
+#include "../../platform/timeapi.h"
+#include "../../platform/vfw.h"
 
-#include "DirectDraw.h"
-#include "Files.h"
-#include "Main.h"
+#include "../drawing/DirectDraw.h"
+#include "../core/Files.h"
+#include "../Main.h"
 
 #include "Animation.hpp"
 #include "Animation.h"

@@ -1,13 +1,13 @@
 // Flic.cpp : 
 //
 
-#include "../platform/windows.h"
-#include "../platform/ddraw.h"
+#include "../../platform/windows.h"
+#include "../../platform/ddraw.h"
 
+#include "../core/Errors.h"
+#include "../core/Files.h"
+#include "../core/Memory.h"
 #include "DirectDraw.h"
-#include "Errors.h"
-#include "Files.h"
-#include "Memory.h"
 
 #include "Flic.h"
 
@@ -35,7 +35,7 @@
 #pragma region Functions
 
 // <LegoRR.exe @00483f40>
-bool32 __cdecl Gods98::Flic_Setup(const char* filename, OUT FLICSTRUCT** fsp, FlicUserFlags flags)
+bool32 __cdecl Gods98::Flic_Setup(const char* filename, OUT Flic** fsp, FlicUserFlags flags)
 {
 	log_firstcall();
 
@@ -51,9 +51,9 @@ bool32 __cdecl Gods98::Flic_Setup(const char* filename, OUT FLICSTRUCT** fsp, Fl
 	LPDIRECTDRAW4 *lpDD = &dDraw;
 	DDCOLORKEY ColourKey;
 	// Alocate flic structure memory
-	*fsp=(FLICSTRUCT *)Mem_Alloc(sizeof(FLICSTRUCT));
-	//::ZeroMemory((*fsp),sizeof(FLICSTRUCT));
-	std::memset((*fsp), 0, sizeof(FLICSTRUCT));
+	*fsp=(Flic *)Mem_Alloc(sizeof(Flic));
+	//::ZeroMemory((*fsp),sizeof(Flic));
+	std::memset((*fsp), 0, sizeof(Flic));
 	(*fsp)->fsDisplayMode = FlicMode::FLICMODE_HICOLOR;
 	::_splitpath(filename, drive, dir, fname, ext);
 	if(!Flic_LoadHeader(filename,fsp))
@@ -110,7 +110,7 @@ bool32 __cdecl Gods98::Flic_Setup(const char* filename, OUT FLICSTRUCT** fsp, Fl
 }
 
 // <LegoRR.exe @004841c0>
-bool32 __cdecl Gods98::Flic_Close(FLICSTRUCT* fsp)
+bool32 __cdecl Gods98::Flic_Close(Flic* fsp)
 {
 	log_firstcall();
 
@@ -131,7 +131,7 @@ bool32 __cdecl Gods98::Flic_Close(FLICSTRUCT* fsp)
 
 
 // <unused>
-bool32 __cdecl Gods98::Flic_SetFrameRate(FLICSTRUCT* fsp, sint32 rate)
+bool32 __cdecl Gods98::Flic_SetFrameRate(Flic* fsp, sint32 rate)
 {
 	if(!fsp) {
 		return false;
@@ -147,14 +147,14 @@ bool32 __cdecl Gods98::Flic_SetFrameRate(FLICSTRUCT* fsp, sint32 rate)
 }
 
 // <unused>
-sint32 __cdecl Gods98::Flic_GetFrameRate(FLICSTRUCT* fsp)
+sint32 __cdecl Gods98::Flic_GetFrameRate(Flic* fsp)
 {
 	return(fsp->framerate);
 }
 
 
 // <LegoRR.exe @00484220>
-bool32 __cdecl Gods98::Flic_LoadHeader(const char* filename, FLICSTRUCT** fsp)
+bool32 __cdecl Gods98::Flic_LoadHeader(const char* filename, Flic** fsp)
 {
 	log_firstcall();
 
@@ -200,7 +200,7 @@ bool32 __cdecl Gods98::Flic_LoadHeader(const char* filename, FLICSTRUCT** fsp)
 
 // (debug)
 // <unused>
-void __cdecl Gods98::flicTest(FLICSTRUCT* fsp)
+void __cdecl Gods98::flicTest(Flic* fsp)
 {
 	static sint32 n=0;
 	
@@ -219,7 +219,7 @@ void __cdecl Gods98::flicTest(FLICSTRUCT* fsp)
 
 
 // <LegoRR.exe @00484330>
-bool32 __cdecl Gods98::Flic_Animate(FLICSTRUCT* fsp, const Area2F* destArea, bool32 advance, bool32 trans)
+bool32 __cdecl Gods98::Flic_Animate(Flic* fsp, const Area2F* destArea, bool32 advance, bool32 trans)
 {
 	log_firstcall();
 
@@ -273,7 +273,7 @@ bool32 __cdecl Gods98::Flic_Animate(FLICSTRUCT* fsp, const Area2F* destArea, boo
 }
 
 // <LegoRR.exe @00484490>
-Gods98::FlicError __cdecl Gods98::Flic_Memory(FLICSTRUCT* fsp)
+Gods98::FlicError __cdecl Gods98::Flic_Memory(Flic* fsp)
 {
 	log_firstcall();
 
@@ -303,7 +303,7 @@ Gods98::FlicError __cdecl Gods98::Flic_Memory(FLICSTRUCT* fsp)
 }
 
 // <LegoRR.exe @00484520>
-Gods98::FlicError __cdecl Gods98::Flic_Load(FLICSTRUCT* fsp)
+Gods98::FlicError __cdecl Gods98::Flic_Load(Flic* fsp)
 {
 	log_firstcall();
 
@@ -337,7 +337,7 @@ Gods98::FlicError __cdecl Gods98::Flic_Load(FLICSTRUCT* fsp)
 }
 
 // <LegoRR.exe @004845e0>
-Gods98::FlicError __cdecl Gods98::Flic_FindChunk(FLICSTRUCT* fsp)
+Gods98::FlicError __cdecl Gods98::Flic_FindChunk(Flic* fsp)
 {
 	log_firstcall();
 
@@ -444,7 +444,7 @@ Gods98::FlicError __cdecl Gods98::Flic_FindChunk(FLICSTRUCT* fsp)
 }
 
 // <LegoRR.exe @00484770>
-bool32 __cdecl Gods98::Flic_FrameChunk(FLICSTRUCT* fsp)
+bool32 __cdecl Gods98::Flic_FrameChunk(Flic* fsp)
 {
 	log_firstcall();
 
@@ -504,7 +504,7 @@ bool32 __cdecl Gods98::Flic_FrameChunk(FLICSTRUCT* fsp)
 }
 
 // <LegoRR.exe @004848d0>
-Gods98::FlicError __cdecl Gods98::Flic_DoChunk(FLICSTRUCT* fsp)
+Gods98::FlicError __cdecl Gods98::Flic_DoChunk(Flic* fsp)
 {
 	log_firstcall();
 
@@ -566,7 +566,7 @@ Gods98::FlicError __cdecl Gods98::Flic_DoChunk(FLICSTRUCT* fsp)
 
 // (unsused and commented out in Flic.prot)
 // <unused>
-sint32 __cdecl Gods98::Flic_FindMaxChunk(FLICSTRUCT* fsp)
+sint32 __cdecl Gods98::Flic_FindMaxChunk(Flic* fsp)
 {
 	void *source;
 	sint32 max=0;
@@ -596,7 +596,7 @@ sint32 __cdecl Gods98::Flic_FindMaxChunk(FLICSTRUCT* fsp)
 
 // Function to load pointers for each frame of flic
 // <LegoRR.exe @004849e0>
-Gods98::FlicError __cdecl Gods98::Flic_LoadPointers(FLICSTRUCT* fsp)
+Gods98::FlicError __cdecl Gods98::Flic_LoadPointers(Flic* fsp)
 {
 	log_firstcall();
 
@@ -647,7 +647,7 @@ Gods98::FlicError __cdecl Gods98::Flic_LoadPointers(FLICSTRUCT* fsp)
 
 // Function to load an 8 bit palette
 // <LegoRR.exe @00484a90>
-Gods98::FlicError __cdecl Gods98::Flic_LoadPalette64(FLICSTRUCT* fsp)
+Gods98::FlicError __cdecl Gods98::Flic_LoadPalette64(Flic* fsp)
 {
 	log_firstcall();
 
@@ -688,7 +688,7 @@ Gods98::FlicError __cdecl Gods98::Flic_LoadPalette64(FLICSTRUCT* fsp)
 }
 
 // <LegoRR.exe @00484b40>
-bool32 __cdecl Gods98::Flic_Copy(FLICSTRUCT* fsp)
+bool32 __cdecl Gods98::Flic_Copy(Flic* fsp)
 {
 	log_firstcall();
 
@@ -724,11 +724,11 @@ sint32 __cdecl Gods98::Flic_GetEventRate(void)
 /*
 // return true;
 // <shared internal> (see: <LegoRR.exe @00484e50>)
-__inline bool32 Gods98::FlicBRunDepackBytePerPixel(FLICSTRUCT* fsp) { return true; }
+__inline bool32 Gods98::FlicBRunDepackBytePerPixel(Flic* fsp) { return true; }
 */
 
 // <LegoRR.exe @00484b90>
-bool32 __cdecl Gods98::FlicBRunDepackHiColor(FLICSTRUCT* fsp)
+bool32 __cdecl Gods98::FlicBRunDepackHiColor(Flic* fsp)
 {
 	log_firstcall();
 
@@ -784,7 +784,7 @@ bool32 __cdecl Gods98::FlicBRunDepackHiColor(FLICSTRUCT* fsp)
 }
 
 // <LegoRR.exe @00484c90>
-bool32 __cdecl Gods98::FlicBRunDepackHiColorFlic32k(FLICSTRUCT* fsp)
+bool32 __cdecl Gods98::FlicBRunDepackHiColorFlic32k(Flic* fsp)
 {
 	log_firstcall();
 
@@ -850,7 +850,7 @@ bool32 __cdecl Gods98::FlicBRunDepackHiColorFlic32k(FLICSTRUCT* fsp)
 /*
 // return true;
 // <shared internal> (see: <LegoRR.exe @00484e50>)
-__inline bool32 Gods98::FlicBRunDepackHiColorFlic(FLICSTRUCT* fsp) { return true; }
+__inline bool32 Gods98::FlicBRunDepackHiColorFlic(Flic* fsp) { return true; }
 
 // return 0;
 // <shared internal> (see: <LegoRR.exe @00484f50>)
@@ -858,7 +858,7 @@ __inline sint32 Gods98::UnpackM2(void* input, void* output) { return 0; }
 */
 
 // <LegoRR.exe @00484de0>
-bool32 __cdecl Gods98::Flic_BrunDepack(FLICSTRUCT* fsp)
+bool32 __cdecl Gods98::Flic_BrunDepack(Flic* fsp)
 {
 	log_firstcall();
 
@@ -891,15 +891,15 @@ bool32 __cdecl Gods98::Flic_BrunDepack(FLICSTRUCT* fsp)
 /*
 // return true;
 // <shared internal> (see: <LegoRR.exe @00484e50>)
-__inline bool32 Gods98::Flic_Black(FLICSTRUCT* fsp) { return true; }
+__inline bool32 Gods98::Flic_Black(Flic* fsp) { return true; }
 
 // return true;
 // <shared internal> (see: <LegoRR.exe @00484e50>)
-__inline bool32 Gods98::Flic_DeltaByte(FLICSTRUCT* fsp) { return true; }
+__inline bool32 Gods98::Flic_DeltaByte(Flic* fsp) { return true; }
 
 // return true;
 // <shared internal> (see: <LegoRR.exe @00484e50>)
-__inline bool32 Gods98::Flic_Palette64(FLICSTRUCT* fsp) { return true; }
+__inline bool32 Gods98::Flic_Palette64(Flic* fsp) { return true; }
 
 // (shared, internal)
 // DON'T HOOK THIS, it's internal only(?)
@@ -908,7 +908,7 @@ __inline bool32 Gods98::Flic_Palette64(FLICSTRUCT* fsp) { return true; }
 */
 
 // <LegoRR.exe @00484e60>
-void __cdecl Gods98::FlicCreateHiColorTable(FLICSTRUCT* fsp)
+void __cdecl Gods98::FlicCreateHiColorTable(Flic* fsp)
 {
 	log_firstcall();
 
@@ -943,7 +943,7 @@ void __cdecl Gods98::FlicCreateHiColorTable(FLICSTRUCT* fsp)
 }
 
 // <LegoRR.exe @00484ec0>
-bool32 __cdecl Gods98::Flic_Palette256(FLICSTRUCT* fsp)
+bool32 __cdecl Gods98::Flic_Palette256(Flic* fsp)
 {
 	log_firstcall();
 
@@ -995,23 +995,23 @@ bool32 __cdecl Gods98::Flic_Palette256(FLICSTRUCT* fsp)
 /*
 // return 0;
 // <shared internal> (see: <LegoRR.exe @00484f50>)
-__inline sint32 Gods98::Flic_Unpack(FLICSTRUCT* fsp) { return 0; }
+__inline sint32 Gods98::Flic_Unpack(Flic* fsp) { return 0; }
 
 // return;
 // <shared internal> (see: <LegoRR.exe @00484f50>)
-__inline void Gods98::FlicCopyHiColor(FLICSTRUCT* fsp) { return; }
+__inline void Gods98::FlicCopyHiColor(Flic* fsp) { return; }
 
 // return;
 // <shared internal> (see: <LegoRR.exe @00484f50>)
-__inline void Gods98::FlicCopyBytePerPixel(FLICSTRUCT* fsp) { return; }
+__inline void Gods98::FlicCopyBytePerPixel(Flic* fsp) { return; }
 
 // return;
 // <shared internal> (see: <LegoRR.exe @00484f50>)
-__inline void Gods98::FlicCopyHiColorFlic(FLICSTRUCT* fsp) { return; }
+__inline void Gods98::FlicCopyHiColorFlic(Flic* fsp) { return; }
 
 // return;
 // <shared internal> (see: <LegoRR.exe @00484f50>)
-__inline void Gods98::FlicDeltaWordBytePerPixel(FLICSTRUCT* fsp) { return; }
+__inline void Gods98::FlicDeltaWordBytePerPixel(Flic* fsp) { return; }
 
 // (shared, internal)
 // DON'T HOOK THIS, it's internal only(?)
@@ -1020,7 +1020,7 @@ __inline void Gods98::FlicDeltaWordBytePerPixel(FLICSTRUCT* fsp) { return; }
 */
 
 // <LegoRR.exe @00484f60>
-void __cdecl Gods98::FlicDeltaWordHiColor(FLICSTRUCT* fsp)
+void __cdecl Gods98::FlicDeltaWordHiColor(Flic* fsp)
 {
 	log_firstcall();
 
@@ -1114,11 +1114,11 @@ void __cdecl Gods98::FlicDeltaWordHiColor(FLICSTRUCT* fsp)
 /*
 // return;
 // <shared internal> (see: <LegoRR.exe @00484f50>)
-__inline void Gods98::FlicDeltaWordHiColorDZ(FLICSTRUCT* fsp) { return; }
+__inline void Gods98::FlicDeltaWordHiColorDZ(Flic* fsp) { return; }
 */
 
 // <LegoRR.exe @00485110>
-void __cdecl Gods98::FlicDeltaWordHiColorFlic32k(FLICSTRUCT* fsp)
+void __cdecl Gods98::FlicDeltaWordHiColorFlic32k(Flic* fsp)
 {
 	log_firstcall();
 
@@ -1212,11 +1212,11 @@ void __cdecl Gods98::FlicDeltaWordHiColorFlic32k(FLICSTRUCT* fsp)
 /*
 // return;
 // <shared internal> (see: <LegoRR.exe @00484f50>)
-__inline void Gods98::FlicDeltaWordHiColorFlic(FLICSTRUCT* fsp) { return; }
+__inline void Gods98::FlicDeltaWordHiColorFlic(Flic* fsp) { return; }
 */
 
 // <LegoRR.exe @004852f0>
-bool32 __cdecl Gods98::Flic_DeltaWord(FLICSTRUCT* fsp)
+bool32 __cdecl Gods98::Flic_DeltaWord(Flic* fsp)
 {
 	log_firstcall();
 
@@ -1253,7 +1253,7 @@ bool32 __cdecl Gods98::Flic_DeltaWord(FLICSTRUCT* fsp)
 }
 
 // <LegoRR.exe @00485380>
-uint16 __cdecl Gods98::getFlicCol(uint8 n, FLICSTRUCT* fsp)
+uint16 __cdecl Gods98::getFlicCol(uint8 n, Flic* fsp)
 {
 	log_firstcall();
 
@@ -1268,14 +1268,14 @@ uint16 __cdecl Gods98::getFlicCol(uint8 n, FLICSTRUCT* fsp)
 // (shared) "AnimClone_IsLws__Flic_GetWidth"
 // THIS FUNCTION MUST BE HOOKED ON AN INDIVIDUAL BASIS
 // There are 5 calls made to this:
-//  type:FLICSTRUCT (Flic_GetWidth)  -> FUN_004120e0  <@004120f7>
+//  type:Flic (Flic_GetWidth)  -> FUN_004120e0  <@004120f7>
 //                                      Panel_FUN_0045a9f0  <@0045ab17>
 //                                      Pointer_DrawPointer  <@0045cfc8>
 //  type:FlocksData (Flocks_???)     -> LiveObject_Flocks_FUN_0044bef0  <@0044bfc3>
 //  type:AnimClone (AnimClone_IsLws) -> Container_FormatPartName  <@00473f60>
 // <called @004120f7, 0045ab17, 0045cfc8>
 // <LegoRR.exe @00489a90>
-uint32 __cdecl Gods98::Flic_GetWidth(FLICSTRUCT* fsp)
+uint32 __cdecl Gods98::Flic_GetWidth(Flic* fsp)
 {
 	log_firstcall();
 
@@ -1284,7 +1284,7 @@ uint32 __cdecl Gods98::Flic_GetWidth(FLICSTRUCT* fsp)
 
 
 // <LegoRR.exe @004853a0>
-uint32 __cdecl Gods98::Flic_GetHeight(FLICSTRUCT* fsp)
+uint32 __cdecl Gods98::Flic_GetHeight(Flic* fsp)
 {
 	log_firstcall();
 

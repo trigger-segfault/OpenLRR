@@ -1,8 +1,8 @@
 // TextWindow.cpp : 
 //
 
+#include "../core/Memory.h"
 #include "Fonts.h"
-#include "Memory.h"
 
 #include "TextWindow.h"
 

@@ -1,14 +1,14 @@
 // Lwt.cpp : 
 //
 
-#include "../platform/windows.h"
-#include "../platform/d3drm.h"
+#include "../../platform/windows.h"
+#include "../../platform/d3drm.h"
 
-#include "../types/geometry.h"
+#include "../geometry.h"
 
-#include "Errors.h"
-#include "Files.h"
-#include "Memory.h"
+#include "../core/Errors.h"
+#include "../core/Files.h"
+#include "../core/Memory.h"
 
 #include "Lwt.h"
 

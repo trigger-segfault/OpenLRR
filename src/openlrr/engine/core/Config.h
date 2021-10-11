@@ -8,10 +8,10 @@
 
 #pragma once
 
-#include "../common.h"
-//#include "../types/geometry.h"
-//#include "../types/colour.h"
-//#include "Keys.h"
+#include "../../common.h"
+//#include "../geometry.h"
+//#include "../colour.h"
+//#include "../input/Keys.h"
 
 
 namespace Gods98

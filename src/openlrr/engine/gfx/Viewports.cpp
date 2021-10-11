@@ -1,36 +1,18 @@
 // Viewports.cpp : 
 //
 
-#include "../platform/d3drm.h"
+#include "../../platform/d3drm.h"
 
+#include "../drawing/DirectDraw.h"
+#include "../core/Errors.h"
+#include "../core/Maths.h"
+#include "../core/Memory.h"
+#include "../util/Dxbug.h"
+#include "../Main.h"
 #include "Containers.h"
-#include "DirectDraw.h"
-#include "Dxbug.h"
-#include "Errors.h"
-#include "Main.h"
-#include "Maths.h"
-#include "Memory.h"
 #include "Mesh.h"
 
 #include "Viewports.h"
-
-
-/**********************************************************************************
- ******** Forward Global Namespace Declarations
- **********************************************************************************/
-
-#pragma region Forward Declarations
-
-/// TODO: Remove me once Container module is finished
-//struct Container;
-//struct AnimClone;
-/*namespace Gods98 {
-	struct Viewport;
-}*/
-//#define Mesh_PostRenderAll ((void(__cdecl*)(Viewport*))0x00483020)
-// <LegoRR.exe @00483020>
-
-#pragma endregion
 
 
 /**********************************************************************************

@@ -1,11 +1,11 @@
 // Input.cpp : 
 //
 
-#include "../platform/dinput.h"
+#include "../../platform/dinput.h"
 
-#include "Errors.h"
-#include "Dxbug.h"
-#include "Main.h"
+#include "../core/Errors.h"
+#include "../util/Dxbug.h"
+#include "../Main.h"
 
 #include "Input.h"
 

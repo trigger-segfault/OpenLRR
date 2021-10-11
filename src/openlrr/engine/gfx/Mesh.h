@@ -10,11 +10,11 @@
 #pragma once
 
 // no getting around this include without some very ugly work-arounds :(
-#include "../platform/d3drm.h"		// <d3d.h>
+#include "../../platform/d3drm.h"		// <d3d.h>
 
-#include "../common.h"
-#include "../types/geometry.h"
-#include "../types/colour.h"
+#include "../../common.h"
+#include "../geometry.h"
+#include "../colour.h"
 
 
 /**********************************************************************************

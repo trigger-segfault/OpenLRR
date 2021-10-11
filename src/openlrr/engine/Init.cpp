@@ -2,10 +2,10 @@
 //
 
 #include "../platform/windows.h"
-#include "../platform/resource.h"
+#include "../../../resources/resource.h"
 
-#include "DirectDraw.h"
-#include "Errors.h"
+#include "drawing/DirectDraw.h"
+#include "core/Errors.h"
 #include "Main.h"
 
 #include "Init.h"

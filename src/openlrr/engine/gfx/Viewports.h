@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include "../common.h"
-#include "../types/geometry.h"
+#include "../../common.h"
+#include "../geometry.h"
 
 
 /**********************************************************************************
@@ -33,14 +33,6 @@ namespace Gods98
 #pragma region Forward Declarations
 
 struct Container;
-
-#pragma endregion
-
-/**********************************************************************************
- ******** Function Typedefs
- **********************************************************************************/
-
-#pragma region Function Typedefs
 
 #pragma endregion
 

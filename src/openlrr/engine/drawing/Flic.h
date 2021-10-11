@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "../common.h"
-#include "../types/geometry.h"
+#include "../../common.h"
+#include "../geometry.h"
 
 
 namespace Gods98
@@ -231,7 +231,7 @@ struct FLICCHUNKSTRUCT
 static_assert(sizeof(FLICCHUNKSTRUCT) == 0x8, "");
 
 
-struct FLICSTRUCT
+struct Flic
 {
 	/*000,4*/ FlicUserFlags userflags;
 	/*004,4*/ sint32 fsXc;
@@ -263,9 +263,9 @@ struct FLICSTRUCT
 	/*6e4,4*/ bool32 is15bit;
 	/*6e8*/
 };
-static_assert(sizeof(FLICSTRUCT) == 0x6e8, "");
+static_assert(sizeof(Flic) == 0x6e8, "");
 
-typedef struct FLICSTRUCT Flic;
+//typedef struct Flic FLICSTRUCT; // old name
 
 
 struct SOUNDARRAY
@@ -290,62 +290,62 @@ static_assert(sizeof(SOUNDARRAY) == 0x11c, "");
 #pragma region Functions
 
 // <LegoRR.exe @00483f40>
-bool32 __cdecl Flic_Setup(const char* filename, OUT FLICSTRUCT** fsp, FlicUserFlags flags);
+bool32 __cdecl Flic_Setup(const char* filename, OUT Flic** fsp, FlicUserFlags flags);
 
 // <LegoRR.exe @004841c0>
-bool32 __cdecl Flic_Close(FLICSTRUCT* fsp);
+bool32 __cdecl Flic_Close(Flic* fsp);
 
 
 // <unused>
-bool32 __cdecl Flic_SetFrameRate(FLICSTRUCT* fsp, sint32 rate);
+bool32 __cdecl Flic_SetFrameRate(Flic* fsp, sint32 rate);
 
 // <unused>
-sint32 __cdecl Flic_GetFrameRate(FLICSTRUCT* fsp);
+sint32 __cdecl Flic_GetFrameRate(Flic* fsp);
 
 
 // <LegoRR.exe @00484220>
-bool32 __cdecl Flic_LoadHeader(const char* filename, FLICSTRUCT** fsp);
+bool32 __cdecl Flic_LoadHeader(const char* filename, Flic** fsp);
 
 
 // (debug)
 // <unused>
-void __cdecl flicTest(FLICSTRUCT* fsp);
+void __cdecl flicTest(Flic* fsp);
 
 
 // <LegoRR.exe @00484330>
-bool32 __cdecl Flic_Animate(FLICSTRUCT* fsp, const Area2F* destArea, bool32 advance, bool32 trans);
+bool32 __cdecl Flic_Animate(Flic* fsp, const Area2F* destArea, bool32 advance, bool32 trans);
 
 // <LegoRR.exe @00484490>
-FlicError __cdecl Flic_Memory(FLICSTRUCT* fsp);
+FlicError __cdecl Flic_Memory(Flic* fsp);
 
 // <LegoRR.exe @00484520>
-FlicError __cdecl Flic_Load(FLICSTRUCT* fsp);
+FlicError __cdecl Flic_Load(Flic* fsp);
 
 // <LegoRR.exe @004845e0>
-FlicError __cdecl Flic_FindChunk(FLICSTRUCT* fsp);
+FlicError __cdecl Flic_FindChunk(Flic* fsp);
 
 // <LegoRR.exe @00484770>
-bool32 __cdecl Flic_FrameChunk(FLICSTRUCT* fsp);
+bool32 __cdecl Flic_FrameChunk(Flic* fsp);
 
 // <LegoRR.exe @004848d0>
-FlicError __cdecl Flic_DoChunk(FLICSTRUCT* fsp);
+FlicError __cdecl Flic_DoChunk(Flic* fsp);
 
 
 // (unsused and commented out in Flic.prot)
 // <unused>
-sint32 __cdecl Flic_FindMaxChunk(FLICSTRUCT* fsp);
+sint32 __cdecl Flic_FindMaxChunk(Flic* fsp);
 
 
 // Function to load pointers for each frame of flic
 // <LegoRR.exe @004849e0>
-FlicError __cdecl Flic_LoadPointers(FLICSTRUCT* fsp);
+FlicError __cdecl Flic_LoadPointers(Flic* fsp);
 
 // Function to load an 8 bit palette
 // <LegoRR.exe @00484a90>
-FlicError __cdecl Flic_LoadPalette64(FLICSTRUCT* fsp);
+FlicError __cdecl Flic_LoadPalette64(Flic* fsp);
 
 // <LegoRR.exe @00484b40>
-bool32 __cdecl Flic_Copy(FLICSTRUCT* fsp);
+bool32 __cdecl Flic_Copy(Flic* fsp);
 
 
 // Simply returns 100
@@ -355,19 +355,19 @@ sint32 __cdecl Flic_GetEventRate(void);
 
 // return true;
 // <shared internal> (see: <LegoRR.exe @00484e50>)
-__inline bool32 FlicBRunDepackBytePerPixel(FLICSTRUCT* fsp) { return true; }
+__inline bool32 FlicBRunDepackBytePerPixel(Flic* fsp) { return true; }
 
 
 // <LegoRR.exe @00484b90>
-bool32 __cdecl FlicBRunDepackHiColor(FLICSTRUCT* fsp);
+bool32 __cdecl FlicBRunDepackHiColor(Flic* fsp);
 
 // <LegoRR.exe @00484c90>
-bool32 __cdecl FlicBRunDepackHiColorFlic32k(FLICSTRUCT* fsp);
+bool32 __cdecl FlicBRunDepackHiColorFlic32k(Flic* fsp);
 
 
 // return true;
 // <shared internal> (see: <LegoRR.exe @00484e50>)
-__inline bool32 FlicBRunDepackHiColorFlic(FLICSTRUCT* fsp) { return true; }
+__inline bool32 FlicBRunDepackHiColorFlic(Flic* fsp) { return true; }
 
 // return 0;
 // <shared internal> (see: <LegoRR.exe @00484f50>)
@@ -375,20 +375,20 @@ __inline sint32 UnpackM2(void* input, void* output) { return 0; }
 
 
 // <LegoRR.exe @00484de0>
-bool32 __cdecl Flic_BrunDepack(FLICSTRUCT* fsp);
+bool32 __cdecl Flic_BrunDepack(Flic* fsp);
 
 
 // return true;
 // <shared internal> (see: <LegoRR.exe @00484e50>)
-__inline bool32 Flic_Black(FLICSTRUCT* fsp) { return true; }
+__inline bool32 Flic_Black(Flic* fsp) { return true; }
 
 // return true;
 // <shared internal> (see: <LegoRR.exe @00484e50>)
-__inline bool32 Flic_DeltaByte(FLICSTRUCT* fsp) { return true; }
+__inline bool32 Flic_DeltaByte(Flic* fsp) { return true; }
 
 // return true;
 // <shared internal> (see: <LegoRR.exe @00484e50>)
-__inline bool32 Flic_Palette64(FLICSTRUCT* fsp) { return true; }
+__inline bool32 Flic_Palette64(Flic* fsp) { return true; }
 
 // (shared, internal)
 // DON'T HOOK THIS, it's internal only(?)
@@ -397,31 +397,31 @@ __inline bool32 Flic_Palette64(FLICSTRUCT* fsp) { return true; }
 
 
 // <LegoRR.exe @00484e60>
-void __cdecl FlicCreateHiColorTable(FLICSTRUCT* fsp);
+void __cdecl FlicCreateHiColorTable(Flic* fsp);
 
 // <LegoRR.exe @00484ec0>
-bool32 __cdecl Flic_Palette256(FLICSTRUCT* fsp);
+bool32 __cdecl Flic_Palette256(Flic* fsp);
 
 
 // return 0;
 // <shared internal> (see: <LegoRR.exe @00484f50>)
-__inline sint32 Flic_Unpack(FLICSTRUCT* fsp) { return 0; }
+__inline sint32 Flic_Unpack(Flic* fsp) { return 0; }
 
 // return;
 // <shared internal> (see: <LegoRR.exe @00484f50>)
-__inline void FlicCopyHiColor(FLICSTRUCT* fsp) { return; }
+__inline void FlicCopyHiColor(Flic* fsp) { return; }
 
 // return;
 // <shared internal> (see: <LegoRR.exe @00484f50>)
-__inline void FlicCopyBytePerPixel(FLICSTRUCT* fsp) { return; }
+__inline void FlicCopyBytePerPixel(Flic* fsp) { return; }
 
 // return;
 // <shared internal> (see: <LegoRR.exe @00484f50>)
-__inline void FlicCopyHiColorFlic(FLICSTRUCT* fsp) { return; }
+__inline void FlicCopyHiColorFlic(Flic* fsp) { return; }
 
 // return;
 // <shared internal> (see: <LegoRR.exe @00484f50>)
-__inline void FlicDeltaWordBytePerPixel(FLICSTRUCT* fsp) { return; }
+__inline void FlicDeltaWordBytePerPixel(Flic* fsp) { return; }
 
 // (shared, internal)
 // DON'T HOOK THIS, it's internal only(?)
@@ -430,49 +430,49 @@ __inline void FlicDeltaWordBytePerPixel(FLICSTRUCT* fsp) { return; }
 
 
 // <LegoRR.exe @00484f60>
-void __cdecl FlicDeltaWordHiColor(FLICSTRUCT* fsp);
+void __cdecl FlicDeltaWordHiColor(Flic* fsp);
 
 
 // return;
 // <shared internal> (see: <LegoRR.exe @00484f50>)
-__inline void FlicDeltaWordHiColorDZ(FLICSTRUCT* fsp) { return; }
+__inline void FlicDeltaWordHiColorDZ(Flic* fsp) { return; }
 
 
 // <LegoRR.exe @00485110>
-void __cdecl FlicDeltaWordHiColorFlic32k(FLICSTRUCT* fsp);
+void __cdecl FlicDeltaWordHiColorFlic32k(Flic* fsp);
 
 
 // return;
 // <shared internal> (see: <LegoRR.exe @00484f50>)
-__inline void FlicDeltaWordHiColorFlic(FLICSTRUCT* fsp) { return; }
+__inline void FlicDeltaWordHiColorFlic(Flic* fsp) { return; }
 
 
 // <LegoRR.exe @004852f0>
-bool32 __cdecl Flic_DeltaWord(FLICSTRUCT* fsp);
+bool32 __cdecl Flic_DeltaWord(Flic* fsp);
 
 // <LegoRR.exe @00485380>
-uint16 __cdecl getFlicCol(uint8 n, FLICSTRUCT* fsp);
+uint16 __cdecl getFlicCol(uint8 n, Flic* fsp);
 
 // This function performs the same accessor,
 // shared between 3 different structure types.
-//  uint32 __cdecl Flic_GetWidth(FLICSTRUCT* fsp);
+//  uint32 __cdecl Flic_GetWidth(Flic* fsp);
 //  bool32 __cdecl AnimClone_IsLws(AnimClone* clone);
 //  uint32 __cdecl Flocks_GetNumSubdata(Flocks* flocksData);
 // (shared) "AnimClone_IsLws__Flic_GetWidth"
 // THIS FUNCTION MUST BE HOOKED ON AN INDIVIDUAL BASIS
 // There are 5 calls made to this:
-//  type:FLICSTRUCT (Flic_GetWidth)  -> FUN_004120e0  <@004120f7>
+//  type:Flic (Flic_GetWidth)  -> FUN_004120e0  <@004120f7>
 //                                      Panel_FUN_0045a9f0  <@0045ab17>
 //                                      Pointer_DrawPointer  <@0045cfc8>
 //  type:FlocksData (Flocks_GetNumSubdata) -> LiveObject_Flocks_FUN_0044bef0  <@0044bfc3>
 //  type:AnimClone (AnimClone_IsLws) -> Container_FormatPartName  <@00473f60>
 // <called @004120f7, 0045ab17, 0045cfc8>
 // <LegoRR.exe @00489a90>
-uint32 __cdecl Flic_GetWidth(FLICSTRUCT* fsp);
+uint32 __cdecl Flic_GetWidth(Flic* fsp);
 
 
 // <LegoRR.exe @004853a0>
-uint32 __cdecl Flic_GetHeight(FLICSTRUCT* fsp);
+uint32 __cdecl Flic_GetHeight(Flic* fsp);
 
 #pragma endregion
 
