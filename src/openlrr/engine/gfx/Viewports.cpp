@@ -257,7 +257,7 @@ void __cdecl Gods98::Viewport_Render(Viewport* vp, Container* root, real32 delta
 
 	vp->rendering = true;
 
-	if (0.0f != vp->smoothFOV){
+	if (vp->smoothFOV != 0.0f && delta != 0.0f) {
 
 		real32 coef, fov = vp->lpVP->GetField();
 
