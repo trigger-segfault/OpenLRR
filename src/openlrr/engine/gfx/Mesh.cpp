@@ -1482,9 +1482,44 @@ void __cdecl Gods98::Mesh_SetMeshRenderDesc(Mesh* mesh, Viewport* vp, const D3DM
 		mesh->renderDesc.renderCallback( mesh, mesh->renderDesc.renderCallbackData, vp );
 
 	//ADD DEFAULT STATES HERE
-	Main_ChangeRenderState( D3DRENDERSTATE_SPECULARENABLE,		false );
-	Main_ChangeRenderState( D3DRENDERSTATE_SHADEMODE,			D3DSHADE_GOURAUD );
-	Main_ChangeRenderState( D3DRENDERSTATE_DITHERENABLE,		true );
+	Main_ChangeRenderState(D3DRENDERSTATE_SPECULARENABLE, false);
+
+	/// CUSTOM: Add control over rendering quality using settings passed to Main_Setup3D
+	// D3DRENDERSTATE_LIGHTING is not supported by Direct3DDevice3, which is
+	//  why LegoRR doesn't support parsing the UnlitFlat quality in Lego.cfg.
+	switch (mainGlobs2.renderQuality) {
+	case MainQuality::WIREFRAME:
+		Main_ChangeRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_FLAT);
+		//Main_ChangeRenderState(D3DRENDERSTATE_LIGHTING,  false);
+		Main_ChangeRenderState(D3DRENDERSTATE_FILLMODE,  D3DFILL_WIREFRAME);
+		break;
+	case MainQuality::UNLITFLATSHADE:
+		// Due to the lack of lighting support, this is identical to FLATSHADE
+		Main_ChangeRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_FLAT);
+		//Main_ChangeRenderState(D3DRENDERSTATE_LIGHTING,  false);
+		Main_ChangeRenderState(D3DRENDERSTATE_FILLMODE,  D3DFILL_SOLID);
+		break;
+	case MainQuality::FLATSHADE:
+		Main_ChangeRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_FLAT);
+		//Main_ChangeRenderState(D3DRENDERSTATE_LIGHTING,  true);
+		Main_ChangeRenderState(D3DRENDERSTATE_FILLMODE,  D3DFILL_SOLID);
+		break;
+	case MainQuality::GOURAUDSHADE:
+		Main_ChangeRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_GOURAUD);
+		//Main_ChangeRenderState(D3DRENDERSTATE_LIGHTING,  true);
+		Main_ChangeRenderState(D3DRENDERSTATE_FILLMODE,  D3DFILL_SOLID);
+		break;
+	case MainQuality::PHONGSHADE:
+		Main_ChangeRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_PHONG);
+		//Main_ChangeRenderState(D3DRENDERSTATE_LIGHTING,  true);
+		Main_ChangeRenderState(D3DRENDERSTATE_FILLMODE,  D3DFILL_SOLID);
+		break;
+	}
+	Main_ChangeRenderState(D3DRENDERSTATE_DITHERENABLE, mainGlobs2.dither);
+
+	/// ORIGINAL FUNCTIONALITY:
+	//Main_ChangeRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_GOURAUD);
+	//Main_ChangeRenderState(D3DRENDERSTATE_DITHERENABLE, true);
 	
 	if( !(mainGlobs.flags & MainFlags::MAIN_FLAG_DONTMANAGETEXTURES) )
 	{
@@ -1571,8 +1606,26 @@ void __cdecl Gods98::Mesh_SetRenderDesc(Mesh_RenderFlags flags, const D3DMATRIX*
 	else
 	{	
 		Main_ChangeRenderState( D3DRENDERSTATE_TEXTUREMAG, D3DFILTER_LINEAR );
+
+		/// CUSTOM: Add control over rendering filtering using settings passed to Main_Setup3D
+		if (mainGlobs2.mipMap) {
+			// At the moment, this condition will be disabled until the
+			// effects and any side effects are fully understood.
+			// By default, Lego.cfg specifies `LinearMipMap TRUE`, but
+			// this function would normally pass D3DFILTER_MIPLINEAR.
+			//if (mainGlobs2.mipMapLinear) {
+			//	Main_ChangeRenderState(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_LINEARMIPLINEAR);
+			//}
+			//else {
+				// what LegoRR normally uses
+				Main_ChangeRenderState(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_MIPLINEAR);
+			//}
+		}
+		else {
+			Main_ChangeRenderState(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_LINEAR);
+		}
 		/// OLD GODS98: MIPLINEAR used by LegoRR but LINEAR used by newer Gods98 source.
-		Main_ChangeRenderState( D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_MIPLINEAR );
+		//Main_ChangeRenderState( D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_MIPLINEAR );
 		//Main_ChangeRenderState( D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_LINEAR );
 	}
 }

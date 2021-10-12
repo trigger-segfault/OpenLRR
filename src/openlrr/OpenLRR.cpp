@@ -92,6 +92,7 @@ bool InjectOpenLRR(HINSTANCE hInstanceDll)
 
 static const uint32 Menu_IconIDs[] = { IDM_ICON_NONE, IDM_ICON_NATIVE, IDM_ICON_OPENLRR, IDM_ICON_TEAL, IDM_ICON_GOLD, IDM_ICON_CDROM };
 static const uint32 Menu_CursorIDs[] = { IDM_CURSOR_NEVER, IDM_CURSOR_TITLEBAR, IDM_CURSOR_ALWAYS };
+static const uint32 Menu_QualityIDs[] = { IDM_QUALITY_WIREFRAME, IDM_QUALITY_UNLITFLAT, IDM_QUALITY_FLAT, IDM_QUALITY_GOURAUD, IDM_QUALITY_PHONG };
 static const uint32 Menu_AdvanceFrameIDs[] = { IDM_ADVANCE_1FRAME, IDM_ADVANCE_1SECOND };
 static const uint32 Menu_InitCommandLineIDs[] = { IDM_DUALMOUSE, IDM_PROGRAMMER, IDM_DEBUGMODE, IDM_DEBUGCOMPLETE, IDM_LEVELSOPEN, IDM_TESTERCALL, IDM_BLOCKFADE, IDM_DUMPMODE, IDM_FREEZE };
 
@@ -116,6 +117,14 @@ void __cdecl OpenLRR_UpdateMenuItems(void)
     // This can safely be out of range, beacuse of how the Buttons macros function
     sint32 curCursor = (sint32)Gods98::Main_GetCursorVisibility();
     Menu_CheckRadioButtonsArray(Menu_CursorIDs, curCursor);
+
+    Menu_CheckRadioButtonsArray(Menu_QualityIDs, (sint32)Gods98::mainGlobs2.renderQuality);
+    Menu_CheckButton(IDM_GRAPHICS_BLEND, Gods98::mainGlobs2.blendTransparency);
+    Menu_CheckButton(IDM_GRAPHICS_DITHER, Gods98::mainGlobs2.dither);
+    Menu_CheckButton(IDM_GRAPHICS_FILTER, Gods98::mainGlobs2.linearFilter);
+    Menu_CheckButton(IDM_GRAPHICS_LINEARMIPMAP, Gods98::mainGlobs2.mipMapLinear);
+    Menu_CheckButton(IDM_GRAPHICS_MIPMAP, Gods98::mainGlobs2.mipMap);
+    Menu_CheckButton(IDM_GRAPHICS_SORT, Gods98::mainGlobs2.sortTransparency);
 
     sint32 curIcon = -1;
     for (uint32 i = 0; i < (uint32)OpenLRRIcon::Count; i++) {
@@ -234,6 +243,46 @@ void __cdecl OpenLRR_HandleCommand(HWND hWnd, uint16 wmId, uint16 wmSrc)
         }*/
         Gods98::Main_SetIcon(openlrrGlobs.iconList[(uint32)(wmId - IDM_ICON_NONE)], false);
         break;
+    
+    case IDM_QUALITY_WIREFRAME:
+    case IDM_QUALITY_UNLITFLAT:
+    case IDM_QUALITY_FLAT:
+    case IDM_QUALITY_GOURAUD:
+    case IDM_QUALITY_PHONG:
+        /*switch (wmId) {
+        case IDM_QUALITY_WIREFRAME: std::printf("IDM_QUALITY_WIREFRAME\n"); break;
+        case IDM_QUALITY_UNLITFLAT: std::printf("IDM_QUALITY_UNLITFLAT\n"); break;
+        case IDM_QUALITY_FLAT:      std::printf("IDM_QUALITY_FLAT\n"); break;
+        case IDM_QUALITY_GOURAUD:   std::printf("IDM_QUALITY_GOURAUD\n"); break;
+        case IDM_QUALITY_PHONG:     std::printf("IDM_QUALITY_PHONG\n"); break;
+        }*/
+        Gods98::mainGlobs2.renderQuality = (Gods98::MainQuality)((sint32)(wmId - IDM_QUALITY_WIREFRAME));
+        break;
+
+    /*case IDM_GRAPHICS_BLEND:
+        //std::printf("IDM_GRAPHICS_BLEND\n");
+        Gods98::mainGlobs2.blendTransparency = !Gods98::mainGlobs2.blendTransparency;
+        break;*/
+    case IDM_GRAPHICS_DITHER:
+        //std::printf("IDM_GRAPHICS_DITHER\n");
+        Gods98::mainGlobs2.dither = !Gods98::mainGlobs2.dither;
+        break;
+    /*case IDM_GRAPHICS_FILTER:
+        //std::printf("IDM_GRAPHICS_FILTER\n");
+        Gods98::mainGlobs2.linearFilter = !Gods98::mainGlobs2.linearFilter;
+        break;*/
+    case IDM_GRAPHICS_LINEARMIPMAP:
+        //std::printf("IDM_GRAPHICS_LINEARMIPMAP\n");
+        Gods98::mainGlobs2.mipMapLinear = !Gods98::mainGlobs2.mipMapLinear;
+        break;
+    case IDM_GRAPHICS_MIPMAP:
+        //std::printf("IDM_GRAPHICS_MIPMAP\n");
+        Gods98::mainGlobs2.mipMap = !Gods98::mainGlobs2.mipMap;
+        break;
+    /*case IDM_GRAPHICS_SORT:
+        //std::printf("IDM_GRAPHICS_SORT\n");
+        Gods98::mainGlobs2.sortTransparency = !Gods98::mainGlobs2.sortTransparency;
+        break;*/
 
 
         ////// &Debug //////

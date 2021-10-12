@@ -858,14 +858,24 @@ void __cdecl Gods98::Main_Setup3D(MainQuality renderQuality, bool32 dither, bool
 	D3DRMRENDERQUALITY quality = D3DRMRENDER_WIREFRAME;
 	DWORD renderMode = 0;
 
+	mainGlobs2.renderQuality = renderQuality;
+	mainGlobs2.dither       = dither;
+	mainGlobs2.linearFilter = linearFilter;
+	mainGlobs2.mipMap       = mipMap;
+	mainGlobs2.mipMapLinear = mipMapLinear;
+	mainGlobs2.blendTransparency = blendTransparency;
+	mainGlobs2.sortTransparency  = sortTransparency;
+
 	if (renderQuality == MainQuality::WIREFRAME)      quality = D3DRMRENDER_WIREFRAME;
 	if (renderQuality == MainQuality::FLATSHADE)      quality = D3DRMRENDER_FLAT;
 	if (renderQuality == MainQuality::UNLITFLATSHADE) quality = D3DRMRENDER_UNLITFLAT;
 	if (renderQuality == MainQuality::GOURAUDSHADE)   quality = D3DRMRENDER_GOURAUD;
+	/// CUSTOM: Added to match rest of the set, but this will never be passed as a parameter
+	if (renderQuality == MainQuality::PHONGSHADE)     quality = D3DRMRENDER_PHONG;
 
 	/// NEW GODS98: Not present in LegoRR (these arguments ended up being unused)
-	//if (blendTransparency) renderMode |= D3DRMRENDERMODE_BLENDEDTRANSPARENCY;
-	//if (sortTransparency)  renderMode |= D3DRMRENDERMODE_SORTEDTRANSPARENCY;
+	if (blendTransparency) renderMode |= D3DRMRENDERMODE_BLENDEDTRANSPARENCY;
+	if (sortTransparency)  renderMode |= D3DRMRENDERMODE_SORTEDTRANSPARENCY;
 
 	D3DRMTEXTUREQUALITY textureMode;
 	if (linearFilter) {
@@ -885,7 +895,7 @@ void __cdecl Gods98::Main_Setup3D(MainQuality renderQuality, bool32 dither, bool
 		mainGlobs.device->SetTextureQuality(textureMode);
 //		mainGlobs.device->SetRenderMode(D3DRMRENDERMODE_BLENDEDTRANSPARENCY|D3DRMRENDERMODE_SORTEDTRANSPARENCY |D3DRMRENDERMODE_DISABLESORTEDALPHAZWRITE);
 		/// NEW GODS98: Not present in LegoRR
-		//mainGlobs.device->SetRenderMode(renderMode);
+		mainGlobs.device->SetRenderMode(renderMode);
 
 	} else Error_Fatal(true, "Device not initialised");
 }

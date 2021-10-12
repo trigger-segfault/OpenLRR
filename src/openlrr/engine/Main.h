@@ -131,6 +131,7 @@ enum_scoped(MainQuality) : sint32
 	UNLITFLATSHADE = 1, // (not parsed in Lego.cfg)
 	FLATSHADE      = 2,
 	GOURAUDSHADE   = 3,
+	PHONGSHADE     = 4, // (CUSTOM: add remaining render quality combination, does this have any use?)
 };
 enum_scoped_end(MainQuality, 0x4);
 
@@ -226,6 +227,17 @@ struct Main_Globs2
 
 	/// CONTROL:
 	sint32				advanceFrames;	// Number of frames to advance when in the Main_IsPaused state
+
+	/// RENDER:
+	// All options passed to Main_Setup3D
+	//  (most of these can't really be used as the Mesh module currently is)
+	MainQuality			renderQuality;
+	bool32				dither;
+	bool32				linearFilter;
+	bool32				mipMap;
+	bool32				mipMapLinear;
+	bool32				blendTransparency;
+	bool32				sortTransparency;
 };
 
 #pragma endregion
