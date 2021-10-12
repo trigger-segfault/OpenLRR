@@ -619,7 +619,7 @@ void __cdecl Mesh_UViewMesh(APPOBJ* lightWaveObject, OUT Point2F* textCoords);
 // flags = lwt.h srfTexFlags bit enumeration `TFM_*`
 // <LegoRR.exe @00482260>
 void __cdecl Mesh_GetTextureUVsWrap(uint32 vertexCount, OUT Vector3F* vertices, OUT Point2F* coords,
-	real32 sx, real32 sy, real32 sz, real32 px, real32 py, real32 pz, uint32 flags);
+	real32 sx, real32 sy, real32 sz, real32 px, real32 py, real32 pz, LightWave_TexFlags flags);
 
 
 /// NEW GODS98: API that includes mesh->textureRenderCallback
@@ -664,15 +664,15 @@ void __cdecl Mesh_GetVertices(Mesh* mesh, uint32 groupID, uint32 index,
 
 // <LegoRR.exe @004827c0>
 void __cdecl Mesh_SetVertices_PointNormalAt(Mesh* mesh, uint32 groupID, uint32 index,
-							uint32 count, Vector3F* vertices, Vector3F* position, real32 (*textCoords)[2]);
+							uint32 count, const Vector3F* vertices, const Vector3F* position, real32 (*textCoords)[2]);
 
 // <LegoRR.exe @004828e0>
 void __cdecl Mesh_SetVertices_SameNormal(Mesh* mesh, uint32 groupID, uint32 index,
-							uint32 count, Vector3F* vertices, Vector3F* normal, real32 (*textCoords)[2]);
+							uint32 count, const Vector3F* vertices, const Vector3F* normal, real32 (*textCoords)[2]);
 
 // <LegoRR.exe @00482980>
 void __cdecl Mesh_SetVertices_VNT(Mesh* mesh, uint32 groupID, uint32 index, uint32 count,
-								Vector3F* vertices, Vector3F** normal, Point2F* textCoords);
+							const Vector3F* vertices, const Vector3F*const* normal, const Point2F* textCoords);
 
 // <LegoRR.exe @00482a40>
 bool32 __cdecl Mesh_IsGroupHidden(Mesh* mesh, uint32 groupID);

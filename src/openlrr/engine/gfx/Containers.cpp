@@ -819,8 +819,10 @@ Gods98::Container* __cdecl Gods98::Container_MakeMesh2(Container* parent, Contai
 
 			switch (type) {
 			case Container_MeshType::Container_MeshType_Transparent:	flags |= Mesh_RenderFlags::MESH_FLAG_RENDER_ALPHATRANS;		break;
-			case Container_MeshType::Container_MeshType_Additive:		flags |= Mesh_RenderFlags::MESH_FLAG_RENDER_ALPHASA1;			break;
-			case Container_MeshType::Container_MeshType_Subtractive:	flags |= Mesh_RenderFlags::MESH_FLAG_RENDER_ALPHASA0;			break;
+			case Container_MeshType::Container_MeshType_Additive:		flags |= Mesh_RenderFlags::MESH_FLAG_RENDER_ALPHASA1;		break;
+			/// NEW GODS98: Subtractive does not exist in LegoRR,
+			///              checking to see if any side effects exist due to this...
+			case Container_MeshType::Container_MeshType_Subtractive:	flags |= Mesh_RenderFlags::MESH_FLAG_RENDER_ALPHASA0;		break;
 			}
 
 			transmesh = Mesh_CreateOnFrame(cont->activityFrame, nullptr, flags, nullptr, Mesh_Type::Mesh_Type_Norm);

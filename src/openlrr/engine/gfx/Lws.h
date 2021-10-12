@@ -3,7 +3,7 @@
 /// FILEIO: Shared:Data[wad,std,cd]
 /// APIS: IDirect3DRM3, IDirect3DRMFrame3, IDirect3DRMUserVisual, IDirect3DRMVisual[*]
 /// DEPENDENCIES: 3DSound, Files, Main, Maths, Mesh, Utils, (Errors, Memory)
-/// DEPENDENTS: AnimClone, Containers, ...
+/// DEPENDENTS: AnimClone, Containers, Lego (initialise/shutdown only)
 
 #pragma once
 

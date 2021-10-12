@@ -72,12 +72,14 @@ bool32 __cdecl Gods98::Mesh_CreateGlobalMaterial(void)
 	{
 		sizeof(D3DMATERIAL),
 		{ 1.0f, 1.0f, 1.0f, 1.0f },
-		{ 1.0f, 1.0f, 1.0f, 1.0f },
+		/// OLD GODS98: Ambient set to 0.0f for RGBA
+		{ 0.0f, 0.0f, 0.0f, 0.0f },
+		//{ 1.0f, 1.0f, 1.0f, 1.0f },
 		{ 0.0f, 0.0f, 0.0f, 0.0f },
 		{ 0.0f, 0.0f, 0.0f, 0.0f },
 		0.0f,
 		0,
-		0
+		0,
 	};
 
 
@@ -220,7 +222,7 @@ Gods98::Mesh* __cdecl Gods98::Mesh_Clone(Gods98::Mesh* mesh, IDirect3DRMFrame3* 
 
 	newMesh->listSize = newMesh->groupCount;
 	newMesh->groupList = (Mesh_Group*)Mem_Alloc(sizeof(Mesh_Group) * newMesh->groupCount);
-	memcpy(newMesh->groupList, mesh->groupList, sizeof(Mesh_Group) * newMesh->groupCount);
+	std::memcpy(newMesh->groupList, mesh->groupList, sizeof(Mesh_Group) * newMesh->groupCount);
 
 	for (uint32 loop=0 ; loop<newMesh->groupCount ; loop++) {
 		Mesh_CreateGroupMaterial(newMesh, loop);
@@ -275,13 +277,10 @@ Gods98::Mesh* __cdecl Gods98::Mesh_Load(const char* fname, IDirect3DRMFrame3* fr
 // <LegoRR.exe @00480d80>
 bool32 __cdecl Gods98::Mesh_ParseLWO(const char* basePath, Mesh* mesh, APPOBJ* lightWaveObject, bool32 noTextures)
 {
-	uint32 face, vertex;
-	Vector3F pos[3];
 	uint32 faceDataQuad[] = { 0, 1, 2, 0, 2, 3 };
 	real32 textCoords[][2] = {
 		{0,1}, {0,0}, {1,0}, {1,1}
 	};
-	uint32 group, loop;
 	Mesh_RenderFlags newFlags;
 	uint32* surfVertexRef;
 	Vector3F* surfVertices;
@@ -340,9 +339,10 @@ bool32 __cdecl Gods98::Mesh_ParseLWO(const char* basePath, Mesh* mesh, APPOBJ* l
 
 
 	//STORE FACE NORMALS FOR GOURAUD SHADING - ASSUMES ALL POLYS ARE PLANAR
-	for( face = 0; face < lightWaveObject->aoSize.lwPolyCount; face++ )
-	{	
-		for( vertex = 0; vertex < 3; vertex++ )
+	for(uint32 face = 0; face < lightWaveObject->aoSize.lwPolyCount; face++ )
+	{
+		Vector3F pos[3];
+		for(uint32 vertex = 0; vertex < 3; vertex++ )
 		{	
 			vertexIndex = lightWaveObject->aoPoly[face].plyData[vertex] * 3;
 			
@@ -373,14 +373,14 @@ bool32 __cdecl Gods98::Mesh_ParseLWO(const char* basePath, Mesh* mesh, APPOBJ* l
 
 
 	//READ VERTEX INFORMATION
-	for( face = 0; face < lightWaveObject->aoSize.lwPolyCount; face++ )
+	for(uint32 face = 0; face < lightWaveObject->aoSize.lwPolyCount; face++ )
 	{
 		surfArraySize = lightWaveObject->aoPoly[face].plySurface * size;
 		surfFDArraySize = lightWaveObject->aoPoly[face].plySurface * fDSize;
 
 		if( lightWaveObject->aoPoly[face].plyCount == 3 )
 		{
-			for( vertex = 0; vertex < 3; vertex++ )
+			for(uint32 vertex = 0; vertex < 3; vertex++ )
 			{	
 				vertexIndex = lightWaveObject->aoPoly[face].plyData[vertex] * 3;
 
@@ -447,7 +447,7 @@ bool32 __cdecl Gods98::Mesh_ParseLWO(const char* basePath, Mesh* mesh, APPOBJ* l
 
 			surfArraySize = lightWaveObject->aoPoly[face].plySurface * size;
 
-			for( vertex = 0; vertex < 6; vertex++ )
+			for(uint32 vertex = 0; vertex < 6; vertex++ )
 			{
 				if( surfVertexRef[ surfArraySize + lightWaveObject->aoPoly[face].plyData[ faceDataQuad[vertex] ] ] == -1 )
 				{	
@@ -512,12 +512,12 @@ bool32 __cdecl Gods98::Mesh_ParseLWO(const char* basePath, Mesh* mesh, APPOBJ* l
 
 
 	//ADD A GROUP FOR EACH SURFACE IN OBJECT
-	for( loop = 0; loop < lightWaveObject->aoSize.lwSurfaceCount; loop++ )
+	for(uint32 loop = 0; loop < lightWaveObject->aoSize.lwSurfaceCount; loop++ )
 	{	
 		surfArraySize = loop * size;
 		surfFDArraySize = loop * fDSize;
 
-		group = Mesh_AddGroup( mesh, surfFaceDataCount[loop], surfFaceDataCount[loop]/3, 3, &surfFaceData[surfFDArraySize] );
+		uint32 group = Mesh_AddGroup( mesh, surfFaceDataCount[loop], surfFaceDataCount[loop]/3, 3, &surfFaceData[surfFDArraySize] );
 
 		//SET NORMALS
 		if( !lightWaveObject->aoFileUV )
@@ -546,10 +546,17 @@ bool32 __cdecl Gods98::Mesh_ParseLWO(const char* basePath, Mesh* mesh, APPOBJ* l
 			Mesh_AlterGroupRenderFlags( mesh, group, newFlags );
 		}
 
-//		if( !(mesh->lightWaveSurf[loop].texFlags & TFM_PIXEL_BLENDING) )
-//		{	newFlags |= MESH_FLAG_RENDER_FILTERNEAREST;
-			Mesh_AlterGroupRenderFlags( mesh, group, newFlags );
-//		}
+		/// OLD GODS98: This check (and applying of newFlags was commented out in Gods98 source,
+		///             while the call to Mesh_AlterGroupRenderFlags was not.
+		if (!(mesh->lightWaveSurf[loop].texFlags & LightWave_TexFlags::TFM_PIXEL_BLENDING)) {
+			newFlags |= Mesh_RenderFlags::MESH_FLAG_RENDER_FILTERNEAREST;
+			Mesh_AlterGroupRenderFlags(mesh, group, newFlags);
+		}
+
+		/// TODO: Are flags intended to always be modified on not SFM_ADDITIVE?
+		///       Or only if one of the remaining conditions are met?
+		//if (newFlags != Mesh_RenderFlags::MESH_RENDERFLAGS_LWONORM)
+		//	Mesh_AlterGroupRenderFlags(mesh, group, newFlags);
 
 		//SET TEXTURE
 		if( (lightWaveObject->aoSurface[loop].srfTexFlags & LightWave_TexFlags::TFM_SEQUENCE) )
@@ -741,7 +748,7 @@ bool32 __cdecl Gods98::Mesh_GetTextureSeqInfo(const char* tname, OUT char* tfnam
 		return false;
 
 	std::strcpy( tfname,tname );
-	tfname[n+1] = 0;
+	tfname[n+1] = '\0';
 	*tnumlen = len - n - 1;
 	*tstart = val;
 	return true;
@@ -836,7 +843,7 @@ void __cdecl Gods98::Mesh_UViewMesh(APPOBJ* lightWaveObject, OUT Point2F* textCo
 			{				
 				if( polyRead == -1 )
 				{	//CHECK POLY COUNT IS THE SAME AS OBJECT
-					Error_Fatal( (lightWaveObject->aoSize.lwPolyCount != (uint32)atoi( argv[0] )), "UView file corrupt." );
+					Error_Fatal( (lightWaveObject->aoSize.lwPolyCount != (uint32)std::atoi( argv[0] )), "UView file corrupt." );
 					polyRead = 0;
 				}
 				else if( polyRead < (sint32)lightWaveObject->aoSize.lwPolyCount )
@@ -926,7 +933,7 @@ void __cdecl Gods98::Mesh_UViewMesh(APPOBJ* lightWaveObject, OUT Point2F* textCo
 // flags = lwt.h srfTexFlags bit enumeration `TFM_*`
 // <LegoRR.exe @00482260>
 void __cdecl Gods98::Mesh_GetTextureUVsWrap(uint32 vertexCount, OUT Vector3F* vertices, OUT Point2F* coords,
-	real32 sx, real32 sy, real32 sz, real32 px, real32 py, real32 pz, uint32 flags)
+	real32 sx, real32 sy, real32 sz, real32 px, real32 py, real32 pz, LightWave_TexFlags flags)
 {
 	for(uint32 vertex = 0; vertex < vertexCount; vertex++ )
 	{
@@ -956,21 +963,19 @@ bool32 __cdecl Gods98::Mesh_SetTextureTime(Mesh* mesh, real32 frame)
 // <LegoRR.exe @00482300>
 bool32 __cdecl Gods98::Mesh_SetTextureTime2(Mesh* mesh, real32 frame)
 {
-	uint32 texNum;
-	uint32 groupNum;
-	sint32 groupTexNum;
-	Mesh_Group* group;
-
-	texNum = (uint32)( frame - (real32)std::fmod(frame,1) );
+	/// NOTE: Decompiled source here passes a float: fmod(frame, 1.0f)
+	///       But std function changes to template argument of double,int
+	uint32 texNum = (uint32)(frame - (real32)std::fmod(frame, 1.0f));
+	//uint32 texNum = (uint32)(frame - (real32)std::fmod(frame, 1));
 
 	if( mesh->flags & MeshFlags::MESH_FLAG_LWO )
 	{	
-		for( groupNum = 0; groupNum < mesh->groupCount; groupNum++ )
+		for(uint32 groupNum = 0; groupNum < mesh->groupCount; groupNum++ )
 		{
-			group = &mesh->groupList[groupNum];
+			Mesh_Group* group = &mesh->groupList[groupNum];
 		
 			if( (group->lightWaveSurfaceInfo->texFlags & LightWave_TexFlags::TFM_SEQUENCE) && (group->lightWaveSurfaceInfo->numInTexSeq) )
-			{	groupTexNum = (group->lightWaveSurfaceInfo->texSeqOffset + (sint32)texNum) % (sint32)group->lightWaveSurfaceInfo->numInTexSeq;
+			{	sint32 groupTexNum = (group->lightWaveSurfaceInfo->texSeqOffset + (sint32)texNum) % (sint32)group->lightWaveSurfaceInfo->numInTexSeq;
 	
 				if( groupTexNum < 0 )
 					groupTexNum = 0;
@@ -1071,64 +1076,52 @@ uint32 __cdecl Gods98::Mesh_GetGroupCount(Mesh* mesh)
 sint32 __cdecl Gods98::Mesh_AddGroup(Mesh* mesh, uint32 vertexCount, uint32 faceCount,
 						uint32 vPerFace, const uint32* faceData)
 {
-	uint32 size, loop;
-	Mesh_Group* group;
-	
 	Mesh_Debug_CheckIMDevice_Int();
 	Error_Fatal( (vPerFace != 3), "Only triangles supported so far." );
 	Error_Fatal((mesh->clonedFrom!=nullptr)||(mesh->flags&MeshFlags::MESH_FLAG_HASBEENCLONED), "Cannot AddGroup() to a cloned mesh");
 	
-/*
-	if( mesh->groupList == nullptr )
-	{
+
+	if (mesh->groupList == nullptr) {
 		mesh->listSize = MESH_DEFLISTSIZE;
 		mesh->groupCount = 1;
-		mesh->groupList = (Mesh_Group*)Mem_Alloc( mesh->listSize * sizeof(Mesh_Group) );
-		
+		mesh->groupList = (Mesh_Group*)Mem_Alloc(mesh->listSize * sizeof(Mesh_Group));
+
 	}
-	else
-	{
+	else if (++mesh->groupCount == mesh->listSize) {
+		Mesh_Group* newList;
+		uint32 newSize = (mesh->listSize * MESH_LISTINCREASE) / 100;
 
-		////
+		if (newList = (Mesh_Group*)Mem_ReAlloc(mesh->groupList, newSize * sizeof(Mesh_Group))) {
+			mesh->groupList = newList;
+			mesh->listSize = newSize;
 
-
-		if( ++mesh->groupCount == mesh->listSize )
-		{	lpMesh_Group newList;
-			ULONG newSize = (mesh->listSize*MESH_LISTINCREASE) / 100;
-			
-			
-			if( newList = (Mesh_Group*)Mem_ReAlloc( mesh->groupList, newSize * sizeof(Mesh_Group) ) )
-			{
-				mesh->groupList = newList;
-				mesh->listSize = newSize;
-				
-			}
-			else
-			{	Error_Fatal( true, "Memory allocation error" );
-			
-				return -1;
-			}
 		}
-		
+		else {
+			Error_Fatal(true, "Memory allocation error");
+
+			return -1;
+		}
 	}
+	Mesh_Group* group = &mesh->groupList[mesh->groupCount-1];
 
-	group = &mesh->groupList[mesh->groupCount-1];
-*/
-
-	if (mesh->groupCount == mesh->listSize) {
+	/// NEW GODS98: Different method to achieve the same result as above(?)
+	///             It seems the older method allocated more room if *this* was the last group,
+	///             rather than if we needed room for another group.
+	/*if (mesh->groupCount == mesh->listSize) {
 		mesh->listSize = std::max((uint32)MESH_DEFLISTSIZE, (mesh->listSize * MESH_LISTINCREASE) / 100);
 		mesh->groupList = (Mesh_Group*)Mem_ReAlloc(mesh->groupList, sizeof(mesh->groupList[0]) * mesh->listSize);
 	}
-	group = &mesh->groupList[mesh->groupCount++];
+	group = &mesh->groupList[mesh->groupCount++];*/
+
 	std::memset(group, 0, sizeof(*group));
 
-//	group = Mem_Alloc( sizeof(Mesh_Group) );
+//	group = (Mesh_Group*)Mem_Alloc( sizeof(Mesh_Group) );
 //	std::memset( group, 0, sizeof(Mesh_Group) );
 	
-	size = sizeof(uint16) * faceCount * vPerFace;
+	uint32 size = sizeof(uint16) * faceCount * vPerFace;
 	group->faceData = (uint16*)Mem_Alloc(size);
 	group->faceDataSize = faceCount * vPerFace;
-	for( loop = 0; loop < group->faceDataSize; loop++ )
+	for(uint32 loop = 0; loop < group->faceDataSize; loop++ )
 		group->faceData[loop] = (uint16) faceData[loop];
 	
 	size = sizeof(Mesh_Vertex) * vertexCount;
@@ -1149,6 +1142,7 @@ sint32 __cdecl Gods98::Mesh_AddGroup(Mesh* mesh, uint32 vertexCount, uint32 face
 // <LegoRR.exe @00482610>
 void __cdecl Gods98::Mesh_AlterGroupRenderFlags(Mesh* mesh, uint32 groupID, Mesh_RenderFlags newFlags)
 {
+	/// NEW GODS98: Safety check is not present in LegoRR
 	if (groupID < mesh->groupCount) {
 		mesh->groupList[groupID].renderFlags = newFlags;
 	}
@@ -1217,7 +1211,7 @@ void __cdecl Gods98::Mesh_GetVertices(Mesh* mesh, uint32 groupID, uint32 index,
 
 // <LegoRR.exe @004827c0>
 void __cdecl Gods98::Mesh_SetVertices_PointNormalAt(Mesh* mesh, uint32 groupID, uint32 index,
-							uint32 count, Vector3F* vertices, Vector3F* position, real32 (*textCoords)[2])
+							uint32 count, const Vector3F* vertices, const Vector3F* position, real32 (*textCoords)[2])
 {
 	if (groupID < mesh->groupCount) {
 
@@ -1240,7 +1234,7 @@ void __cdecl Gods98::Mesh_SetVertices_PointNormalAt(Mesh* mesh, uint32 groupID, 
 
 // <LegoRR.exe @004828e0>
 void __cdecl Gods98::Mesh_SetVertices_SameNormal(Mesh* mesh, uint32 groupID, uint32 index,
-							uint32 count, Vector3F* vertices, Vector3F* normal, real32 (*textCoords)[2])
+							uint32 count, const Vector3F* vertices, const Vector3F* normal, real32 (*textCoords)[2])
 {
 	if (groupID < mesh->groupCount) {
 
@@ -1263,7 +1257,7 @@ void __cdecl Gods98::Mesh_SetVertices_SameNormal(Mesh* mesh, uint32 groupID, uin
 
 // <LegoRR.exe @00482980>
 void __cdecl Gods98::Mesh_SetVertices_VNT(Mesh* mesh, uint32 groupID, uint32 index, uint32 count,
-								Vector3F* vertices, Vector3F** normal, Point2F* textCoords)
+							const Vector3F* vertices, const Vector3F*const* normal, const Point2F* textCoords)
 {
 	if (groupID < mesh->groupCount) {
 
@@ -1289,6 +1283,7 @@ void __cdecl Gods98::Mesh_SetVertices_VNT(Mesh* mesh, uint32 groupID, uint32 ind
 // <LegoRR.exe @00482a40>
 bool32 __cdecl Gods98::Mesh_IsGroupHidden(Mesh* mesh, uint32 groupID)
 {
+	/// NEW GODS98: Safety check is not present in LegoRR
 	if (groupID < mesh->groupCount) {
 
 		Mesh_Debug_CheckIMDevice_Int();
@@ -1303,6 +1298,7 @@ bool32 __cdecl Gods98::Mesh_IsGroupHidden(Mesh* mesh, uint32 groupID)
 // <LegoRR.exe @00482a60>
 void __cdecl Gods98::Mesh_HideGroup(Mesh* mesh, uint32 groupID, bool32 hide)
 {
+	/// NEW GODS98: Safety check is not present in LegoRR
 	if (groupID < mesh->groupCount) {
 
 		Mesh_Debug_CheckIMDevice_Void();
@@ -1326,26 +1322,25 @@ void __cdecl Gods98::Mesh_Hide(Mesh* mesh, bool32 hide)
 BOOL __cdecl Gods98::Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOID lpArg, D3DRMUSERVISUALREASON lpD3DRMUVreason, LPDIRECT3DRMDEVICE lpD3DRMDev, LPDIRECT3DRMVIEWPORT lpD3DRMview)
 {
 	Mesh* mesh = (Mesh*)lpArg;
-	Viewport* vp;
-	D3DMATRIX matWorld;
 
 
-	if (D3DRMUSERVISUAL_CANSEE == lpD3DRMUVreason) {
+	if (lpD3DRMUVreason == D3DRMUSERVISUAL_CANSEE) {
 
-		if (lpIMDevice()){
+		if (lpIMDevice()) {
 			if (mesh->flags & MeshFlags::MESH_FLAG_HIDDEN) return false;
 
-/*			{
-				lpContainer cont;
+
+			{
+				Container* cont;
 				if (cont = Container_SearchOwner(mesh->frameCreatedOn)) {
-					if (cont->flags & CONTAINER_FLAG_HIDDEN2) return false;
+					if (cont->flags & ContainerFlags::CONTAINER_FLAG_HIDDEN2) return false;
 				}
-			}*/
+			}
 
 			if ((mesh->flags & MeshFlags::MESH_FLAG_FACECAMERA) && !(mesh->flags & MeshFlags::MESH_FLAG_FACECAMERADONE)) {
 				IDirect3DRMFrame3* camera;
 				IDirect3DRMFrame3* scene;
-				vp = (Viewport*) lpD3DRMview->GetAppData();
+				Viewport* vp = (Viewport*) lpD3DRMview->GetAppData();
 				if (vp->rendering) {
 					mesh->frameCreatedOn->GetScene(&scene);
 					vp->lpVP->GetCamera( &camera);
@@ -1358,13 +1353,13 @@ BOOL __cdecl Gods98::Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOI
 			return true;
 		} else return false;
 
-	} else if (D3DRMUSERVISUAL_RENDER == lpD3DRMUVreason) {
+	} else if (lpD3DRMUVreason == D3DRMUSERVISUAL_RENDER) {
 
-		if (lpIMDevice()){
-			
+		if (lpIMDevice()) {
+
+			D3DMATRIX matWorld;
 			IDirect3DRMViewport2* view;
 			Mesh_Group* group;
-			uint32 loop;
 			bool32 postRender = false;
 			bool32 renderStateSet = false;
 			
@@ -1377,7 +1372,7 @@ BOOL __cdecl Gods98::Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOI
 			Mesh_SetCurrentViewport( lpD3DRMview );
 			lpD3DRMview->QueryInterface( Idl::IID_IDirect3DRMViewport2, (void**)&view );
 			
-			vp = (Viewport*)view->GetAppData();
+			Viewport* vp = (Viewport*)view->GetAppData();
 	
 			if( mesh->flags & MeshFlags::MESH_FLAG_POSTEFFECT )
 			{	
@@ -1387,7 +1382,7 @@ BOOL __cdecl Gods98::Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOI
 			else if( mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_FLAG_RENDER_ALLALPHA )
 			{
 				//RENDER ALL GROUPS WITHOUT FLAGS CHANGED FISRT
-				for( loop = 0; loop < mesh->groupCount; loop++ )
+				for(uint32 loop = 0; loop < mesh->groupCount; loop++ )
 				{
 					group = &mesh->groupList[loop];
 
@@ -1417,7 +1412,7 @@ BOOL __cdecl Gods98::Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOI
 				}
 
 				//RENDER ALL GROUPS WITH FLAGS CHANGED FISRT
-				for( loop = 0; loop < mesh->groupCount; loop++ )
+				for(uint32 loop = 0; loop < mesh->groupCount; loop++ )
 				{
 					group = &mesh->groupList[loop];
 
@@ -1576,8 +1571,9 @@ void __cdecl Gods98::Mesh_SetRenderDesc(Mesh_RenderFlags flags, const D3DMATRIX*
 	else
 	{	
 		Main_ChangeRenderState( D3DRENDERSTATE_TEXTUREMAG, D3DFILTER_LINEAR );
-//		Main_ChangeRenderState( D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_MIPLINEAR );
-		Main_ChangeRenderState( D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_LINEAR );
+		/// OLD GODS98: MIPLINEAR used by LegoRR but LINEAR used by newer Gods98 source.
+		Main_ChangeRenderState( D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_MIPLINEAR );
+		//Main_ChangeRenderState( D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_LINEAR );
 	}
 }
 
@@ -1765,6 +1761,7 @@ void __cdecl Gods98::Mesh_AddTexturePathEntry(Mesh_TextureReference* list, IN OU
 // <LegoRR.exe @00483380>
 void __cdecl Gods98::Mesh_SetGroupTexture(Mesh* mesh, uint32 groupID, Mesh_Texture* mt)
 {
+	/// NEW GODS98: Safety check is not present in LegoRR
 	if (groupID < mesh->groupCount) {
 		Mesh_Debug_CheckIMDevice_Void();
 
@@ -1783,6 +1780,7 @@ void __cdecl Gods98::Mesh_SetGroupTexture(Mesh* mesh, uint32 groupID, Mesh_Textu
 // <LegoRR.exe @00483400>
 void __cdecl Gods98::Mesh_RemoveGroupTexture(Mesh* mesh, uint32 groupID)
 {
+	/// NEW GODS98: Safety check is not present in LegoRR
 	if (groupID < mesh->groupCount) {
 		Mesh_Group* group = &mesh->groupList[groupID];
 
@@ -1801,18 +1799,21 @@ void __cdecl Gods98::Mesh_RemoveGroupTexture(Mesh* mesh, uint32 groupID)
 // <LegoRR.exe @00483430>
 bool32 __cdecl Gods98::Mesh_CreateGroupMaterial(Mesh* mesh, uint32 groupID)
 {
+	/// NEW GODS98: Safety check is not present in LegoRR
 	if (groupID < mesh->groupCount) {
 		Mesh_Group* group = &mesh->groupList[groupID];
 		D3DMATERIAL material =
 		{
 			sizeof(D3DMATERIAL),
 			{ 1.0f, 1.0f, 1.0f, 1.0f },
-			{ 1.0f, 1.0f, 1.0f, 1.0f },
+			/// OLD GODS98: Ambient set to 0.0f for RGBA
+			{ 0.0f, 0.0f, 0.0f, 0.0f },
+			//{ 1.0f, 1.0f, 1.0f, 1.0f },
 			{ 0.0f, 0.0f, 0.0f, 0.0f },
 			{ 0.0f, 0.0f, 0.0f, 0.0f },
 			0.0f,
 			0,
-			0
+			0,
 		};
 
 
@@ -1828,6 +1829,7 @@ bool32 __cdecl Gods98::Mesh_CreateGroupMaterial(Mesh* mesh, uint32 groupID)
 // <LegoRR.exe @00483500>
 bool32 __cdecl Gods98::Mesh_SetGroupMaterial(Mesh* mesh, uint32 groupID, const D3DMATERIAL* mat)
 {
+	/// NEW GODS98: Safety check is not present in LegoRR
 	if (groupID < mesh->groupCount) {
 		Mesh_Debug_CheckIMDevice_Int();
 
@@ -1841,6 +1843,7 @@ bool32 __cdecl Gods98::Mesh_SetGroupMaterial(Mesh* mesh, uint32 groupID, const D
 // <LegoRR.exe @00483530>
 bool32 __cdecl Gods98::Mesh_SetGroupColour(Mesh* mesh, uint32 groupID, real32 r, real32 g, real32 b, Mesh_Colour type)
 {
+	/// NEW GODS98: Safety check is not present in LegoRR
 	if (groupID < mesh->groupCount) {
 		Mesh_Group* group = &mesh->groupList[groupID];
 		D3DMATERIAL* material;
@@ -1914,6 +1917,7 @@ bool32 __cdecl Gods98::Mesh_SetGroupColour(Mesh* mesh, uint32 groupID, real32 r,
 // <LegoRR.exe @004836c0>
 D3DMATERIAL* __cdecl Gods98::Mesh_GetGroupMaterial(Mesh* mesh, uint32 groupID)
 {
+	/// NEW GODS98: Safety check is not present in LegoRR
 	if (groupID < mesh->groupCount) {
 		Mesh_Debug_CheckIMDevice_Ptr(D3DMATERIAL*);
 
@@ -1926,14 +1930,14 @@ D3DMATERIAL* __cdecl Gods98::Mesh_GetGroupMaterial(Mesh* mesh, uint32 groupID)
 // <LegoRR.exe @004836e0>
 bool32 __cdecl Gods98::Mesh_SetGroupMaterialValues(Mesh* mesh, uint32 groupID, real32 value, Mesh_Colour type)
 {
+	/// NEW GODS98: Safety check is not present in LegoRR
 	if (groupID < mesh->groupCount) {
 		Mesh_Group* group = &mesh->groupList[groupID];
-		D3DMATERIAL* material;
 
 
 		Mesh_Debug_CheckIMDevice_Int();
 
-		material = Mesh_GetGroupMaterial( mesh, groupID );
+		D3DMATERIAL* material = Mesh_GetGroupMaterial( mesh, groupID );
 
 		if( value < 0.0f )
 			value = 0.0f;
@@ -1956,7 +1960,7 @@ bool32 __cdecl Gods98::Mesh_SetGroupMaterialValues(Mesh* mesh, uint32 groupID, r
 				else if( mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_FLAG_RENDER_ALLALPHA )
 					group->flags |= Mesh_GroupFlags::MESH_FLAG_ALPHAHIDDEN;
 			}
-			else if( 1.0f != value )
+			else if( value != 1.0f)
 			{
 				if( group->renderFlags )
 				{	
