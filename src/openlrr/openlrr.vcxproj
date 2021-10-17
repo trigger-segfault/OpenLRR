@@ -185,6 +185,7 @@
     <ClInclude Include="engine\gfx\Materials.h" />
     <ClInclude Include="engine\gfx\Mesh.h" />
     <ClInclude Include="engine\gfx\Viewports.h" />
+    <ClInclude Include="engine\Graphics.h" />
     <ClInclude Include="engine\Init.h" />
     <ClInclude Include="engine\input\Input.h" />
     <ClInclude Include="engine\input\Keys.h" />
@@ -275,6 +276,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
+    <None Include="engine\README.md" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
@@ -302,6 +304,7 @@
     <ClCompile Include="engine\gfx\Materials.cpp" />
     <ClCompile Include="engine\gfx\Mesh.cpp" />
     <ClCompile Include="engine\gfx\Viewports.cpp" />
+    <ClCompile Include="engine\Graphics.cpp" />
     <ClCompile Include="engine\Init.cpp" />
     <ClCompile Include="engine\input\Input.cpp" />
     <ClCompile Include="engine\input\Keys.cpp" />

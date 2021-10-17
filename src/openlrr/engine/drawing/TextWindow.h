@@ -42,12 +42,7 @@ struct Font;
 
 #pragma region Enums
 
-//#define TEXTWINDOW_FLAG_WINDOWWRAPPED	0x00000001
-//#define TEXTWINDOW_FLAG_OVERLAY			0x00000002
-//#define TEXTWINDOW_FLAG_CENTERED		0x00000004
-
-namespace _ns_TextWindowFlags {
-enum TextWindowFlags : uint32
+flags_scoped(TextWindowFlags) : uint32
 {
 	TEXTWINDOW_FLAG_NONE = 0, // (unused)
 
@@ -55,9 +50,7 @@ enum TextWindowFlags : uint32
 	TEXTWINDOW_FLAG_OVERLAY = 0x2,
 	TEXTWINDOW_FLAG_CENTERED = 0x4,
 };
-DEFINE_ENUM_FLAG_OPERATORS(TextWindowFlags);
-static_assert(sizeof(TextWindowFlags) == 0x4, "");
-} using TextWindowFlags = _ns_TextWindowFlags::TextWindowFlags;
+flags_scoped_end(TextWindowFlags, 0x4);
 
 #pragma endregion
 
@@ -82,7 +75,7 @@ struct TextWindow
 	/*82c,4*/ TextWindowFlags flags;
 	/*830*/
 };
-static_assert(sizeof(TextWindow) == 0x830, "");
+assert_sizeof(TextWindow, 0x830);
 
 #pragma endregion
 

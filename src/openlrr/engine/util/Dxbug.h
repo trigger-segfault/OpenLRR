@@ -18,11 +18,11 @@ namespace Gods98
 #pragma region Enums
 
 // Supported error modules/objects
-enum DxbugModule : sint32
+enum class DxbugModule : sint32
 {
 	ERROR_UNKNOWN, ERROR_D3DRM, ERROR_DINPUT, ERROR_DDRAW, ERROR_DSOUND, ERROR_DPLAY, ERROR_D3DIM, ERROR_IUNKNOWN,
 };
-static_assert(sizeof(DxbugModule) == 0x4, "");
+assert_sizeof(DxbugModule, 0x4);
 
 #pragma endregion
 
@@ -38,14 +38,14 @@ struct Dxbug_Globs
 	// [globs: NONE]
 	/*000,4*/ HRESULT errnum;
 	/*004,4*/ sint32 line;
-	/*008,4*/ DxbugModule DXModuleNameNumber;
+	/*008,4*/ DxbugModule DXModuleNumber;
 	/*00c,4*/ sint32 DXNumErrorsSet;
 	/*010,4*/ const char* file;
-	/*014,4*/ unsigned int reserved1;
+	/*014,4*/ uint32 reserved1;
 	/*018,800*/ char DXErrorString[2048]; // Last error that was set (actually [1024], but the space is unused)
 	/*818*/
 };
-static_assert(sizeof(Dxbug_Globs) == 0x818, "");
+assert_sizeof(Dxbug_Globs, 0x818);
 
 #pragma endregion
 

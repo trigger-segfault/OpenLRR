@@ -6,6 +6,7 @@
 
 #include "drawing/DirectDraw.h"
 #include "core/Errors.h"
+#include "Graphics.h"
 #include "Main.h"
 
 #include "Init.h"
@@ -90,22 +91,19 @@ bool32 __cdecl Gods98::Init_Initialise(bool32 setup, bool32 debug, bool32 best, 
 		initGlobs.selDriver = &initGlobs.drivers[0];
 
 		if (best) {
-
-			sint32 loop, sub;
-			uint32 mode;
 			bool32 found = false;
 
 			initGlobs.selFullScreen = !window;
 			rval = IDOK;
 
-			for (loop=initGlobs.driverCount-1 ; loop>=0 ; loop--) {
+			for (sint32 loop=initGlobs.driverCount-1; loop>=0; loop--) {
 				if (DirectDraw_EnumDevices(&initGlobs.drivers[loop], initGlobs.devices, &initGlobs.deviceCount)) {
 					DirectDraw_EnumModes(&initGlobs.drivers[loop], initGlobs.selFullScreen, initGlobs.modes, &initGlobs.modeCount);
-					for (mode=0 ; mode<initGlobs.modeCount ; mode++) {
+					for (uint32 mode=0; mode<initGlobs.modeCount; mode++) {
 						if (Init_IsValidMode(mode)) {
-							for (sub=initGlobs.deviceCount-1 ; sub>=0 ; sub--) {
-//								if ((initGlobs.devices[sub].flags & DIRECTDRAW_FLAG_DEVICE_HARDWARE) || 0 == loop) {
-								if (initGlobs.devices[sub].flags & DIRECTDRAW_FLAG_DEVICE_HARDWARE) {
+							for (sint32 sub=initGlobs.deviceCount-1; sub>=0; sub--) {
+//								if ((initGlobs.devices[sub].flags & Graphics_DeviceFlags::GRAPHICS_DEVICE_FLAG_HARDWARE) || 0 == loop) {
+								if (initGlobs.devices[sub].flags & Graphics_DeviceFlags::GRAPHICS_DEVICE_FLAG_HARDWARE) {
 									initGlobs.selDriver = &initGlobs.drivers[loop];
 									initGlobs.selDevice = &initGlobs.devices[sub];
 									initGlobs.selMode = &initGlobs.modes[mode];
@@ -132,11 +130,11 @@ bool32 __cdecl Gods98::Init_Initialise(bool32 setup, bool32 debug, bool32 best, 
 			if (setup) rval = ::DialogBoxParamA(Main_hInst(), MAKEINTRESOURCEA(IDD_MODEDIALOG), Main_hWnd(), (DLGPROC)Init_DialogProc, 0);
 		}
 
-		if (rval == IDOK){
+		if (rval == IDOK) {
 
 			if (initGlobs.selFullScreen) ok = DirectDraw_SetupFullScreen(initGlobs.selDriver, initGlobs.selDevice, initGlobs.selMode);
 			else if (initGlobs.selMode) ok = DirectDraw_SetupWindowed(initGlobs.selDevice, 100, 100, initGlobs.selMode->width, initGlobs.selMode->height);
-			else ok = DirectDraw_SetupWindowed(initGlobs.selDevice, 40, 40, 640, 480);
+			else ok = DirectDraw_SetupWindowed(initGlobs.selDevice, 40, 40, 640, 480); // only hit when !best && !setup (?)
 
 			return ok;
 
@@ -152,7 +150,7 @@ BOOL __stdcall Gods98::Init_DialogProc(HWND hWndDlg, UINT uMsg, WPARAM wParam, L
 {
 	log_firstcall();
 
-	if (WM_INITDIALOG == uMsg){
+	if (WM_INITDIALOG == uMsg) {
 
 		RECT deskRect, dlgRect;
 
@@ -169,7 +167,7 @@ BOOL __stdcall Gods98::Init_DialogProc(HWND hWndDlg, UINT uMsg, WPARAM wParam, L
 		::SendMessageA(hWndButton, BM_SETCHECK, BST_CHECKED, 0);
 
 		HWND hWndList = ::GetDlgItem(hWndDlg, IDC_DRIVER);
-		for (uint32 loop=0 ; loop<initGlobs.driverCount ; loop++) ::SendMessageA(hWndList, LB_ADDSTRING, 0, (LPARAM) initGlobs.drivers[loop].desc);
+		for (uint32 loop=0; loop<initGlobs.driverCount; loop++) ::SendMessageA(hWndList, LB_ADDSTRING, 0, (LPARAM)initGlobs.drivers[loop].desc);
 		::SendMessageA(hWndList, LB_SETCURSEL, 0, 0);
 		::SetFocus(hWndList);
 
@@ -179,16 +177,16 @@ BOOL __stdcall Gods98::Init_DialogProc(HWND hWndDlg, UINT uMsg, WPARAM wParam, L
 
 		return false;
 
-	} else if (uMsg == WM_COMMAND){
+	} else if (uMsg == WM_COMMAND) {
 
-		if (HIWORD(wParam) == LBN_SELCHANGE){
+		if (HIWORD(wParam) == LBN_SELCHANGE) {
 //			Error_Debug(Error_Format("Selection changed on list box #%i (hWnd == 0x%x)\n", LOWORD(wParam), lParam));
 			
-			if (LOWORD(wParam) == IDC_DEVICE){
+			if (LOWORD(wParam) == IDC_DEVICE) {
 
 				initGlobs.selDevice = &initGlobs.devices[::SendMessageA((HWND)lParam, LB_GETCURSEL, 0, 0)];
 	
-			} else if (LOWORD(wParam) == IDC_MODE){
+			} else if (LOWORD(wParam) == IDC_MODE) {
 
 				// buffer should be filled by SendMessage LB_GETTEXT, unless it fails
 				char desc[1024] = { 0 }; // dummy init
@@ -198,7 +196,7 @@ BOOL __stdcall Gods98::Init_DialogProc(HWND hWndDlg, UINT uMsg, WPARAM wParam, L
 				::SendMessageA((HWND)lParam, LB_GETTEXT, num, (LPARAM) desc);
 				if (Init_GetMode(desc, &mode)) initGlobs.selMode = &initGlobs.modes[mode];
 
-			} else if (LOWORD(wParam) == IDC_DRIVER){
+			} else if (LOWORD(wParam) == IDC_DRIVER) {
 
 				initGlobs.selDriver = &initGlobs.drivers[::SendMessageA((HWND)lParam, LB_GETCURSEL, 0, 0)];
 
@@ -208,7 +206,7 @@ BOOL __stdcall Gods98::Init_DialogProc(HWND hWndDlg, UINT uMsg, WPARAM wParam, L
 				
 			}
 
-		} else if (HIWORD(wParam) == BN_CLICKED){
+		} else if (HIWORD(wParam) == BN_CLICKED) {
 
 			if (LOWORD(wParam) == IDC_WINDOW) Init_SetFullScreen(hWndDlg, false);
 			if (LOWORD(wParam) == IDC_FULLSCREEN) Init_SetFullScreen(hWndDlg, true);
@@ -250,9 +248,9 @@ void __cdecl Gods98::Init_SetModeList(HWND hWndDlg)
 	while (::SendMessageA(hWndList, LB_DELETESTRING, 0, 0) != -1) ;
 
 	DirectDraw_EnumModes(initGlobs.selDriver, initGlobs.selFullScreen, initGlobs.modes, &initGlobs.modeCount);
-	for (uint32 loop=0 ; loop<initGlobs.modeCount ; loop++) {
+	for (uint32 loop=0; loop<initGlobs.modeCount; loop++) {
 		if (Init_IsValidMode(loop)) {
-			::SendMessageA(hWndList, LB_ADDSTRING, 0, (LPARAM) initGlobs.modes[loop].desc);
+			::SendMessageA(hWndList, LB_ADDSTRING, 0, (LPARAM)initGlobs.modes[loop].desc);
 			if (first) {
 				initGlobs.selMode = &initGlobs.modes[loop];
 				first = false;
@@ -264,7 +262,7 @@ void __cdecl Gods98::Init_SetModeList(HWND hWndDlg)
 
 	if (first) {
 		char msg[256];
-		if (!initGlobs.selFullScreen) std::sprintf(msg, "No supported %i bit modes found", Main_GetWindowsBitDepth());
+		if (!initGlobs.selFullScreen) std::sprintf(msg, "No supported %i bit modes found", Graphics_GetWindowsBitDepth());
 		else std::sprintf(msg, "No supported screen modes found");
 		::SendMessageA(hWndList, LB_ADDSTRING, 0, (LPARAM) msg);
 		::EnableWindow(hWndButton, false);
@@ -288,14 +286,15 @@ void __cdecl Gods98::Init_SetDeviceList(HWND hWndDlg)
 
 	if (DirectDraw_EnumDevices(initGlobs.selDriver, initGlobs.devices, &initGlobs.deviceCount)) {
 
-		for (uint32 loop=0 ; loop<initGlobs.deviceCount ; loop++) {
-			if (initGlobs.devices[loop].flags & DIRECTDRAW_FLAG_DEVICE_HARDWARE) best = loop;
-			::SendMessageA(hWndList, LB_ADDSTRING, 0, (LPARAM) initGlobs.devices[loop].desc);
+		for (uint32 loop=0; loop<initGlobs.deviceCount; loop++) {
+			if (initGlobs.devices[loop].flags & Graphics_DeviceFlags::GRAPHICS_DEVICE_FLAG_HARDWARE)
+				best = loop;
+			::SendMessageA(hWndList, LB_ADDSTRING, 0, (LPARAM)initGlobs.devices[loop].desc);
 		}
 		initGlobs.selDevice = &initGlobs.devices[best];
 
 	} else {
-		::SendMessageA(hWndList, LB_ADDSTRING, 0, (LPARAM) "Error: DirectX6 not installed.");
+		::SendMessageA(hWndList, LB_ADDSTRING, 0, (LPARAM)"Error: DirectX6 not installed.");
 	}
 
 	::SendMessageA(hWndList, LB_SETCURSEL, best, 0);
@@ -325,8 +324,8 @@ bool32 __cdecl Gods98::Init_IsValidMode(uint32 mode)
 	if (initGlobs.validModeCount) {
 
 		for (uint32 loop = 0; loop < initGlobs.validModeCount; loop++) {
-			if ((initGlobs.validModes[loop].width == 0 || initGlobs.validModes[loop].width == initGlobs.modes[mode].width) &&
-				(initGlobs.validModes[loop].height == 0 || initGlobs.validModes[loop].height == initGlobs.modes[mode].height) &&
+			if ((initGlobs.validModes[loop].width    == 0 || initGlobs.validModes[loop].width    == initGlobs.modes[mode].width) &&
+				(initGlobs.validModes[loop].height   == 0 || initGlobs.validModes[loop].height   == initGlobs.modes[mode].height) &&
 				(initGlobs.validModes[loop].bitDepth == 0 || initGlobs.validModes[loop].bitDepth == initGlobs.modes[mode].bitDepth)) {
 
 				return true;
@@ -365,12 +364,12 @@ void __cdecl Gods98::Init_HandleWindowButton(HWND hWndDlg)
 
 	HWND hWndButton;
 
-	if (initGlobs.selDriver->flags & DIRECTDRAW_FLAG_DRIVER_WINDOWOK) {
+	if (initGlobs.selDriver->flags & Graphics_DriverFlags::GRAPHICS_DRIVER_FLAG_WINDOWOK) {
 
 		hWndButton = ::GetDlgItem(hWndDlg, IDC_WINDOW);
 		::EnableWindow(hWndButton, true);
 
-		// Was previous mode Windowed before DIRECTDRAW_FLAG_DRIVER_WINDOWOK was false?
+		// Was previous mode Windowed before Graphics_DriverFlags::GRAPHICS_DRIVER_FLAG_WINDOWOK was false?
 		//  If so, change it back.
 		if (!initGlobs.wasFullScreen){
 			Init_SetFullScreen(hWndDlg, false);

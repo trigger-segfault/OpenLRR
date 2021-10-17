@@ -29,22 +29,19 @@ struct File;
 
 #pragma region Constants
 
-#define FLICTIMERTICKSPERSECOND 70
-#define MAXFLICS 30
+#define FLICTIMERTICKSPERSECOND	70
+#define MAXFLICS				30
 
 
 #define FLICERRORSTART 3000
 
-//#define FLICFINISHED 1
-//#define FLICNOERROR  0
-//#define FLICERROR   -1
 
-#define DIRECTVIDEOPORTAL (-2)
+#define DIRECTVIDEOPORTAL		(-2)
 
 
 // flic variables
-#define FLIC_FIRSTBUFFER 0
-#define FLIC_SECONDBUFFER 1
+#define FLIC_FIRSTBUFFER		0
+#define FLIC_SECONDBUFFER		1
 
 #pragma endregion
 
@@ -54,24 +51,7 @@ struct File;
 
 #pragma region Enums
 
-/*
-#define FLICRESIDE          (1<<0)
-#define FLICDISK            (0<<0)
-#define FLICMEMORY          (1<<0)
-#define FLICLOOPING         (1<<1)
-#define FLICLOOPINGON       (1<<1)
-#define FLICLOOPINGOFF      (0<<1)
-#define FLICCATCHUP         (1<<2)
-#define FLICCATCHUPON       (1<<2)
-#define FLICCATCHUPOFF      (0<<2)
-#define FLICSOUND           (1<<3)
-#define FLICSOUNDON         (0<<3)
-#define FLICSOUNDOFF        (1<<3)
-*/
-//#define FLICSETPALETTE      (1<<1)
-
-namespace _ns_FlicUserFlags {
-enum FlicUserFlags : sint32
+flags_scoped(FlicUserFlags) : sint32
 {
 	FLICUSER_FLAG_NONE = 0,
 
@@ -88,13 +68,10 @@ enum FlicUserFlags : sint32
 	FLICSOUNDON    = (0<<3) /*0x0*/, // sound:state on
 	FLICSOUNDOFF   = (1<<3) /*0x8*/, // sound:state off
 };
-DEFINE_ENUM_FLAG_OPERATORS(FlicUserFlags);
-static_assert(sizeof(FlicUserFlags) == 0x4, "");
-} using FlicUserFlags = _ns_FlicUserFlags::FlicUserFlags;
+flags_scoped_end(FlicUserFlags, 0x4);
 
 
-namespace _ns_FlicMode {
-enum FlicMode : sint32
+enum_scoped(FlicMode) : sint32
 {
 	FLICMODE_BYTEPERPIXEL = 0, // BYTE PER PIXEL
 	FLICMODE_MODEX        = 1, // MODEX
@@ -102,12 +79,10 @@ enum FlicMode : sint32
 	FLICMODE_TRUECOLOR    = 3, // TRUE COLOR MODE
 	FLICMODE_HICOLOR      = 4, // HI COLOR MODE
 };
-static_assert(sizeof(FlicMode) == 0x4, "");
-} using FlicMode = _ns_FlicMode::FlicMode;
+enum_scoped_end(FlicMode, 0x4);
 
 
-namespace _ns_FlicError {
-enum FlicError : sint32
+enum_scoped(FlicError) : sint32
 {
 	FLICERROR              = -1,
 	FLICNOERROR            = 0,
@@ -125,8 +100,7 @@ enum FlicError : sint32
 	FLICNOMOREFRAMES       = FLICERRORSTART+9  /*3009*/,
 	FLICSOUNDHEADERERROR   = FLICERRORSTART+10 /*3010*/,
 };
-static_assert(sizeof(FlicError) == 0x4, "");
-} using FlicError = _ns_FlicError::FlicError;
+enum_scoped_end(FlicError, 0x4);
 
 #pragma endregion
 
@@ -136,22 +110,12 @@ static_assert(sizeof(FlicError) == 0x4, "");
 
 #pragma region Structs
 
-/*
-#define File_Open fopen
-#define File_Seek fseek
-#define File_Read fread
-#define File_Close fclose
-#define File_Tell ftell
-*/
-
-//sint32 File_Length(lpFile fp);
-
 struct PORTAL
 {
 	/*0,4*/ sint32 PWidth;
 	/*4*/
 };
-static_assert(sizeof(PORTAL) == 0x4, "");
+assert_sizeof(PORTAL, 0x4);
 
 
 struct FLICHEADERSTRUCT
@@ -164,23 +128,23 @@ struct FLICHEADERSTRUCT
 	/*0c,2*/ uint16 depth;
 	/*0e,2*/ uint16 flags;
 	/*10,2*/ uint16 speed;
-	/*12,2*/ uint16 padding1;
+	///*12,2*/ uint16 padding1;
 	/*14,4*/ uint32 next;
 	/*18,4*/ uint32 frit;
 	/*1c,52*/ uint8 expand[102-20 /*80*/];
-	/*6e,2*/ uint16 padding2;
+	///*6e,2*/ uint16 padding2;
 	/*70,4*/ sint32 NewPack;
 	/*74,4*/ sint32 SoundID;
 	/*78,4*/ sint32 SoundRate;
 	/*7c,1*/ sint8 SoundChannels;
 	/*7d,1*/ sint8 SoundBPS;
-	/*7e,2*/ uint16 padding3;
+	///*7e,2*/ uint16 padding3;
 	/*80,4*/ sint32 SoundChunkSize;
 	/*84,2*/ sint16 SoundNumPreRead;
-	/*86,2*/ uint16 padding4;
+	///*86,2*/ uint16 padding4;
 	/*88*/
 };
-static_assert(sizeof(FLICHEADERSTRUCT) == 0x88, "");
+assert_sizeof(FLICHEADERSTRUCT, 0x88);
 
 
 struct PORTAL_STRUCT
@@ -210,7 +174,7 @@ struct PORTAL_STRUCT
 	/*58,4*/ sint32 YOffset;
 	/*5c*/
 };
-static_assert(sizeof(PORTAL_STRUCT) == 0x5c, "");
+assert_sizeof(PORTAL_STRUCT, 0x5c);
 
 
 struct FLICLISTSTRUCT
@@ -219,7 +183,7 @@ struct FLICLISTSTRUCT
 	/*4,4*/ sint8* structhandle;
 	/*8*/
 };
-static_assert(sizeof(FLICLISTSTRUCT) == 0x8, "");
+assert_sizeof(FLICLISTSTRUCT, 0x8);
 
 
 struct FLICCHUNKSTRUCT
@@ -228,7 +192,7 @@ struct FLICCHUNKSTRUCT
 	/*4,4*/ sint32 ImageChunk;
 	/*8*/
 };
-static_assert(sizeof(FLICCHUNKSTRUCT) == 0x8, "");
+assert_sizeof(FLICCHUNKSTRUCT, 0x8);
 
 
 struct Flic
@@ -263,7 +227,7 @@ struct Flic
 	/*6e4,4*/ bool32 is15bit;
 	/*6e8*/
 };
-static_assert(sizeof(Flic) == 0x6e8, "");
+assert_sizeof(Flic, 0x6e8);
 
 //typedef struct Flic FLICSTRUCT; // old name
 
@@ -279,7 +243,7 @@ struct SOUNDARRAY
 	/*118,4*/ sint32  SampleNum;
 	/*11c*/
 };
-static_assert(sizeof(SOUNDARRAY) == 0x11c, "");
+assert_sizeof(SOUNDARRAY, 0x11c);
 
 #pragma endregion
 

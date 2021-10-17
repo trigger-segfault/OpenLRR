@@ -1,7 +1,7 @@
 
 #include "hook.h"
 #include "interop.h"
-#include "openlrr.h"
+#include "OpenLRR.h"
 
 #include "engine/audio/3DSound.h"
 #include "engine/gfx/Activities.h"
@@ -23,6 +23,7 @@
 #include "engine/input/Keys.h"
 #include "engine/gfx/Lws.h"
 #include "engine/gfx/Lwt.h"
+#include "engine/Graphics.h"
 #include "engine/Main.h"
 #include "engine/gfx/Materials.h"
 #include "engine/core/Maths.h"
@@ -958,7 +959,7 @@ bool interop_hook_Gods98_Main(void)
 	//result &= hook_write_jmpret(0x00477a60, Gods98::Main_WinMain);
 
 	// used by: Lego_Initialise
-	result &= hook_write_jmpret(0x00477e90, Gods98::Main_DisableTextureManagement);
+	result &= hook_write_jmpret(0x00477e90, Gods98::Graphics_DisableTextureManagement);
 
 	// used by: WinMain
 	//result &= hook_write_jmpret(0x00477eb0, Gods98::Main_ParseCommandLine);
@@ -969,10 +970,10 @@ bool interop_hook_Gods98_Main(void)
 	result &= hook_write_jmpret(0x00478230, Gods98::noinline(Main_GetCLFlags));
 
 	// used by: DirectDraw_EnumModeCallback, Init_SetModeList
-	//result &= hook_write_jmpret(0x00478240, Gods98::Main_GetWindowsBitDepth);
+	//result &= hook_write_jmpret(0x00478240, Gods98::Graphics_GetWindowsBitDepth);
 
 	// used by: WinMain, Main_LoopUpdate, Lego_MainLoop
-	result &= hook_write_jmpret(0x00478260, Gods98::Main_Finalise3D);
+	result &= hook_write_jmpret(0x00478260, Gods98::Graphics_Finalise3D);
 
 	// used by: Gods_Go
 	result &= hook_write_jmpret(0x00478290, Gods98::Main_SetState);
@@ -986,13 +987,13 @@ bool interop_hook_Gods98_Main(void)
 
 	// used by: DirectDraw_Setup
 	result &= hook_write_jmpret(0x00478370, Gods98::Main_SetupDisplay);
-	result &= hook_write_jmpret(0x00478490, Gods98::Main_SetupDirect3D);
+	result &= hook_write_jmpret(0x00478490, Gods98::Graphics_SetupDirect3D);
 
 	// internal, no need to hook these
 	//result &= hook_write_jmpret(0x004785d0, Gods98::Main_AdjustWindowRect);
 
 	// used by: Lego_LoadGraphicsSettings
-	result &= hook_write_jmpret(0x004785f0, Gods98::Main_Setup3D);
+	result &= hook_write_jmpret(0x004785f0, Gods98::Graphics_Setup3D);
 
 	// used by: Gods_Go
 	result &= hook_write_jmpret(0x00478690, Gods98::Main_SetTitle);
@@ -1007,18 +1008,17 @@ bool interop_hook_Gods98_Main(void)
 
 	// used by: Mesh_SetMeshRenderDesc, Mesh_SetRenderDesc, Mesh_SetAlphaRender,
 	//           Mesh_SetGroupRenderDesc, Mesh_RenderTriangleList
-	result &= hook_write_jmpret(0x00478b90, Gods98::Main_ChangeRenderState);
+	result &= hook_write_jmpret(0x00478b90, Gods98::Graphics_ChangeRenderState);
 
 	// used by: Mesh_RenderCallback, Mesh_PostRenderAll
-	result &= hook_write_jmpret(0x00478c00, Gods98::Main_RestoreStates);
+	result &= hook_write_jmpret(0x00478c00, Gods98::Graphics_RestoreStates);
 
-	/// TODO: I'm going to wait and hook these later,
-	///        I'd rather not risk some bug blowing out my ear drums.
 	// used by: PausedMenu_SliderMusicVolume
-	//result &= hook_write_jmpret(0x00478c40, Gods98::Main_SetCDVolume);
+	result &= hook_write_jmpret(0x00478c40, Gods98::Main_SetCDVolume);
 	// used by: PausedMenu_CalcSliderCDVolume
-	//result &= hook_write_jmpret(0x00478c60, Gods98::Main_GetCDVolume);
-	// used by: Main_SetCDVolume, Main_GetCDVolume
+	result &= hook_write_jmpret(0x00478c60, Gods98::Main_GetCDVolume);
+
+	// internal, no need to hook these
 	//result &= hook_write_jmpret(0x00478c80, Gods98::Main_CDVolume);
 
 	return_interop(result);

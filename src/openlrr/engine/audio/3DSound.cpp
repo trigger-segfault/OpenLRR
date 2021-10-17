@@ -17,30 +17,6 @@
 
 
 /**********************************************************************************
- ******** Forward Global Namespace Declarations
- **********************************************************************************/
-
-#pragma region Forward Declarations
-
-/// TODO: Remove me once Container module is finished
-namespace Gods98 {
-	struct Container;
-	struct AnimClone;
-}
-#define Container_Frame_SetAppData ((void(__cdecl*)(IDirect3DRMFrame3*, Container*, AnimClone*, const char*, uint32*, const char*, real32*, real32*, const char*, void*, uint32*))0x00476230)
-
-
-/*// <LegoRR.exe @00476230>
-void __cdecl Container_Frame_SetAppData(IDirect3DRMFrame3* frame, Container* owner,
-	OPTIONAL AnimClone* animClone, OPTIONAL const char* asfname, OPTIONAL uint32* frameCount,
-	OPTIONAL const char* frameName, OPTIONAL real32* currTime, OPTIONAL real32* transCo,
-	OPTIONAL const char* actSample, OPTIONAL void* soundRecord, OPTIONAL uint32* trigger);*/
-
-#pragma endregion
-
-
-
-/**********************************************************************************
  ******** Globals
  **********************************************************************************/
 
@@ -462,9 +438,9 @@ sint32 __cdecl Gods98::Sound3D_Play2(Sound3D_Play play, IDirect3DRMFrame3* frame
 				char cdFileName[FILE_MAXPATH];
 				FILE *mfp;
 				Error_Fatal(Sound3D_Play::Sound3D_Play_Normal != play, "Can only play a streaming sound noramlly, not 3D.");
-				if (mfp = fopen(hdFileName, "r")) {
+				if (mfp = std::fopen(hdFileName, "r")) {
 					useFile = hdFileName;
-					fclose(mfp);
+					std::fclose(mfp);
 				} else {
 					if (File_GetCDFilePath(cdFileName, sound->fName)) {
 						useFile = cdFileName;

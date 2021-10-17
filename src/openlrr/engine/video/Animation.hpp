@@ -27,7 +27,7 @@ public:
 	// /*00,4*/ vftable;
 	/*04,4*/ IDirectDrawClipper* m_clipper; // (unused)
 	/*08,1*/ bool m_surfaceLocked;
-	/*09,3*/ uint8 reserved1[3];
+	///*09,3*/ uint8 reserved1[3];
 	/*0c,4*/ sint32 m_bpp;
 	/*10,4*/ IDirectDrawPalette* m_palette;
 	/*14,1*/ bool m_colourKeyed; // (unused)
@@ -88,7 +88,7 @@ public:
 		else return (sint32)this->m_desc.ddpfPixelFormat.dwRGBBitCount;
 	}
 };
-static_assert(sizeof(G98CSurface) == 0x98, "");
+assert_sizeof(G98CSurface, 0x98);
 
 
 /// PRIVATE:
@@ -127,7 +127,7 @@ public:
 	// <inlined>
 	bool IsLocked() const { return this->m_lockHeld; }
 };
-static_assert(sizeof(G98CSurfaceLock) == 0x8, "");
+assert_sizeof(G98CSurfaceLock, 0x8);
 
 
 /// PRIVATE:
@@ -140,7 +140,7 @@ public:
 	/*0c,8c*/ AVISTREAMINFOA m_aviStreamInfo;
 	/*98,1*/ bool m_colourKeySet; // (unused)
 	/*99,1*/ bool m_init;
-	/*9a,2*/ uint16 reserved1;
+	///*9a,2*/ uint16 reserved1;
 	/*9c,10*/ Rect2I m_movieRect;
 	/*ac,4*/ real32 m_startTime;
 	/*b0,4*/ real32 m_currTime;
@@ -184,7 +184,7 @@ public:
 	// <missing>
 	//void SetColourKey();
 };
-static_assert(sizeof(G98CAnimation) == 0xc4, "");
+assert_sizeof(G98CAnimation, 0xc4);
 
 #pragma endregion
 

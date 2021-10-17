@@ -59,28 +59,22 @@ typedef void (__cdecl* FontRunThroughListsCallback)(Font* font, void* data);
 
 #pragma region Enums
 
-namespace _ns_Font_GlobFlags {
-enum Font_GlobFlags : uint32
+flags_scoped(Font_GlobFlags) : uint32
 {
-	FONT_FLAG_NONE			= 0,
-	FONT_FLAG_INITIALISED	= 0x1,
+	FONT_GLOB_FLAG_NONE			= 0,
+	FONT_GLOB_FLAG_INITIALISED	= 0x1,
 };
-DEFINE_ENUM_FLAG_OPERATORS(Font_GlobFlags);
-static_assert(sizeof(Font_GlobFlags) == 0x4, "");
-} using Font_GlobFlags = _ns_Font_GlobFlags::Font_GlobFlags;
+flags_scoped_end(Font_GlobFlags, 0x4);
 
 
-namespace _ns_FontFlags {
-enum FontFlags : uint32
+flags_scoped(FontFlags) : uint32
 {
 	FONT_FLAG_NONE			= 0, // (unused)
 
 	FONT_FLAG_WINDOWSET		= 0x2, // (unused)
 	FONT_FLAG_WINDOWWRAPPED	= 0x4, // (unused)
 };
-DEFINE_ENUM_FLAG_OPERATORS(FontFlags);
-static_assert(sizeof(FontFlags) == 0x4, "");
-} using FontFlags = _ns_FontFlags::FontFlags;
+flags_scoped_end(FontFlags, 0x4);
 
 #pragma endregion
 
@@ -100,7 +94,7 @@ struct Font
 	/*bf0,4*/ Font* nextFree;
 	/*bf4*/
 };
-static_assert(sizeof(Font) == 0xbf4, "");
+assert_sizeof(Font, 0xbf4);
 
 
 struct Font_Globs
@@ -111,7 +105,7 @@ struct Font_Globs
 	/*88,4*/ Font_GlobFlags flags;
 	/*8c*/
 };
-static_assert(sizeof(Font_Globs) == 0x8c, "");
+assert_sizeof(Font_Globs, 0x8c);
 
 #pragma endregion
 
@@ -131,7 +125,7 @@ extern Font_Globs & fontGlobs;
  **********************************************************************************/
 
 #ifdef DEBUG
-	#define Font_CheckInit()			if (!(fontGlobs.flags & FONT_FLAG_INITIALISED)) Error_Fatal(TRUE, "Error: Font_Intitialise() Has Not Been Called");
+	#define Font_CheckInit()			if (!(fontGlobs.flags & Font_GlobFlags::FONT_GLOB_FLAG_INITIALISED)) Error_Fatal(true, "Error: Font_Intitialise() Has Not Been Called");
 #else
 	#define Font_CheckInit()
 #endif

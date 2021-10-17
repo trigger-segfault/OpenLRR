@@ -8,7 +8,7 @@
 #include "../core/Maths.h"
 #include "../core/Memory.h"
 #include "../util/Dxbug.h"
-#include "../Main.h"
+#include "../Graphics.h"
 #include "Containers.h"
 #include "Mesh.h"
 
@@ -43,7 +43,7 @@ void __cdecl Gods98::Viewport_Initialise(void)
 
 	viewportGlobs.freeList = nullptr;
 	viewportGlobs.listCount = 0;
-	viewportGlobs.flags = Viewport_GlobFlags::VIEWPORT_FLAG_INITIALISED;
+	viewportGlobs.flags = Viewport_GlobFlags::VIEWPORT_GLOB_FLAG_INITIALISED;
 }
 
 // <LegoRR.exe @00477040>
@@ -58,7 +58,7 @@ void __cdecl Gods98::Viewport_Shutdown(void)
 	}
 
 	viewportGlobs.freeList = nullptr;
-	viewportGlobs.flags = Viewport_GlobFlags::VIEWPORT_FLAG_NONE;
+	viewportGlobs.flags = Viewport_GlobFlags::VIEWPORT_GLOB_FLAG_NONE;
 }
 
 // <LegoRR.exe @00477080>

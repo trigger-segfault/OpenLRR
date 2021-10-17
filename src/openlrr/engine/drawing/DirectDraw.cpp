@@ -9,6 +9,7 @@
 #include "../core/Files.h"
 #include "../core/Memory.h"
 #include "../util/Dxbug.h"
+#include "../Graphics.h"
 #include "../Main.h"
 #include "Bmp.h"
 
@@ -73,22 +74,22 @@ void __cdecl Gods98::DirectDraw_Initialise(HWND hWnd)
 	log_firstcall();
 
 	directDrawGlobs.driverCount = 0;
-	directDrawGlobs.driverList = nullptr;
+	directDrawGlobs.driverList  = nullptr;
 	directDrawGlobs.deviceCount = 0;
-	directDrawGlobs.deviceList = nullptr;
-	directDrawGlobs.modeCount = 0;
-	directDrawGlobs.modeList = nullptr;
+	directDrawGlobs.deviceList  = nullptr;
+	directDrawGlobs.modeCount   = 0;
+	directDrawGlobs.modeList    = nullptr;
 	directDrawGlobs.hWnd = hWnd;
 
 	directDrawGlobs.lpDirectDraw = nullptr;
 	directDrawGlobs.fSurf = directDrawGlobs.bSurf = directDrawGlobs.zSurf = nullptr;
 
-	/// FIXME GODS98: lpFrontClipper is assigned twice
-	directDrawGlobs.lpFrontClipper = directDrawGlobs.lpFrontClipper = nullptr;
+	/// FIX APPLY: lpFrontClipper was assigned twice, instead of assigning lpBackClipper
+	directDrawGlobs.lpFrontClipper = directDrawGlobs.lpBackClipper = nullptr;
 }
 
 // <LegoRR.exe @0047c480>
-bool32 __cdecl Gods98::DirectDraw_EnumDrivers(OUT DirectDraw_Driver* list, OUT uint32* count)
+bool32 __cdecl Gods98::DirectDraw_EnumDrivers(OUT Graphics_Driver* list, OUT uint32* count)
 {
 	log_firstcall();
 
@@ -103,14 +104,14 @@ bool32 __cdecl Gods98::DirectDraw_EnumDrivers(OUT DirectDraw_Driver* list, OUT u
 // <LegoRR.exe @0047c4b0>
 BOOL __stdcall Gods98::DirectDraw_EnumDriverCallback(GUID FAR* lpGUID, LPSTR lpDriverDescription, LPSTR lpDriverName, LPVOID lpContext)
 {
-	directDrawGlobs.driverList[directDrawGlobs.driverCount].flags = DirectDraw_DriverFlags::DIRECTDRAW_FLAG_DRIVER_VALID;
+	directDrawGlobs.driverList[directDrawGlobs.driverCount].flags = Graphics_DriverFlags::GRAPHICS_DRIVER_FLAG_VALID;
 
 	// Record the GUID
 	if (lpGUID != nullptr) directDrawGlobs.driverList[directDrawGlobs.driverCount].guid = *lpGUID;
-	else directDrawGlobs.driverList[directDrawGlobs.driverCount].flags |= DirectDraw_DriverFlags::DIRECTDRAW_FLAG_DRIVER_PRIMARY;
+	else directDrawGlobs.driverList[directDrawGlobs.driverCount].flags |= Graphics_DriverFlags::GRAPHICS_DRIVER_FLAG_PRIMARY;
 
 #pragma message ( "TODO: Find out if driver can work in a window" )
-	if (lpGUID == nullptr) directDrawGlobs.driverList[directDrawGlobs.driverCount].flags |= DirectDraw_DriverFlags::DIRECTDRAW_FLAG_DRIVER_WINDOWOK;
+	if (lpGUID == nullptr) directDrawGlobs.driverList[directDrawGlobs.driverCount].flags |= Graphics_DriverFlags::GRAPHICS_DRIVER_FLAG_WINDOWOK;
 
 	std::sprintf(directDrawGlobs.driverList[directDrawGlobs.driverCount].desc, "%s (%s)", lpDriverDescription, lpDriverName);
 
@@ -120,26 +121,25 @@ BOOL __stdcall Gods98::DirectDraw_EnumDriverCallback(GUID FAR* lpGUID, LPSTR lpD
 }
 
 // <LegoRR.exe @0047c5a0>
-bool32 __cdecl Gods98::DirectDraw_EnumDevices(const DirectDraw_Driver* driver, OUT DirectDraw_Device* list, OUT uint32* count)
+bool32 __cdecl Gods98::DirectDraw_EnumDevices(const Graphics_Driver* driver, OUT Graphics_Device* list, OUT uint32* count)
 {
 	log_firstcall();
 
-	LPDIRECTDRAW4 lpDD;
-	LPDIRECTDRAW lpDD1;
-
-	LPDIRECT3D3 lpD3D;
-	LPGUID guid;
 	bool32 res = false;
 
 	directDrawGlobs.deviceCount = 0;
 
 	/// FIXME: Passing const_cast<GUID*>(&driver->guid) instead of assigned guid local variable
-	if (driver->flags & DirectDraw_DriverFlags::DIRECTDRAW_FLAG_DRIVER_PRIMARY) guid = nullptr;
+	GUID* guid = nullptr;
+	if (driver->flags & Graphics_DriverFlags::GRAPHICS_DRIVER_FLAG_PRIMARY) guid = nullptr;
 	else guid = const_cast<GUID*>(&driver->guid);
 
+	IDirectDraw* lpDD1;
 	if (legacy::DirectDrawCreate(const_cast<GUID*>(&driver->guid), &lpDD1, nullptr) == DD_OK) {
+		IDirectDraw4* lpDD;
 		if (lpDD1->QueryInterface(IID_IDirectDraw4, (void**)&lpDD) == DD_OK) {
 
+			IDirect3D3* lpD3D;
 			if (lpDD->QueryInterface(IID_IDirect3D3, (void**)&lpD3D) == DD_OK) {
 
 				directDrawGlobs.deviceList = list;
@@ -163,26 +163,26 @@ HRESULT __stdcall Gods98::DirectDraw_EnumDeviceCallback(LPGUID lpGuid, LPSTR lpD
 											LPSTR lpDeviceName, LPD3DDEVICEDESC lpHWDesc,
 											LPD3DDEVICEDESC lpHELDesc, LPVOID lpContext)
 {
-	DirectDraw_Device* dev = &directDrawGlobs.deviceList[directDrawGlobs.deviceCount];
+	Graphics_Device* dev = &directDrawGlobs.deviceList[directDrawGlobs.deviceCount];
 	LPD3DDEVICEDESC desc;
 
-	dev->flags = DirectDraw_DeviceFlags::DIRECTDRAW_FLAG_DEVICE_VALID;
+	dev->flags = Graphics_DeviceFlags::GRAPHICS_DEVICE_FLAG_VALID;
 	if (lpHWDesc->dcmColorModel != 0){
-		dev->flags |= DirectDraw_DeviceFlags::DIRECTDRAW_FLAG_DEVICE_HARDWARE;
+		dev->flags |= Graphics_DeviceFlags::GRAPHICS_DEVICE_FLAG_HARDWARE;
 		desc = lpHWDesc;
 	} else desc = lpHELDesc;
 
-	if (desc->dwFlags & D3DDD_COLORMODEL) if (desc->dcmColorModel == D3DCOLOR_RGB) dev->flags |= DirectDraw_DeviceFlags::DIRECTDRAW_FLAG_DEVICE_COLOUR;
+	if (desc->dwFlags & D3DDD_COLORMODEL) if (desc->dcmColorModel == D3DCOLOR_RGB) dev->flags |= Graphics_DeviceFlags::GRAPHICS_DEVICE_FLAG_COLOUR;
 	if (desc->dwFlags & D3DDD_DEVICERENDERBITDEPTH){
-		if (desc->dwDeviceRenderBitDepth & DDBD_8) dev->flags |= DirectDraw_DeviceFlags::DIRECTDRAW_FLAG_DEVICE_DEPTH8;
-		if (desc->dwDeviceRenderBitDepth & DDBD_16) dev->flags |= DirectDraw_DeviceFlags::DIRECTDRAW_FLAG_DEVICE_DEPTH16;
-		if (desc->dwDeviceRenderBitDepth & DDBD_24) dev->flags |= DirectDraw_DeviceFlags::DIRECTDRAW_FLAG_DEVICE_DEPTH24;
-		if (desc->dwDeviceRenderBitDepth & DDBD_32) dev->flags |= DirectDraw_DeviceFlags::DIRECTDRAW_FLAG_DEVICE_DEPTH32;
+		if (desc->dwDeviceRenderBitDepth & DDBD_8) dev->flags |= Graphics_DeviceFlags::GRAPHICS_DEVICE_FLAG_DEPTH8;
+		if (desc->dwDeviceRenderBitDepth & DDBD_16) dev->flags |= Graphics_DeviceFlags::GRAPHICS_DEVICE_FLAG_DEPTH16;
+		if (desc->dwDeviceRenderBitDepth & DDBD_24) dev->flags |= Graphics_DeviceFlags::GRAPHICS_DEVICE_FLAG_DEPTH24;
+		if (desc->dwDeviceRenderBitDepth & DDBD_32) dev->flags |= Graphics_DeviceFlags::GRAPHICS_DEVICE_FLAG_DEPTH32;
 	}
 
 	if (desc->dwFlags & D3DDD_DEVCAPS){
-		if (desc->dwDevCaps & D3DDEVCAPS_TEXTUREVIDEOMEMORY) dev->flags |= DirectDraw_DeviceFlags::DIRECTDRAW_FLAG_DEVICE_VIDEOTEXTURE;
-		else if (desc->dwDevCaps & D3DDEVCAPS_TEXTURESYSTEMMEMORY) dev->flags |= DirectDraw_DeviceFlags::DIRECTDRAW_FLAG_DEVICE_SYSTEMTEXTURE;
+		if (desc->dwDevCaps & D3DDEVCAPS_TEXTUREVIDEOMEMORY) dev->flags |= Graphics_DeviceFlags::GRAPHICS_DEVICE_FLAG_VIDEOTEXTURE;
+		else if (desc->dwDevCaps & D3DDEVCAPS_TEXTURESYSTEMMEMORY) dev->flags |= Graphics_DeviceFlags::GRAPHICS_DEVICE_FLAG_SYSTEMTEXTURE;
 	}
 
 	dev->guid = *lpGuid;
@@ -194,25 +194,25 @@ HRESULT __stdcall Gods98::DirectDraw_EnumDeviceCallback(LPGUID lpGuid, LPSTR lpD
 }
 
 // <LegoRR.exe @0047c770>
-bool32 __cdecl Gods98::DirectDraw_EnumModes(const DirectDraw_Driver* driver, bool32 fullScreen, OUT DirectDraw_Mode* list, OUT uint32* count)
+bool32 __cdecl Gods98::DirectDraw_EnumModes(const Graphics_Driver* driver, bool32 fullScreen, OUT Graphics_Mode* list, OUT uint32* count)
 {
 	log_firstcall();
 
-	LPDIRECTDRAW4 lpDD;
-	LPDIRECTDRAW lpDD1;
-	LPGUID guid;
 	bool32 res = false;
 
 	directDrawGlobs.modeCount = 0;
 
 	if (driver) {
-		if (driver->flags & DirectDraw_DriverFlags::DIRECTDRAW_FLAG_DRIVER_VALID){
+		if (driver->flags & Graphics_DriverFlags::GRAPHICS_DRIVER_FLAG_VALID) {
 
-			if (driver->flags & DirectDraw_DriverFlags::DIRECTDRAW_FLAG_DRIVER_PRIMARY) guid = nullptr;
-			else guid = const_cast<GUID*>(&driver->guid);
+			GUID* guid = nullptr;
+			if (!(driver->flags & Graphics_DriverFlags::GRAPHICS_DRIVER_FLAG_PRIMARY))
+				guid = const_cast<GUID*>(&driver->guid);
 
-			if (legacy::DirectDrawCreate(guid, &lpDD1, nullptr) == DD_OK){
-				if (lpDD1->QueryInterface(IID_IDirectDraw4, (void**)&lpDD) == DD_OK){
+			IDirectDraw* lpDD1;
+			if (legacy::DirectDrawCreate(guid, &lpDD1, nullptr) == DD_OK) {
+				IDirectDraw4* lpDD;
+				if (lpDD1->QueryInterface(IID_IDirectDraw4, (void**)&lpDD) == DD_OK) {
 					
 					directDrawGlobs.modeList = list;
 					lpDD->EnumDisplayModes(0, nullptr, &fullScreen, DirectDraw_EnumModeCallback);
@@ -232,10 +232,10 @@ bool32 __cdecl Gods98::DirectDraw_EnumModes(const DirectDraw_Driver* driver, boo
 // <LegoRR.exe @0047c810>
 HRESULT __stdcall Gods98::DirectDraw_EnumModeCallback(LPDDSURFACEDESC2 lpDDSurfaceDesc, LPVOID lpContext)
 {
-	DirectDraw_Mode* mode = &directDrawGlobs.modeList[directDrawGlobs.modeCount];
+	Graphics_Mode* mode = &directDrawGlobs.modeList[directDrawGlobs.modeCount];
 	bool32 fullScreen = *(bool32*)lpContext;
 
-	mode->flags = DirectDraw_ModeFlags::DIRECTDRAW_FLAG_MODE_VALID;
+	mode->flags = Graphics_ModeFlags::GRAPHICS_MODE_FLAG_VALID;
 	mode->width = lpDDSurfaceDesc->dwWidth;
 	mode->height = lpDDSurfaceDesc->dwHeight;
 	mode->bitDepth = lpDDSurfaceDesc->ddpfPixelFormat.dwRGBBitCount;
@@ -244,52 +244,50 @@ HRESULT __stdcall Gods98::DirectDraw_EnumModeCallback(LPDDSURFACEDESC2 lpDDSurfa
 	else std::sprintf(mode->desc, "%ix%i", lpDDSurfaceDesc->dwWidth, lpDDSurfaceDesc->dwHeight);
 
 	if (!fullScreen && directDrawGlobs.modeCount) {
-		if (mode->bitDepth == Main_GetWindowsBitDepth()) directDrawGlobs.modeCount++;
-		else mode->flags &= ~DirectDraw_ModeFlags::DIRECTDRAW_FLAG_MODE_VALID;
+		if (mode->bitDepth == Graphics_GetWindowsBitDepth()) directDrawGlobs.modeCount++;
+		else mode->flags &= ~Graphics_ModeFlags::GRAPHICS_MODE_FLAG_VALID;
 	} else directDrawGlobs.modeCount++;
 
 	return D3DENUMRET_OK;
 }
 
 // <LegoRR.exe @0047c8d0>
-bool32 __cdecl Gods98::DirectDraw_Setup(bool32 fullscreen, const DirectDraw_Driver* driver, const DirectDraw_Device* device,
-								const DirectDraw_Mode* mode, uint32 xPos, uint32 yPos, uint32 width, uint32 height)
+bool32 __cdecl Gods98::DirectDraw_Setup(bool32 fullscreen, const Graphics_Driver* driver, const Graphics_Device* device,
+								const Graphics_Mode* mode, uint32 xPos, uint32 yPos, uint32 width, uint32 height)
 {
 	log_firstcall();
 
-	IDirectDraw* ddraw1;
-	DDSURFACEDESC2 desc;
-	LPGUID guid;
+	if (driver && !(driver->flags & Graphics_DriverFlags::GRAPHICS_DRIVER_FLAG_VALID)) driver = nullptr;
+	if (device && !(device->flags & Graphics_DeviceFlags::GRAPHICS_DEVICE_FLAG_VALID)) device = nullptr;
+	if (mode   && !(mode->flags   & Graphics_ModeFlags::GRAPHICS_MODE_FLAG_VALID))     mode   = nullptr;
+
 	uint32 bpp = 16;
-	HRESULT r;
-
-	if (driver) if (!(driver->flags & DirectDraw_DriverFlags::DIRECTDRAW_FLAG_DRIVER_VALID)) driver = nullptr;
-	if (device) if (!(device->flags & DirectDraw_DeviceFlags::DIRECTDRAW_FLAG_DEVICE_VALID)) device = nullptr;
-	if (mode) if (!(mode->flags & DirectDraw_ModeFlags::DIRECTDRAW_FLAG_MODE_VALID)) mode = nullptr;
-
-	if (mode) {
-		width = mode->width;
+	if (mode) { // mode has priority over passed width/height values
+		width  = mode->width;
 		height = mode->height;
-		bpp = mode->bitDepth;
+		bpp    = mode->bitDepth;
 	}
 
 	directDrawGlobs.width = width;
 	directDrawGlobs.height = height;
 	directDrawGlobs.fullScreen = fullscreen;
 
-	if (driver == nullptr) guid = nullptr;
-	else if (driver->flags & DirectDraw_DriverFlags::DIRECTDRAW_FLAG_DRIVER_PRIMARY) guid = nullptr;
-	else guid = const_cast<GUID*>(&driver->guid);
+	GUID* guid = nullptr;
+	if (driver && !(driver->flags & Graphics_DriverFlags::GRAPHICS_DRIVER_FLAG_PRIMARY))
+		guid = const_cast<GUID*>(&driver->guid);
 
 	Main_SetupDisplay(fullscreen, xPos, yPos, width, height);
 
-	if (legacy::DirectDrawCreate(guid, &ddraw1, 0) == DD_OK){
-		if (ddraw1->QueryInterface(IID_IDirectDraw4, (void**)&directDrawGlobs.lpDirectDraw) == DD_OK){
-			if (directDrawGlobs.lpDirectDraw->SetCooperativeLevel(directDrawGlobs.hWnd, fullscreen?(DDSCL_EXCLUSIVE|DDSCL_FULLSCREEN):DDSCL_NORMAL) == DD_OK){
+	IDirectDraw* ddraw1;
+	if (legacy::DirectDrawCreate(guid, &ddraw1, nullptr) == DD_OK) {
+		if (ddraw1->QueryInterface(IID_IDirectDraw4, (void**)&directDrawGlobs.lpDirectDraw) == DD_OK) {
+			if (directDrawGlobs.lpDirectDraw->SetCooperativeLevel(directDrawGlobs.hWnd, fullscreen?(DDSCL_EXCLUSIVE|DDSCL_FULLSCREEN):DDSCL_NORMAL) == DD_OK) {
+				HRESULT r;
 				if (fullscreen) r = directDrawGlobs.lpDirectDraw->SetDisplayMode(width, height, bpp, 0, 0);
 				else r = DD_OK;
 
 				if (r == DD_OK) {
+					DDSURFACEDESC2 desc;
 					std::memset(&desc, 0, sizeof(desc));
 					desc.dwSize = sizeof(desc);
 					desc.dwFlags = DDSD_CAPS;
@@ -300,7 +298,7 @@ bool32 __cdecl Gods98::DirectDraw_Setup(bool32 fullscreen, const DirectDraw_Driv
 						desc.ddsCaps.dwCaps |= DDSCAPS_FLIP | DDSCAPS_COMPLEX;
 					}
 					
-					if (directDrawGlobs.lpDirectDraw->CreateSurface(&desc, &directDrawGlobs.fSurf, 0) == DD_OK){
+					if (directDrawGlobs.lpDirectDraw->CreateSurface(&desc, &directDrawGlobs.fSurf, nullptr) == DD_OK) {
 						
 						if (!fullscreen) {
 							// Create the back buffer
@@ -318,8 +316,8 @@ bool32 __cdecl Gods98::DirectDraw_Setup(bool32 fullscreen, const DirectDraw_Driv
 						}
 						
 						if (r == DD_OK) {
-							if (DirectDraw_CreateClipper(fullscreen, width, height)){
-								if (Main_SetupDirect3D(device, ddraw1, directDrawGlobs.bSurf, fullscreen)){
+							if (DirectDraw_CreateClipper(fullscreen, width, height)) {
+								if (Graphics_SetupDirect3D(device, ddraw1, directDrawGlobs.bSurf, fullscreen)) {
 
 									// Everything went OK, so tidy up and return
 									ddraw1->Release();
@@ -358,7 +356,7 @@ void __cdecl Gods98::DirectDraw_Flip(void)
 	log_firstcall();
 
 	if (directDrawGlobs.fullScreen) {
-		HRESULT r = directDrawGlobs.fSurf->Flip(0, DDFLIP_WAIT);
+		HRESULT r = directDrawGlobs.fSurf->Flip(nullptr, DDFLIP_WAIT);
 		Error_Fatal(r == DDERR_SURFACELOST, "Surface lost");
 	}
 	else DirectDraw_BlitBuffers();
@@ -367,45 +365,40 @@ void __cdecl Gods98::DirectDraw_Flip(void)
 // <LegoRR.exe @0047cbb0>
 bool32 __cdecl Gods98::DirectDraw_SaveBMP(IDirectDrawSurface4* surface, const char* fname)
 {
-	File* ofp;
-	DDSURFACEDESC2 desc;
-	uint8* buffer;
-	uint32 loop, x, y;
-	uint32 ul, bytesPerPixel, bitsPerPixel;
-	uint32 rBits = 0, gBits = 0, bBits = 0;
-	uint32 rShift, gShift, bShift;
 	bool32 ok = false;
-	BMP_Header header = { 0 };
-	uint32 bufferSize, lineWidth;
 
+	File* ofp;
 	if (ofp = File_Open(fname, "wb")) {
+
+		DDSURFACEDESC2 desc;
 		std::memset(&desc, 0, sizeof(desc));
 		desc.dwSize = sizeof(desc);
 		if (surface->Lock(nullptr, &desc, DDLOCK_WAIT, nullptr) == DD_OK) {
+			// (width * 3 bytes per pixel), then rounded up to unit of 4 bytes (BMP padding)
+			uint32 lineWidth = ((desc.dwWidth * 3) + 3) & ~0x3;
+			uint32 bufferSize = lineWidth * desc.dwHeight;
 
-			lineWidth = (desc.dwWidth * 3);
-			lineWidth = ((lineWidth / 4) * 4) + ((lineWidth % 4)?4:0);
-			bufferSize = lineWidth * desc.dwHeight;
-
+			uint8* buffer;
 			if (buffer = (uint8*)Mem_Alloc(bufferSize)) {
 				std::memset(buffer, 0, bufferSize);
 
-				bitsPerPixel = desc.ddpfPixelFormat.dwRGBBitCount;
-				bytesPerPixel = bitsPerPixel / 8;
-				for (loop=0 ; loop<32 ; loop++) if ((desc.ddpfPixelFormat.dwRBitMask >> loop) & 0x1) rBits++;
-				for (loop=0 ; loop<32 ; loop++) if ((desc.ddpfPixelFormat.dwGBitMask >> loop) & 0x1) gBits++;
-				for (loop=0 ; loop<32 ; loop++) if ((desc.ddpfPixelFormat.dwBBitMask >> loop) & 0x1) bBits++;
-				rShift = gBits + bBits;
-				gShift = bBits;
-				bShift = 0;
+				uint32 rBits = 0, gBits = 0, bBits = 0;
+				uint32 bitsPerPixel = desc.ddpfPixelFormat.dwRGBBitCount;
+				uint32 bytesPerPixel = bitsPerPixel / 8;
+				for (uint32 loop=0; loop<32; loop++) if ((desc.ddpfPixelFormat.dwRBitMask >> loop) & 0x1) rBits++;
+				for (uint32 loop=0; loop<32; loop++) if ((desc.ddpfPixelFormat.dwGBitMask >> loop) & 0x1) gBits++;
+				for (uint32 loop=0; loop<32; loop++) if ((desc.ddpfPixelFormat.dwBBitMask >> loop) & 0x1) bBits++;
+				uint32 rShift = gBits + bBits;
+				uint32 gShift = bBits;
+				uint32 bShift = 0;
 
-				for (y=0 ; y<desc.dwHeight ; y++) {
-					for (x=0 ; x<desc.dwWidth ; x++) {
-						ul = ((uint32*)(&((uint8*)desc.lpSurface)[(y * desc.lPitch) + (x * bytesPerPixel)]))[0];
+				for (uint32 y=0; y<desc.dwHeight; y++) {
+					for (uint32 x=0; x<desc.dwWidth; x++) {
+						uint32 ul = ((uint32*)(&((uint8*)desc.lpSurface)[(y * desc.lPitch) + (x * bytesPerPixel)]))[0];
 						ul >>= 32 - bitsPerPixel;
-						buffer[(((desc.dwHeight - 1) - y) * lineWidth) + (x * 3) + 2] = (UCHAR) (((ul >> rShift) << (8 - rBits)));
-						buffer[(((desc.dwHeight - 1) - y) * lineWidth) + (x * 3) + 1] = (UCHAR) (((ul >> gShift) << (8 - gBits)));
-						buffer[(((desc.dwHeight - 1) - y) * lineWidth) + (x * 3) + 0] = (UCHAR) (((ul >> bShift) << (8 - bBits)));
+						buffer[(((desc.dwHeight-1) - y) * lineWidth) + (x*3) + 2] = (uint8)(((ul >> rShift) << (8 - rBits)));
+						buffer[(((desc.dwHeight-1) - y) * lineWidth) + (x*3) + 1] = (uint8)(((ul >> gShift) << (8 - gBits)));
+						buffer[(((desc.dwHeight-1) - y) * lineWidth) + (x*3) + 0] = (uint8)(((ul >> bShift) << (8 - bBits)));
 					}
 				}
 
@@ -414,6 +407,7 @@ bool32 __cdecl Gods98::DirectDraw_SaveBMP(IDirectDrawSurface4* surface, const ch
 
 			surface->Unlock(nullptr);
 
+			BMP_Header header = { 0 };
 			header.bmp_str[0] = 'B';
 			header.bmp_str[1] = 'M';
 			header.file_size = bufferSize + sizeof(BMP_Header);
@@ -585,10 +579,6 @@ bool32 __cdecl Gods98::DirectDraw_CreateClipper(bool32 fullscreen, uint32 width,
 {
 	log_firstcall();
 
-	//HRGN handle;
-	//ULONG size;
-	//RGNDATA* region;
-
 	if (directDrawGlobs.lpDirectDraw->CreateClipper(0, &directDrawGlobs.lpBackClipper, nullptr) == DD_OK){
 
 		HRGN handle = ::CreateRectRgn(0, 0, width, height);
@@ -646,27 +636,26 @@ void __cdecl Gods98::DirectDraw_Blt8To16(IDirectDrawSurface4* target, IDirectDra
 			if (target->Lock(nullptr, &tDesc, DDLOCK_WAIT, nullptr) == DD_OK) {
 				if (tDesc.ddpfPixelFormat.dwRGBBitCount == 16 && tDesc.dwWidth == sDesc.dwWidth && tDesc.dwHeight == sDesc.dwHeight) {
 
-					uint32 rBits, gBits, bBits;
-					sint32 loop;
-					for (rBits=loop=0 ; loop<32 ; loop++) if ((tDesc.ddpfPixelFormat.dwRBitMask >> loop) & 1) rBits++;
-					for (gBits=loop=0 ; loop<32 ; loop++) if ((tDesc.ddpfPixelFormat.dwGBitMask >> loop) & 1) gBits++;
-					for (bBits=loop=0 ; loop<32 ; loop++) if ((tDesc.ddpfPixelFormat.dwBBitMask >> loop) & 1) bBits++;
+					uint32 rBits = 0, gBits = 0, bBits = 0;
+					for (uint32 loop=0; loop<32; loop++) if ((tDesc.ddpfPixelFormat.dwRBitMask >> loop) & 0x1) rBits++;
+					for (uint32 loop=0; loop<32; loop++) if ((tDesc.ddpfPixelFormat.dwGBitMask >> loop) & 0x1) gBits++;
+					for (uint32 loop=0; loop<32; loop++) if ((tDesc.ddpfPixelFormat.dwBBitMask >> loop) & 0x1) bBits++;
 
 					for (uint32 y=0 ; y<sDesc.dwHeight ; y++) {
 						for (uint32 x=0 ; x<sDesc.dwWidth ; x+=4) {
 
 							uint32 write = 0;
 							uint32 read = ((uint32*) (&((uint8*) sDesc.lpSurface)[(y * sDesc.lPitch) + x]))[0];
-							for (loop=3 ; loop>=0 ; loop--) {
+							for (sint32 loop=3; loop>=0; loop--) {
 								
 								uint8 index = (uint8) (read >> (8 * loop));
 								uint8 r = palette[index].peRed   >> (8 - rBits);
 								uint8 g = palette[index].peGreen >> (8 - gBits);
 								uint8 b = palette[index].peBlue  >> (8 - bBits);
 
-								if (loop & 1) write = ((r << (gBits + bBits)) | (g << bBits) | b) << 16;
+								if (loop & 0x1) write = ((r << (gBits + bBits)) | (g << bBits) | b) << 16;
 								else {
-									uint32 offset = (loop & 2)?1:0;
+									uint32 offset = (loop & 0x2)?1:0;
 
 									write |= ((r << (gBits + bBits)) | (g << bBits) | b);
 									((uint32*) (&((uint8*) tDesc.lpSurface)[(y * tDesc.lPitch) + (x * 2)]))[offset] = write;
@@ -720,10 +709,10 @@ uint32 __cdecl Gods98::DirectDraw_GetColour(IDirectDrawSurface4* surf, uint32 co
 
 		surf->GetPalette(&pal);
 		pal->GetEntries(0, 0, 256, entries);
-		for (uint32 loop=0 ; loop<256 ; loop++) {
-			if (entries[loop].peRed == r &&
+		for (uint32 loop=0; loop<256; loop++) {
+			if (entries[loop].peRed   == r &&
 				entries[loop].peGreen == g &&
-				entries[loop].peBlue == b) {
+				entries[loop].peBlue  == b) {
 
 				return loop;
 			}

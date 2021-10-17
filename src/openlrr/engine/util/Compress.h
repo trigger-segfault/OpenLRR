@@ -47,26 +47,22 @@ typedef uint32 be_uint32;
 
 #pragma region Enums
 
-namespace _ns_RNCError {
-enum RNCError : sint16
+enum class RNCError : sint16
 {
-	RNC_INVALIDCOMPRESSION = -2,
-	RNC_INVALIDFILE        = -1,
-	RNC_OK                 = 0,
+	INVALIDCOMPRESSION = -2,
+	INVALIDFILE        = -1,
+	OK                 = 0,
 };
-static_assert(sizeof(RNCError) == 0x2, "");
-} using RNCError = _ns_RNCError::RNCError;
+assert_sizeof(RNCError, 0x2);
 
 
-namespace _ns_RNCCompression {
-enum RNCCompression : uint8
+enum class RNCCompression : uint8
 {
 	RNC_COMPRESS_STORE = 0,
 	RNC_COMPRESS_BEST  = 1,
 	RNC_COMPRESS_FAST  = 2,
 };
-static_assert(sizeof(RNCCompression) == 0x1, "");
-} using RNCCompression = _ns_RNCCompression::RNCCompression;
+assert_sizeof(RNCCompression, 0x1);
 
 #pragma endregion
 
@@ -94,7 +90,7 @@ struct RNC_Header
 	/*....*/ uint8 data[1]; // (dummy)
 	/*13*/
 };
-static_assert(sizeof(RNC_Header) == 0x12 + 0x1, ""); // + 0x1 for dummy data[] access
+assert_sizeof(RNC_Header, 0x12 + 0x1); // + 0x1 for dummy data[] access
 
 #pragma pack(pop)
 
@@ -109,7 +105,7 @@ struct HuffmanLeaf
 	/*0e,2*/ //<uint16 padding2;>
 	/*10*/
 };
-static_assert(sizeof(HuffmanLeaf) == 0x10, "");
+assert_sizeof(HuffmanLeaf, 0x10);
 
 
 struct RNC_Globs
@@ -128,7 +124,7 @@ struct RNC_Globs
 	/*328,4*/ const uint8* OutputEnd;
 	/*32c*/
 };
-static_assert(sizeof(RNC_Globs) == 0x32c, "");
+assert_sizeof(RNC_Globs, 0x32c);
 
 #pragma endregion
 

@@ -31,24 +31,20 @@ namespace Gods98
 
 #pragma region Enums
 
-//#define MEMORY_HANDLE_FLAG_USED				0x00000001
-
-enum Mem_GlobFlags : uint32
+flags_scoped(Mem_GlobFlags) : uint32
 {
-	MEMORY_FLAG_NONE = 0,
+	MEMORY_GLOB_FLAG_NONE = 0,
 };
-DEFINE_ENUM_FLAG_OPERATORS(Mem_GlobFlags);
-static_assert(sizeof(Mem_GlobFlags) == 0x4, "");
+flags_scoped_end(Mem_GlobFlags, 0x4);
 
 
-enum Mem_HandleFlags : uint32
+flags_scoped(Mem_HandleFlags) : uint32
 {
 	MEMORY_HANDLE_FLAG_NONE = 0,
 
 	MEMORY_HANDLE_FLAG_USED = 0x1,
 };
-DEFINE_ENUM_FLAG_OPERATORS(Mem_HandleFlags);
-static_assert(sizeof(Mem_HandleFlags) == 0x4, "");
+flags_scoped_end(Mem_HandleFlags, 0x4);
 
 #pragma endregion
 
@@ -75,7 +71,7 @@ struct Mem_Handle
 	/*4,4*/ Mem_HandleFlags flags;
 	/*8*/
 };
-static_assert(sizeof(Mem_Handle) == 0x8, "");
+assert_sizeof(Mem_Handle, 0x8);
 
 
 struct Mem_Globs
@@ -84,7 +80,7 @@ struct Mem_Globs
 	/*3e80,4*/ Mem_GlobFlags flags;  // (unused)
 	/*3e84*/
 };
-static_assert(sizeof(Mem_Globs) == 0x3e84, "");
+assert_sizeof(Mem_Globs, 0x3e84);
 
 #pragma endregion
 

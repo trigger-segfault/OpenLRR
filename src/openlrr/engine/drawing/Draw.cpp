@@ -31,7 +31,7 @@ void __cdecl Gods98::Draw_Initialise(const Area2F* window)
 {
 	log_firstcall();
 
-	drawGlobs.flags |= Draw_GlobFlags::DRAW_FLAG_INITIALISED;
+	drawGlobs.flags |= Draw_GlobFlags::DRAW_GLOB_FLAG_INITIALISED;
 	Draw_SetClipWindow(window);
 }
 
@@ -43,7 +43,7 @@ void __cdecl Gods98::Draw_SetClipWindow(const Area2F* window)
 	IDirectDrawSurface4* surf = DirectDraw_bSurf();
 	DDSURFACEDESC2 desc;
 
-	Error_Fatal(!(drawGlobs.flags & Draw_GlobFlags::DRAW_FLAG_INITIALISED), "Draw not initialised");
+	Error_Fatal(!(drawGlobs.flags & Draw_GlobFlags::DRAW_GLOB_FLAG_INITIALISED), "Draw not initialised");
 
 	drawGlobs.clipStart.x = 0;
 	drawGlobs.clipStart.y = 0;
@@ -88,7 +88,7 @@ void __cdecl Gods98::Draw_PixelListEx(const Point2F* pointList, uint32 count, re
 
 	IDirectDrawSurface4* surf = DirectDraw_bSurf();
 
-	Error_Fatal(!(drawGlobs.flags & Draw_GlobFlags::DRAW_FLAG_INITIALISED), "Draw not initialised");
+	Error_Fatal(!(drawGlobs.flags & Draw_GlobFlags::DRAW_GLOB_FLAG_INITIALISED), "Draw not initialised");
 
 	if (Draw_LockSurface(surf, effect)) {
 
@@ -112,7 +112,7 @@ void __cdecl Gods98::Draw_LineListEx(const Point2F* fromList, const Point2F* toL
 
 	IDirectDrawSurface4* surf = DirectDraw_bSurf();
 
-	Error_Fatal(!(drawGlobs.flags & Draw_GlobFlags::DRAW_FLAG_INITIALISED), "Draw not initialised");
+	Error_Fatal(!(drawGlobs.flags & Draw_GlobFlags::DRAW_GLOB_FLAG_INITIALISED), "Draw not initialised");
 
 	if (Draw_LockSurface(surf, effect)) {
 		
@@ -139,7 +139,7 @@ void __cdecl Gods98::Draw_RectListEx(const Area2F* rectList, uint32 count, real3
 
 	IDirectDrawSurface4* surf = DirectDraw_bSurf();
 
-	Error_Fatal(!(drawGlobs.flags & Draw_GlobFlags::DRAW_FLAG_INITIALISED), "Draw not initialised");
+	Error_Fatal(!(drawGlobs.flags & Draw_GlobFlags::DRAW_GLOB_FLAG_INITIALISED), "Draw not initialised");
 
 	if (Draw_LockSurface(surf, effect)) {
 
@@ -179,7 +179,7 @@ void __cdecl Gods98::Draw_RectList2Ex(const Draw_Rect* rectList, uint32 count, D
 	Area2F rect;
 	Point2F end;*/
 
-	Error_Fatal(!(drawGlobs.flags & Draw_GlobFlags::DRAW_FLAG_INITIALISED), "Draw not initialised");
+	Error_Fatal(!(drawGlobs.flags & Draw_GlobFlags::DRAW_GLOB_FLAG_INITIALISED), "Draw not initialised");
 
 	if (Draw_LockSurface(surf, effect)) {
 
@@ -217,7 +217,7 @@ void __cdecl Gods98::Draw_DotCircle(const Point2F* pos, uint32 radius, uint32 do
 	IDirectDrawSurface4* surf = DirectDraw_bSurf();
 	real32 step = (2.0f * M_PI) / dots;
 
-	Error_Fatal(!(drawGlobs.flags & Draw_GlobFlags::DRAW_FLAG_INITIALISED), "Draw not initialised");
+	Error_Fatal(!(drawGlobs.flags & Draw_GlobFlags::DRAW_GLOB_FLAG_INITIALISED), "Draw not initialised");
 
 	if (Draw_LockSurface(surf, effect)) {
 
@@ -318,8 +318,8 @@ bool32 __cdecl Gods98::Draw_SetDrawPixelFunc(DrawEffect effect)
 		drawGlobs.drawPixelFunc = Draw_Pixel8;
 		break;
 	case 16:
-		if (effect == DrawEffect::DrawEffect_XOR) drawGlobs.drawPixelFunc = Draw_Pixel16XOR;
-		else if (effect == DrawEffect::DrawEffect_HalfTrans) drawGlobs.drawPixelFunc = Draw_Pixel16HalfTrans;
+		if (effect == DrawEffect::XOR) drawGlobs.drawPixelFunc = Draw_Pixel16XOR;
+		else if (effect == DrawEffect::HalfTrans) drawGlobs.drawPixelFunc = Draw_Pixel16HalfTrans;
 		else drawGlobs.drawPixelFunc = Draw_Pixel16;
 		break;
 	case 24:

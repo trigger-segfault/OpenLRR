@@ -8,8 +8,6 @@
 
 #include "geometry.h"
 
-//#include "../openlrr.h"
-
 #include "audio/Sound.h"
 #include "video/Animation.h"
 #include "core/Config.h"
@@ -24,6 +22,7 @@
 #include "input/Input.h"
 #include "util/Dxbug.h"
 #include "util/Registry.h"
+#include "Graphics.h"
 #include "Init.h"
 
 #include "Main.h"
@@ -117,9 +116,6 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 	char mutexName[128];
 	char noHALMsg[1024];
 
-	/// NEW GODS98: Not called in LegoRR WinMain
-	::CoInitialize(nullptr);
-
 
 	/// OLD LEGORR: Mutex setup is called at the very beginning in LegoRR
 	///  (but it's essential to be the first here)
@@ -189,6 +185,11 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 	}
 
 
+	/// NEW GODS98: Not called in LegoRR WinMain
+	// Moved after mutex check, so we wont't need to call ::CoUninitialize() there.
+	::CoInitialize(nullptr);
+
+
 	// Setup the default globals
 	mainGlobs.className = mainGlobs.programName;
 	mainGlobs.active = false;
@@ -196,13 +197,13 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 	mainGlobs.stateSet = false;
 	mainGlobs.hInst = hInstance;
 	mainGlobs.fixedFrameTiming = 0.0f;
-	mainGlobs.flags = MainFlags::MAIN_FLAG_NONE /*0x0*/;
+	mainGlobs.flags = MainFlags::MAIN_FLAG_NONE;
 
 	{
 		char commandLine[1024];
 		char tempStr[1024];
 
-		if (Registry_GetValue(productRegistry, "StandardParameters", RegistryType::REGISTRY_STRING_VALUE, tempStr, sizeof(tempStr))) {
+		if (Registry_GetValue(productRegistry, "StandardParameters", RegistryValue::String, tempStr, sizeof(tempStr))) {
 			std::sprintf(commandLine, "%s %s", lpCmdLine, tempStr);
 		} else std::sprintf(commandLine, "%s", lpCmdLine);
 
@@ -212,7 +213,7 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 		Main_ParseCommandLine(commandLine, &nosound, &insistOnCD);
 	}
 
-	if (!Registry_GetValue(productRegistry, "NoHALMessage", RegistryType::REGISTRY_STRING_VALUE, noHALMsg, sizeof(noHALMsg))) {
+	if (!Registry_GetValue(productRegistry, "NoHALMessage", RegistryValue::String, noHALMsg, sizeof(noHALMsg))) {
 		std::sprintf(noHALMsg, "No DirectX 3D accelerator could be found.");
 	}
 
@@ -314,7 +315,7 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 						if (!mainGlobs.currState.MainLoop(time)) mainGlobs.exit = true;
 
 						// Update the device and flip the surfaces...
-						Main_Finalise3D();
+						Graphics_Finalise3D();
 						DirectDraw_Flip();
 						// Set as not-updated again while the game loop is running.
 						mainGlobs.flags &= ~MainFlags::MAIN_FLAG_UPDATED;
@@ -417,20 +418,10 @@ void __cdecl Gods98::Main_Exit(void)
 {
 	/// NEW GODS98: Not called in LegoRR WinMain, so it's likely this wasn't
 	///  called here either, making Main_Exit an inline alias for `std::exit(0);`
-	//::CoUninitialize();
+	::CoUninitialize();
 	std::exit(0);
 }
 
-
-// <LegoRR.exe @00477e90>
-void __cdecl Gods98::Main_DisableTextureManagement(void)
-{
-	log_firstcall();
-
-	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_FORCETEXTUREMANAGEMENT)) {
-		mainGlobs.flags |= MainFlags::MAIN_FLAG_DONTMANAGETEXTURES;
-	}
-}
 
 // <LegoRR.exe @00477eb0>
 void __cdecl Gods98::Main_ParseCommandLine(const char* lpCmdLine, OUT bool32* nosound, OUT bool32* insistOnCD)
@@ -597,7 +588,7 @@ void __cdecl Gods98::Main_LoopUpdate(bool32 clear)
 	Input_ReadMouse2();
 
 	// Update the device and flip the surfaces...
-	Main_Finalise3D();
+	Graphics_Finalise3D();
 	DirectDraw_Flip();
 
 	if (clear) DirectDraw_Clear(nullptr, 0 /*black*/);
@@ -610,27 +601,8 @@ Gods98::MainCLFlags __cdecl Gods98::noinline(Main_GetCLFlags)(void)
 	return Main_GetCLFlags();
 }
 
-// <LegoRR.exe @00478240>
-uint32 __cdecl Gods98::Main_GetWindowsBitDepth(void)
-{
-	log_firstcall();
-
-	return ::GetDeviceCaps(::GetDC(Main_hWnd()), BITSPIXEL);
-}
-
-// <LegoRR.exe @00478260>
-void __cdecl Gods98::Main_Finalise3D(void)
-{
-	log_firstcall();
-
-	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_UPDATED)) {
-		mainGlobs.device->Update();
-		mainGlobs.flags |= MainFlags::MAIN_FLAG_UPDATED;
-	}
-}
-
 // <LegoRR.exe @00478290>
-bool32 __cdecl Gods98::Main_SetState(Main_State* state)
+bool32 __cdecl Gods98::Main_SetState(const Main_State* state)
 {
 	log_firstcall();
 
@@ -752,92 +724,6 @@ void __cdecl Gods98::Main_SetupDisplay(bool32 fullScreen, uint32 xPos, uint32 yP
 	::SetActiveWindow(mainGlobs.hWnd);
 }
 
-// <LegoRR.exe @00478490>
-bool32 __cdecl Gods98::Main_SetupDirect3D(const DirectDraw_Device* dev, IDirectDraw* ddraw1, IDirectDrawSurface4* backSurf, bool32 doubleBuffered)
-{
-	log_firstcall();
-
-	
-	LPGUID guid = nullptr;
-	LPDIRECT3DRM lpD3DRM1;
-//	LPDIRECT3D3 d3d3;
-//	LPDIRECT3DDEVICE3 d3ddev3;
-	HRESULT r;
-	LPDIRECTDRAWSURFACE surf1 = nullptr; // dummy init
-	
-	if (dev) {
-		guid = const_cast<GUID*>(&dev->guid);
-		if (dev->flags & DirectDraw_DeviceFlags::DIRECTDRAW_FLAG_DEVICE_VIDEOTEXTURE)
-			mainGlobs.flags |= MainFlags::MAIN_FLAG_VIDEOTEXTURE;
-	}
-
-#pragma message ( "CAPS testing is a complete waste of time for this" )
-	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_FORCEVERTEXFOG) &&
-		dev && (dev->flags & DirectDraw_DeviceFlags::DIRECTDRAW_FLAG_DEVICE_HARDWARE))
-	{
-		Main_SetFogMethod(D3DRMFOGMETHOD_TABLE);
-	} else {
-		Main_SetFogMethod(D3DRMFOGMETHOD_VERTEX);
-	}
-
-	// Create D3DRM and the device...
-	
-	if (::Direct3DRMCreate(&lpD3DRM1) == D3DRM_OK) {
-		/// NOTE: referencing LegoRR's IID_IDirect3DRM3 data (define this ourselves!)
-		if (lpD3DRM1->QueryInterface(Idl::IID_IDirect3DRM3, (void**)&mainGlobs.lpD3DRM) == D3DRM_OK){
-			backSurf->QueryInterface(IID_IDirectDrawSurface, (void**)&surf1);
-			/// NOTE ASM: Decompiled code shows dev->guid,
-			///  but this is only because it's the first structure item, and referenced
-			///  by address. Meaning a NULL dev is "functionally safe".
-			if ((r = mainGlobs.lpD3DRM->CreateDeviceFromSurface(guid, ddraw1, surf1, 0, &mainGlobs.device)) == D3DRM_OK){
-
-				LPDIRECT3DDEVICE2 imdev2;
-				mainGlobs.device->GetDirect3DDevice2( &imdev2 );
-				imdev2->QueryInterface( IID_IDirect3DDevice3, (void**)&mainGlobs.imDevice );
-				imdev2->Release();
-
-				// This is code that was commented out in Gods98, and nothing more.
-//			if ((r = mainGlobs.lpD3DRM->CreateDeviceFromSurface(nullptr, ddraw1, surf1, 0, &mainGlobs.device)) == D3DRM_OK){
-//			if (D3DRM_OK == ddraw1->lpVtbl->QueryInterface(ddraw1, &IID_IDirect3D3, &d3d3)){
-//				r = 1;
-//				if (0 == std::memcmp(guid, &IID_IDirect3DRGBDevice, sizeof(GUID))){
-//					r = d3d3->CreateDevice(IID_IDirect3DMMXDevice, backSurf, &d3ddev3, nullptr);
-//				}
-//				if (r != D3DRM_OK) {
-//					r = d3d3->CreateDevice(guid, backSurf, &d3ddev3, nullptr);
-//				}
-
-//				if (D3DRM_OK == r){
-
-//					LPDIRECT3D2 d3d2;
-//					LPDIRECT3DDEVICE2 d3ddev2;
-//					d3d3->lpVtbl->QueryInterface(d3d3, &IID_IDirect3D2, &d3d2);
-//					d3ddev3->lpVtbl->QueryInterface(d3ddev3, &IID_IDirect3DDevice2, &d3ddev2);
-//					mainGlobs.lpD3DRM->lpVtbl->CreateDeviceFromD3D(mainGlobs.lpD3DRM, d3d2, d3ddev2, &mainGlobs.device);
-//					d3ddev3->lpVtbl->Release(d3ddev3);
-//					d3ddev2->lpVtbl->Release(d3ddev2);
-//					d3d2->lpVtbl->Release(d3d2);
-
-//					d3d3->lpVtbl->Release(d3d3);
-
-
-				if (doubleBuffered) mainGlobs.device->SetBufferCount(2);
-				return true;
-					
-			} else {
-				CHKDD(r);
-				Error_Warn(true, "Unable to create Device");
-			}
-//				d3d3->lpVtbl->Release(d3d3);
-//			} else Error_Warn(true, "Unable to obtain Direct3D3");
-		} else Error_Warn(true, "Failed query for IID_IDirect3DRM3");
-	} else Error_Warn(true, "Unable to create lpD3DRM1");
-
-	CHKRM(r);
-
-	return false;
-}
-
 // <LegoRR.exe @004785d0>
 void __cdecl Gods98::Main_AdjustWindowRect(IN OUT Rect2I* rect)
 {
@@ -851,55 +737,6 @@ void __cdecl Gods98::Main_AdjustWindowRect(IN OUT Rect2I* rect)
 	}
 }
 
-// <LegoRR.exe @004785f0>
-void __cdecl Gods98::Main_Setup3D(MainQuality renderQuality, bool32 dither, bool32 linearFilter, bool32 mipMap,
-						  bool32 mipMapLinear, bool32 blendTransparency, bool32 sortTransparency)
-{
-	D3DRMRENDERQUALITY quality = D3DRMRENDER_WIREFRAME;
-	DWORD renderMode = 0;
-
-	mainGlobs2.renderQuality = renderQuality;
-	mainGlobs2.dither       = dither;
-	mainGlobs2.linearFilter = linearFilter;
-	mainGlobs2.mipMap       = mipMap;
-	mainGlobs2.mipMapLinear = mipMapLinear;
-	mainGlobs2.blendTransparency = blendTransparency;
-	mainGlobs2.sortTransparency  = sortTransparency;
-
-	if (renderQuality == MainQuality::WIREFRAME)      quality = D3DRMRENDER_WIREFRAME;
-	if (renderQuality == MainQuality::FLATSHADE)      quality = D3DRMRENDER_FLAT;
-	if (renderQuality == MainQuality::UNLITFLATSHADE) quality = D3DRMRENDER_UNLITFLAT;
-	if (renderQuality == MainQuality::GOURAUDSHADE)   quality = D3DRMRENDER_GOURAUD;
-	/// CUSTOM: Added to match rest of the set, but this will never be passed as a parameter
-	if (renderQuality == MainQuality::PHONGSHADE)     quality = D3DRMRENDER_PHONG;
-
-	/// NEW GODS98: Not present in LegoRR (these arguments ended up being unused)
-	if (blendTransparency) renderMode |= D3DRMRENDERMODE_BLENDEDTRANSPARENCY;
-	if (sortTransparency)  renderMode |= D3DRMRENDERMODE_SORTEDTRANSPARENCY;
-
-	D3DRMTEXTUREQUALITY textureMode;
-	if (linearFilter) {
-		if (mipMap) {
-			if (mipMapLinear) textureMode = D3DRMTEXTURE_LINEARMIPLINEAR;
-			else textureMode = D3DRMTEXTURE_MIPLINEAR;
-			mainGlobs.flags |= MainFlags::MAIN_FLAG_MIPMAPENABLED;
-		} else textureMode = D3DRMTEXTURE_LINEAR;
-	} else textureMode = D3DRMTEXTURE_NEAREST;
-
-	if (mainGlobs.device){
-
-		// Should check device caps here...
-
-		mainGlobs.device->SetDither(dither);
-		mainGlobs.device->SetQuality(quality);
-		mainGlobs.device->SetTextureQuality(textureMode);
-//		mainGlobs.device->SetRenderMode(D3DRMRENDERMODE_BLENDEDTRANSPARENCY|D3DRMRENDERMODE_SORTEDTRANSPARENCY |D3DRMRENDERMODE_DISABLESORTEDALPHAZWRITE);
-		/// NEW GODS98: Not present in LegoRR
-		mainGlobs.device->SetRenderMode(renderMode);
-
-	} else Error_Fatal(true, "Device not initialised");
-}
-
 // <LegoRR.exe @00478690>
 void __cdecl Gods98::Main_SetTitle(const char* title)
 {
@@ -907,23 +744,6 @@ void __cdecl Gods98::Main_SetTitle(const char* title)
 
 	::SetWindowTextA(mainGlobs.hWnd, title);
 }
-
-
-// <missing>
-uint32 __cdecl Gods98::Main_GetTrianglesDrawn(bool32 total)
-{
-	static uint32 last = 0;
-
-	uint32 curr = mainGlobs.device->GetTrianglesDrawn();
-
-	uint32 count;
-	if (!total) count = curr - last;
-	else count = curr;
-
-	last = curr;
-	return count;
-}
-
 
 // <LegoRR.exe @004786b0>
 bool32 __cdecl Gods98::Main_InitApp(HINSTANCE hInstance)
@@ -1404,54 +1224,6 @@ LRESULT __stdcall Gods98::Main_WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 	}
 }
 
-// <LegoRR.exe @00478b90>
-void __cdecl Gods98::Main_ChangeRenderState(D3DRENDERSTATETYPE dwRenderStateType, uint32 dwRenderState)
-{
-	log_firstcall();
-
-	Error_Fatal(dwRenderStateType >= MAIN_MAXRENDERSTATES, "RenderState type is out of range");
-
-	DWORD currValue;
-	Main_StateChangeData* data = &mainGlobs.renderStateData[dwRenderStateType];
-	HRESULT r = mainGlobs.imDevice->GetRenderState(dwRenderStateType, &currValue);
-	Error_Fatal(r != D3D_OK, Error_Format("Failed to GetRenderState(%i)", dwRenderStateType));
-
-	if (currValue != dwRenderState) {
-
-//		if( D3D_OK ==
-		mainGlobs.imDevice->SetRenderState(dwRenderStateType, dwRenderState);
-			// )
-		{
-			if (data->changed) {
-				if (data->origValue == currValue) data->changed = false;
-			} else {
-				data->origValue = currValue;
-				data->changed = true;
-			}
-
-		}
-	}
-}
-
-/// NOTE: newer engine version has argument: BOOL force, but LegoRR DOES NOT have this argument.
-///        (it's possible this argument has been inlined, as it negates calling the entire function body.)
-// <LegoRR.exe @00478c00>
-void __cdecl Gods98::Main_RestoreStates(void)
-{
-	log_firstcall();
-
-	// NEW GODS98: BOOL force argument
-	//if (force) {
-	for (uint32 loop = 0; loop < MAIN_MAXRENDERSTATES; loop++) {
-		Main_StateChangeData* data = &mainGlobs.renderStateData[loop];
-		if (data->changed) {
-			mainGlobs.imDevice->SetRenderState((D3DRENDERSTATETYPE)loop, data->origValue);
-			data->changed = false;
-		}
-	}
-	//}
-}
-
 
 // <missing>
 void __cdecl Gods98::Main_PauseApp(bool32 pause)
@@ -1473,7 +1245,6 @@ bool32 __cdecl Gods98::Main_IsPaused(void)
 
 
 // <LegoRR.exe @00478c40>
-//bool32 __cdecl Gods98::noinline(Main_SetCDVolume)(real32 leftVolume, real32 rightVolume)
 bool32 __cdecl Gods98::Main_SetCDVolume(real32 leftVolume, real32 rightVolume)
 {
 	log_firstcall();
@@ -1482,7 +1253,6 @@ bool32 __cdecl Gods98::Main_SetCDVolume(real32 leftVolume, real32 rightVolume)
 }
 
 // <LegoRR.exe @00478c60>
-//bool32 __cdecl Gods98::noinline(Main_GetCDVolume)(OUT real32* leftVolume, OUT real32* rightVolume)
 bool32 __cdecl Gods98::Main_GetCDVolume(OUT real32* leftVolume, OUT real32* rightVolume)
 {
 	log_firstcall();
@@ -1497,116 +1267,127 @@ bool32 __cdecl Gods98::Main_CDVolume(IN OUT real32* leftVolume, IN OUT real32* r
 
 	/// TODO: Go over and check this function against LegoRR,
 	///  this is one of the few Gods98 functions not closely looked at.
-	uint32 deviceCount = ::mixerGetNumDevs();
-	MIXERCAPS caps;
-	MIXERLINE mixerLine;
-	uint32 cConnections;
-	uint32 uwVolumeL, uwVolumeR;
-	HMIXER hMixer;
+
 	bool32 result = false;
 
 	if (set) {
-		if (*leftVolume > 1.0f) *leftVolume = 1.0f;
-		if (*leftVolume < 0.0f) *leftVolume = 0.0f;
+		if (*leftVolume  > 1.0f) *leftVolume  = 1.0f;
+		if (*leftVolume  < 0.0f) *leftVolume  = 0.0f;
 		if (*rightVolume > 1.0f) *rightVolume = 1.0f;
 		if (*rightVolume < 0.0f) *rightVolume = 0.0f;
 	}
 
-	for (uint32 loop=0 ; loop<deviceCount ; loop++) {
+	uint32 deviceCount = ::mixerGetNumDevs();
 
-		if (::mixerOpen(&hMixer, loop, 0, 0, MIXER_OBJECTF_MIXER) == MMSYSERR_NOERROR) {
-			HMIXEROBJ mixer = (HMIXEROBJ)hMixer; // second variable created to avoid extra casting
+	for (uint32 devID = 0; devID < deviceCount; devID++) {
 
-			std::memset(&caps, 0, sizeof(caps));
-			::mixerGetDevCapsA(loop, &caps, sizeof(caps));
+		HMIXER hMixer;
+		if (::mixerOpen(&hMixer, devID, 0, 0, MIXER_OBJECTF_MIXER) != MMSYSERR_NOERROR)
+			continue; // safely continue, nothing to cleanup from this for-loop yet
 
-			for (uint32 sub=0 ; sub<caps.cDestinations ; sub++) {
+		HMIXEROBJ mixer = (HMIXEROBJ)hMixer; // second variable created to avoid extra casting
 
-				std::memset(&mixerLine, 0, sizeof(mixerLine));
+		MIXERCAPS caps;
+		std::memset(&caps, 0, sizeof(caps));
+		::mixerGetDevCapsA(devID, &caps, sizeof(caps));
+
+		for (uint32 destID = 0; destID < caps.cDestinations; destID++) {
+
+			MIXERLINE mixerLine;
+			std::memset(&mixerLine, 0, sizeof(mixerLine));
+			mixerLine.cbStruct = sizeof(mixerLine);
+			mixerLine.dwDestination = destID;
+
+			if (::mixerGetLineInfoA(mixer, &mixerLine, MIXER_GETLINEINFOF_DESTINATION) != MMSYSERR_NOERROR)
+				continue; // safely continue, nothing to cleanup from this for-loop yet
+
+			uint32 cConnections = mixerLine.cConnections;
+
+			for (uint32 connID = 0; connID < cConnections; connID++) {
+
 				mixerLine.cbStruct = sizeof(mixerLine);
-				mixerLine.dwDestination = sub;
+				mixerLine.dwDestination = destID;
+				mixerLine.dwSource = connID;
 
-				if (::mixerGetLineInfoA(mixer, &mixerLine, MIXER_GETLINEINFOF_DESTINATION) == MMSYSERR_NOERROR) {
+				
+				if (::mixerGetLineInfoA(mixer, &mixerLine, MIXER_GETLINEINFOF_SOURCE) != MMSYSERR_NOERROR ||
+					(mixerLine.dwComponentType != MIXERLINE_COMPONENTTYPE_SRC_COMPACTDISC))
+				{
+					continue; // safely continue, nothing to cleanup from this for-loop yet
+				}
 
-					cConnections = mixerLine.cConnections;
+				MIXERLINECONTROLS controls;
+				MIXERCONTROL* ctrlList;
 
-					for (uint32 conn=0 ; conn<cConnections ; conn++) {
+				std::memset(&controls, 0, sizeof(controls));
+				controls.cbStruct = sizeof(controls);
+				controls.dwLineID = mixerLine.dwLineID;
+				controls.cControls = mixerLine.cControls;
+				controls.cbmxctrl = sizeof(*ctrlList);
 
-						mixerLine.cbStruct = sizeof(mixerLine);
-						mixerLine.dwDestination = sub;
-						mixerLine.dwSource = conn;
+				ctrlList = (MIXERCONTROL*)Mem_Alloc(sizeof(*ctrlList) * controls.cControls);
+				controls.pamxctrl = ctrlList;
 
-						if (::mixerGetLineInfoA(mixer, &mixerLine, MIXER_GETLINEINFOF_SOURCE) == MMSYSERR_NOERROR) {
-							if (mixerLine.dwComponentType == MIXERLINE_COMPONENTTYPE_SRC_COMPACTDISC) {
+				if (::mixerGetLineControlsA(mixer, &controls, MIXER_GETLINECONTROLSF_ALL) == MMSYSERR_NOERROR) {
+					for (uint32 ctrlLoop = 0; ctrlLoop < mixerLine.cControls; ctrlLoop++) {
 
-								MIXERLINECONTROLS controls;
-								LPMIXERCONTROL controlList;
+						if (!(ctrlList[ctrlLoop].dwControlType & MIXERCONTROL_CT_CLASS_FADER) ||
+							!(ctrlList[ctrlLoop].dwControlType & MIXERCONTROL_CONTROLTYPE_VOLUME))
+						{
+							continue; // safely continue, nothing to cleanup from this for-loop yet
+						}
 
-								std::memset(&controls, 0, sizeof(controls));
-								controls.cbStruct = sizeof(controls);
-								controls.dwLineID = mixerLine.dwLineID;
-								controls.cControls = mixerLine.cControls;
-								controls.cbmxctrl = sizeof(*controlList);
+						MIXERCONTROLDETAILS_UNSIGNED* valueList;
 
-								controlList = (LPMIXERCONTROL)Mem_Alloc(sizeof(*controlList) * controls.cControls);
-								controls.pamxctrl = controlList;
+						MIXERCONTROLDETAILS details;
+						std::memset(&details, 0, sizeof(details));
+						details.cbStruct = sizeof(details);
+						details.dwControlID = ctrlList[ctrlLoop].dwControlID;
+						details.cbDetails = sizeof(*valueList);
+						details.cChannels = mixerLine.cChannels;
+						details.cMultipleItems = 0;
 
-								if (::mixerGetLineControlsA(mixer, &controls, MIXER_GETLINECONTROLSF_ALL) == MMSYSERR_NOERROR) {
-									for (uint32 controlLoop=0 ; controlLoop<mixerLine.cControls ; controlLoop++) {
-										if ((controlList[controlLoop].dwControlType & MIXERCONTROL_CT_CLASS_FADER) &&
-											(controlList[controlLoop].dwControlType & MIXERCONTROL_CONTROLTYPE_VOLUME)) {
+						valueList = (MIXERCONTROLDETAILS_UNSIGNED*)Mem_Alloc(sizeof(*valueList) * mixerLine.cChannels);
+						details.paDetails = valueList;
 
-											LPMIXERCONTROLDETAILS_UNSIGNED valueList;
-
-											MIXERCONTROLDETAILS details;
-											std::memset(&details, 0, sizeof(details));
-											details.cbStruct = sizeof(details);
-											details.dwControlID = controlList[controlLoop].dwControlID;
-											details.cbDetails = sizeof(*valueList);
-											details.cChannels = mixerLine.cChannels;
-											details.cMultipleItems = 0;
-
-											valueList = (LPMIXERCONTROLDETAILS_UNSIGNED)Mem_Alloc(sizeof(*valueList) * mixerLine.cChannels);
-											details.paDetails = valueList;
-
-											if (set) {
-												uwVolumeL = controlList[controlLoop].Bounds.dwMinimum + (uint32) (*leftVolume * (controlList[controlLoop].Bounds.dwMaximum - controlList[controlLoop].Bounds.dwMinimum));
-												uwVolumeR = controlList[controlLoop].Bounds.dwMinimum + (uint32) (*rightVolume * (controlList[controlLoop].Bounds.dwMaximum - controlList[controlLoop].Bounds.dwMinimum));
-												if (mixerLine.cChannels == 2) {
-													valueList[0].dwValue = uwVolumeL;
-													valueList[1].dwValue = uwVolumeR;
-												} else {
-													for (uint32 vLoop=0 ; vLoop<mixerLine.cChannels ; vLoop++) valueList[vLoop].dwValue = (uwVolumeL + uwVolumeR) / 2;
-												}
-												if (::mixerSetControlDetails(mixer, &details, MIXER_GETCONTROLDETAILSF_VALUE) == MMSYSERR_NOERROR) {
-													result = true;
-												}
-											} else {
-												if (::mixerGetControlDetailsA(mixer, &details, MIXER_GETCONTROLDETAILSF_VALUE) == MMSYSERR_NOERROR) {
-
-													*leftVolume = (real32) (valueList[0].dwValue - controlList[controlLoop].Bounds.dwMinimum) / (controlList[controlLoop].Bounds.dwMaximum - controlList[controlLoop].Bounds.dwMinimum);
-													if (mixerLine.cChannels == 2) {
-														*rightVolume = (real32) (valueList[1].dwValue - controlList[controlLoop].Bounds.dwMinimum) / (controlList[controlLoop].Bounds.dwMaximum - controlList[controlLoop].Bounds.dwMinimum);
-													} else {
-														*rightVolume = *leftVolume;
-													}
-													result = true;
-												}
-											}
-
-											Mem_Free(valueList);
-										}
-									}
-								}
-								Mem_Free(controlList);
+						uint32 boundsMin = ctrlList[ctrlLoop].Bounds.dwMinimum;
+						uint32 boundsRange = (ctrlList[ctrlLoop].Bounds.dwMaximum - boundsMin);
+						if (set) {
+							uint32 uwVolumeL = boundsMin + (uint32)(*leftVolume  * boundsRange);
+							uint32 uwVolumeR = boundsMin + (uint32)(*rightVolume * boundsRange);
+							if (mixerLine.cChannels == 2) {
+								valueList[0].dwValue = uwVolumeL;
+								valueList[1].dwValue = uwVolumeR;
+							}
+							else {
+								for (uint32 vLoop = 0; vLoop < mixerLine.cChannels; vLoop++)
+									valueList[vLoop].dwValue = (uwVolumeL + uwVolumeR) / 2;
+							}
+							if (::mixerSetControlDetails(mixer, &details, MIXER_SETCONTROLDETAILSF_VALUE) == MMSYSERR_NOERROR) {
+								result = true;
 							}
 						}
+						else {
+							if (::mixerGetControlDetailsA(mixer, &details, MIXER_GETCONTROLDETAILSF_VALUE) == MMSYSERR_NOERROR) {
+
+								*leftVolume = (real32)(valueList[0].dwValue - boundsMin) / boundsRange;
+								if (mixerLine.cChannels == 2)
+									*rightVolume = (real32)(valueList[1].dwValue - boundsMin) / boundsRange;
+								else
+									*rightVolume = *leftVolume;
+
+								result = true;
+							}
+						}
+
+						Mem_Free(valueList);
 					}
 				}
+				Mem_Free(ctrlList);
 			}
-
-			::mixerClose(hMixer);
 		}
+
+		::mixerClose(hMixer);
 	}
 
 	return result;

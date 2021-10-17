@@ -13,11 +13,6 @@
 #pragma region Forward Declarations
 
 /// TODO: Remove me once Lego module is finished
-#define Lego_Initialise ((bool32(__cdecl*)(void))0x0041fa80)
-#define Lego_MainLoop ((bool32(__cdecl*)(real32))0x00423210)
-#define Lego_Shutdown ((void(__cdecl*)(void))0x00424c20)
-#define Lego_Shutdown_Debug ((void(__cdecl*)(void))0x00424c30)
-
 #define Level_TryGeneratedRockMonster ((LegoRR::LegoObject*(__cdecl*)(int**, LegoRR::ObjectType, sint32, uint32, uint32))0x0043b1f0)
 
 #pragma endregion
@@ -29,15 +24,42 @@
 
 #pragma region Entry point
 
+void __cdecl LegoRR::Lego_Gods_Go_Setup(const char* programName, OUT Gods98::Main_State* mainState)
+{
+	std::memset(&LegoRR::legoGlobs, 0, 0xef8); //sizeof(legoGlobs);
+	LegoRR::legoGlobs.gameName = programName;
+
+	
+	/*Gods98::Main_State mainState = {
+		Lego_Initialise,
+		Lego_MainLoop,
+		Lego_Shutdown_Debug, // proper shutdown, with cleanup
+	};*/
+
+	mainState->Initialise = Lego_Initialise;
+	mainState->MainLoop = Lego_MainLoop;
+	mainState->Shutdown = Lego_Shutdown_Debug; // shutdown with cleanup
+
+	if (Gods98::Main_ProgrammerMode() != 10) { // PROGRAMMER_MODE_10
+		mainState->Shutdown = Lego_Shutdown; // immediate shutdown, no cleanup
+	}
+}
+
 // This is the GAME entry point as called by WinMain,
 //  this should hook the Main_State loop functions and only perform basic initial setup.
 // (this can return bool32, but does not)
 // <LegoRR.exe @0041f950>
-void __cdecl Gods98::Gods_Go(const char* programName)
+void __cdecl LegoRR::Lego_Gods_Go(const char* programName)
 {
 	log_firstcall();
 
-	std::memset(&LegoRR::legoGlobs, 0, 0xef8 /*sizeof(legoGlobs)*/);
+	Gods98::Main_State mainState = { nullptr }; // dummy init
+	Lego_Gods_Go_Setup(programName, &mainState);
+
+	Gods98::Main_SetTitle(programName);
+	Gods98::Main_SetState(&mainState);
+
+	/*std::memset(&LegoRR::legoGlobs, 0, 0xef8); //sizeof(legoGlobs);
 	LegoRR::legoGlobs.gameName = programName;
 
 	/// FLUFF OPENLRR: Wrap the program name in parenthesis and start with "OpenLRR"
@@ -46,18 +68,18 @@ void __cdecl Gods98::Gods_Go(const char* programName)
 		std::sprintf(buff, "%s (%s)", "OpenLRR", programName);
 		programName = buff;
 	}
-	Main_SetTitle(programName);
-
-	Main_State mainState;
-	mainState.Initialise = Lego_Initialise;
-	mainState.MainLoop = Lego_MainLoop;
-	mainState.Shutdown = Lego_Shutdown_Debug; // shutdown with cleanup
-
-	if (Main_ProgrammerMode() != 10 /*PROGRAMMER_MODE_10*/) {
+	Gods98::Main_SetTitle(programName);
+	
+	Gods98::Main_State mainState = {
+		Lego_Initialise,
+		Lego_MainLoop,
+		Lego_Shutdown_Debug, // proper shutdown, with cleanup
+	};
+	if (Gods98::Main_ProgrammerMode() != 10) { // PROGRAMMER_MODE_10
 		mainState.Shutdown = Lego_Shutdown; // immediate shutdown, no cleanup
 	}
 
-	Main_SetState(&mainState);
+	Gods98::Main_SetState(&mainState);*/
 }
 
 #pragma endregion

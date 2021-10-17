@@ -40,7 +40,7 @@ void __cdecl Gods98::Image_Initialise(void)
 {
 	log_firstcall();
 
-	if (imageGlobs.flags & Image_GlobFlags::IMAGE_FLAG_INITIALISED) Error_Fatal(true, "Images already initialised");
+	if (imageGlobs.flags & Image_GlobFlags::IMAGE_GLOB_FLAG_INITIALISED) Error_Fatal(true, "Images already initialised");
 
 	for (uint32 loop=0 ; loop<IMAGE_MAXLISTS ; loop++){
 		imageGlobs.listSet[loop] = nullptr;
@@ -48,7 +48,7 @@ void __cdecl Gods98::Image_Initialise(void)
 
 	// Global Initialisation here...
 
-	imageGlobs.flags = Image_GlobFlags::IMAGE_FLAG_INITIALISED;
+	imageGlobs.flags = Image_GlobFlags::IMAGE_GLOB_FLAG_INITIALISED;
 }
 
 // <LegoRR.exe @0047d6f0>
@@ -63,7 +63,7 @@ void __cdecl Gods98::Image_Shutdown(void)
 	}
 
 	imageGlobs.freeList = nullptr;
-	imageGlobs.flags = Image_GlobFlags::IMAGE_FLAG_NONE;
+	imageGlobs.flags = Image_GlobFlags::IMAGE_GLOB_FLAG_NONE;
 }
 
 // <LegoRR.exe @0047d730>

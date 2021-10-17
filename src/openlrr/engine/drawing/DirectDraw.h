@@ -25,8 +25,6 @@ struct IDirectDraw;
 struct IDirectDraw4;
 struct IDirectDrawSurface4;
 struct IDirectDrawClipper;
-struct tagPALETTEENTRY;
-typedef struct tagPALETTEENTRY PALETTEENTRY;
 struct _D3DDeviceDesc;
 typedef struct _D3DDeviceDesc			* LPD3DDEVICEDESC;
 struct _DDSURFACEDESC2;
@@ -54,11 +52,12 @@ struct BMP_PaletteEntry;
 
 #pragma region Constants
 
-#define DIRECTDRAW_MAXDRIVERS				20
-#define DIRECTDRAW_MAXDEVICES				20
-#define DIRECTDRAW_MAXMODES					200
-#define DIRECTDRAW_DRIVERSTRINGLEN			256
-#define DIRECTDRAW_DEVICESTRINGLEN			256
+#define DIRECTDRAW_MAXDRIVERS			20
+#define DIRECTDRAW_MAXDEVICES			20
+#define DIRECTDRAW_MAXMODES				200
+#define GRAPHICS_DRIVERSTRINGLEN		256
+#define GRAPHICS_DEVICESTRINGLEN		256
+#define GRAPHICS_MODESTRINGLEN			256
 
 #pragma endregion
 
@@ -68,50 +67,47 @@ struct BMP_PaletteEntry;
 
 #pragma region Enums
 
-//#define DIRECTDRAW_FLAG_VALID					0x00000001
+//#define DIRECTDRAW_FLAG_VALID			0x00000001
 
-enum DirectDraw_DriverFlags : uint32
+enum Graphics_DriverFlags : uint32
 {
-	DIRECTDRAW_FLAG_DRIVER_NONE				= 0,
+	GRAPHICS_DRIVER_FLAG_NONE			= 0,
 
-	DIRECTDRAW_FLAG_DRIVER_VALID			= 0x1,
-	DIRECTDRAW_FLAG_DRIVER_PRIMARY			= 0x10,
-	DIRECTDRAW_FLAG_DRIVER_WINDOWOK			= 0x20,
+	GRAPHICS_DRIVER_FLAG_VALID			= 0x1,
+	GRAPHICS_DRIVER_FLAG_PRIMARY		= 0x10,
+	GRAPHICS_DRIVER_FLAG_WINDOWOK		= 0x20,
 };
-DEFINE_ENUM_FLAG_OPERATORS(DirectDraw_DriverFlags);
-static_assert(sizeof(DirectDraw_DriverFlags) == 0x4, "");
+flags_end(Graphics_DriverFlags, 0x4);
 
 
-enum DirectDraw_DeviceFlags : uint32
+enum Graphics_DeviceFlags : uint32
 {
-	DIRECTDRAW_FLAG_DEVICE_NONE				= 0,
+	GRAPHICS_DEVICE_FLAG_NONE			= 0,
 
-	DIRECTDRAW_FLAG_DEVICE_VALID			= 0x1,
-	DIRECTDRAW_FLAG_DEVICE_DEPTH8			= 0x10,
-	DIRECTDRAW_FLAG_DEVICE_DEPTH16			= 0x20,
-	DIRECTDRAW_FLAG_DEVICE_DEPTH24			= 0x40,
-	DIRECTDRAW_FLAG_DEVICE_DEPTH32			= 0x80,
-	DIRECTDRAW_FLAG_DEVICE_ZBUFF8			= 0x100,
-	DIRECTDRAW_FLAG_DEVICE_ZBUFF16			= 0x200,
-	DIRECTDRAW_FLAG_DEVICE_ZBUFF24			= 0x400,
-	DIRECTDRAW_FLAG_DEVICE_ZBUFF32			= 0x800,
-	DIRECTDRAW_FLAG_DEVICE_COLOUR			= 0x1000,
-	DIRECTDRAW_FLAG_DEVICE_HARDWARE			= 0x2000,
-	DIRECTDRAW_FLAG_DEVICE_VIDEOTEXTURE		= 0x4000,
-	DIRECTDRAW_FLAG_DEVICE_SYSTEMTEXTURE	= 0x8000,
+	GRAPHICS_DEVICE_FLAG_VALID			= 0x1,
+	GRAPHICS_DEVICE_FLAG_DEPTH8			= 0x10,
+	GRAPHICS_DEVICE_FLAG_DEPTH16		= 0x20,
+	GRAPHICS_DEVICE_FLAG_DEPTH24		= 0x40,
+	GRAPHICS_DEVICE_FLAG_DEPTH32		= 0x80,
+	GRAPHICS_DEVICE_FLAG_ZBUFF8			= 0x100,
+	GRAPHICS_DEVICE_FLAG_ZBUFF16		= 0x200,
+	GRAPHICS_DEVICE_FLAG_ZBUFF24		= 0x400,
+	GRAPHICS_DEVICE_FLAG_ZBUFF32		= 0x800,
+	GRAPHICS_DEVICE_FLAG_COLOUR			= 0x1000,
+	GRAPHICS_DEVICE_FLAG_HARDWARE		= 0x2000,
+	GRAPHICS_DEVICE_FLAG_VIDEOTEXTURE	= 0x4000,
+	GRAPHICS_DEVICE_FLAG_SYSTEMTEXTURE	= 0x8000,
 };
-DEFINE_ENUM_FLAG_OPERATORS(DirectDraw_DeviceFlags);
-static_assert(sizeof(DirectDraw_DeviceFlags) == 0x4, "");
+flags_end(Graphics_DeviceFlags, 0x4);
 
 
-enum DirectDraw_ModeFlags : uint32
+enum Graphics_ModeFlags : uint32
 {
-	DIRECTDRAW_FLAG_MODE_NONE				= 0,
+	GRAPHICS_MODE_FLAG_NONE				= 0,
 
-	DIRECTDRAW_FLAG_MODE_VALID				= 0x1,
+	GRAPHICS_MODE_FLAG_VALID			= 0x1,
 };
-DEFINE_ENUM_FLAG_OPERATORS(DirectDraw_ModeFlags);
-static_assert(sizeof(DirectDraw_ModeFlags) == 0x4, "");
+flags_end(Graphics_ModeFlags, 0x4);
 
 #pragma endregion
 
@@ -121,36 +117,36 @@ static_assert(sizeof(DirectDraw_ModeFlags) == 0x4, "");
 
 #pragma region Structs
 
-struct DirectDraw_Driver
+struct Graphics_Driver
 {
 	/*000,10*/ GUID guid;
-	/*010,100*/ char desc[DIRECTDRAW_DRIVERSTRINGLEN];
-	/*110,4*/ DirectDraw_DriverFlags flags;
+	/*010,100*/ char desc[GRAPHICS_DRIVERSTRINGLEN];
+	/*110,4*/ Graphics_DriverFlags flags;
 	/*114*/
 };
-static_assert(sizeof(DirectDraw_Driver) == 0x114, "");
+assert_sizeof(Graphics_Driver, 0x114);
 
 
-struct DirectDraw_Device
+struct Graphics_Device
 {
 	/*000,10*/ GUID guid;
-	/*010,100*/ char desc[DIRECTDRAW_DEVICESTRINGLEN];
-	/*110,4*/ DirectDraw_DeviceFlags flags;
+	/*010,100*/ char desc[GRAPHICS_DEVICESTRINGLEN];
+	/*110,4*/ Graphics_DeviceFlags flags;
 	/*114*/
 };
-static_assert(sizeof(DirectDraw_Device) == 0x114, "");
+assert_sizeof(Graphics_Device, 0x114);
 
 
-struct DirectDraw_Mode
+struct Graphics_Mode
 {
 	/*000,4*/ uint32 width;
 	/*004,4*/ uint32 height;
 	/*008,4*/ uint32 bitDepth;
-	/*00c,100*/ char desc[DIRECTDRAW_DEVICESTRINGLEN];
-	/*10c,4*/ DirectDraw_ModeFlags flags;
+	/*00c,100*/ char desc[GRAPHICS_MODESTRINGLEN];
+	/*10c,4*/ Graphics_ModeFlags flags;
 	/*110*/
 };
-static_assert(sizeof(DirectDraw_Mode) == 0x110, "");
+assert_sizeof(Graphics_Mode, 0x110);
 
 
 struct DirectDraw_Globs
@@ -163,11 +159,11 @@ struct DirectDraw_Globs
 	/*10,4*/ IDirectDrawSurface4* zSurf;			// (unused)
 	/*14,4*/ IDirectDrawClipper* lpFrontClipper;
 	/*18,4*/ IDirectDrawClipper* lpBackClipper;
-	/*1c,4*/ DirectDraw_Driver* driverList;
-	/*20,4*/ DirectDraw_Driver* selectedDriver;		// (unused)
-	/*24,4*/ DirectDraw_Device* deviceList;
-	/*28,4*/ DirectDraw_Device* selectedDevice;		// (unused)
-	/*2c,4*/ DirectDraw_Mode* modeList;
+	/*1c,4*/ Graphics_Driver* driverList;
+	/*20,4*/ Graphics_Driver* selectedDriver;		// (unused)
+	/*24,4*/ Graphics_Device* deviceList;
+	/*28,4*/ Graphics_Device* selectedDevice;		// (unused)
+	/*2c,4*/ Graphics_Mode* modeList;
 	/*30,4*/ uint32 driverCount;
 	/*34,4*/ uint32 deviceCount;
 	/*38,4*/ uint32 modeCount;
@@ -177,7 +173,7 @@ struct DirectDraw_Globs
 	// [globs: end]
 	/*48*/
 };
-static_assert(sizeof(DirectDraw_Globs) == 0x48, "");
+assert_sizeof(DirectDraw_Globs, 0x48);
 
 #pragma endregion
 
@@ -222,13 +218,13 @@ __inline bool32 DirectDraw_FullScreen(void) { return directDrawGlobs.fullScreen;
 void __cdecl DirectDraw_Initialise(HWND hWnd);
 
 // <LegoRR.exe @0047c480>
-bool32 __cdecl DirectDraw_EnumDrivers(OUT DirectDraw_Driver* list, OUT uint32* count);
+bool32 __cdecl DirectDraw_EnumDrivers(OUT Graphics_Driver* list, OUT uint32* count);
 
 // <LegoRR.exe @0047c4b0>
 BOOL __stdcall DirectDraw_EnumDriverCallback(GUID FAR* lpGUID, LPSTR lpDriverDescription, LPSTR lpDriverName, LPVOID lpContext);
 
 // <LegoRR.exe @0047c5a0>
-bool32 __cdecl DirectDraw_EnumDevices(const DirectDraw_Driver* driver, OUT DirectDraw_Device* list, OUT uint32* count);
+bool32 __cdecl DirectDraw_EnumDevices(const Graphics_Driver* driver, OUT Graphics_Device* list, OUT uint32* count);
 
 // <LegoRR.exe @0047c640>
 HRESULT __stdcall DirectDraw_EnumDeviceCallback(LPGUID lpGuid, LPSTR lpDeviceDescription,
@@ -236,14 +232,14 @@ HRESULT __stdcall DirectDraw_EnumDeviceCallback(LPGUID lpGuid, LPSTR lpDeviceDes
 											LPD3DDEVICEDESC lpHELDesc, LPVOID lpContext);
 
 // <LegoRR.exe @0047c770>
-bool32 __cdecl DirectDraw_EnumModes(const DirectDraw_Driver* driver, bool32 fullScreen, OUT DirectDraw_Mode* list, OUT uint32* count);
+bool32 __cdecl DirectDraw_EnumModes(const Graphics_Driver* driver, bool32 fullScreen, OUT Graphics_Mode* list, OUT uint32* count);
 
 // <LegoRR.exe @0047c810>
 HRESULT __stdcall DirectDraw_EnumModeCallback(LPDDSURFACEDESC2 lpDDSurfaceDesc, LPVOID lpContext);
 
 // <LegoRR.exe @0047c8d0>
-bool32 __cdecl DirectDraw_Setup(bool32 fullscreen, const DirectDraw_Driver* driver, const DirectDraw_Device* device,
-								const DirectDraw_Mode* mode, uint32 xPos, uint32 yPos, uint32 width, uint32 height);
+bool32 __cdecl DirectDraw_Setup(bool32 fullscreen, const Graphics_Driver* driver, const Graphics_Device* device,
+								const Graphics_Mode* mode, uint32 xPos, uint32 yPos, uint32 width, uint32 height);
 
 // <LegoRR.exe @0047cb90>
 void __cdecl DirectDraw_Flip(void);
@@ -284,10 +280,10 @@ uint32 __cdecl DirectDraw_GetNumberOfBits(uint32 mask);
 
 
 // <inlined>
-__inline bool32 DirectDraw_SetupFullScreen(const DirectDraw_Driver* driver, const DirectDraw_Device* device, const DirectDraw_Mode* mode) { return DirectDraw_Setup(true, driver, device, mode, 0, 0, 320, 200); }
+__inline bool32 DirectDraw_SetupFullScreen(const Graphics_Driver* driver, const Graphics_Device* device, const Graphics_Mode* mode) { return DirectDraw_Setup(true, driver, device, mode, 0, 0, 320, 200); }
 
 // <inlined>
-__inline bool32 DirectDraw_SetupWindowed(const DirectDraw_Device* device, uint32 xPos, uint32 yPos, uint32 width, uint32 height) { return DirectDraw_Setup(false, nullptr, device, nullptr, xPos, yPos, width, height); }
+__inline bool32 DirectDraw_SetupWindowed(const Graphics_Device* device, uint32 xPos, uint32 yPos, uint32 width, uint32 height) { return DirectDraw_Setup(false, nullptr, device, nullptr, xPos, yPos, width, height); }
 
 #pragma endregion
 

@@ -36,7 +36,7 @@ void __cdecl Gods98::Font_Initialise(void)
 
 	fontGlobs.freeList = nullptr;
 	fontGlobs.listCount = 0;
-	fontGlobs.flags = Font_GlobFlags::FONT_FLAG_INITIALISED;
+	fontGlobs.flags = Font_GlobFlags::FONT_GLOB_FLAG_INITIALISED;
 }
 
 // <missing>
@@ -51,7 +51,7 @@ void __cdecl Gods98::Font_Shutdown(void)
 	}
 
 	fontGlobs.freeList = nullptr;
-	fontGlobs.flags = Font_GlobFlags::FONT_FLAG_NONE;
+	fontGlobs.flags = Font_GlobFlags::FONT_GLOB_FLAG_NONE;
 }
 
 

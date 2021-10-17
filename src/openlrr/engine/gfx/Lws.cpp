@@ -9,7 +9,7 @@
 #include "../core/Maths.h"
 #include "../core/Memory.h"
 #include "../core/Utils.h"
-#include "../Main.h"
+#include "../Graphics.h"
 #include "Mesh.h"
 
 #include "Lws.h"

@@ -43,29 +43,22 @@ typedef void (__cdecl* DrawPixelFunc)(sint32 x, sint32 y, uint32 value);
 
 #define DRAW_VERTEXFLAGS			(D3DFVF_DIFFUSE|D3DFVF_XYZ)
 
-//#define DRAW_FLAG_INITIALISED	0x00000001
-
-namespace _ns_Draw_GlobFlags {
-enum Draw_GlobFlags : uint32
+flags_scoped(Draw_GlobFlags) : uint32
 {
-	DRAW_FLAG_NONE        = 0,
+	DRAW_GLOB_FLAG_NONE        = 0,
 
-	DRAW_FLAG_INITIALISED = 0x1,
+	DRAW_GLOB_FLAG_INITIALISED = 0x1,
 };
-DEFINE_ENUM_FLAG_OPERATORS(Draw_GlobFlags);
-static_assert(sizeof(Draw_GlobFlags) == 0x4, "");
-} using Draw_GlobFlags = _ns_Draw_GlobFlags::Draw_GlobFlags;
+flags_scoped_end(Draw_GlobFlags, 0x4);
 
 
-namespace _ns_DrawEffect {
-enum DrawEffect : uint32
+enum class DrawEffect : uint32
 {
-	DrawEffect_None      = 0,
-	DrawEffect_XOR       = 1,
-	DrawEffect_HalfTrans = 2,
+	None      = 0,
+	XOR       = 1,
+	HalfTrans = 2,
 };
-static_assert(sizeof(DrawEffect) == 0x4, "");
-} using DrawEffect = _ns_DrawEffect::DrawEffect;
+assert_sizeof(DrawEffect, 0x4);
 
 #pragma endregion
 
@@ -83,7 +76,7 @@ struct Draw_Rect
 	/*18,4*/ real32 b;
 	/*1c*/
 };
-static_assert(sizeof(Draw_Rect) == 0x1c, "");
+assert_sizeof(Draw_Rect, 0x1c);
 
 
 struct DrawLineVertex
@@ -92,7 +85,7 @@ struct DrawLineVertex
 	/*0c,4*/ uint32 colour;
 	/*10*/
 };
-static_assert(sizeof(DrawLineVertex) == 0x10, "");
+assert_sizeof(DrawLineVertex, 0x10);
 
 
 struct Draw_Globs
@@ -116,7 +109,7 @@ struct Draw_Globs
 	// [globs: end]
 	/*4c*/
 };
-static_assert(sizeof(Draw_Globs) == 0x4c, "");
+assert_sizeof(Draw_Globs, 0x4c);
 
 #pragma endregion
 
@@ -137,20 +130,20 @@ extern Draw_Globs & drawGlobs;
 
 #pragma region Functions
 
-#define Draw_PixelList(p,c,r,g,b)					Draw_PixelListEx((p),(c),(r),(g),(b),Gods98::DrawEffect::DrawEffect_None)
-#define Draw_LineList(f,t,c,r,g,b)					Draw_LineListEx((f),(t),(c),(r),(g),(b),Gods98::DrawEffect::DrawEffect_None)
-#define Draw_WorldLineList(v,f,t,c,r,g,b,a)			Draw_WorldLineListEx((v),(f),(t),(c),(r),(g),(b),(a),Gods98::DrawEffect::DrawEffect_None)
-#define Draw_RectList(a,c,r,g,b)					Draw_RectListEx((a),(c),(r),(g),(b),Gods98::DrawEffect::DrawEffect_None)
+#define Draw_PixelList(p,c,r,g,b)					Draw_PixelListEx((p),(c),(r),(g),(b),Gods98::DrawEffect::None)
+#define Draw_LineList(f,t,c,r,g,b)					Draw_LineListEx((f),(t),(c),(r),(g),(b),Gods98::DrawEffect::None)
+#define Draw_WorldLineList(v,f,t,c,r,g,b,a)			Draw_WorldLineListEx((v),(f),(t),(c),(r),(g),(b),(a),Gods98::DrawEffect::None)
+#define Draw_RectList(a,c,r,g,b)					Draw_RectListEx((a),(c),(r),(g),(b),Gods98::DrawEffect::None)
 
-#define Draw_PixelListXOR(p,c,r,g,b)				Draw_PixelListEx((p),(c),(r),(g),(b),Gods98::DrawEffect::DrawEffect_XOR)
-#define Draw_LineListXOR(f,t,c,r,g,b)				Draw_LineListEx((f),(t),(c),(r),(g),(b),Gods98::DrawEffect::DrawEffect_XOR)
-	//#define Draw_WorldLineListXOR(v,f,t,c,r,g,b,a)		Draw_WorldLineListEx((v),(f),(t),(c),(r),(g),(b),(a),Gods98::DrawEffect::DrawEffect_XOR)
-#define Draw_RectListXOR(a,c,r,g,b)					Draw_RectListEx((a),(c),(r),(g),(b),Gods98::DrawEffect::DrawEffect_XOR)
+#define Draw_PixelListXOR(p,c,r,g,b)				Draw_PixelListEx((p),(c),(r),(g),(b),Gods98::DrawEffect::XOR)
+#define Draw_LineListXOR(f,t,c,r,g,b)				Draw_LineListEx((f),(t),(c),(r),(g),(b),Gods98::DrawEffect::XOR)
+	//#define Draw_WorldLineListXOR(v,f,t,c,r,g,b,a)		Draw_WorldLineListEx((v),(f),(t),(c),(r),(g),(b),(a),Gods98::DrawEffect::XOR)
+#define Draw_RectListXOR(a,c,r,g,b)					Draw_RectListEx((a),(c),(r),(g),(b),Gods98::DrawEffect::XOR)
 
-#define Draw_PixelListHalfTrans(p,c,r,g,b)			Draw_PixelListEx((p),(c),(r),(g),(b),Gods98::DrawEffect::DrawEffect_HalfTrans)
-#define Draw_LineListHalfTrans(f,t,c,r,g,b)			Draw_LineListEx((f),(t),(c),(r),(g),(b),Gods98::DrawEffect::DrawEffect_HalfTrans)
-//#define Draw_WorldLineListHalfTrans(v,f,t,c,r,g,b,a)	Draw_WorldLineListEx((v),(f),(t),(c),(r),(g),(b),(a),Gods98::DrawEffect::DrawEffect_HalfTrans)
-#define Draw_RectListHalfTrans(a,c,r,g,b)			Draw_RectListEx((a),(c),(r),(g),(b),Gods98::DrawEffect::DrawEffect_HalfTrans)
+#define Draw_PixelListHalfTrans(p,c,r,g,b)			Draw_PixelListEx((p),(c),(r),(g),(b),Gods98::DrawEffect::HalfTrans)
+#define Draw_LineListHalfTrans(f,t,c,r,g,b)			Draw_LineListEx((f),(t),(c),(r),(g),(b),Gods98::DrawEffect::HalfTrans)
+//#define Draw_WorldLineListHalfTrans(v,f,t,c,r,g,b,a)	Draw_WorldLineListEx((v),(f),(t),(c),(r),(g),(b),(a),Gods98::DrawEffect::HalfTrans)
+#define Draw_RectListHalfTrans(a,c,r,g,b)			Draw_RectListEx((a),(c),(r),(g),(b),Gods98::DrawEffect::HalfTrans)
 
 
 // <LegoRR.exe @00486140>

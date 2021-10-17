@@ -98,9 +98,9 @@ void __cdecl Gods98::File_Initialise(const char* programName, bool32 insistOnCD,
 		char msgNoCD[1024];
 		char msgError[1024] = "Error";
 
-		if (Registry_GetValue(registryLocation, "CDMissing", REGISTRY_STRING_VALUE, msgNoCD, sizeof(msgNoCD))) {
+		if (Registry_GetValue(registryLocation, "CDMissing", RegistryValue::String, msgNoCD, sizeof(msgNoCD))) {
 
-			Registry_GetValue(registryLocation, "SetupError", REGISTRY_STRING_VALUE, msgError, sizeof(msgError));
+			Registry_GetValue(registryLocation, "SetupError", RegistryValue::String, msgError, sizeof(msgError));
 
 			if (::MessageBoxA(nullptr, msgNoCD, msgError, MB_OKCANCEL) == IDCANCEL) std::exit(0);
 
@@ -153,8 +153,8 @@ void __cdecl Gods98::File_Initialise(const char* programName, bool32 insistOnCD,
 		char msgNoData[1024];
 		char msgError[1024] = "Error";
 
-		if (Registry_GetValue(registryLocation, "DataMissing", REGISTRY_STRING_VALUE, msgNoData, sizeof(msgNoData))) {
-			Registry_GetValue(registryLocation, "SetupError", REGISTRY_STRING_VALUE, msgError, sizeof(msgError));
+		if (Registry_GetValue(registryLocation, "DataMissing", RegistryValue::String, msgNoData, sizeof(msgNoData))) {
+			Registry_GetValue(registryLocation, "SetupError", RegistryValue::String, msgError, sizeof(msgError));
 			::MessageBoxA(nullptr, msgNoData, msgError, MB_OK);
 		}
 		std::exit(0);
@@ -291,7 +291,7 @@ Gods98::File* __cdecl Gods98::File_Open(const char* fName, const char* mode)
 	switch (fs)
 	{
 	
-	case FileSys::FileSystem_Std: {
+	case FileSys::Standard: {
 		file = _File_Alloc(fs); if (!file) return nullptr;
 		file->std = std::fopen(fullName, mode);
 		if (file->std)
@@ -314,7 +314,7 @@ Gods98::File* __cdecl Gods98::File_Open(const char* fName, const char* mode)
 		}
 		break;
 	}
-	case FileSys::FileSystem_Wad: {
+	case FileSys::Wad: {
 		file = _File_Alloc(fs); if (!file) return nullptr;
 		if (_File_OpenWad(file->wad, _File_GetWadName(fullName)))
 		{
@@ -329,7 +329,7 @@ Gods98::File* __cdecl Gods98::File_Open(const char* fName, const char* mode)
 		}
 		break;
 	}
-	case FileSys::FileSystem_Err:
+	case FileSys::Error:
 	default:
 		File_Error("%s(%i) : Error in call to %s\n", __FILE__, __LINE__, "File_Open");
 		break;
@@ -338,40 +338,40 @@ Gods98::File* __cdecl Gods98::File_Open(const char* fName, const char* mode)
 }
 
 // <LegoRR.exe @0047fb10>
-sint32 __cdecl Gods98::File_Seek(File* f, sint32 pos, sint32 mode)
+sint32 __cdecl Gods98::File_Seek(File* f, sint32 pos, SeekOrigin mode)
 {
 	log_firstcall();
 
 	FileSys fs = _File_GetSystem(f);
 	switch (fs)
 	{
-	case FileSys::FileSystem_Std:
-		return (sint32)std::fseek(StdFile(f), pos, mode);
+	case FileSys::Standard:
+		return (sint32)std::fseek(StdFile(f), pos, (sint32)mode);
 
-	case FileSys::FileSystem_Wad:
+	case FileSys::Wad:
 		switch (mode)
 		{
-		case SEEK_SET:
+		case SeekOrigin::Set:
 			WadFile(f)->streamPos = pos;
 			if (WadFile(f)->streamPos > Wad_hLength(WadFile(f)->hFile))
 				WadFile(f)->streamPos = Wad_hLength(WadFile(f)->hFile);
 			if (WadFile(f)->streamPos < 0) WadFile(f)->streamPos = 0;
 			break;
-		case SEEK_CUR:
+		case SeekOrigin::Current:
 			WadFile(f)->streamPos += pos;
 			if (WadFile(f)->streamPos > Wad_hLength(WadFile(f)->hFile))
 				WadFile(f)->streamPos = Wad_hLength(WadFile(f)->hFile);
 			if (WadFile(f)->streamPos < 0) WadFile(f)->streamPos = 0;
 			break;
-		case SEEK_END:
+		case SeekOrigin::End:
 			WadFile(f)->streamPos = Wad_hLength(WadFile(f)->hFile) + pos;
 			break;
 		default:
-			File_Error("Uknown seek mode (%i)", mode);
+			File_Error("Uknown seek mode (%i)", (sint32)mode);
 		}
 		break;
 
-	case FileSys::FileSystem_Err:
+	case FileSys::Error:
 	default:
 		File_Error("%s(%i) : Unknown file system in call to %s", __FILE__, __LINE__, "File_Seek");
 		break;
@@ -387,10 +387,10 @@ sint32 __cdecl Gods98::File_Read(OUT void* buffer, sint32 size, sint32 count, Fi
 	FileSys fs = _File_GetSystem(f);
 	switch (fs)
 	{
-	case FileSys::FileSystem_Std:
+	case FileSys::Standard:
 		return (sint32)std::fread(buffer, size, count, StdFile(f));
 
-	case FileSys::FileSystem_Wad: {
+	case FileSys::Wad: {
 		int len = Wad_hLength(WadFile(f)->hFile);
 		int amountToCopy;
 		if ((WadFile(f)->streamPos + (size * count)) > len) amountToCopy = len - WadFile(f)->streamPos;
@@ -399,7 +399,7 @@ sint32 __cdecl Gods98::File_Read(OUT void* buffer, sint32 size, sint32 count, Fi
 		WadFile(f)->streamPos += amountToCopy;
 		return amountToCopy / size;
 	}
-	case FileSys::FileSystem_Err:
+	case FileSys::Error:
 	default:
 		File_Error("%s(%i) : Unknown file system in call to %s", __FILE__, __LINE__, "File_Read");
 		break;
@@ -415,13 +415,13 @@ sint32 __cdecl Gods98::File_Write(const void* buffer, sint32 size, sint32 count,
 	FileSys fs = _File_GetSystem(f);
 	switch (fs)
 	{
-	case FileSys::FileSystem_Std:
+	case FileSys::Standard:
 		return (sint32)std::fwrite(buffer, size, count, StdFile(f));
 
-	case FileSys::FileSystem_Wad:
+	case FileSys::Wad:
 		File_Error("Cannot write to a file stored in a Wad!");
 		break;
-	case FileSys::FileSystem_Err:
+	case FileSys::Error:
 	default:
 		File_Error("%s(%i) : Unknown file system in call to %s", __FILE__, __LINE__, "File_Write");
 		break;
@@ -437,11 +437,11 @@ sint32 __cdecl Gods98::File_Close(File* f)
 	FileSys fs = _File_GetSystem(f);
 	switch (fs)
 	{
-	case FileSys::FileSystem_Std:
-	case FileSys::FileSystem_Wad:
+	case FileSys::Standard:
+	case FileSys::Wad:
 		_File_Dealloc(f);
 		break;
-	case FileSys::FileSystem_Err:
+	case FileSys::Error:
 	default:
 		File_Error("%s(%i) : Unknown file system in call to %s", __FILE__, __LINE__, "File_Close");
 		break;
@@ -455,13 +455,13 @@ sint32 __cdecl Gods98::File_EOF(File* f)
 	FileSys fs = _File_GetSystem(f);
 	switch (fs)
 	{
-	case FileSys::FileSystem_Std:
+	case FileSys::Standard:
 		return (sint32)std::feof(StdFile(f));
 
-	case FileSys::FileSystem_Wad:
+	case FileSys::Wad:
 		return WadFile(f)->streamPos >= (Wad_hLength(WadFile(f)->hFile) - 1);
 
-	case FileSys::FileSystem_Err:
+	case FileSys::Error:
 	default:
 		File_Error("%s(%i) : Unknown file system in call to %s", __FILE__, __LINE__, "File_EOF");
 		break;
@@ -477,13 +477,13 @@ sint32 __cdecl Gods98::File_Tell(File* f)
 	FileSys fs = _File_GetSystem(f);
 	switch (fs)
 	{
-	case FileSys::FileSystem_Std:
+	case FileSys::Standard:
 		return (sint32)std::ftell(StdFile(f));
 
-	case FileSys::FileSystem_Wad:
+	case FileSys::Wad:
 		return WadFile(f)->streamPos;
 
-	case FileSys::FileSystem_Err:
+	case FileSys::Error:
 	default:
 		File_Error("%s(%i) : Unknown file system in call to %s", __FILE__, __LINE__, "File_Tell");
 		break;
@@ -497,13 +497,13 @@ sint32 __cdecl Gods98::File_Flush(File* f)
 	FileSys fs = _File_GetSystem(f);
 	switch (fs)
 	{
-	case FileSys::FileSystem_Std:
+	case FileSys::Standard:
 		return (sint32)std::fflush(StdFile(f));
 
-	case FileSys::FileSystem_Wad:
+	case FileSys::Wad:
 		return 0;
 
-	case FileSys::FileSystem_Err:
+	case FileSys::Error:
 	default:
 		File_Error("%s(%i) : Unknown file system in call to %s", __FILE__, __LINE__, "File_Flush");
 		break;
@@ -520,7 +520,7 @@ bool32 __cdecl Gods98::File_Exists(const char* fName)
 	FileSys fs = _File_CheckSystem(fullName, "r");
 	switch (fs)
 	{
-	case FileSys::FileSystem_Std: {
+	case FileSys::Standard: {
 		FILE* f = std::fopen(fullName, "r");
 		if (f)
 		{
@@ -537,10 +537,10 @@ bool32 __cdecl Gods98::File_Exists(const char* fName)
 		}
 		break;
 	}
-	case FileSys::FileSystem_Wad:
+	case FileSys::Wad:
 		return Wad_IsFileInWad(fullName, currWadHandle);
 
-	case FileSys::FileSystem_Err:
+	case FileSys::Error:
 	default:
 		break;
 	}
@@ -555,10 +555,10 @@ sint32 __cdecl Gods98::File_GetC(File* f)
 	FileSys fs = _File_GetSystem(f);
 	switch (fs)
 	{
-	case FileSys::FileSystem_Std:
+	case FileSys::Standard:
 		return (sint32)std::fgetc(StdFile(f));
 
-	case FileSys::FileSystem_Wad: {
+	case FileSys::Wad: {
 		sint32 len = Wad_hLength(WadFile(f)->hFile);
 		if (WadFile(f)->streamPos >= len - 1)
 		{
@@ -571,7 +571,7 @@ sint32 __cdecl Gods98::File_GetC(File* f)
 			return c;
 		}
 	}
-	case FileSys::FileSystem_Err:
+	case FileSys::Error:
 	default:
 		File_Error("%s(%i) : Unknown file system in call to %s", __FILE__, __LINE__, "File_GetC");
 		break;
@@ -585,9 +585,9 @@ sint32 __cdecl Gods98::File_Length(File* f)
 	log_firstcall();
 
 	sint32 pos = File_Tell(f);
-	File_Seek(f, 0, SEEK_END);
+	File_Seek(f, 0, SeekOrigin::End);
 	sint32 len = File_Tell(f);
-	File_Seek(f, pos, SEEK_SET);
+	File_Seek(f, pos, SeekOrigin::Set);
 	return len;
 }
 
@@ -613,13 +613,13 @@ char* __cdecl Gods98::File_GetS(OUT char* fgetsBuffer, sint32 num, File* f)
 	FileSys fs = _File_GetSystem(f);
 	switch (fs)
 	{
-	case FileSys::FileSystem_Std:
+	case FileSys::Standard:
 		return std::fgets(fgetsBuffer, num, StdFile(f));
 
-	case FileSys::FileSystem_Wad:
+	case FileSys::Wad:
 		return File_InternalFGetS(fgetsBuffer, num, f);
 
-	case FileSys::FileSystem_Err:
+	case FileSys::Error:
 	default:
 		File_Error("%s(%i) : Unknown file system in call to %s", __FILE__, __LINE__, "File_GetS");
 		break;
@@ -640,16 +640,16 @@ sint32 __cdecl Gods98::File_PrintF(File* f, const char* msg, ...)
 
 	switch (fs)
 	{
-	case FileSys::FileSystem_Std: {
+	case FileSys::Standard: {
 		/// FIXME: ret is not returned
 		sint32 ret = std::vfprintf(StdFile(f), msg, arg);
 		va_end(arg);
 		break;
 	}
-	case FileSys::FileSystem_Wad:
+	case FileSys::Wad:
 		File_Error("\"fprintf\" is unsupprted for wad files");
 		break;
-	case FileSys::FileSystem_Err:
+	case FileSys::Error:
 	default:
 		File_Error("%s(%i) : Unknown file system in call to %s", __FILE__, __LINE__, "File_PrintF");
 		break;
@@ -662,7 +662,7 @@ uint32 __cdecl Gods98::File_VPrintF(File* f, const char* msg, std::va_list args)
 {
 	FileSys fs = _File_GetSystem(f);
 
-	if (FileSys::FileSystem_Std == fs)
+	if (FileSys::Standard == fs)
 	{
 		char buffer[1024];
 
@@ -697,12 +697,12 @@ Gods98::FileSys __cdecl Gods98::_File_CheckSystem(const char* fName, const char*
 {
 	log_firstcall();
 
-	if (!fName || !mode || !std::strlen(fName) || !std::strlen(mode)) return FileSys::FileSystem_Err;
+	if (!fName || !mode || !std::strlen(fName) || !std::strlen(mode)) return FileSys::Error;
 
 	if (mode[0] == 'w' || mode[0] == 'W')
 	{
 		// File must be opened as stdC
-		return FileSys::FileSystem_Std;
+		return FileSys::Standard;
 	}
 	else
 	{
@@ -710,9 +710,9 @@ Gods98::FileSys __cdecl Gods98::_File_CheckSystem(const char* fName, const char*
 //		if (currWadHandle != WAD_ERROR && Wad_IsFileInWad(_File_GetWadName(fName), currWadHandle) != WAD_ERROR)
 		{
 			// The file is in the wad so we can use the wad version
-			return FileSys::FileSystem_Wad;
+			return FileSys::Wad;
 		}	// Otherwise we will try the normal file system
-		else return FileSys::FileSystem_Std;
+		else return FileSys::Standard;
 	}
 }
 
@@ -732,14 +732,14 @@ Gods98::File* __cdecl Gods98::_File_Alloc(FileSys fType)
 {
 	log_firstcall();
 
-	if (fType == FileSys::FileSystem_Std)
+	if (fType == FileSys::Standard)
 	{
 		File* f;
 		f = (File*)_File_Malloc(sizeof(File));
 		f->type = fType;
 		return f;
 	}
-	else if (fType == FileSys::FileSystem_Wad)
+	else if (fType == FileSys::Wad)
 	{
 		File* f = (File*)_File_Malloc(sizeof(File));
 		if (f)
@@ -776,12 +776,12 @@ void __cdecl Gods98::_File_Dealloc(File* file)
 
 	if (file)
 	{
-		if (_File_GetSystem(file) == FileSys::FileSystem_Std)
+		if (_File_GetSystem(file) == FileSys::Standard)
 		{
 			if (file->std) std::fclose(StdFile(file));
 			_File_Free(file);
 		}
-		else if (_File_GetSystem(file) == FileSys::FileSystem_Wad)
+		else if (_File_GetSystem(file) == FileSys::Wad)
 		{
 			if (file->wad)
 			{
@@ -861,7 +861,7 @@ void* __cdecl Gods98::File_Load(const char* filename, OUT uint32* sizeptr, bool3
 
 	File* ifp;
 	if (ifp = File_Open(filename, binary ? "rb" : "r")) {
-		File_Seek(ifp, 0, FileOrigin::File_SeekEnd);
+		File_Seek(ifp, 0, SeekOrigin::End);
 		uint32 size = File_Tell(ifp);
 
 		if (fileGlobs.loadCallback) fileGlobs.loadCallback(filename, size, fileGlobs.loadCallbackData);
@@ -869,7 +869,7 @@ void* __cdecl Gods98::File_Load(const char* filename, OUT uint32* sizeptr, bool3
 		char* buffer;
 		if (buffer = (char*)Mem_Alloc(size)) {
 
-			File_Seek(ifp, 0, FileOrigin::File_SeekSet);
+			File_Seek(ifp, 0, SeekOrigin::Set);
 			File_Read(buffer, sizeof(char), size, ifp);
 			if (sizeptr != nullptr) *sizeptr = size;
 
@@ -889,14 +889,14 @@ uint32 __cdecl Gods98::File_LoadBinaryHandle(const char* filename, OUT uint32* s
 
 	File* ifp;
 	if (ifp = File_Open(filename, "rb")) {
-		File_Seek(ifp, 0, FileOrigin::File_SeekEnd);
+		File_Seek(ifp, 0, SeekOrigin::End);
 		uint32 size = File_Tell(ifp);
 		if (fileGlobs.loadCallback) fileGlobs.loadCallback(filename, size, fileGlobs.loadCallbackData);
 
 		uint32 handle;
 		if ((handle = Mem_AllocHandle(size)) != -1) {
 			char* buffer = (char*) Mem_AddressHandle(handle);
-			File_Seek(ifp, 0, FileOrigin::File_SeekSet);
+			File_Seek(ifp, 0, SeekOrigin::Set);
 			File_Read(buffer, sizeof(char), size, ifp);
 			if (sizeptr != nullptr) *sizeptr = size;
 
@@ -942,7 +942,7 @@ const char* __cdecl Gods98::File_VerifyFilename(const char* filename)
 	}
 
 	Error_Warn(true, Error_Format("Cannot verify file name \"%s\".", filename));
-	Error_LogLoadError(true, Error_Format("%d\t%s", Error_LoadError_UnableToVerifyName, filename));
+	Error_LogLoadError(true, Error_Format("%d\t%s", (sint32)Error_LoadError::UnableToVerifyName, filename));
 
 	return nullptr;
 }

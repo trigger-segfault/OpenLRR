@@ -74,28 +74,16 @@ typedef sint32 (__cdecl* LwsPlaySample3DFunc)(void* frame, uint32 type, bool32 l
 
 #pragma region Enums
 
-/*
-#define LWS_FLAG_LOOPING			0x01
-
-#define LWSNODE_FLAG_NULL			0x01
-#define LWSNODE_FLAG_SOUNDTRIGGER	0x02
-#define LWSNODE_FLAG_FACECAMERA		0x04
-*/
-
-namespace _ns_LwsFlags {
-enum LwsFlags : uint8
+flags_scoped(LwsFlags) : uint8
 {
 	LWS_FLAG_NONE    = 0,
 
 	LWS_FLAG_LOOPING = 0x1,
 };
-DEFINE_ENUM_FLAG_OPERATORS(LwsFlags);
-static_assert(sizeof(LwsFlags) == 0x1, "");
-} using LwsFlags = _ns_LwsFlags::LwsFlags;
+flags_scoped_end(LwsFlags, 0x1);
 
 
-namespace _ns_Lws_NodeFlags {
-enum Lws_NodeFlags : uint8
+flags_scoped(Lws_NodeFlags) : uint8
 {
 	LWSNODE_FLAG_NONE         = 0,
 
@@ -103,10 +91,7 @@ enum Lws_NodeFlags : uint8
 	LWSNODE_FLAG_SOUNDTRIGGER = 0x2,
 	LWSNODE_FLAG_FACECAMERA   = 0x4,
 };
-DEFINE_ENUM_FLAG_OPERATORS(Lws_NodeFlags);
-static_assert(sizeof(Lws_NodeFlags) == 0x1, "");
-} using Lws_NodeFlags = _ns_Lws_NodeFlags::Lws_NodeFlags;
-
+flags_scoped_end(Lws_NodeFlags, 0x1);
 
 #pragma endregion
 
@@ -127,7 +112,7 @@ struct Lws_SoundTrigger
 	/*ce,2*/ uint16 padding1;
 	/*d0*/
 };
-static_assert(sizeof(Lws_SoundTrigger) == 0xd0, "");
+assert_sizeof(Lws_SoundTrigger, 0xd0);
 
 
 struct Lws_KeyInfo
@@ -139,7 +124,7 @@ struct Lws_KeyInfo
 	/*26,2*/ uint16 padding1;
 	/*28*/
 };
-static_assert(sizeof(Lws_KeyInfo) == 0x28, "");
+assert_sizeof(Lws_KeyInfo, 0x28);
 
 
 struct Lws_Node
@@ -161,7 +146,7 @@ struct Lws_Node
 	/*30,4*/ Lws_Node* next;
 	/*34*/
 };
-static_assert(sizeof(Lws_Node) == 0x34, "");
+assert_sizeof(Lws_Node, 0x34);
 
 
 struct Lws_Info
@@ -186,7 +171,7 @@ struct Lws_Info
 	/*35,3*/ uint8 padding2[3];
 	/*38*/
 };
-static_assert(sizeof(Lws_Info) == 0x38, "");
+assert_sizeof(Lws_Info, 0x38);
 
 
 struct Lws_MeshPath
@@ -195,7 +180,7 @@ struct Lws_MeshPath
 	/*4,4*/ Mesh* mesh;
 	/*8*/
 };
-static_assert(sizeof(Lws_MeshPath) == 0x8, "");
+assert_sizeof(Lws_MeshPath, 0x8);
 
 
 struct Lws_Globs
@@ -212,7 +197,7 @@ struct Lws_Globs
 	/*4028,4*/ LwsPlaySample3DFunc PlaySample3DFunc;
 	/*402c*/
 };
-static_assert(sizeof(Lws_Globs) == 0x402c, "");
+assert_sizeof(Lws_Globs, 0x402c);
 
 #pragma endregion
 

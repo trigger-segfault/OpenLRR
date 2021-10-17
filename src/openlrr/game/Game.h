@@ -28,19 +28,38 @@
 
 
 /**********************************************************************************
+ ******** Forward Global Namespace Declarations
+ **********************************************************************************/
+
+#pragma region Forward Declarations
+
+/// TODO: Remove me once Lego module is finished
+#define Lego_Initialise ((bool32(__cdecl*)(void))0x0041fa80)
+#define Lego_MainLoop ((bool32(__cdecl*)(real32))0x00423210)
+#define Lego_Shutdown ((void(__cdecl*)(void))0x00424c20)
+#define Lego_Shutdown_Debug ((void(__cdecl*)(void))0x00424c30)
+
+#pragma endregion
+
+
+/**********************************************************************************
  ******** Game Entry point
  **********************************************************************************/
 
-namespace Gods98
+namespace LegoRR
 {; // !<---
 #pragma region Entry point
 
+/// CUSTOM: Basic setup performed by Lego_Gods_Go, but without calling Main_SetTitle or Main_SetState.
+void __cdecl Lego_Gods_Go_Setup(const char* programName, OUT Gods98::Main_State* mainState);
+
+/// NOTE: This is the original Gods_Go function and has been replaced by the implementation
+///       in OpenLRR. The above function is still used though.
 // This is the GAME entry point as called by WinMain,
 //  this should hook the Main_State loop functions and only perform basic initial setup.
 // (this can return bool32, but does not)
-// (LRR_Go)
 // <LegoRR.exe @0041f950>
-void __cdecl Gods_Go(const char* programName);
+void __cdecl Lego_Gods_Go(const char* programName);
 
 #pragma endregion
 }
@@ -328,7 +347,7 @@ struct Lego_Globs // [LegoRR/Lego.c|struct:0xf00|tags:GLOBS]
     /*004,4*/       const char* gameName;
     /*008,4*/       undefined4 field_8;
     /*00c,4*/       undefined4 field_c;
-    /*010,4*/       Gods98::MainQuality Quality;
+    /*010,4*/       Gods98::Graphics_Quality Quality;
     /*014,4*/       LevelData* level;
     /*018,4*/       Gods98::Container* contRoot; // containerGlobs.root
     /*01c,4*/       Gods98::Viewport* viewMain; // Viewport area: (0.0,0.0 - 1.0x1.0)

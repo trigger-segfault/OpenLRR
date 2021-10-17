@@ -39,7 +39,7 @@ void __cdecl Gods98::Config_Initialise(void)
 
 	configGlobs.freeList = nullptr;
 	configGlobs.listCount = 0;
-	configGlobs.flags = Config_GlobFlags::CONFIG_FLAG_INITIALISED;
+	configGlobs.flags = Config_GlobFlags::CONFIG_GLOB_FLAG_INITIALISED;
 }
 
 // <LegoRR.exe @004790e0>
@@ -52,7 +52,7 @@ void __cdecl Gods98::Config_Shutdown(void)
 	}
 
 	configGlobs.freeList = nullptr;
-	configGlobs.flags = Config_GlobFlags::CONFIG_FLAG_NONE;
+	configGlobs.flags = Config_GlobFlags::CONFIG_GLOB_FLAG_NONE;
 }
 
 /*void Config_SetCharacterTable(const char* fname);
@@ -78,7 +78,7 @@ Gods98::Config* __cdecl Gods98::Config_Load(const char* filename)
 	char* s;
 	char* fdata;
 
-	configGlobs.flags |= Config_GlobFlags::CONFIG_FLAG_LOADINGCONFIG;
+	configGlobs.flags |= Config_GlobFlags::CONFIG_GLOB_FLAG_LOADINGCONFIG;
 
 	/// FIXME: Load into buffer with one extra byte for null-termination
 	if (fdata = (char*)File_LoadBinary(filename, &fileSize)){
@@ -125,7 +125,7 @@ Gods98::Config* __cdecl Gods98::Config_Load(const char* filename)
 
 	}
 
-	configGlobs.flags &= ~Config_GlobFlags::CONFIG_FLAG_LOADINGCONFIG;
+	configGlobs.flags &= ~Config_GlobFlags::CONFIG_GLOB_FLAG_LOADINGCONFIG;
 
 	return rootConf;
 }

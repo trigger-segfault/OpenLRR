@@ -110,22 +110,7 @@ typedef bool32 (__cdecl* ContainerWalkTreeCallback)(IDirect3DRMFrame3* frame, vo
 
 #pragma region Enums
 
-/*
-#define CONTAINER_FLAG_INITIALISED		0x00000001 // Globs
-#define CONTAINER_FLAG_TRIGGERSAMPLE	0x00000002 // Container
-#define CONTAINER_FLAG_MESHSWAPPED		0x00000004 // Container
-#define CONTAINER_FLAG_HIDDEN			0x00000008 // Container
-#define CONTAINER_FLAG_DEADREFERENCE	0x00000010 // Container
-#define CONTAINER_FLAG_ANIMATIONSKIPPED	0x00000020 // Container
-#define CONTAINER_FLAG_TRIGGERENABLED	0x00000040 // Globs
-#define CONTAINER_FLAG_HIDDEN2			0x00000080 // Container
-
-
-//#define CONTAINER_TEXTURE_NOLOAD		0x00000001 // TextureData
-*/
-
-namespace _ns_ContainerFlags {
-enum ContainerFlags : uint32
+flags_scoped(ContainerFlags) : uint32
 {
 	CONTAINER_FLAG_NONE             = 0,
 
@@ -137,128 +122,108 @@ enum ContainerFlags : uint32
 
 	CONTAINER_FLAG_HIDDEN2          = 0x80,
 };
-DEFINE_ENUM_FLAG_OPERATORS(ContainerFlags);
-static_assert(sizeof(ContainerFlags) == 0x4, "");
-} using ContainerFlags = _ns_ContainerFlags::ContainerFlags;
+flags_scoped_end(ContainerFlags, 0x4);
 
 
-namespace _ns_Container_GlobFlags {
-enum Container_GlobFlags : uint32
+flags_scoped(Container_GlobFlags) : uint32
 {
-	CONTAINER_FLAG_NONE           = 0,
+	CONTAINER_GLOB_FLAG_NONE           = 0,
 
-	CONTAINER_FLAG_INITIALISED    = 0x1,
-	CONTAINER_FLAG_TRIGGERENABLED = 0x40,
+	CONTAINER_GLOB_FLAG_INITIALISED    = 0x1,
+	CONTAINER_GLOB_FLAG_TRIGGERENABLED = 0x40,
 };
-DEFINE_ENUM_FLAG_OPERATORS(Container_GlobFlags);
-static_assert(sizeof(Container_GlobFlags) == 0x4, "");
-} using Container_GlobFlags = _ns_Container_GlobFlags::Container_GlobFlags;
+flags_scoped_end(Container_GlobFlags, 0x4);
 
 
-namespace _ns_Container_TextureFlags {
-enum Container_TextureFlags : uint32
+flags_scoped(Container_TextureFlags) : uint32
 {
-	CONTAINER_TEXTURE_NONE   = 0,
+	CONTAINER_TEXTURE_FLAG_NONE   = 0,
 
-	CONTAINER_TEXTURE_NOLOAD = 0x1,
+	CONTAINER_TEXTURE_FLAG_NOLOAD = 0x1,
 };
-DEFINE_ENUM_FLAG_OPERATORS(Container_TextureFlags);
-static_assert(sizeof(Container_TextureFlags) == 0x4, "");
-} using Container_TextureFlags = _ns_Container_TextureFlags::Container_TextureFlags;
+flags_scoped_end(Container_TextureFlags, 0x4);
 
 
-namespace _ns_Container_Type {
-enum Container_Type : sint32
+enum class Container_Type : sint32
 {
-	Container_Invalid      = -1,
-	Container_Null         = 0,
-	Container_Mesh         = 1,
-	Container_Frame        = 2,
-	Container_Anim         = 3,
-	Container_FromActivity = 4,
-	Container_Light        = 5,
-	Container_Reference    = 6,
-	Container_LWS          = 7,
-	Container_LWO          = 8,
+	Invalid      = -1,
+	Null         = 0,
+	Mesh         = 1,
+	Frame        = 2,
+	Anim         = 3,
+	FromActivity = 4,
+	Light        = 5,
+	Reference    = 6,
+	LWS          = 7,
+	LWO          = 8,
 
-	Container_TypeCount    = 9,
+	TypeCount    = 9,
 };
-static_assert(sizeof(Container_Type) == 0x4, "");
-} using Container_Type = _ns_Container_Type::Container_Type;
+assert_sizeof(Container_Type, 0x4);
 
 
-namespace _ns_Container_Light {
-enum Container_Light : uint32
+enum class Container_Light : uint32
 {
-	Container_Light_Ambient       = 0,
-	Container_Light_Point         = 1,
-	Container_Light_Spot          = 2,
-	Container_Light_Directional   = 3,
-	Container_Light_ParallelPoint = 4,
+	Ambient       = 0,
+	Point         = 1,
+	Spot          = 2,
+	Directional   = 3,
+	ParallelPoint = 4,
 };
-static_assert(sizeof(Container_Light) == 0x4, "");
-} using Container_Light = _ns_Container_Light::Container_Light;
+assert_sizeof(Container_Light, 0x4);
 
 
-namespace _ns_Container_Combine_Type {
-enum Container_Combine_Type : uint32
+enum class Container_Combine : uint32
 {
-	Container_Combine_Replace = 0,
-	Container_Combine_Before  = 1,
-	Container_Combine_After   = 2,
+	Replace = 0,
+	Before  = 1,
+	After   = 2,
 };
-static_assert(sizeof(Container_Combine_Type) == 0x4, "");
-} using Container_Combine_Type = _ns_Container_Combine_Type::Container_Combine_Type;
+assert_sizeof(Container_Combine, 0x4);
 
 
-namespace _ns_Container_Quality {
-// same as enum Main_Quality (just different symbol names)
-enum Container_Quality : uint32
+// same as enum Graphics_Quality (find a way to typedef this in without including Main)
+enum class Container_Quality : uint32
 {
-	Container_Quality_Wireframe = 0,
-	Container_Quality_UnlitFlat = 1,
-	Container_Quality_Flat      = 2,
-	Container_Quality_Gouraud   = 3,
+	Wireframe = 0,
+	UnlitFlat = 1,
+	Flat      = 2,
+	Gouraud   = 3,
+	Phong     = 4, // (custom)
 };
-static_assert(sizeof(Container_Quality) == 0x4, "");
-} using Container_Quality = _ns_Container_Quality::Container_Quality;
+assert_sizeof(Container_Quality, 0x4);
 
 
-namespace _ns_Container_FogType {
-enum Container_FogType : uint32
+/// WARNING: Do not use this with SetFogMode, the values are swapped for D3DRM, gahhhh
+enum class Container_FogMode : uint32
 {
-	Container_Fog_None               = 0,
-	Container_Fog_Exponential        = 1,
-	Container_Fog_ExponentialSquared = 2,
-	Container_Fog_Linear             = 3,
+	None               = 0, // D3DFOG_NONE
+	Exponential        = 1, // D3DFOG_EXP
+	ExponentialSquared = 2, // D3DFOG_EXP2
+	Linear             = 3, // D3DFOG_LINEAR
 };
-static_assert(sizeof(Container_FogType) == 0x4, "");
-} using Container_FogType = _ns_Container_FogType::Container_FogType;
+assert_sizeof(Container_FogMode, 0x4);
 
 
-namespace _ns_Container_MeshType {
-enum Container_MeshType : uint32
+enum class Container_MeshType : uint32
 {
-    Container_MeshType_Normal         = 0,
-    Container_MeshType_SeperateMeshes = 1,
-    Container_MeshType_Immediate      = 2,
-    Container_MeshType_Transparent    = 3,
-    Container_MeshType_Additive       = 4,
-    Container_MeshType_Subtractive    = 5,
+	Normal         = 0,
+	SeperateMeshes = 1,
+	Immediate      = 2,
+	Transparent    = 3,
+	Additive       = 4,
+	Subtractive    = 5,
 };
-static_assert(sizeof(Container_MeshType) == 0x4, "");
-} using Container_MeshType = _ns_Container_MeshType::Container_MeshType;
+assert_sizeof(Container_MeshType, 0x4);
 
 
-namespace _ns_Container_SearchMode {
-enum Container_SearchMode : uint32
+enum class Container_SearchMode : uint32
 {
-	Container_SearchMode_FirstMatch = 0,
-	Container_SearchMode_MatchCount = 1,
-	Container_SearchMode_NthMatch   = 2,
+	FirstMatch = 0,
+	MatchCount = 1,
+	NthMatch   = 2,
 };
-static_assert(sizeof(Container_SearchMode) == 0x4, "");
-} using Container_SearchMode = _ns_Container_SearchMode::Container_SearchMode;
+assert_sizeof(Container_SearchMode, 0x4);
 
 #pragma endregion
 
@@ -285,11 +250,11 @@ static_assert(sizeof(Container_SearchMode) == 0x4, "");
 #define Container_GetWorldPosition(c,p)						Container_GetPosition((c),nullptr,(p))
 #define Container_GetWorldOrientation(c,d,u)				Container_GetOrientation((c),nullptr,(d),(u))
 
-#define Container_MakePointLight(c,r,g,b)					Container_MakeLight((c),Gods98::Container_Light::Container_Light_Point,(r),(g),(b));
-#define Container_MakeSpotLight(c,r,g,b)					Container_MakeLight((c),Gods98::Container_Light::Container_Light_Spot,(r),(g),(b));
-#define Container_MakeAmbientLight(c,r,g,b)					Container_MakeLight((c),Gods98::Container_Light::Container_Light_Ambient,(r),(g),(b));
-#define Container_MakeDirectionalLight(c,r,g,b)				Container_MakeLight((c),Gods98::Container_Light::Container_Light_Directional,(r),(g),(b));
-#define Container_MakeParallelPointLight(c,r,g,b)			Container_MakeLight((c),Gods98::Container_Light::Container_Light_ParallelPoint,(r),(g),(b));
+#define Container_MakePointLight(c,r,g,b)					Container_MakeLight((c),Gods98::Container_Light::Point,(r),(g),(b));
+#define Container_MakeSpotLight(c,r,g,b)					Container_MakeLight((c),Gods98::Container_Light::Spot,(r),(g),(b));
+#define Container_MakeAmbientLight(c,r,g,b)					Container_MakeLight((c),Gods98::Container_Light::Ambient,(r),(g),(b));
+#define Container_MakeDirectionalLight(c,r,g,b)				Container_MakeLight((c),Gods98::Container_Light::Directional,(r),(g),(b));
+#define Container_MakeParallelPointLight(c,r,g,b)			Container_MakeLight((c),Gods98::Container_Light::ParallelPoint,(r),(g),(b));
 
 #define Container_MakeCamera(p)								Container_Create((p))
 
@@ -298,12 +263,12 @@ static_assert(sizeof(Container_SearchMode) == 0x4, "");
 #define Container_Mesh_SetColour(c,i,r,g,b)					Container_Mesh_SetColourAlpha((c),(i),(r),(g),(b),1.0f)
 #define Container_Mesh_GetColour(c,i,r,g,b)					Container_Mesh_GetColourAlpha((c),(i),(r),(g),(b),nullptr)
 
-#define Container_MakeMesh(r)								Container_MakeMesh2((r),Gods98::Container_MeshType::Container_MeshType_Normal)
-#define Container_MakeMeshSeperateGroups(r)					Container_MakeMesh2((r),Gods98::Container_MeshType::Container_MeshType_SeperateMeshes)
-#define Container_MakeMeshImmediate(r)						Container_MakeMesh2((r),Gods98::Container_MeshType::Container_MeshType_Immediate)
-#define Container_MakeMeshTrans(r)							Container_MakeMesh2((r),Gods98::Container_MeshType::Container_MeshType_Transparent)
-#define Container_MakeMeshAdditive(r)						Container_MakeMesh2((r),Gods98::Container_MeshType::Container_MeshType_Additive)
-#define Container_MakeMeshSubtractive(r)					Container_MakeMesh2((r),Gods98::Container_MeshType::Container_MeshType_Subtractive)
+#define Container_MakeMesh(r)								Container_MakeMesh2((r),Gods98::Container_MeshType::Normal)
+#define Container_MakeMeshSeperateGroups(r)					Container_MakeMesh2((r),Gods98::Container_MeshType::SeperateMeshes)
+#define Container_MakeMeshImmediate(r)						Container_MakeMesh2((r),Gods98::Container_MeshType::Immediate)
+#define Container_MakeMeshTrans(r)							Container_MakeMesh2((r),Gods98::Container_MeshType::Transparent)
+#define Container_MakeMeshAdditive(r)						Container_MakeMesh2((r),Gods98::Container_MeshType::Additive)
+#define Container_MakeMeshSubtractive(r)					Container_MakeMesh2((r),Gods98::Container_MeshType::Subtractive)
 
 #define Container_LoadTexture(f,w,h)						Container_LoadTexture2((f),false,(w),(h))
 #define Container_LoadTextureImmediate(f,w,h)				Container_LoadTexture2((f),true,(w),(h))
@@ -324,7 +289,7 @@ struct Container_TypeData
 	/*0c,4*/ Mesh* transMesh;
 	/*10*/
 };
-static_assert(sizeof(Container_TypeData) == 0x10, "");
+assert_sizeof(Container_TypeData, 0x10);
 
 
 //typedef struct Container_CloneData;
@@ -333,12 +298,12 @@ static_assert(sizeof(Container_TypeData) == 0x10, "");
 //struct Container_RotationData
 //{
 //	/*00,4*/ Container* container;
-//	/*04,4*/ Container_Combine_Type combine;
+//	/*04,4*/ Container_Combine combine;
 //	/*08,c*/ Vector3F vector;
 //	/*14,4*/ real32 angle;
 //	/*18*/
 //};
-//static_assert(sizeof(Container_RotationData) == 0x18, "");
+//assert_sizeof(Container_RotationData, 0x18);
 
 
 struct Container
@@ -356,7 +321,7 @@ struct Container
 	/*28,4*/ Container* nextFree;
 	/*2c*/
 };
-static_assert(sizeof(Container) == 0x2c, "");
+assert_sizeof(Container, 0x2c);
 
 
 struct Container_CloneData
@@ -368,7 +333,7 @@ struct Container_CloneData
 	/*10,4*/ bool32 used;
 	/*14*/
 };
-static_assert(sizeof(Container_CloneData) == 0x14, "");
+assert_sizeof(Container_CloneData, 0x14);
 
 
 struct Container_AppData
@@ -386,7 +351,7 @@ struct Container_AppData
 	/*24,4*/ Sound3D_SoundFrameRecord* soundList;		// For 'Sound3D'
 	/*28*/
 };
-static_assert(sizeof(Container_AppData) == 0x28, "");
+assert_sizeof(Container_AppData, 0x28);
 
 
 struct Container_MeshAppData
@@ -398,7 +363,7 @@ struct Container_MeshAppData
 	/*10,4*/ bool32 firstAddGroup;
 	/*14*/
 };
-static_assert(sizeof(Container_MeshAppData) == 0x14, "");
+assert_sizeof(Container_MeshAppData, 0x14);
 
 
 struct Container_SearchData
@@ -408,11 +373,11 @@ struct Container_SearchData
 	/*08,4*/ bool32 caseSensitive;
 	/*0c,4*/ IDirect3DRMFrame3* resultFrame;
 	/*10,4*/ uint32 count;
-	/*14,4*/ uint32 mode;
+	/*14,4*/ Container_SearchMode mode;
 	/*18,4*/ uint32 matchNumber;
 	/*1c*/
 };
-static_assert(sizeof(Container_SearchData) == 0x1c, "");
+assert_sizeof(Container_SearchData, 0x1c);
 
 
 struct Container_TextureRef
@@ -421,7 +386,7 @@ struct Container_TextureRef
 	/*4,4*/ IDirect3DRMTexture3* texture;
 	/*8*/
 };
-static_assert(sizeof(Container_TextureRef) == 0x8, "");
+assert_sizeof(Container_TextureRef, 0x8);
 
 
 struct Container_TextureData
@@ -430,7 +395,7 @@ struct Container_TextureData
 	/*4,4*/ Container_TextureFlags flags;
 	/*8*/
 };
-static_assert(sizeof(Container_TextureData) == 0x8, "");
+assert_sizeof(Container_TextureData, 0x8);
 
 
 //struct Container_DummyTexture
@@ -438,7 +403,7 @@ static_assert(sizeof(Container_TextureData) == 0x8, "");
 //	/*0,4*/ uint32 dummy;
 //	/*4*/
 //};
-//static_assert(sizeof(Container_DummyTexture) == 0x4, "");
+//assert_sizeof(Container_DummyTexture, 0x4);
 
 
 struct Container_Texture
@@ -448,7 +413,7 @@ struct Container_Texture
 	/*8,4*/ bool32 colourKey;
 	/*c*/
 };
-static_assert(sizeof(Container_Texture) == 0xc, "");
+assert_sizeof(Container_Texture, 0xc);
 
 
 //struct Container_DummyMaterial
@@ -456,7 +421,7 @@ static_assert(sizeof(Container_Texture) == 0xc, "");
 //	/*0,4*/ uint32 dummy;
 //	/*4*/
 //};
-//static_assert(sizeof(Container_DummyMaterial) == 0x4, "");
+//assert_sizeof(Container_DummyMaterial, 0x4);
 
 
 struct Container_Globs
@@ -464,8 +429,8 @@ struct Container_Globs
 	/*0000,50*/ Container* listSet[CONTAINER_MAXLISTS];
 	/*0050,4*/ Container* freeList;
 	/*0054,4*/ Container* rootContainer;
-	/*0058,24*/ const char* typeName[Container_Type::Container_TypeCount];
-	/*007c,24*/ const char* extensionName[Container_Type::Container_TypeCount];
+	/*0058,24*/ const char* typeName[(sint32)Container_Type::TypeCount];
+	/*007c,24*/ const char* extensionName[(sint32)Container_Type::TypeCount];
 	/*00a0,4*/ const char* gameName;
 	/*00a4,10*/ IDirect3DRMVisual* visualArray[CONTAINER_MAXVISUALS];
 	/*00b4,1f40*/ Container_TextureRef textureSet[CONTAINER_MAXTEXTURES];
@@ -480,7 +445,7 @@ struct Container_Globs
 	/*2014,4*/ Container_GlobFlags flags;
 	/*2018*/
 };
-static_assert(sizeof(Container_Globs) == 0x2018, "");
+assert_sizeof(Container_Globs, 0x2018);
 
 #pragma endregion
 
@@ -733,22 +698,22 @@ void __cdecl Container_GetPosition(Container* cont, OPTIONAL Container* ref, OUT
 void __cdecl Container_GetOrientation(Container* cont, OPTIONAL Container* ref, OUT Vector3F* dir, OUT Vector3F* up);
 
 // <LegoRR.exe @00475840>
-void __cdecl Container_AddRotation(Container* cont, Container_Combine_Type combine,
+void __cdecl Container_AddRotation(Container* cont, Container_Combine combine,
 								real32 x, real32 y, real32 z, real32 angle);
 
 // <LegoRR.exe @00475870>
-void __cdecl Container_AddScale(Container* cont, Container_Combine_Type combine,
+void __cdecl Container_AddScale(Container* cont, Container_Combine combine,
 								real32 x, real32 y, real32 z);
 
 // <LegoRR.exe @004758a0>
-void __cdecl Container_AddTranslation(Container* cont, Container_Combine_Type combine,
+void __cdecl Container_AddTranslation(Container* cont, Container_Combine combine,
 								real32 x, real32 y, real32 z);
 
 // <LegoRR.exe @004758d0>
 void __cdecl Container_ClearTransform(Container* cont);
 
 // <LegoRR.exe @00475970>
-void __cdecl Container_AddTransform(Container* cont, Container_Combine_Type combine,
+void __cdecl Container_AddTransform(Container* cont, Container_Combine combine,
 								const Matrix4F mat);
 
 // <LegoRR.exe @00475990>

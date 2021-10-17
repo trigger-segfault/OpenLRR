@@ -85,9 +85,9 @@ typedef void (__cdecl* MeshRenderCallback)(Mesh* mesh, void* data, Viewport* vp)
 
 #pragma region Constants
 
-#define MESH_MAXTEXTURESEQENCE			100
+#define MESH_MAXTEXTURESEQENCE		100
 
-#define MESH_MAXLISTS			20
+#define MESH_MAXLISTS				20
 
 #define MESH_TEXTURELISTSIZE		2048
 
@@ -96,7 +96,7 @@ typedef void (__cdecl* MeshRenderCallback)(Mesh* mesh, void* data, Viewport* vp)
 
 #define MESH_MAXTEXTURESTAGESTATES	50
 
-#define MESH_UVREALLOCSIZE		10
+#define MESH_UVREALLOCSIZE			10
 
 #pragma endregion
 
@@ -105,248 +105,96 @@ typedef void (__cdecl* MeshRenderCallback)(Mesh* mesh, void* data, Viewport* vp)
  **********************************************************************************/
 
 #pragma region Enums
-/*
-//MESH RENDER FLAGS FOR RENDER DESC
-//#define MESH_FLAG_ZB_ENABLE				0x00000100
-//#define MESH_FLAG_ZB_WRITE				0x00000200
-#define MESH_FLAG_RENDER_ALPHA11		0x00000400 // render
-#define MESH_FLAG_RENDER_ALPHASA1		0x00000800 // render
-#define MESH_FLAG_RENDER_ALPHATRANS		0x00001000 // render
-#define MESH_FLAG_RENDER_ALPHASA0		0x20000000 // render
-#define MESH_FLAG_RENDER_ALLALPHA		(MESH_FLAG_RENDER_ALPHASA0|MESH_FLAG_RENDER_ALPHA11|MESH_FLAG_RENDER_ALPHASA1|MESH_FLAG_RENDER_ALPHATRANS) // render
-#define MESH_FLAG_TRANSFORM_PARENTPOS	0x00002000 // render
-#define MESH_FLAG_TRANSFORM_IDENTITY	0x00004000 // render
-#define MESH_FLAG_STIPPLE				0x00008000 // (unused)
-#define MESH_FLAG_RENDER_ALPHAMOD		0x00010000 // (unused)
-#define MESH_FLAG_RENDER_ALPHATEX		0x00020000 // render
-#define MESH_FLAG_RENDER_ALPHADIFFUSE	0x00040000 // render
-#define MESH_FLAG_ALPHAENABLE			0x00080000 // struct Mesh_Group
-#define MESH_FLAG_TEXTURECOLOURONLY		0x00100000 // struct Mesh_Group
-#define MESH_FLAG_HASBEENCLONED			0x00200000 // struct Mesh
-#define MESH_FLAG_TRANSTEXTURE			0x00400000 // struct Mesh_Group
-#define MESH_FLAG_RENDER_FILTERNEAREST	0x00800000 // render
-#define MESH_FLAG_FACECAMERA			0x01000000 // struct Mesh
-#define MESH_FLAG_FACECAMERADONE		0x02000000 // struct Mesh
-#define MESH_FLAG_RENDER_DOUBLESIDED	0x04000000 // render
-#define MESH_FLAG_HIGHZBIAS				0x08000000 // render (commented out in code)
-#define MESH_FLAG_ALPHAHIDDEN			0x10000000 // struct Mesh_Group
 
-// render
-#define MESH_RENDERFLAGS_LWONORM		( MESH_FLAG_TRANSFORM_PARENTPOS )
-#define MESH_RENDERFLAGS_LWOALPHA		( MESH_FLAG_RENDER_ALPHATRANS | MESH_FLAG_TRANSFORM_PARENTPOS )
-
-
-#define MESH_FLAG_HIDDEN			0x00000001 // struct Mesh, Mesh_Group
-#define MESH_FLAG_POSTEFFECT		0x00000002 // struct Mesh
-#define MESH_FLAG_LWO				0x00000004 // struct Mesh
-
-// render
-//#define MESH_DEFAULTRENDERFLAGS	( D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_RESERVED1 | D3DFVF_TEX1 )
-#define MESH_DEFAULTRENDERFLAGS		D3DFVF_VERTEX
-*/
-
-/*enum MeshFlags : uint32
+flags_scoped(MeshFlags) : uint32
 {
 	MESH_FLAG_NONE                 = 0,
 
-	MESH_FLAG_HIDDEN               = 0x1 // struct Mesh, Mesh_Group
-	MESH_FLAG_POSTEFFECT           = 0x2 // struct Mesh
-	MESH_FLAG_LWO                  = 0x4 // struct Mesh
+	MESH_FLAG_HIDDEN               = 0x1,        // Mesh, Group
+	MESH_FLAG_POSTEFFECT           = 0x2,        // Mesh
+	MESH_FLAG_LWO                  = 0x4,        // Mesh
 
-	MESH_FLAG_ALPHAENABLE          = 0x80000, // struct Mesh_Group
-	MESH_FLAG_TEXTURECOLOURONLY    = 0x100000, // struct Mesh_Group
-	MESH_FLAG_HASBEENCLONED        = 0x200000, // struct Mesh
-	MESH_FLAG_TRANSTEXTURE         = 0x400000, // struct Mesh_Group
-	MESH_FLAG_RENDER_FILTERNEAREST = 0x800000, // render
-	MESH_FLAG_FACECAMERA           = 0x1000000, // struct Mesh
-	MESH_FLAG_FACECAMERADONE       = 0x2000000, // struct Mesh
-	MESH_FLAG_RENDER_DOUBLESIDED   = 0x4000000, // render
-	MESH_FLAG_HIGHZBIAS            = 0x8000000, // render (commented out in code)
-	MESH_FLAG_ALPHAHIDDEN          = 0x10000000, // struct Mesh_Group
-};*/
+	MESH_FLAG_ALPHAENABLE          = 0x80000,    // Group
+	MESH_FLAG_TEXTURECOLOURONLY    = 0x100000,   // Group
+	MESH_FLAG_HASBEENCLONED        = 0x200000,   // Mesh
+	MESH_FLAG_TRANSTEXTURE         = 0x400000,   // Group
 
-namespace _ns_MeshFlags {
-enum MeshFlags : uint32
+	MESH_FLAG_FACECAMERA           = 0x1000000,  // Mesh
+	MESH_FLAG_FACECAMERADONE       = 0x2000000,  // Mesh
+	
+	MESH_FLAG_ALPHAHIDDEN          = 0x10000000, // Group
+};
+flags_scoped_end(MeshFlags, 0x4);
+//typedef MeshFlags Mesh_GroupFlags;
+
+
+flags_scoped(Mesh_RenderFlags) : uint32
 {
-	MESH_FLAG_NONE                   = 0,
+	MESH_RENDER_FLAG_NONE          = 0,
 
-//	//MESH_FLAG_ZB_ENABLE            = 0x100, // (commented out define)
-//	//MESH_FLAG_ZB_WRITE             = 0x200, // (commented out define)
+	MESH_RENDER_FLAG_XYZ           = 0x2,   // = D3DFVF_XYZ,
+	MESH_RENDER_FLAG_NORMAL        = 0x10,  // = D3DFVF_NORMAL,
+	MESH_RENDER_FLAG_TEX1          = 0x100, // = D3DFVF_TEX1,
+	MESH_RENDER_FLAG_RESERVED1     = 0x200, // = D3DFVF_RESERVED1, // (unused)
 
-	//MESH_FLAG_RENDER_ALPHA11       = 0x400, // render
-	//MESH_FLAG_RENDER_ALPHASA1      = 0x800, // render
-	//MESH_FLAG_RENDER_ALPHATRANS    = 0x1000, // render
-	//MESH_FLAG_RENDER_ALPHASA0      = 0x20000000, // render
-	//MESH_FLAG_RENDER_ALLALPHA      = (MESH_FLAG_RENDER_ALPHASA0|MESH_FLAG_RENDER_ALPHA11|MESH_FLAG_RENDER_ALPHASA1|MESH_FLAG_RENDER_ALPHATRANS), // render
-	//MESH_FLAG_TRANSFORM_PARENTPOS  = 0x2000, // render
-	//MESH_FLAG_TRANSFORM_IDENTITY   = 0x4000, // render
-	//MESH_FLAG_STIPPLE              = 0x8000, // (unused)
-	//MESH_FLAG_RENDER_ALPHAMOD      = 0x10000, // (unused)
-	//MESH_FLAG_RENDER_ALPHATEX      = 0x20000, // render
-	//MESH_FLAG_RENDER_ALPHADIFFUSE  = 0x40000, // render
-	
-	MESH_FLAG_ALPHAENABLE          = 0x80000, // struct Mesh_Group
-	MESH_FLAG_TEXTURECOLOURONLY    = 0x100000, // struct Mesh_Group
-	MESH_FLAG_HASBEENCLONED        = 0x200000, // struct Mesh
-	MESH_FLAG_TRANSTEXTURE         = 0x400000, // struct Mesh_Group
+//	MESH_FLAG_ZB_ENABLE            = 0x100, // (commented out define, conflicts with D3DFVF_TEX1)
+//	MESH_FLAG_ZB_WRITE             = 0x200, // (commented out define, conflicts with D3DFVF_RESERVED1)
 
-	//MESH_FLAG_RENDER_FILTERNEAREST = 0x800000, // render
-	MESH_FLAG_FACECAMERA           = 0x1000000, // struct Mesh
-	MESH_FLAG_FACECAMERADONE       = 0x2000000, // struct Mesh
-	//MESH_FLAG_RENDER_DOUBLESIDED   = 0x4000000, // render
-	//MESH_FLAG_HIGHZBIAS            = 0x8000000, // render (commented out in code)
-	
-	MESH_FLAG_ALPHAHIDDEN          = 0x10000000, // struct Mesh_Group
+	MESH_RENDER_FLAG_ALPHA11       = 0x400,
+	MESH_RENDER_FLAG_ALPHASA1      = 0x800,
+	MESH_RENDER_FLAG_ALPHATRANS    = 0x1000,
+	MESH_RENDER_FLAG_ALPHASA0      = 0x20000000,
+	MESH_RENDER_FLAG_ALLALPHA      = (MESH_RENDER_FLAG_ALPHA11|MESH_RENDER_FLAG_ALPHASA1|MESH_RENDER_FLAG_ALPHATRANS|MESH_RENDER_FLAG_ALPHASA0), // (mask)
+	MESH_TRANSFORM_FLAG_PARENTPOS  = 0x2000,
+	MESH_TRANSFORM_FLAG_IDENTITY   = 0x4000,
+	MESH_RENDER_FLAG_STIPPLE       = 0x8000,  // (unused)
+	MESH_RENDER_FLAG_ALPHAMOD      = 0x10000, // (unused)
+	MESH_RENDER_FLAG_ALPHATEX      = 0x20000,
+	MESH_RENDER_FLAG_ALPHADIFFUSE  = 0x40000,
 
+	MESH_RENDER_FLAG_FILTERNEAREST = 0x800000,
 
-	//MESH_RENDERFLAGS_LWONORM       = ( MESH_FLAG_TRANSFORM_PARENTPOS ), // render
-	//MESH_RENDERFLAGS_LWOALPHA      = ( MESH_FLAG_RENDER_ALPHATRANS | MESH_FLAG_TRANSFORM_PARENTPOS ), // render
-	
-	MESH_FLAG_HIDDEN               = 0x1, // struct Mesh, Mesh_Group
-	MESH_FLAG_POSTEFFECT           = 0x2, // struct Mesh
-	MESH_FLAG_LWO                  = 0x4, // struct Mesh
+	MESH_RENDER_FLAG_DOUBLESIDED   = 0x4000000,
+	MESH_RENDER_FLAG_HIGHZBIAS     = 0x8000000, // (commented out in code)
 
-//	//MESH_DEFAULTRENDERFLAGS        = ( D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_RESERVED1 | D3DFVF_TEX1 ), // render (commented out define)
-	//MESH_DEFAULTRENDERFLAGS        = D3DFVF_VERTEX, // render
+	MESH_RENDERFLAGS_LWONORM       = (MESH_TRANSFORM_FLAG_PARENTPOS),
+	MESH_RENDERFLAGS_LWOALPHA      = (MESH_TRANSFORM_FLAG_PARENTPOS|MESH_RENDER_FLAG_ALPHATRANS),
+
+	//MESH_RENDERFLAGS_DEFAULT       = (MESH_RENDER_FLAG_XYZ|MESH_RENDER_FLAG_NORMAL|MESH_RENDER_FLAG_TEX1|MESH_RENDER_FLAG_RESERVED1), // (commented out define)
+	MESH_RENDERFLAGS_DEFAULT       = (MESH_RENDER_FLAG_XYZ|MESH_RENDER_FLAG_NORMAL|MESH_RENDER_FLAG_TEX1), // = D3DFVF_VERTEX,
 };
-DEFINE_ENUM_FLAG_OPERATORS(MeshFlags);
-static_assert(sizeof(MeshFlags) == 0x4, "");
-} using MeshFlags = _ns_MeshFlags::MeshFlags;
+flags_scoped_end(Mesh_RenderFlags, 0x4);
 
 
-namespace _ns_Mesh_GroupFlags {
-enum Mesh_GroupFlags : uint32
+enum class Mesh_Colour : sint32
 {
-	MESH_FLAG_NONE                   = 0,
+	Diffuse  = 0,
+	Ambient  = 1,
+	Specular = 2,
+	Emissive = 3,
 
-//	//MESH_FLAG_ZB_ENABLE            = 0x100, // (commented out define)
-//	//MESH_FLAG_ZB_WRITE             = 0x200, // (commented out define)
-
-	//MESH_FLAG_RENDER_ALPHA11       = 0x400, // render
-	//MESH_FLAG_RENDER_ALPHASA1      = 0x800, // render
-	//MESH_FLAG_RENDER_ALPHATRANS    = 0x1000, // render
-	//MESH_FLAG_RENDER_ALPHASA0      = 0x20000000, // render
-	//MESH_FLAG_RENDER_ALLALPHA      = (MESH_FLAG_RENDER_ALPHASA0|MESH_FLAG_RENDER_ALPHA11|MESH_FLAG_RENDER_ALPHASA1|MESH_FLAG_RENDER_ALPHATRANS), // render
-	//MESH_FLAG_TRANSFORM_PARENTPOS  = 0x2000, // render
-	//MESH_FLAG_TRANSFORM_IDENTITY   = 0x4000, // render
-	//MESH_FLAG_STIPPLE              = 0x8000, // (unused)
-	//MESH_FLAG_RENDER_ALPHAMOD      = 0x10000, // (unused)
-	//MESH_FLAG_RENDER_ALPHATEX      = 0x20000, // render
-	//MESH_FLAG_RENDER_ALPHADIFFUSE  = 0x40000, // render
-	
-	MESH_FLAG_ALPHAENABLE          = 0x80000, // struct Mesh_Group
-	MESH_FLAG_TEXTURECOLOURONLY    = 0x100000, // struct Mesh_Group
-	MESH_FLAG_HASBEENCLONED        = 0x200000, // struct Mesh
-	MESH_FLAG_TRANSTEXTURE         = 0x400000, // struct Mesh_Group
-
-	//MESH_FLAG_RENDER_FILTERNEAREST = 0x800000, // render
-	MESH_FLAG_FACECAMERA           = 0x1000000, // struct Mesh
-	MESH_FLAG_FACECAMERADONE       = 0x2000000, // struct Mesh
-	//MESH_FLAG_RENDER_DOUBLESIDED   = 0x4000000, // render
-	//MESH_FLAG_HIGHZBIAS            = 0x8000000, // render (commented out in code)
-	
-	MESH_FLAG_ALPHAHIDDEN          = 0x10000000, // struct Mesh_Group
-
-
-	//MESH_RENDERFLAGS_LWONORM       = ( MESH_FLAG_TRANSFORM_PARENTPOS ), // render
-	//MESH_RENDERFLAGS_LWOALPHA      = ( MESH_FLAG_RENDER_ALPHATRANS | MESH_FLAG_TRANSFORM_PARENTPOS ), // render
-	
-	MESH_FLAG_HIDDEN               = 0x1, // struct Mesh, Mesh_Group
-	MESH_FLAG_POSTEFFECT           = 0x2, // struct Mesh
-	MESH_FLAG_LWO                  = 0x4, // struct Mesh
-
-//	//MESH_DEFAULTRENDERFLAGS        = ( D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_RESERVED1 | D3DFVF_TEX1 ), // render (commented out define)
-	//MESH_DEFAULTRENDERFLAGS        = D3DFVF_VERTEX, // render
+	Alpha    = 4,
+	Power    = 5,
 };
-DEFINE_ENUM_FLAG_OPERATORS(Mesh_GroupFlags);
-static_assert(sizeof(Mesh_GroupFlags) == 0x4, "");
-} using Mesh_GroupFlags = _ns_Mesh_GroupFlags::Mesh_GroupFlags;
+assert_sizeof(Mesh_Colour, 0x4);
 
 
-namespace _ns_Mesh_RenderFlags {
-enum Mesh_RenderFlags : uint32
+enum class Mesh_Type : sint32
 {
-	MESH_FLAG_RENDER_NONE          = 0,
-
-//	MESH_FLAG_ZB_ENABLE            = 0x100, // (commented out define)
-//	MESH_FLAG_ZB_WRITE             = 0x200, // (commented out define)
-
-	MESH_FLAG_RENDER_ALPHA11       = 0x400, // render
-	MESH_FLAG_RENDER_ALPHASA1      = 0x800, // render
-	MESH_FLAG_RENDER_ALPHATRANS    = 0x1000, // render
-	MESH_FLAG_RENDER_ALPHASA0      = 0x20000000, // render
-	MESH_FLAG_RENDER_ALLALPHA      = (MESH_FLAG_RENDER_ALPHASA0|MESH_FLAG_RENDER_ALPHA11|MESH_FLAG_RENDER_ALPHASA1|MESH_FLAG_RENDER_ALPHATRANS), // render
-	MESH_FLAG_TRANSFORM_PARENTPOS  = 0x2000, // render
-	MESH_FLAG_TRANSFORM_IDENTITY   = 0x4000, // render
-	MESH_FLAG_STIPPLE              = 0x8000, // (unused)
-	MESH_FLAG_RENDER_ALPHAMOD      = 0x10000, // (unused)
-	MESH_FLAG_RENDER_ALPHATEX      = 0x20000, // render
-	MESH_FLAG_RENDER_ALPHADIFFUSE  = 0x40000, // render
-	
-	MESH_FLAG_ALPHAENABLE          = 0x80000, // struct Mesh_Group
-	MESH_FLAG_TEXTURECOLOURONLY    = 0x100000, // struct Mesh_Group
-	MESH_FLAG_HASBEENCLONED        = 0x200000, // struct Mesh
-	MESH_FLAG_TRANSTEXTURE         = 0x400000, // struct Mesh_Group
-
-	MESH_FLAG_RENDER_FILTERNEAREST = 0x800000, // render
-	//MESH_FLAG_FACECAMERA           = 0x1000000, // struct Mesh
-	//MESH_FLAG_FACECAMERADONE       = 0x2000000, // struct Mesh
-	MESH_FLAG_RENDER_DOUBLESIDED   = 0x4000000, // render
-	MESH_FLAG_HIGHZBIAS            = 0x8000000, // render (commented out in code)
-	
-	//MESH_FLAG_ALPHAHIDDEN          = 0x10000000, // struct Mesh_Group
-
-
-	MESH_RENDERFLAGS_LWONORM       = ( MESH_FLAG_TRANSFORM_PARENTPOS ), // render
-	MESH_RENDERFLAGS_LWOALPHA      = ( MESH_FLAG_RENDER_ALPHATRANS | MESH_FLAG_TRANSFORM_PARENTPOS ), // render
-	
-	//MESH_FLAG_HIDDEN               = 0x1, // struct Mesh, Mesh_Group
-	//MESH_FLAG_POSTEFFECT           = 0x2, // struct Mesh
-	//MESH_FLAG_LWO                  = 0x4, // struct Mesh
-
-//	MESH_DEFAULTRENDERFLAGS        = ( D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_RESERVED1 | D3DFVF_TEX1 ), // render (commented out define)
-	MESH_DEFAULTRENDERFLAGS        = D3DFVF_VERTEX, // render
+	Norm            = 0,
+	PostEffect      = 1,
+	LightWaveObject = 2,
 };
-DEFINE_ENUM_FLAG_OPERATORS(Mesh_RenderFlags);
-static_assert(sizeof(Mesh_RenderFlags) == 0x4, "");
-} using Mesh_RenderFlags = _ns_Mesh_RenderFlags::Mesh_RenderFlags;
+assert_sizeof(Mesh_Type, 0x4);
 
 
-namespace _ns_Mesh_Colour {
-enum Mesh_Colour : sint32
+enum class Mesh_WrapType : sint32
 {
-	Mesh_Colour_Diffuse  = 0,
-	Mesh_Colour_Ambient  = 1,
-	Mesh_Colour_Specular = 2,
-	Mesh_Colour_Emissive = 3,
-
-	Mesh_Colour_Alpha    = 4,
-	Mesh_Colour_Power    = 5,
+	XAxis = 0,
+	YAxis = 1,
+	ZAxis = 2,
 };
-static_assert(sizeof(Mesh_Colour) == 0x4, "");
-} using Mesh_Colour = _ns_Mesh_Colour::Mesh_Colour;
-
-
-namespace _ns_Mesh_Type {
-enum Mesh_Type : sint32
-{	
-	Mesh_Type_Norm            = 0,
-	Mesh_Type_PostEffect      = 1,
-	Mesh_Type_LightWaveObject = 2,
-};
-static_assert(sizeof(Mesh_Type) == 0x4, "");
-} using Mesh_Type = _ns_Mesh_Type::Mesh_Type;
-
-
-namespace _ns_Mesh_WrapType {
-enum Mesh_WrapType : sint32
-{
-	Mesh_WrapType_XAxis = 0,
-	Mesh_WrapType_YAxis = 1,
-	Mesh_WrapType_ZAxis = 2,
-};
-static_assert(sizeof(Mesh_WrapType) == 0x4, "");
-} using Mesh_WrapType = _ns_Mesh_WrapType::Mesh_WrapType;
+assert_sizeof(Mesh_WrapType, 0x4);
 
 #pragma endregion
 
@@ -387,17 +235,17 @@ struct Mesh_LightWave_Surface
 	/*38,4*/ sint32 texSeqOffset;
 	/*3c*/
 };
-static_assert(sizeof(Mesh_LightWave_Surface) == 0x3c, "");
+assert_sizeof(Mesh_LightWave_Surface, 0x3c);
 
 
-// same struct layout/usage as Main_StateChangeData
+// same struct layout/usage as Graphics_StateChangeData
 struct Mesh_TextureStateChangeData
 {
 	/*0,4*/ uint32 origValue; // type not guaranteed
 	/*4,4*/ bool32 changed;
 	/*8*/
 };
-static_assert(sizeof(Mesh_TextureStateChangeData) == 0x8, "");
+assert_sizeof(Mesh_TextureStateChangeData, 0x8);
 
 
 struct Mesh_RenderDesc
@@ -407,7 +255,7 @@ struct Mesh_RenderDesc
 	/*8,4*/ Mesh_RenderFlags renderFlags;
 	/*c*/
 };
-static_assert(sizeof(Mesh_RenderDesc) == 0xc, "");
+assert_sizeof(Mesh_RenderDesc, 0xc);
 
 
 struct Mesh_Vertex
@@ -419,7 +267,7 @@ struct Mesh_Vertex
 	/*1c,4*/ real32 tv;
 	/*20*/
 };
-static_assert(sizeof(Mesh_Vertex) == 0x20, "");
+assert_sizeof(Mesh_Vertex, 0x20);
 
 
 struct Mesh_Group
@@ -432,10 +280,10 @@ struct Mesh_Group
 	/*60,4*/ IDirect3DTexture2* imText;
 	/*64,4*/ Mesh_RenderFlags renderFlags;
 	/*68,4*/ Mesh_LightWave_Surface* lightWaveSurfaceInfo;
-	/*6c,4*/ Mesh_GroupFlags flags;
+	/*6c,4*/ MeshFlags flags; // Group flags share common values, so we'll use the same enum type.
 	/*70*/
 };
-static_assert(sizeof(Mesh_Group) == 0x70, "");
+assert_sizeof(Mesh_Group, 0x70);
 
 
 struct Mesh
@@ -457,7 +305,7 @@ struct Mesh
 	//MeshTextureRenderCallback textureRenderCallback;
 	//void* textureRenderCallbackData;
 };
-static_assert(sizeof(Mesh) == 0x34, "");
+assert_sizeof(Mesh, 0x34);
 
 
 struct Mesh_PostRenderInfo
@@ -467,7 +315,7 @@ struct Mesh_PostRenderInfo
 	/*44,4*/ Mesh_PostRenderInfo* next;
 	/*48*/
 };
-static_assert(sizeof(Mesh_PostRenderInfo) == 0x48, "");
+assert_sizeof(Mesh_PostRenderInfo, 0x48);
 
 
 struct Mesh_TextureReference
@@ -477,7 +325,7 @@ struct Mesh_TextureReference
 	/*8,4*/ bool32 trans;
 	/*c*/
 };
-static_assert(sizeof(Mesh_TextureReference) == 0xc, "");
+assert_sizeof(Mesh_TextureReference, 0xc);
 
 
 struct Mesh_Globs
@@ -504,7 +352,7 @@ struct Mesh_Globs
 	/*c218,4*/ uint32 listCount;
 	/*c21c*/
 };
-static_assert(sizeof(Mesh_Globs) == 0xc21c, "");
+assert_sizeof(Mesh_Globs, 0xc21c);
 
 #pragma endregion
 
@@ -544,26 +392,26 @@ extern Mesh_Globs & meshGlobs;
 */
 
 
-#define Mesh_Create( c, f, rf, d )						Mesh_CreateOnFrame( (c->activityFrame), (f), (rf), (d), Gods98::Mesh_Type::Mesh_Type_Norm )
-#define Mesh_CreatePostEffect( c, f, rf, d )			Mesh_CreateOnFrame( (c->activityFrame), (f), (rf), (d), Gods98::Mesh_Type::Mesh_Type_PostEffect )
+#define Mesh_Create( c, f, rf, d )						Mesh_CreateOnFrame( (c->activityFrame), (f), (rf), (d), Gods98::Mesh_Type::Norm )
+#define Mesh_CreatePostEffect( c, f, rf, d )			Mesh_CreateOnFrame( (c->activityFrame), (f), (rf), (d), Gods98::Mesh_Type::PostEffect )
 #define Mesh_LoadLightWaveObject( n, c )				Mesh_Load( (n), (c->activityFrame) )
 #define Mesh_RemoveFromContainer(m,c)					Mesh_Remove((m),(c)->activityFrame)
 
 #define Mesh_SetWorldTransform( m )						Mesh_SetTransform( TRANSFORMSTATE_WORLD, (m) )
 
-#define Mesh_SetGroupDiffuse( m, n, r, g, b )				Mesh_SetGroupColour( (m), (n), (r), (g), (b), Gods98::Mesh_Colour::Mesh_Colour_Diffuse )
-#define Mesh_SetGroupAmbient( m, n, r, g, b )				Mesh_SetGroupColour( (m), (n), (r), (g), (b), Gods98::Mesh_Colour::Mesh_Colour_Ambient )
-#define Mesh_SetGroupSpecular( m, n, r, g, b )				Mesh_SetGroupColour( (m), (n), (r), (g), (b), Gods98::Mesh_Colour::Mesh_Colour_Specular )
-#define Mesh_SetGroupEmissive( m, n, r, g, b )				Mesh_SetGroupColour( (m), (n), (r), (g), (b), Gods98::Mesh_Colour::Mesh_Colour_Emissive )
-#define Mesh_SetGroupPower( m, n, p )						Mesh_SetGroupMaterialValues( (m), (n), (p), Gods98::Mesh_Colour::Mesh_Colour_Power )
-#define Mesh_SetGroupAlpha( m, n, a )						Mesh_SetGroupMaterialValues( (m), (n), (a), Gods98::Mesh_Colour::Mesh_Colour_Alpha )
+#define Mesh_SetGroupDiffuse( m, n, r, g, b )				Mesh_SetGroupColour( (m), (n), (r), (g), (b), Gods98::Mesh_Colour::Diffuse )
+#define Mesh_SetGroupAmbient( m, n, r, g, b )				Mesh_SetGroupColour( (m), (n), (r), (g), (b), Gods98::Mesh_Colour::Ambient )
+#define Mesh_SetGroupSpecular( m, n, r, g, b )				Mesh_SetGroupColour( (m), (n), (r), (g), (b), Gods98::Mesh_Colour::Specular )
+#define Mesh_SetGroupEmissive( m, n, r, g, b )				Mesh_SetGroupColour( (m), (n), (r), (g), (b), Gods98::Mesh_Colour::Emissive )
+#define Mesh_SetGroupPower( m, n, p )						Mesh_SetGroupMaterialValues( (m), (n), (p), Gods98::Mesh_Colour::Power )
+#define Mesh_SetGroupAlpha( m, n, a )						Mesh_SetGroupMaterialValues( (m), (n), (a), Gods98::Mesh_Colour::Alpha )
 
-#define Mesh_GetGroupDiffuse( m, n, r, g, b )				Mesh_GetGroupColour( (m), (n), (r), (g), (b), Gods98::Mesh_Colour::Mesh_Colour_Diffuse )
-#define Mesh_GetGroupAmbient( m, n, r, g, b )				Mesh_GetGroupColour( (m), (n), (r), (g), (b), Gods98::Mesh_Colour::Mesh_Colour_Ambient )
-#define Mesh_GetGroupSpecular( m, n, r, g, b )				Mesh_GetGroupColour( (m), (n), (r), (g), (b), Gods98::Mesh_Colour::Mesh_Colour_Specular )
-#define Mesh_GetGroupEmissive( m, n, r, g, b )				Mesh_GetGroupColour( (m), (n), (r), (g), (b), Gods98::Mesh_Colour::Mesh_Colour_Emissive )
-#define Mesh_GetGroupPower( m, n, p )						Mesh_GetGroupMaterialValues( (m), (n), (p), Gods98::Mesh_Colour::Mesh_Colour_Power )
-#define Mesh_GetGroupAlpha( m, n, a )						Mesh_GetGroupMaterialValues( (m), (n), (a), Gods98::Mesh_Colour::Mesh_Colour_Alpha )
+#define Mesh_GetGroupDiffuse( m, n, r, g, b )				Mesh_GetGroupColour( (m), (n), (r), (g), (b), Gods98::Mesh_Colour::Diffuse )
+#define Mesh_GetGroupAmbient( m, n, r, g, b )				Mesh_GetGroupColour( (m), (n), (r), (g), (b), Gods98::Mesh_Colour::Ambient )
+#define Mesh_GetGroupSpecular( m, n, r, g, b )				Mesh_GetGroupColour( (m), (n), (r), (g), (b), Gods98::Mesh_Colour::Specular )
+#define Mesh_GetGroupEmissive( m, n, r, g, b )				Mesh_GetGroupColour( (m), (n), (r), (g), (b), Gods98::Mesh_Colour::Emissive )
+#define Mesh_GetGroupPower( m, n, p )						Mesh_GetGroupMaterialValues( (m), (n), (p), Gods98::Mesh_Colour::Power )
+#define Mesh_GetGroupAlpha( m, n, a )						Mesh_GetGroupMaterialValues( (m), (n), (a), Gods98::Mesh_Colour::Alpha )
 
 #pragma endregion
 

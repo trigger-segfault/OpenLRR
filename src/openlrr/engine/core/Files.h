@@ -52,26 +52,22 @@ typedef void (__cdecl* FileLoadCallback)(const char* filename, uint32 fileSize, 
 
 #pragma region Enums
 
-namespace _ns_FileOrigin {
-enum FileOrigin : sint32
+enum class SeekOrigin : sint32
 {
-	File_SeekSet = 0,
-	File_SeekCur = 1,
-	File_SeekEnd = 2,
+	Set     = 0, // SEEK_SET
+	Current = 1, // SEEK_CUR
+	End     = 2, // SEEK_END
 };
-static_assert(sizeof(FileOrigin) == 0x4, "");
-} using FileOrigin = _ns_FileOrigin::FileOrigin;
+assert_sizeof(SeekOrigin, 0x4);
 
 
-namespace _ns_FileSys {
-enum FileSys : sint32
+enum class FileSys : sint32
 {
-	FileSystem_Wad  = 0,		// Wad file
-	FileSystem_Std  = 1,		// Standard C Libraries
-	FileSystem_Err  = 2,		// Error code
+	Wad      = 0, // Wad file
+	Standard = 1, // Standard C Libraries
+	Error    = 2, // Error code
 };
-static_assert(sizeof(FileSys) == 0x4, "");
-} using FileSys = _ns_FileSys::FileSys;
+assert_sizeof(FileSys, 0x4);
 
 #pragma endregion
 
@@ -108,7 +104,7 @@ struct WADFILE
 	/*8,4*/ bool32 eof;				// Has the file hit EOF.
 	/*c*/
 };
-static_assert(sizeof(WADFILE) == 0xc, "");
+assert_sizeof(WADFILE, 0xc);
 
 
 struct File
@@ -120,7 +116,7 @@ struct File
 	};
 	/*8*/
 };
-static_assert(sizeof(File) == 0x8, "");
+assert_sizeof(File, 0x8);
 
 
 struct File_Globs
@@ -140,7 +136,7 @@ struct File_Globs
 	/*a1c,4*/ bool32 fileLogFileAccess;		// (address not known)
 	/*a20*/
 };
-static_assert(sizeof(File_Globs) == 0xa20, "");
+assert_sizeof(File_Globs, 0xa20);
 
 
 struct FileCheck_Globs
@@ -149,7 +145,7 @@ struct FileCheck_Globs
 	/*1f4000,4*/ uint32 numInList;
 	/*1f4004*/
 };
-static_assert(sizeof(FileCheck_Globs) == 0x1f4004, "");
+assert_sizeof(FileCheck_Globs, 0x1f4004);
 
 #pragma endregion
 
@@ -227,7 +223,7 @@ void __cdecl File_MakeDir(const char* path);
 File* __cdecl File_Open(const char* fName, const char* mode);
 
 // <LegoRR.exe @0047fb10>
-sint32 __cdecl File_Seek(File* f, sint32 pos, sint32 mode);
+sint32 __cdecl File_Seek(File* f, sint32 pos, SeekOrigin mode);
 
 // <LegoRR.exe @0047fc40>
 sint32 __cdecl File_Read(OUT void* buffer, sint32 size, sint32 count, File* f);

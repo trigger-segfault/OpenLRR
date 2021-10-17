@@ -4,7 +4,7 @@
 #include "platform/windows.h"
 
 #include "dllmain.h"
-#include "openlrr.h"
+#include "OpenLRR.h"
 
 
 // At the moment this is disabled because it worsens the race condition

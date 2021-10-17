@@ -66,7 +66,7 @@ void __cdecl Gods98::SE(const char* error, const char* errdesc)
 		"Error : %s (code %i)\n"
 		"DX Module : %s\n"
 		"Error Description : %s\n",
-		dxbugGlobs.file, dxbugGlobs.line, error, (unsigned int)dxbugGlobs.errnum, DXModuleName[dxbugGlobs.DXModuleNameNumber], errdesc);
+		dxbugGlobs.file, dxbugGlobs.line, error, (sint32)dxbugGlobs.errnum, DXModuleName[(uint32)dxbugGlobs.DXModuleNumber], errdesc);
 	Error_Warn(true, dxbugGlobs.DXErrorString);
 }
 
@@ -81,8 +81,8 @@ HRESULT __cdecl Gods98::Error_SetDXError(HRESULT err, DxbugModule DXModule, cons
 
 	// Take the last error code specified by the program
 	dxbugGlobs.errnum = err;
-	if (DXModule > DxbugModule::ERROR_UNKNOWN && DXModule <= DxbugModule::ERROR_IUNKNOWN) dxbugGlobs.DXModuleNameNumber = DXModule;
-	else dxbugGlobs.DXModuleNameNumber = DxbugModule::ERROR_UNKNOWN;
+	if (DXModule > DxbugModule::ERROR_UNKNOWN && DXModule <= DxbugModule::ERROR_IUNKNOWN) dxbugGlobs.DXModuleNumber = DXModule;
+	else dxbugGlobs.DXModuleNumber = DxbugModule::ERROR_UNKNOWN;
 	dxbugGlobs.file = File;
 	dxbugGlobs.line = Line;
 	dxbugGlobs.DXNumErrorsSet++;

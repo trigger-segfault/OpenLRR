@@ -133,7 +133,7 @@ enum Keys : uint8
     KEY_INSERT          = 210, // INS
     KEY_DELETE          = 211, // DEL
 };
-static_assert(sizeof(Keys) == 0x1, "");
+assert_sizeof(Keys, 0x1);
 
 #pragma endregion
 
@@ -148,7 +148,7 @@ struct Key_Globs
 	/*000,400*/ const char* keyName[256];
 	/*400*/
 };
-static_assert(sizeof(Key_Globs) == 0x400, "");
+assert_sizeof(Key_Globs, 0x400);
 
 #pragma endregion
 

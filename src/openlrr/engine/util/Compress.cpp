@@ -58,7 +58,7 @@ uint32 __cdecl Gods98::RNC_Uncompress(IN const void* bufferIn, OUT void** buffer
 	uint8* newBufferOut = (uint8*)std::malloc(origSize);
 	if (newBufferOut != nullptr) {
 		RNCError rstatus = _RNC_Uncompress(bufferIn, newBufferOut);
-		if (rstatus == RNCError::RNC_OK /*0*/) {
+		if (rstatus == RNCError::OK /*0*/) {
 			*bufferOut = newBufferOut;
 			return origSize;
 		}
@@ -79,13 +79,13 @@ Gods98::RNCError __cdecl Gods98::_RNC_Uncompress(IN const void* bufferIn, OUT vo
 
 	// check compression signature
 	if (std::strncmp(hdr->signature, "RNC", 3) != 0)
-		return RNCError::RNC_INVALIDFILE /*-1*/;
+		return RNCError::INVALIDFILE /*-1*/;
 
 	switch (hdr->compression) {
 	case RNCCompression::RNC_COMPRESS_STORE /*0*/:
 		//std::printf("RNC_COMPRESS_STORE\n");
 		std::memcpy(bufferOut, (const uint8*)hdr->data, BE_uint32(hdr->beOrigSize));
-		return RNCError::RNC_OK /*0*/;
+		return RNCError::OK /*0*/;
 
 	case RNCCompression::RNC_COMPRESS_BEST /*1*/:
 		//std::printf("RNC_COMPRESS_BEST\n");
@@ -96,7 +96,7 @@ Gods98::RNCError __cdecl Gods98::_RNC_Uncompress(IN const void* bufferIn, OUT vo
 		return RNC_M2_Uncompress(bufferIn, bufferOut);
 
 	default:
-		return RNCError::RNC_INVALIDCOMPRESSION /*-2*/;
+		return RNCError::INVALIDCOMPRESSION /*-2*/;
 	}
 }
 
@@ -133,7 +133,7 @@ Gods98::RNCError __cdecl Gods98::RNC_M1_Uncompress(IN const void* bufferIn, OUT 
 
 				#ifdef BOUNDS_CHECKING
 				if (rncGlobs.Output + runDataLength > rncGlobs.OutputEnd)
-					return RNCError::RNC_INVALIDCOMPRESSION;
+					return RNCError::INVALIDCOMPRESSION;
 				#endif
 
 				//std::memcpy(rncGlobs.Output, rncGlobs.Input, runDataLength);
@@ -166,7 +166,7 @@ Gods98::RNCError __cdecl Gods98::RNC_M1_Uncompress(IN const void* bufferIn, OUT 
 				
 				#ifdef BOUNDS_CHECKING
 				if (rncGlobs.Output + runCopyLength > rncGlobs.OutputEnd)
-					return RNCError::RNC_INVALIDCOMPRESSION;
+					return RNCError::INVALIDCOMPRESSION;
 				#endif
 
 				//overlapped_memcpy(rncGlobs.Output, prevOutput, runCopyLength);
@@ -180,7 +180,7 @@ Gods98::RNCError __cdecl Gods98::RNC_M1_Uncompress(IN const void* bufferIn, OUT 
 			isDataRun = !isDataRun;
 		}
 	}
-	return RNCError::RNC_OK;
+	return RNCError::OK;
 #endif
 }
 
@@ -259,7 +259,7 @@ Gods98::RNCError __cdecl Gods98::RNC_M2_Uncompress(IN const void* bufferIn, OUT 
 			}
 		}
 	}
-	return RNCError::RNC_OK;
+	return RNCError::OK;
 #endif
 }
 

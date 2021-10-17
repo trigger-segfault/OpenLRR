@@ -56,11 +56,11 @@ typedef void Animation_t;
 struct Animation_Globs
 {
 	/*0,1*/ bool g98NoAvis;
-	/*1,3*/ uint8 padding1[3];
+	///*1,3*/ uint8 padding1[3];
 	/*4,4*/ IDirectDraw4* ddraw;
 	/*8*/
 };
-static_assert(sizeof(Animation_Globs) == 0x8, "");
+assert_sizeof(Animation_Globs, 0x8);
 
 #pragma endregion
 

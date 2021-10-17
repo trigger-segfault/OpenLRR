@@ -76,7 +76,7 @@ struct joystickType
 	/*1c,4*/ sint32						yaxis;
 	/*20*/
 };
-static_assert(sizeof(joystickType) == 0x20, "");
+assert_sizeof(joystickType, 0x20);
 
 
 struct DIcallbackData
@@ -90,7 +90,7 @@ struct DIcallbackData
 	/*8,4*/ joystickType* joystick;
 	/*c*/
 };
-static_assert(sizeof(DIcallbackData) == 0xc, "");
+assert_sizeof(DIcallbackData, 0xc);
 
 
 struct Input_Globs
@@ -133,7 +133,7 @@ struct Input_Globs
 	/*180,100*/ bool Key_Map[INPUT_MAXKEYS]; // Keyboard state
 	/*280*/
 };
-static_assert(sizeof(Input_Globs) == 0x280, "");
+assert_sizeof(Input_Globs, 0x280);
 
 #pragma endregion
 

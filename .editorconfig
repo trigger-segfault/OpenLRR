@@ -1,0 +1,328 @@
+# Remove the line below if you want to inherit .editorconfig settings from higher directories
+root = true
+
+# <https://docs.microsoft.com/en-us/visualstudio/ide/create-portable-custom-editor-options?view=vs-2019>
+# <https://docs.microsoft.com/en-us/visualstudio/ide/cpp-editorconfig-properties?view=vs-2019>
+
+
+#### Core EditorConfig Options ####
+charset = utf-8
+
+# # Indentation and spacing
+# indent_size = 4
+# indent_style = space
+# tab_width = 4
+
+# # New line preferences
+# end_of_line = crlf
+# insert_final_newline = false
+
+
+################################################################################
+#### Config-like files ####
+[*.{ae,cfg,ol,ptl}]
+indent_style = tab
+indent_size = 4
+tab_width = 4
+# CRLF is required by Cafeteria, but not required by LegoRR
+end_of_line = crlf
+# Trailing whitespace is expected by LegoRR Config_Load, otherwise there will be no null terminator.
+#  <--
+# [EOF]
+insert_final_newline = true
+
+#### Cafeteria mod script ####
+[script.txt]
+indent_size = 4
+indent_style = tab
+tab_width = 4
+# CRLF is required by Cafeteria
+end_of_line = crlf
+
+
+################################################################################
+#### C/C++ files ####
+[*.{h,hpp,c,cpp,rc,hint}]
+
+# Indent preferences
+indent_style = tab
+indent_size = 4
+tab_width = 4
+
+# New line preferences
+end_of_line = crlf
+#  <--
+# [EOF]
+insert_final_newline = true
+
+
+########################################
+#### Indentation settings ####
+
+# { <--
+#     //...code...
+# } <--
+cpp_indent_braces = false
+# void foo(void)
+# {
+#         {
+#         --> //...code...
+#         }
+# }
+cpp_indent_multi_line_relative_to = innermost_parenthesis
+
+# UNSURE: Both of these have a lot of drawbacks... (align_to_parenthesis|indent)
+# foobarbaz(uint32 a, uint32 b, uint32 c,
+#       --> bool32 on, bool32 toggle);
+cpp_indent_within_parentheses = align_to_parenthesis
+
+# switch (value) {
+# case 0: <--
+#     break;
+# }
+cpp_indent_case_labels = false
+# case 1:
+# --> //...code...
+# --> break;
+cpp_indent_case_contents = true
+# case 2: {
+#     --> //...code...
+# --> }
+#     break;
+cpp_indent_case_contents_when_block = true
+# UNKNOWN:
+# foo(x, y,
+#     real32 [](real32 x, real32 y) {
+#         real32 z = 0.0f;
+#         Map3D_GetSurfaceZ(x, y, &z);
+#         return z;
+#     }, <--
+#     true);
+cpp_indent_lambda_braces_when_parameter = false
+# void foo(bool32 bar)
+# {
+#     if (bar) {
+# --> MYLABEL:
+#         //...code...
+#     }
+cpp_indent_goto_labels = one_left
+# UNSURE: (one_left|leftmost_column)
+## void foo(bool32 bar)
+## {
+##     if (bar) {
+## --> #if MYCONDITION
+##         //...code...
+##     #endif
+##     }
+#cpp_indent_preprocessor = one_left
+# void foo(bool32 bar)
+# {
+#     if (bar) {
+# #if MYCONDITION <--
+#         //...code...
+# #endif <--
+#     }
+cpp_indent_preprocessor = leftmost_column
+
+# UNKNOWN: ??? (true|false)
+cpp_indent_access_specifiers = false
+
+# Include file namespaces get weird otherwise... (true|false)
+cpp_indent_namespace_contents = false
+
+# This will mess up Gods98 comments that start at the very beginning of the line
+# Make sure to rework these so that it's clear what was commented out in the source,
+# vs. what was commented out in OpenLRR.
+cpp_indent_preserve_comments = false
+
+
+########################################
+#### Newline settings ####
+
+# namespace OpenLRR
+# { <--
+cpp_new_line_before_open_brace_namespace = new_line
+# struct Point2F
+# { <--
+cpp_new_line_before_open_brace_type = new_line
+# void foo(void)
+# { <--
+cpp_new_line_before_open_brace_function = new_line
+
+# CHANGED:
+## if (condition) { <--
+##     //...code...
+## }
+#cpp_new_line_before_open_brace_block = same_line
+# Let the user handle this themselves.
+# A new line is recommended when a block condition spans multiple lines.
+# But otherwise, a newline is excessive over the same line.
+cpp_new_line_before_open_brace_block = ignore
+
+#                                   V
+# auto func = [](sint32 x, sint32 y) { <--
+#     return x * y * 4;
+# }
+cpp_new_line_before_open_brace_lambda = same_line #? (new_line|same_line|ignore)
+
+# UNKNOWN: ??? (true|false)
+cpp_new_line_scope_braces_on_separate_lines = true
+
+# This shouldn't even exist... right?
+# struct Dummy
+# {
+# }; <--
+cpp_new_line_close_brace_same_line_empty_type = false
+# void foo(void)
+# {
+# } <--
+cpp_new_line_close_brace_same_line_empty_function = false
+# try {
+#     //...code...
+# }
+# catch {
+#     //...code...
+# }
+cpp_new_line_before_catch = true
+# if (condition) {
+#     //...code...
+# }
+# else <--
+cpp_new_line_before_else = true
+# do {
+#     //...code...
+# } while (condition); <--
+cpp_new_line_before_while_in_do_while = false
+
+
+########################################
+#### Spacing settings ####
+
+#    v
+# foo()
+cpp_space_before_function_open_parenthesis = remove
+#     v     v
+# foo(a, b, c)
+cpp_space_within_parameter_list_parentheses = false
+#     v
+# foo()
+cpp_space_between_empty_parameter_list_parentheses = false
+#   V
+# if (condition) {
+cpp_space_after_keywords_in_control_flow_statements = true
+#     v       v
+# if (condition)
+cpp_space_within_control_flow_statement_parentheses = false
+#                v      v
+# auto func = [](sint32 b) { return b*4; }
+cpp_space_before_lambda_open_parenthesis = false
+#                 v   v
+# uint8 myByte = (uint8)myVar;
+cpp_space_within_cast_parentheses = false
+#                      v
+# uint8 myByte = (uint8)myVar;
+cpp_space_after_cast_close_parenthesis = false
+
+# IGNORE: Let the user decide what looks the cleanest and easiest to read.
+#cpp_space_within_expression_parentheses = ? (true|false)
+
+#               V
+# if (condition) {
+cpp_space_before_block_open_brace = true
+#                 v
+# if (condition) {}
+cpp_space_between_empty_braces = false
+#            V
+# new MyClass {param1, param2};
+cpp_space_before_initializer_list_open_brace = true
+#             V              V
+# new MyClass{ param1, param2 };
+cpp_space_within_initializer_list_braces = true
+#                     ~~~
+# new MyClass{ param1,   param2,
+#              myparam3, param4 };
+cpp_space_preserve_in_initializer_list = true
+
+#        v
+# myArray[203]
+cpp_space_before_open_square_bracket = false
+#         v v
+# myArray[203]
+cpp_space_within_square_brackets = false
+#             v
+# char myArray[];
+cpp_space_before_empty_square_brackets = false
+#              v
+# char myArray[];
+cpp_space_between_empty_square_brackets = false
+
+# UNKNOWN: ???
+cpp_space_group_square_brackets = true
+
+#              v                v
+# auto func = [capture1, capture2](sint32 a) { return a + (capture1 * capture2); }
+cpp_space_within_lambda_brackets = false
+#              v
+# auto func = [](sint32 b) { return b*4; }
+cpp_space_between_empty_lambda_brackets = false
+#      v
+# foo(a, b, c);
+cpp_space_before_comma = false
+#       V
+# foo(a, b, c);
+cpp_space_after_comma = true
+
+# IGNORE: Let the user decide what looks the cleanest and easiest to read.
+#cpp_space_remove_around_member_operators = ? (true|false)
+
+#              V
+# class Derived : Base
+cpp_space_before_inheritance_colon = true
+#                            V
+# MyClass(sint32 a, sint32 b) : m_a(a), m_b(b)
+cpp_space_before_constructor_colon = true
+#                 v
+# uint32 value = 0;
+cpp_space_remove_before_semicolon = true
+# For for loops, right?.... RIGHT?
+#                   V       V
+# for (uint32 i = 0; i < 10; i++) {
+cpp_space_after_semicolon = true
+#         v
+# value = -a;
+cpp_space_remove_around_unary_operator = true
+
+# CHANGED:
+##          V V
+## value = a + b;
+#cpp_space_around_binary_operator = insert
+#          ~ ~
+# value = a + b;    ~
+# value = array[loop-1];
+cpp_space_around_binary_operator = ignore
+
+# CHANGED:
+##      V V
+## value = 0;
+#cpp_space_around_assignment_operator = insert
+#      ~~~~~ ~
+# value     = 0;
+cpp_space_around_assignment_operator = ignore
+
+#     v
+# char* str;
+cpp_space_pointer_reference_alignment = left
+#                 V V        V V
+# value = ((c > 0) ? newValue : 0)
+cpp_space_around_ternary_operator = insert
+
+
+########################################
+#### Wrapping options ####
+
+# UNKNOWN: ??? (one_liners|all_one_line_scopes|never)
+cpp_wrap_preserve_blocks = one_liners
+
+
+################################################################################
+

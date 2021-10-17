@@ -37,17 +37,17 @@ struct File;
 
 #pragma region Enums
 
-enum Error_LoadError : sint32
+enum class Error_LoadError : sint32
 {
-	Error_LoadError_InvalidFName,
-	Error_LoadError_UnableToOpen,
-	Error_LoadError_UnableToOpenForWrite,
-	Error_LoadError_UnableToVerifyName,
-	Error_LoadError_RMTexture,
+	InvalidFName,
+	UnableToOpen,
+	UnableToOpenForWrite,
+	UnableToVerifyName,
+	RMTexture,
 
-	Error_LoadError_Count
+	Count,
 };
-static_assert(sizeof(Error_LoadError) == 0x4, "");
+assert_sizeof(Error_LoadError, 0x4);
 
 #pragma endregion
 
@@ -71,7 +71,7 @@ struct Error_Globs
 	// [globs: end]
 	/*818*/
 };
-static_assert(sizeof(Error_Globs) == 0x818, "");
+assert_sizeof(Error_Globs, 0x818);
 
 #pragma endregion
 

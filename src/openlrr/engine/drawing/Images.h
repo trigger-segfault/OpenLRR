@@ -68,44 +68,38 @@ struct BMP_Image;
 #define IMAGE_VERTEXFLAGS		(D3DFVF_DIFFUSE|D3DFVF_XYZRHW|D3DFVF_TEX1)
 
 
-namespace _ns_Image_GlobFlags {
-enum Image_GlobFlags : uint32
+flags_scoped(Image_GlobFlags) : uint32
 {
-	IMAGE_FLAG_NONE        = 0,
-	IMAGE_FLAG_INITIALISED = 0x1,
+	IMAGE_GLOB_FLAG_NONE        = 0,
+	IMAGE_GLOB_FLAG_INITIALISED = 0x1,
 };
-DEFINE_ENUM_FLAG_OPERATORS(Image_GlobFlags);
-static_assert(sizeof(Image_GlobFlags) == 0x4, "");
-} using Image_GlobFlags = _ns_Image_GlobFlags::Image_GlobFlags;
+flags_scoped_end(Image_GlobFlags, 0x4);
 
 
-namespace _ns_ImageFlags {
-enum ImageFlags : uint32
+flags_scoped(ImageFlags) : uint32
 {
 	IMAGE_FLAG_NONE    = 0,
 
 	IMAGE_FLAG_TRANS   = 0x2,
 	IMAGE_FLAG_TEXTURE = 0x4,
 };
-DEFINE_ENUM_FLAG_OPERATORS(ImageFlags);
-static_assert(sizeof(ImageFlags) == 0x4, "");
-} using ImageFlags = _ns_ImageFlags::ImageFlags;
+flags_scoped_end(ImageFlags, 0x4);
 
 
-enum Image_TextureMode : sint32
+enum class Image_TextureMode : sint32
 {
-	Image_TextureMode_Normal            = 0,
-	Image_TextureMode_Subtractive       = 1,
-	Image_TextureMode_Additive          = 2,
-	Image_TextureMode_Transparent       = 3,
+	Normal            = 0,
+	Subtractive       = 1,
+	Additive          = 2,
+	Transparent       = 3,
 
-	Image_TextureMode_Fixed_Subtractive = 4,	// Not affected by the global intensity value
-	Image_TextureMode_Fixed_Additive    = 5,
-	Image_TextureMode_Fixed_Transparent = 6,
+	Fixed_Subtractive = 4,	// Not affected by the global intensity value
+	Fixed_Additive    = 5,
+	Fixed_Transparent = 6,
 
-	Image_TextureMode_Count = 7,
+	Count = 7,
 };
-static_assert(sizeof(Image_TextureMode) == 0x4, "");
+assert_sizeof(Image_TextureMode, 0x4);
 
 #pragma endregion
 
@@ -123,7 +117,7 @@ struct ImageVertex
 	/*18,4*/ real32 tv;
 	/*1c*/
 };
-static_assert(sizeof(ImageVertex) == 0x1c, "");
+assert_sizeof(ImageVertex, 0x1c);
 
 
 struct Image
@@ -140,7 +134,7 @@ struct Image
 	/*1c,4*/ Image *nextFree;
 	/*20*/
 };
-static_assert(sizeof(Image) == 0x20, "");
+assert_sizeof(Image, 0x20);
 
 
 struct Image_Globs
@@ -153,7 +147,7 @@ struct Image_Globs
 	// [globs: end]
 	/*8c*/
 };
-static_assert(sizeof(Image_Globs) == 0x8c, "");
+assert_sizeof(Image_Globs, 0x8c);
 
 #pragma endregion
 
@@ -279,7 +273,7 @@ void __cdecl Image_MyBlt(IDirectDrawSurface* dest, IDirectDrawSurface* src, uint
 */
 
 #ifdef DEBUG
-	#define Image_CheckInit()			if (!(imageGlobs.flags & Gods98::Image_GlobFlags::IMAGE_FLAG_INITIALISED)) Gods98::Error_Fatal(true, "Error: Image_Intitialise() Has Not Been Called");
+	#define Image_CheckInit()			if (!(imageGlobs.flags & Gods98::Image_GlobFlags::IMAGE_GLOB_FLAG_INITIALISED)) Gods98::Error_Fatal(true, "Error: Image_Intitialise() Has Not Been Called");
 #else
 	#define Image_CheckInit()
 #endif

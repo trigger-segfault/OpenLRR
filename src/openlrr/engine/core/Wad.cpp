@@ -290,7 +290,7 @@ void __cdecl Gods98::Wad_Close(Wad_HandleValue wadNo)
 // <missing>
 bool32 __cdecl Gods98::Wad_FileCompressed(Wad_HandleValue wadNo, sint32 fileNo)
 {
-	return (Wad_Get(wadNo)->wadEntries[fileNo].compression != Wad_EntryFlags::WAD_FILE_UNCOMPRESSED);
+	return (Wad_Get(wadNo)->wadEntries[fileNo].compression != Wad_EntryFlags::WADENTRY_FLAG_UNCOMPRESSED);
 }
 
 // <LegoRR.exe @0048bfb0>
@@ -394,7 +394,7 @@ sint32 __cdecl Gods98::_Wad_FileOpen(const char* fName, Wad_HandleValue wadNo)
 	}
 
 	// If the file is compressed then it must be decompressed first
-	if (Wad_Get(wadNo)->wadEntries[indexOfFileInWad].compression & Wad_EntryFlags::WAD_FILE_RNCOMPRESSED)
+	if (Wad_Get(wadNo)->wadEntries[indexOfFileInWad].compression & Wad_EntryFlags::WADENTRY_FLAG_RNCOMPRESSED)
 	{
 		void *newBuffer = nullptr;
 		RNC_Uncompress(ptr, &newBuffer);

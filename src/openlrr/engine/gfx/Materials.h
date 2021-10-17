@@ -19,8 +19,11 @@ namespace Gods98
 #pragma region Structs
 
 // Essentially a typedef pointer to IDirect3DRMMaterial2 (when treated as Material*)
-struct Material { uint32 dummy; };
-static_assert(sizeof(Material) == 0x4, "");
+struct Material
+{
+	uint32 dummy;
+};
+assert_sizeof(Material, 0x4);
 
 /// ALT: Similar to the Movie/Animation C wrapper typedefs
 //typedef void Material;

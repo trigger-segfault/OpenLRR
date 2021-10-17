@@ -74,9 +74,6 @@ typedef void (__cdecl* SoundCDStopCallback)(void);
 #define ER_CANNOTWRITE		0xe104
 #endif
 
-#define SAMP_MULTI 2
-#define SAMP_LOOP 1
-#define SAMP_ONCE 0
 
 #define MAX_SAMPLES 100
 
@@ -92,24 +89,13 @@ typedef void (__cdecl* SoundCDStopCallback)(void);
 
 #pragma region Enums
 
-/*enum_scoped(SoundMode2) : uint32
+enum class SoundMode : uint32
 {
-	Sound_Multi = SAMP_MULTI,
-	Sound_Loop  = SAMP_LOOP,
-	Sound_Once  = SAMP_ONCE
+	Sound_Once  = 0,
+	Sound_Loop  = 1,
+	Sound_Multi = 2,
 };
-static_assert(sizeof(SoundMode2) == 0x4, "");
-enum_scoped_end(SoundMode2);*/
-
-namespace _ns_SoundMode {
-enum SoundMode : uint32
-{
-	Sound_Multi = SAMP_MULTI,
-	Sound_Loop  = SAMP_LOOP,
-	Sound_Once  = SAMP_ONCE
-};
-static_assert(sizeof(SoundMode) == 0x4, "");
-} using SoundMode = _ns_SoundMode::SoundMode;
+assert_sizeof(SoundMode, 0x4);
 
 #pragma endregion
 
@@ -146,7 +132,7 @@ struct Sound
 	/*0,4*/ uint32 handle;
 	/*4*/
 };
-static_assert(sizeof(Sound) == 0x4, "");
+assert_sizeof(Sound, 0x4);
 
 
 struct Sound_Globs
@@ -165,7 +151,7 @@ struct Sound_Globs
 	/*1b4,4*/ MCIERROR mciErr;
 	/*1b8*/
 };
-static_assert(sizeof(Sound_Globs) == 0x1b8, "");
+assert_sizeof(Sound_Globs, 0x1b8);
 
 #pragma endregion
 

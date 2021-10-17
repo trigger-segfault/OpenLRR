@@ -11,7 +11,7 @@
 #include "../core/Maths.h"
 #include "../core/Memory.h"
 #include "../core/Utils.h"
-#include "../Main.h"
+#include "../Graphics.h"
 
 #include "Mesh.h"
 
@@ -195,9 +195,9 @@ Gods98::Mesh* __cdecl Gods98::Mesh_CreateOnFrame(IDirect3DRMFrame3* frame, MeshR
 	mesh->renderDesc.renderCallbackData = data;
 	mesh->renderDesc.renderFlags = renderFlags;
 
-	if( type == Mesh_Type::Mesh_Type_PostEffect )
+	if( type == Mesh_Type::PostEffect )
 		mesh->flags |= MeshFlags::MESH_FLAG_POSTEFFECT;
-	else if( type == Mesh_Type::Mesh_Type_LightWaveObject )
+	else if( type == Mesh_Type::LightWaveObject )
 		mesh->flags |= MeshFlags::MESH_FLAG_LWO;
 
 	mesh->numOfRefs = 1;
@@ -264,7 +264,7 @@ Gods98::Mesh* __cdecl Gods98::Mesh_Load(const char* fname, IDirect3DRMFrame3* fr
 //	if( LoadAppObj(fname, &lightWaveObject, true) )
 	if( LoadAppObj(fname, &lightWaveObject, false) )
 	{
-		mesh = Mesh_CreateOnFrame( frame, nullptr, Mesh_RenderFlags::MESH_RENDERFLAGS_LWOALPHA, nullptr, Mesh_Type::Mesh_Type_LightWaveObject );
+		mesh = Mesh_CreateOnFrame( frame, nullptr, Mesh_RenderFlags::MESH_RENDERFLAGS_LWOALPHA, nullptr, Mesh_Type::LightWaveObject );
 		Mesh_ParseLWO( path, mesh, lightWaveObject, noTextures );
 		FreeLWOB( lightWaveObject );
 
@@ -535,21 +535,21 @@ bool32 __cdecl Gods98::Mesh_ParseLWO(const char* basePath, Mesh* mesh, APPOBJ* l
 		newFlags = Mesh_RenderFlags::MESH_RENDERFLAGS_LWONORM;
 
 		if( mesh->lightWaveSurf[loop].flags & LightWave_SurfFlags::SFM_ADDITIVE )
-		{	newFlags |= Mesh_RenderFlags::MESH_FLAG_RENDER_ALPHASA1;
+		{	newFlags |= Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHASA1;
 			Mesh_AlterGroupRenderFlags( mesh, group, newFlags );
 		}
 		else
-			newFlags |= Mesh_RenderFlags::MESH_FLAG_RENDER_ALPHATRANS;
+			newFlags |= Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHATRANS;
 
 		if (mesh->lightWaveSurf[loop].flags & LightWave_SurfFlags::SFM_DOUBLESIDED) {
-			newFlags |= Mesh_RenderFlags::MESH_FLAG_RENDER_DOUBLESIDED;
+			newFlags |= Mesh_RenderFlags::MESH_RENDER_FLAG_DOUBLESIDED;
 			Mesh_AlterGroupRenderFlags( mesh, group, newFlags );
 		}
 
 		/// OLD GODS98: This check (and applying of newFlags was commented out in Gods98 source,
 		///             while the call to Mesh_AlterGroupRenderFlags was not.
 		if (!(mesh->lightWaveSurf[loop].texFlags & LightWave_TexFlags::TFM_PIXEL_BLENDING)) {
-			newFlags |= Mesh_RenderFlags::MESH_FLAG_RENDER_FILTERNEAREST;
+			newFlags |= Mesh_RenderFlags::MESH_RENDER_FLAG_FILTERNEAREST;
 			Mesh_AlterGroupRenderFlags(mesh, group, newFlags);
 		}
 
@@ -794,7 +794,7 @@ void __cdecl Gods98::Mesh_UViewMesh(APPOBJ* lightWaveObject, OUT Point2F* textCo
 	/// NEW GODS98: New functionality not present in LegoRR
 	/*if (File_GetLine(line, sizeof(line), fileUV)) {
 		if (File_GetLine(line, sizeof(line), fileUV)) {
-			File_Seek(fileUV, 0, FileOrigin::File_SeekSet);
+			File_Seek(fileUV, 0, SeekOrigin::Set);
 			/// NOTE: case sensitive string comparison
 			if (std::strcmp("VERSION 4", line) == 0) {
 				Mesh_UViewMeshV4(lightWaveObject, textCoords);
@@ -1129,7 +1129,7 @@ sint32 __cdecl Gods98::Mesh_AddGroup(Mesh* mesh, uint32 vertexCount, uint32 face
 	std::memset( group->vertices, 0, size );
 	
 	group->vertexCount = vertexCount;
-	group->flags = Mesh_GroupFlags::MESH_FLAG_NONE;// 0x00000000;
+	group->flags = MeshFlags::MESH_FLAG_NONE;// 0x00000000;
 	
 //	mesh->groupList[mesh->groupCount-1] = group;
 	
@@ -1289,7 +1289,7 @@ bool32 __cdecl Gods98::Mesh_IsGroupHidden(Mesh* mesh, uint32 groupID)
 		Mesh_Debug_CheckIMDevice_Int();
 		const Mesh_Group* group = &mesh->groupList[groupID];
 
-		return group->flags & Mesh_GroupFlags::MESH_FLAG_HIDDEN;
+		return group->flags & MeshFlags::MESH_FLAG_HIDDEN;
 	}
 
 	return true;
@@ -1304,8 +1304,8 @@ void __cdecl Gods98::Mesh_HideGroup(Mesh* mesh, uint32 groupID, bool32 hide)
 		Mesh_Debug_CheckIMDevice_Void();
 		Mesh_Group* group = &mesh->groupList[groupID];
 
-		if (hide) group->flags |= Mesh_GroupFlags::MESH_FLAG_HIDDEN;
-		else group->flags &= ~Mesh_GroupFlags::MESH_FLAG_HIDDEN;
+		if (hide) group->flags |= MeshFlags::MESH_FLAG_HIDDEN;
+		else group->flags &= ~MeshFlags::MESH_FLAG_HIDDEN;
 	}
 }
 
@@ -1379,7 +1379,7 @@ BOOL __cdecl Gods98::Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOI
 				//POST RENDER MESH
 				Mesh_AddToPostRenderList( mesh, &matWorld );
 			} 
-			else if( mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_FLAG_RENDER_ALLALPHA )
+			else if( mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA )
 			{
 				//RENDER ALL GROUPS WITHOUT FLAGS CHANGED FISRT
 				for(uint32 loop = 0; loop < mesh->groupCount; loop++ )
@@ -1388,7 +1388,7 @@ BOOL __cdecl Gods98::Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOI
 
 					if( Mesh_CanRenderGroup(group) )
 					{	
-						if( group->flags & Mesh_GroupFlags::MESH_FLAG_ALPHAENABLE )
+						if( group->flags & MeshFlags::MESH_FLAG_ALPHAENABLE )
 						{	
 							//POST RENDER MESH
 							//DO NOT RENDER GROUP NOW
@@ -1418,7 +1418,7 @@ BOOL __cdecl Gods98::Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOI
 
 					if( Mesh_CanRenderGroup(group) )
 					{	
-						if( group->flags & Mesh_GroupFlags::MESH_FLAG_ALPHAENABLE )
+						if( group->flags & MeshFlags::MESH_FLAG_ALPHAENABLE )
 						{	
 							//POST RENDER MESH
 							//DO NOT RENDER GROUP NOW
@@ -1447,7 +1447,7 @@ BOOL __cdecl Gods98::Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOI
 			else
 			{	
 				//NOTE IS SOME OF THE GROUPS IN THIS MESH USE ALPHA BLENDING THEY WILL NOT APPEAR
-				//IF YOU SUSPECT THAT ONE OR MORE GROUPS WILL USE ALPHA BLENDING SET 'MESH_FLAG_RENDER_ALPHATRANS' ON THE MESH RENDER DESC.
+				//IF YOU SUSPECT THAT ONE OR MORE GROUPS WILL USE ALPHA BLENDING SET 'MESH_RENDER_FLAG_ALPHATRANS' ON THE MESH RENDER DESC.
 				Mesh_StoreTextureAndMat();
 				Mesh_SetMeshRenderDesc( mesh, vp, &matWorld, false);
 				renderStateSet = true;
@@ -1460,7 +1460,7 @@ BOOL __cdecl Gods98::Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOI
 				//RESTORE STATES
 				/// UNKNOWN: this is false, which would cause the function to do nothing
 				///           in new Gods98 engine source. (in LegoRR it's no argument)
-				Main_RestoreStates(/*false*/);
+				Graphics_RestoreStates(/*false*/);
 				//Mesh_RestoreTextureStageStates();
 				Mesh_RestoreTextureAndMat();
 			}
@@ -1482,44 +1482,44 @@ void __cdecl Gods98::Mesh_SetMeshRenderDesc(Mesh* mesh, Viewport* vp, const D3DM
 		mesh->renderDesc.renderCallback( mesh, mesh->renderDesc.renderCallbackData, vp );
 
 	//ADD DEFAULT STATES HERE
-	Main_ChangeRenderState(D3DRENDERSTATE_SPECULARENABLE, false);
+	Graphics_ChangeRenderState(D3DRENDERSTATE_SPECULARENABLE, false);
 
 	/// CUSTOM: Add control over rendering quality using settings passed to Main_Setup3D
 	// D3DRENDERSTATE_LIGHTING is not supported by Direct3DDevice3, which is
 	//  why LegoRR doesn't support parsing the UnlitFlat quality in Lego.cfg.
-	switch (mainGlobs2.renderQuality) {
-	case MainQuality::WIREFRAME:
-		Main_ChangeRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_FLAT);
-		//Main_ChangeRenderState(D3DRENDERSTATE_LIGHTING,  false);
-		Main_ChangeRenderState(D3DRENDERSTATE_FILLMODE,  D3DFILL_WIREFRAME);
+	switch (graphicsGlobs.renderQuality) {
+	case Graphics_Quality::Wireframe:
+		Graphics_ChangeRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_FLAT);
+		//Graphics_ChangeRenderState(D3DRENDERSTATE_LIGHTING,  false);
+		Graphics_ChangeRenderState(D3DRENDERSTATE_FILLMODE,  D3DFILL_WIREFRAME);
 		break;
-	case MainQuality::UNLITFLATSHADE:
+	case Graphics_Quality::UnlitFlat:
 		// Due to the lack of lighting support, this is identical to FLATSHADE
-		Main_ChangeRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_FLAT);
-		//Main_ChangeRenderState(D3DRENDERSTATE_LIGHTING,  false);
-		Main_ChangeRenderState(D3DRENDERSTATE_FILLMODE,  D3DFILL_SOLID);
+		Graphics_ChangeRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_FLAT);
+		//Graphics_ChangeRenderState(D3DRENDERSTATE_LIGHTING,  false);
+		Graphics_ChangeRenderState(D3DRENDERSTATE_FILLMODE,  D3DFILL_SOLID);
 		break;
-	case MainQuality::FLATSHADE:
-		Main_ChangeRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_FLAT);
-		//Main_ChangeRenderState(D3DRENDERSTATE_LIGHTING,  true);
-		Main_ChangeRenderState(D3DRENDERSTATE_FILLMODE,  D3DFILL_SOLID);
+	case Graphics_Quality::Flat:
+		Graphics_ChangeRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_FLAT);
+		//Graphics_ChangeRenderState(D3DRENDERSTATE_LIGHTING,  true);
+		Graphics_ChangeRenderState(D3DRENDERSTATE_FILLMODE,  D3DFILL_SOLID);
 		break;
-	case MainQuality::GOURAUDSHADE:
-		Main_ChangeRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_GOURAUD);
-		//Main_ChangeRenderState(D3DRENDERSTATE_LIGHTING,  true);
-		Main_ChangeRenderState(D3DRENDERSTATE_FILLMODE,  D3DFILL_SOLID);
+	case Graphics_Quality::Gouraud:
+		Graphics_ChangeRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_GOURAUD);
+		//Graphics_ChangeRenderState(D3DRENDERSTATE_LIGHTING,  true);
+		Graphics_ChangeRenderState(D3DRENDERSTATE_FILLMODE,  D3DFILL_SOLID);
 		break;
-	case MainQuality::PHONGSHADE:
-		Main_ChangeRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_PHONG);
-		//Main_ChangeRenderState(D3DRENDERSTATE_LIGHTING,  true);
-		Main_ChangeRenderState(D3DRENDERSTATE_FILLMODE,  D3DFILL_SOLID);
+	case Graphics_Quality::Phong:
+		Graphics_ChangeRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_PHONG);
+		//Graphics_ChangeRenderState(D3DRENDERSTATE_LIGHTING,  true);
+		Graphics_ChangeRenderState(D3DRENDERSTATE_FILLMODE,  D3DFILL_SOLID);
 		break;
 	}
-	Main_ChangeRenderState(D3DRENDERSTATE_DITHERENABLE, mainGlobs2.dither);
+	Graphics_ChangeRenderState(D3DRENDERSTATE_DITHERENABLE, graphicsGlobs.dither);
 
 	/// ORIGINAL FUNCTIONALITY:
-	//Main_ChangeRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_GOURAUD);
-	//Main_ChangeRenderState(D3DRENDERSTATE_DITHERENABLE, true);
+	//Graphics_ChangeRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_GOURAUD);
+	//Graphics_ChangeRenderState(D3DRENDERSTATE_DITHERENABLE, true);
 	
 	if( !(mainGlobs.flags & MainFlags::MAIN_FLAG_DONTMANAGETEXTURES) )
 	{
@@ -1539,103 +1539,103 @@ void __cdecl Gods98::Mesh_SetRenderDesc(Mesh_RenderFlags flags, const D3DMATRIX*
 
 
 	//CHECK MESH IS ALPHA BLENDED
-	if( (flags & Mesh_RenderFlags::MESH_FLAG_RENDER_ALLALPHA) && alphaBlend )
-		Main_ChangeRenderState( D3DRENDERSTATE_FOGENABLE,	false );	// Don't fog alpha efects...
+	if( (flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA) && alphaBlend )
+		Graphics_ChangeRenderState( D3DRENDERSTATE_FOGENABLE,	false );	// Don't fog alpha efects...
 	/*else {
-		Main_ChangeRenderState( D3DRENDERSTATE_FOGENABLE,	true );
+		Graphics_ChangeRenderState( D3DRENDERSTATE_FOGENABLE,	true );
 		Container_EnableFog(true);
 		Container_SetFogMode(D3DFOG_LINEAR);
 		Container_SetFogParams(100, 1000, 0.5f);
 	}*/
 
 	//ALPHA STATES
-	if( (flags & Mesh_RenderFlags::MESH_FLAG_RENDER_ALLALPHA) && !alphaBlend )
-		Main_ChangeRenderState( D3DRENDERSTATE_ALPHABLENDENABLE, false );
-	else if( flags & Mesh_RenderFlags::MESH_FLAG_RENDER_ALPHA11 )
+	if( (flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA) && !alphaBlend )
+		Graphics_ChangeRenderState( D3DRENDERSTATE_ALPHABLENDENABLE, false );
+	else if( flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHA11 )
 		Mesh_SetAlphaRender( D3DBLEND_ONE, D3DBLEND_ONE );
-	else if( flags & Mesh_RenderFlags::MESH_FLAG_RENDER_ALPHASA1 )
+	else if( flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHASA1 )
 		Mesh_SetAlphaRender( D3DBLEND_SRCALPHA, D3DBLEND_ONE );
-	else if( flags & Mesh_RenderFlags::MESH_FLAG_RENDER_ALPHATRANS )
+	else if( flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHATRANS )
 		Mesh_SetAlphaRender( D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA );
-	else if( flags & Mesh_RenderFlags::MESH_FLAG_RENDER_ALPHASA0 )
+	else if( flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHASA0 )
 		Mesh_SetAlphaRender( D3DBLEND_ZERO, D3DBLEND_INVSRCCOLOR);
 	else
-		Main_ChangeRenderState( D3DRENDERSTATE_ALPHABLENDENABLE, false );
+		Graphics_ChangeRenderState( D3DRENDERSTATE_ALPHABLENDENABLE, false );
 
-	if (flags & Mesh_RenderFlags::MESH_FLAG_RENDER_DOUBLESIDED) Main_ChangeRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_NONE);
-	else Main_ChangeRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
+	if (flags & Mesh_RenderFlags::MESH_RENDER_FLAG_DOUBLESIDED) Graphics_ChangeRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_NONE);
+	else Graphics_ChangeRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
 
 	if( !(mainGlobs.flags & MainFlags::MAIN_FLAG_DONTMANAGETEXTURES) )
 	{
 		//ALPHA CHANNEL
-		if( flags & Mesh_RenderFlags::MESH_FLAG_RENDER_ALPHATEX )
+		if( flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHATEX )
 			Mesh_ChangeTextureStageState( D3DTSS_ALPHAOP, D3DTOP_SELECTARG1 );
-		else if( flags & Mesh_RenderFlags::MESH_FLAG_RENDER_ALPHADIFFUSE )
+		else if( flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHADIFFUSE )
 			Mesh_ChangeTextureStageState( D3DTSS_ALPHAOP, D3DTOP_SELECTARG2 );
 		else
 			Mesh_ChangeTextureStageState( D3DTSS_ALPHAOP, D3DTOP_MODULATE );
 	}
 	
 	//Z BUFFER CHECK
-	Main_ChangeRenderState( D3DRENDERSTATE_ZENABLE, true );
+	Graphics_ChangeRenderState( D3DRENDERSTATE_ZENABLE, true );
 
 	//Z BUFFER WRITE
-	if( (flags & Mesh_RenderFlags::MESH_FLAG_RENDER_ALLALPHA) && alphaBlend )
-		Main_ChangeRenderState( D3DRENDERSTATE_ZWRITEENABLE, false );
+	if( (flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA) && alphaBlend )
+		Graphics_ChangeRenderState( D3DRENDERSTATE_ZWRITEENABLE, false );
 	else
-		Main_ChangeRenderState( D3DRENDERSTATE_ZWRITEENABLE, true );
+		Graphics_ChangeRenderState( D3DRENDERSTATE_ZWRITEENABLE, true );
 
-//	if (flags & Mesh_RenderFlags::MESH_FLAG_HIGHZBIAS) Main_ChangeRenderState(D3DRENDERSTATE_ZBIAS, 1);
-//	else Main_ChangeRenderState(D3DRENDERSTATE_ZBIAS, 0);
+//	if (flags & Mesh_RenderFlags::MESH_RENDER_FLAG_HIGHZBIAS) Graphics_ChangeRenderState(D3DRENDERSTATE_ZBIAS, 1);
+//	else Graphics_ChangeRenderState(D3DRENDERSTATE_ZBIAS, 0);
 
 	//WORLD TRANSORMATION
-	if( flags & Mesh_RenderFlags::MESH_FLAG_TRANSFORM_PARENTPOS )
+	if( flags & Mesh_RenderFlags::MESH_TRANSFORM_FLAG_PARENTPOS )
 		Mesh_SetTransform( D3DTRANSFORMSTATE_WORLD, (Matrix4F*)matWorld );
-	else if( flags & Mesh_RenderFlags::MESH_FLAG_TRANSFORM_IDENTITY )
+	else if( flags & Mesh_RenderFlags::MESH_TRANSFORM_FLAG_IDENTITY )
 	{	
 		Mesh_SetIdentityMatrix( temp );
 		Mesh_SetTransform( D3DTRANSFORMSTATE_WORLD, &temp );
 
 	}
 
-	if( flags & Mesh_RenderFlags::MESH_FLAG_RENDER_FILTERNEAREST )
+	if( flags & Mesh_RenderFlags::MESH_RENDER_FLAG_FILTERNEAREST )
 	{	
-		Main_ChangeRenderState( D3DRENDERSTATE_TEXTUREMAG, D3DFILTER_NEAREST );
-		Main_ChangeRenderState( D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_NEAREST );
+		Graphics_ChangeRenderState( D3DRENDERSTATE_TEXTUREMAG, D3DFILTER_NEAREST );
+		Graphics_ChangeRenderState( D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_NEAREST );
 	}
 	else
 	{	
-		Main_ChangeRenderState( D3DRENDERSTATE_TEXTUREMAG, D3DFILTER_LINEAR );
+		Graphics_ChangeRenderState( D3DRENDERSTATE_TEXTUREMAG, D3DFILTER_LINEAR );
 
 		/// CUSTOM: Add control over rendering filtering using settings passed to Main_Setup3D
-		if (mainGlobs2.mipMap) {
+		if (graphicsGlobs.mipMap) {
 			// At the moment, this condition will be disabled until the
 			// effects and any side effects are fully understood.
 			// By default, Lego.cfg specifies `LinearMipMap TRUE`, but
 			// this function would normally pass D3DFILTER_MIPLINEAR.
 			//if (mainGlobs2.mipMapLinear) {
-			//	Main_ChangeRenderState(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_LINEARMIPLINEAR);
+			//	Graphics_ChangeRenderState(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_LINEARMIPLINEAR);
 			//}
 			//else {
 				// what LegoRR normally uses
-				Main_ChangeRenderState(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_MIPLINEAR);
+				Graphics_ChangeRenderState(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_MIPLINEAR);
 			//}
 		}
 		else {
-			Main_ChangeRenderState(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_LINEAR);
+			Graphics_ChangeRenderState(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_LINEAR);
 		}
 		/// OLD GODS98: MIPLINEAR used by LegoRR but LINEAR used by newer Gods98 source.
-		//Main_ChangeRenderState( D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_MIPLINEAR );
-		//Main_ChangeRenderState( D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_LINEAR );
+		//Graphics_ChangeRenderState( D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_MIPLINEAR );
+		//Graphics_ChangeRenderState( D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_LINEAR );
 	}
 }
 
 // <LegoRR.exe @00482f70>
 void __cdecl Gods98::Mesh_SetAlphaRender(D3DBLEND src, D3DBLEND dest)
 {
-	Main_ChangeRenderState( D3DRENDERSTATE_ALPHABLENDENABLE,	true );
-	Main_ChangeRenderState( D3DRENDERSTATE_SRCBLEND,			src );
-	Main_ChangeRenderState( D3DRENDERSTATE_DESTBLEND,			dest );
+	Graphics_ChangeRenderState( D3DRENDERSTATE_ALPHABLENDENABLE,	true );
+	Graphics_ChangeRenderState( D3DRENDERSTATE_SRCBLEND,			src );
+	Graphics_ChangeRenderState( D3DRENDERSTATE_DESTBLEND,			dest );
 }
 
 // <LegoRR.exe @00482fa0>
@@ -1702,7 +1702,7 @@ void __cdecl Gods98::Mesh_PostRenderAll(Viewport* vp)
 
 						if( Mesh_CanRenderGroup(group) )
 						{
-							if( group->flags & Mesh_GroupFlags::MESH_FLAG_ALPHAENABLE )
+							if( group->flags & MeshFlags::MESH_FLAG_ALPHAENABLE )
 							{
 								if( 0 == group->renderFlags )
 									Mesh_RenderGroup( info->mesh, group, &info->matWorld, true);
@@ -1717,7 +1717,7 @@ void __cdecl Gods98::Mesh_PostRenderAll(Viewport* vp)
 
 						if( Mesh_CanRenderGroup(group) )
 						{
-							if( group->flags & Mesh_GroupFlags::MESH_FLAG_ALPHAENABLE )
+							if( group->flags & MeshFlags::MESH_FLAG_ALPHAENABLE )
 							{
 								if( group->renderFlags )
 									Mesh_RenderGroup( info->mesh, group, &info->matWorld, true);
@@ -1735,7 +1735,7 @@ void __cdecl Gods98::Mesh_PostRenderAll(Viewport* vp)
 		//RESTORE STATES
 		/// NOTE: In new Gods98 engine, false would cause no action, in LegoRR
 		///        it's always called.
-		Main_RestoreStates(/*false*/);
+		Graphics_RestoreStates(/*false*/);
 		//Mesh_RestoreTextureStageStates();
 		Mesh_RestoreTextureAndMat();
 	}
@@ -1823,8 +1823,8 @@ void __cdecl Gods98::Mesh_SetGroupTexture(Mesh* mesh, uint32 groupID, Mesh_Textu
 		if (mt) {
 
 			if (mt->surface) mt->surface->QueryInterface(IID_IDirect3DTexture2, (void**)&mesh->groupList[groupID].imText);
-			if (mt->colourKey) mesh->groupList[groupID].flags |= Mesh_GroupFlags::MESH_FLAG_TRANSTEXTURE;
-			else mesh->groupList[groupID].flags &= ~Mesh_GroupFlags::MESH_FLAG_TRANSTEXTURE;
+			if (mt->colourKey) mesh->groupList[groupID].flags |= MeshFlags::MESH_FLAG_TRANSTEXTURE;
+			else mesh->groupList[groupID].flags &= ~MeshFlags::MESH_FLAG_TRANSTEXTURE;
 
 		} //else mesh->groupList[groupID].imText = nullptr;
 	}
@@ -1919,42 +1919,42 @@ bool32 __cdecl Gods98::Mesh_SetGroupColour(Mesh* mesh, uint32 groupID, real32 r,
 		if (b > 1.0f)
 			b = 1.0f;
 
-		if (type == Mesh_Colour::Mesh_Colour_Diffuse)
+		if (type == Mesh_Colour::Diffuse)
 		{
 			material->diffuse.r = r;
 			material->diffuse.g = g;
 			material->diffuse.b = b;
 
 			if ((r == 1.0f) && (g == 1.0f) && (b == 1.0f))
-				group->flags |= Mesh_GroupFlags::MESH_FLAG_TEXTURECOLOURONLY;
+				group->flags |= MeshFlags::MESH_FLAG_TEXTURECOLOURONLY;
 			else
-				group->flags &= ~Mesh_GroupFlags::MESH_FLAG_TEXTURECOLOURONLY;
+				group->flags &= ~MeshFlags::MESH_FLAG_TEXTURECOLOURONLY;
 
 			//Mesh_HideGroup( mesh, groupID, false );
 			//if( (r == 0.0f) && (g == 0.0f) && (b == 0.0f) )
 			//{	
 			//	if( group->renderFlags )
 			//	{
-			//		if( group->renderFlags & Mesh_RenderFlags::MESH_FLAG_RENDER_ALLALPHA );
+			//		if( group->renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA );
 			//			Mesh_HideGroup( mesh, groupID, true );
 			//	}
-			//	else if( mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_FLAG_RENDER_ALLALPHA )
+			//	else if( mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA )
 			//		Mesh_HideGroup( mesh, groupID, true );
 			//}
 		}
-		else if (type == Mesh_Colour::Mesh_Colour_Ambient)
+		else if (type == Mesh_Colour::Ambient)
 		{
 			material->ambient.r = r;
 			material->ambient.g = g;
 			material->ambient.b = b;
 		}
-		else if (type == Mesh_Colour::Mesh_Colour_Emissive)
+		else if (type == Mesh_Colour::Emissive)
 		{
 			material->emissive.r = r;
 			material->emissive.g = g;
 			material->emissive.b = b;
 		}
-		else if (type == Mesh_Colour::Mesh_Colour_Specular)
+		else if (type == Mesh_Colour::Specular)
 		{
 			material->specular.r = r;
 			material->specular.g = g;
@@ -1997,56 +1997,56 @@ bool32 __cdecl Gods98::Mesh_SetGroupMaterialValues(Mesh* mesh, uint32 groupID, r
 		if( value > 1.0f )
 			value = 1.0f;
 
-		if( type == Mesh_Colour::Mesh_Colour_Alpha )
+		if( type == Mesh_Colour::Alpha )
 		{	
-			group->flags &= ~Mesh_GroupFlags::MESH_FLAG_ALPHAHIDDEN;
-			group->flags &= ~Mesh_GroupFlags::MESH_FLAG_ALPHAENABLE;
+			group->flags &= ~MeshFlags::MESH_FLAG_ALPHAHIDDEN;
+			group->flags &= ~MeshFlags::MESH_FLAG_ALPHAENABLE;
 
 			if( value == 0.0f )
 			{
 				if( group->renderFlags )
 				{	
 					/// FIX APPLY: Semicolon after if statement, but before condition block
-					if( group->renderFlags & Mesh_RenderFlags::MESH_FLAG_RENDER_ALLALPHA )
-						group->flags |= Mesh_GroupFlags::MESH_FLAG_ALPHAHIDDEN;
+					if( group->renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA )
+						group->flags |= MeshFlags::MESH_FLAG_ALPHAHIDDEN;
 				}
-				else if( mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_FLAG_RENDER_ALLALPHA )
-					group->flags |= Mesh_GroupFlags::MESH_FLAG_ALPHAHIDDEN;
+				else if( mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA )
+					group->flags |= MeshFlags::MESH_FLAG_ALPHAHIDDEN;
 			}
 			else if( value != 1.0f)
 			{
 				if( group->renderFlags )
 				{	
 					/// FIX APPLY: Semicolon after if statement, but before condition block
-					if( group->renderFlags & Mesh_RenderFlags::MESH_FLAG_RENDER_ALLALPHA )
-						group->flags |= Mesh_GroupFlags::MESH_FLAG_ALPHAENABLE;
+					if( group->renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA )
+						group->flags |= MeshFlags::MESH_FLAG_ALPHAENABLE;
 				}
-				else if( mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_FLAG_RENDER_ALLALPHA )
-					group->flags |= Mesh_GroupFlags::MESH_FLAG_ALPHAENABLE;
+				else if( mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA )
+					group->flags |= MeshFlags::MESH_FLAG_ALPHAENABLE;
 			}
 
 			//COLOUR ADDITION CAN OCCUR EVEN IF ALPHA VALUE IS 1.0f
 			if( group->renderFlags )
 			{
-				if( (group->renderFlags & Mesh_RenderFlags::MESH_FLAG_RENDER_ALPHA11) ||
-					(group->renderFlags & Mesh_RenderFlags::MESH_FLAG_RENDER_ALPHASA1) ||
-					(group->renderFlags & Mesh_RenderFlags::MESH_FLAG_RENDER_ALPHASA0))
+				if( (group->renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHA11) ||
+					(group->renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHASA1) ||
+					(group->renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHASA0))
 				{
-					//group->flags &= ~Mesh_GroupFlags::MESH_FLAG_ALPHAHIDDEN;
-					group->flags |= Mesh_GroupFlags::MESH_FLAG_ALPHAENABLE;
+					//group->flags &= ~MeshFlags::MESH_FLAG_ALPHAHIDDEN;
+					group->flags |= MeshFlags::MESH_FLAG_ALPHAENABLE;
 				}
 			}
-			else if( (mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_FLAG_RENDER_ALPHA11) ||
-				(mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_FLAG_RENDER_ALPHASA1) ||
-				(mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_FLAG_RENDER_ALPHASA0) )
+			else if( (mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHA11) ||
+				(mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHASA1) ||
+				(mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHASA0) )
 			{
-				//group->flags &= ~Mesh_GroupFlags::MESH_FLAG_ALPHAHIDDEN;
-				group->flags |= Mesh_GroupFlags::MESH_FLAG_ALPHAENABLE;
+				//group->flags &= ~MeshFlags::MESH_FLAG_ALPHAHIDDEN;
+				group->flags |= MeshFlags::MESH_FLAG_ALPHAENABLE;
 			}
 
 			material->diffuse.a = value;
 		}
-		else if( type == Mesh_Colour::Mesh_Colour_Power )
+		else if( type == Mesh_Colour::Power )
 			material->power = value;
 
 		return true;
@@ -2301,7 +2301,7 @@ bool32 __cdecl Gods98::Mesh_RenderMesh(Mesh* mesh, const D3DMATRIX* matWorld, bo
 
 		if( Mesh_CanRenderGroup(group) )
 		{
-			if( group->renderFlags == Mesh_RenderFlags::MESH_FLAG_RENDER_NONE )
+			if( group->renderFlags == Mesh_RenderFlags::MESH_RENDER_FLAG_NONE )
 			{
 				if( !Mesh_RenderGroup(mesh, group, matWorld, alphaBlend) )
 					ok = false;
@@ -2330,7 +2330,7 @@ bool32 __cdecl Gods98::Mesh_RenderMesh(Mesh* mesh, const D3DMATRIX* matWorld, bo
 // <LegoRR.exe @00483d30>
 bool32 __cdecl Gods98::Mesh_CanRenderGroup(Mesh_Group* group)
 {
-	return ( !(group->flags & Mesh_GroupFlags::MESH_FLAG_HIDDEN) && !(group->flags & Mesh_GroupFlags::MESH_FLAG_ALPHAHIDDEN) );
+	return ( !(group->flags & MeshFlags::MESH_FLAG_HIDDEN) && !(group->flags & MeshFlags::MESH_FLAG_ALPHAHIDDEN) );
 }
 
 // <LegoRR.exe @00483d50>
@@ -2345,7 +2345,7 @@ bool32 __cdecl Gods98::Mesh_RenderGroup(Mesh* mesh, Mesh_Group* group, const D3D
 
 	Mesh_SetGroupRenderDesc( mesh, group, matWorld, alphaBlend );
 
-	//if( !Mesh_RenderTriangleList(group->matHandle, group->imText, MESH_DEFAULTRENDERFLAGS, 
+	//if( !Mesh_RenderTriangleList(group->matHandle, group->imText, MESH_RENDERFLAGS_DEFAULT, 
 	//	group->vertices, group->vertexCount, group->faceData, group->faceDataSize) )
 	//	ok = false;
 
@@ -2363,7 +2363,7 @@ bool32 __cdecl Gods98::Mesh_RenderGroup(Mesh* mesh, Mesh_Group* group, const D3D
 	}*/
 
 
-	if( !Mesh_RenderTriangleList(meshGlobs.matHandle, group->imText, Mesh_RenderFlags::MESH_DEFAULTRENDERFLAGS, 
+	if( !Mesh_RenderTriangleList(meshGlobs.matHandle, group->imText, Mesh_RenderFlags::MESH_RENDERFLAGS_DEFAULT,
 		group->vertices, group->vertexCount, group->faceData, group->faceDataSize) )
 		ok = false;
 
@@ -2379,16 +2379,16 @@ bool32 __cdecl Gods98::Mesh_SetGroupRenderDesc(Mesh* mesh, Mesh_Group* group, co
 {
 	if( !(mainGlobs.flags & MainFlags::MAIN_FLAG_DONTMANAGETEXTURES) )
 	{
-		if( (group->flags & Mesh_GroupFlags::MESH_FLAG_TEXTURECOLOURONLY) && group->imText )
+		if( (group->flags & MeshFlags::MESH_FLAG_TEXTURECOLOURONLY) && group->imText )
 			Mesh_ChangeTextureStageState( D3DTSS_COLOROP, D3DTOP_SELECTARG1 );
 		else
 			Mesh_ChangeTextureStageState( D3DTSS_COLOROP, D3DTOP_MODULATE );
 	}
 
-	if( group->flags & Mesh_GroupFlags::MESH_FLAG_TRANSTEXTURE )
-		Main_ChangeRenderState( D3DRENDERSTATE_COLORKEYENABLE, true );
+	if( group->flags & MeshFlags::MESH_FLAG_TRANSTEXTURE )
+		Graphics_ChangeRenderState( D3DRENDERSTATE_COLORKEYENABLE, true );
 	else
-		Main_ChangeRenderState( D3DRENDERSTATE_COLORKEYENABLE, false);
+		Graphics_ChangeRenderState( D3DRENDERSTATE_COLORKEYENABLE, false);
 
 	if( group->renderFlags )
 	{	
@@ -2405,17 +2405,12 @@ bool32 __cdecl Gods98::Mesh_RenderTriangleList(D3DMATERIALHANDLE matHandle, IDir
 	Mesh_Vertex* vertices, uint32 vertexCount, uint16* faceData, uint32 indexCount)
 {
 	bool32 ok = true;
-	D3DTEXTUREHANDLE textureHandle; // just a DWORD
-	IDirect3DDevice2* device2;
 
 	//TEXTURES
-	if( !(mainGlobs.flags & MainFlags::MAIN_FLAG_DONTMANAGETEXTURES) )
-	{
-		if( texture != meshGlobs.currTextureIM )
-		{
+	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_DONTMANAGETEXTURES)) {
+		if (texture != meshGlobs.currTextureIM) {
 			//SET NEW TEXTURE
-			if( lpIMDevice()->SetTexture( 0, texture) != D3D_OK )
-			{
+			if (lpIMDevice()->SetTexture(0, texture) != D3D_OK) {
 				Error_Warn( true, "Cannot 'SetTexture' for new D3DIM texture." );
 				ok = false;
 			}
@@ -2423,32 +2418,28 @@ bool32 __cdecl Gods98::Mesh_RenderTriangleList(D3DMATERIALHANDLE matHandle, IDir
 				meshGlobs.currTextureIM = texture;
 		}	
 	} 
-	else
-	{	
-		textureHandle = 0;
+	else {
+		D3DTEXTUREHANDLE textureHandle = 0; // just a DWORD
 
-		if( texture )
-		{	
+		if (texture) {	
 			//QUERY INTERFACE FOR OLD DEVICE AND GET HANDLE
-			lpIMDevice()->QueryInterface( IID_IDirect3DDevice2, (void**)&device2 );
-			texture->GetHandle( device2, &textureHandle );
-			RELEASE( device2 );
+			IDirect3DDevice2* device2;
+			lpIMDevice()->QueryInterface(IID_IDirect3DDevice2, (void**)&device2);
+			texture->GetHandle(device2, &textureHandle);
+			RELEASE(device2);
 		}
 
-		if( textureHandle != meshGlobs.currTextureRM )
-		{
+		if (textureHandle != meshGlobs.currTextureRM) {
 			//SET NEW TEXTURE
-			Main_ChangeRenderState( D3DRENDERSTATE_TEXTUREHANDLE, textureHandle );
+			Graphics_ChangeRenderState(D3DRENDERSTATE_TEXTUREHANDLE, textureHandle);
 			meshGlobs.currTextureRM = textureHandle;
 		}
 	}
 
 	//MATERIAL
-	if( matHandle != meshGlobs.currMatIM )
-	{
+	if (matHandle != meshGlobs.currMatIM) {
 		//SET NEW MATERIAL
-		if( lpIMDevice()->SetLightState(D3DLIGHTSTATE_MATERIAL, matHandle) != D3D_OK )
-		{	
+		if (lpIMDevice()->SetLightState(D3DLIGHTSTATE_MATERIAL, matHandle) != D3D_OK) {	
 			Error_Warn( true, "Cannot 'SetLightState' for new D3DIM material." );
 			ok = false;
 		}
@@ -2462,8 +2453,8 @@ bool32 __cdecl Gods98::Mesh_RenderTriangleList(D3DMATERIALHANDLE matHandle, IDir
 	//lpIMDevice()->SetLightState(D3DLIGHTSTATE_AMBIENT, meshGlobs.ambientLight);
 	
 	//RENDER PRIMITIVE   
-	if( lpIMDevice()->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, renderFlags,
-		vertices, vertexCount, faceData, indexCount, 0) != D3D_OK )
+	if (lpIMDevice()->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, renderFlags,
+		vertices, vertexCount, faceData, indexCount, 0) != D3D_OK)
 	{	
 		Error_Warn( true, "Cannot 'DrawIndexedPrimitive'." );
 		ok = false;

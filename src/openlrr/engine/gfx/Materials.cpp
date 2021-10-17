@@ -4,7 +4,7 @@
 #include "../../platform/d3drm.h"
 
 #include "../core/Errors.h"
-#include "../Main.h"
+#include "../Graphics.h"
 
 #include "Materials.h"
 

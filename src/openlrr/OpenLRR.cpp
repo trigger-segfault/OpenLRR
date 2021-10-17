@@ -1,15 +1,17 @@
-// openlrr.cpp : 
+// OpenLRR.cpp : 
 //
 
 #include "platform/windows.h"
 #include "../../../resources/resource.h"
 
-#include "openlrr.h"
+#include "OpenLRR.h"
 #include "hook.h"
 #include "interop.h"
 #include "dllmain.h"
 
+#include "engine/Graphics.h"
 #include "engine/Main.h"
+#include "game/Game.h"
 
 
 /**********************************************************************************
@@ -118,13 +120,13 @@ void __cdecl OpenLRR_UpdateMenuItems(void)
     sint32 curCursor = (sint32)Gods98::Main_GetCursorVisibility();
     Menu_CheckRadioButtonsArray(Menu_CursorIDs, curCursor);
 
-    Menu_CheckRadioButtonsArray(Menu_QualityIDs, (sint32)Gods98::mainGlobs2.renderQuality);
-    Menu_CheckButton(IDM_GRAPHICS_BLEND, Gods98::mainGlobs2.blendTransparency);
-    Menu_CheckButton(IDM_GRAPHICS_DITHER, Gods98::mainGlobs2.dither);
-    Menu_CheckButton(IDM_GRAPHICS_FILTER, Gods98::mainGlobs2.linearFilter);
-    Menu_CheckButton(IDM_GRAPHICS_LINEARMIPMAP, Gods98::mainGlobs2.mipMapLinear);
-    Menu_CheckButton(IDM_GRAPHICS_MIPMAP, Gods98::mainGlobs2.mipMap);
-    Menu_CheckButton(IDM_GRAPHICS_SORT, Gods98::mainGlobs2.sortTransparency);
+    Menu_CheckRadioButtonsArray(Menu_QualityIDs, (sint32)Gods98::graphicsGlobs.renderQuality);
+    Menu_CheckButton(IDM_GRAPHICS_BLEND, Gods98::graphicsGlobs.blendTransparency);
+    Menu_CheckButton(IDM_GRAPHICS_DITHER, Gods98::graphicsGlobs.dither);
+    Menu_CheckButton(IDM_GRAPHICS_FILTER, Gods98::graphicsGlobs.linearFilter);
+    Menu_CheckButton(IDM_GRAPHICS_LINEARMIPMAP, Gods98::graphicsGlobs.mipMapLinear);
+    Menu_CheckButton(IDM_GRAPHICS_MIPMAP, Gods98::graphicsGlobs.mipMap);
+    Menu_CheckButton(IDM_GRAPHICS_SORT, Gods98::graphicsGlobs.sortTransparency);
 
     sint32 curIcon = -1;
     for (uint32 i = 0; i < (uint32)OpenLRRIcon::Count; i++) {
@@ -256,32 +258,32 @@ void __cdecl OpenLRR_HandleCommand(HWND hWnd, uint16 wmId, uint16 wmSrc)
         case IDM_QUALITY_GOURAUD:   std::printf("IDM_QUALITY_GOURAUD\n"); break;
         case IDM_QUALITY_PHONG:     std::printf("IDM_QUALITY_PHONG\n"); break;
         }*/
-        Gods98::mainGlobs2.renderQuality = (Gods98::MainQuality)((sint32)(wmId - IDM_QUALITY_WIREFRAME));
+        Gods98::graphicsGlobs.renderQuality = (Gods98::Graphics_Quality)((sint32)(wmId - IDM_QUALITY_WIREFRAME));
         break;
 
     /*case IDM_GRAPHICS_BLEND:
         //std::printf("IDM_GRAPHICS_BLEND\n");
-        Gods98::mainGlobs2.blendTransparency = !Gods98::mainGlobs2.blendTransparency;
+        Gods98::graphicsGlobs.blendTransparency = !Gods98::graphicsGlobs.blendTransparency;
         break;*/
     case IDM_GRAPHICS_DITHER:
         //std::printf("IDM_GRAPHICS_DITHER\n");
-        Gods98::mainGlobs2.dither = !Gods98::mainGlobs2.dither;
+        Gods98::graphicsGlobs.dither = !Gods98::graphicsGlobs.dither;
         break;
     /*case IDM_GRAPHICS_FILTER:
         //std::printf("IDM_GRAPHICS_FILTER\n");
-        Gods98::mainGlobs2.linearFilter = !Gods98::mainGlobs2.linearFilter;
+        Gods98::graphicsGlobs.linearFilter = !Gods98::graphicsGlobs.linearFilter;
         break;*/
     case IDM_GRAPHICS_LINEARMIPMAP:
         //std::printf("IDM_GRAPHICS_LINEARMIPMAP\n");
-        Gods98::mainGlobs2.mipMapLinear = !Gods98::mainGlobs2.mipMapLinear;
+        Gods98::graphicsGlobs.mipMapLinear = !Gods98::graphicsGlobs.mipMapLinear;
         break;
     case IDM_GRAPHICS_MIPMAP:
         //std::printf("IDM_GRAPHICS_MIPMAP\n");
-        Gods98::mainGlobs2.mipMap = !Gods98::mainGlobs2.mipMap;
+        Gods98::graphicsGlobs.mipMap = !Gods98::graphicsGlobs.mipMap;
         break;
     /*case IDM_GRAPHICS_SORT:
         //std::printf("IDM_GRAPHICS_SORT\n");
-        Gods98::mainGlobs2.sortTransparency = !Gods98::mainGlobs2.sortTransparency;
+        Gods98::graphicsGlobs.sortTransparency = !Gods98::graphicsGlobs.sortTransparency;
         break;*/
 
 
@@ -375,6 +377,93 @@ void __cdecl OpenLRR_WindowCallback(HWND hWnd, UINT message, WPARAM wParam, LPAR
         }
         break;
     }
+}
+
+#pragma endregion
+
+
+#pragma region Main State wrappers
+
+bool32 __cdecl OpenLRR_Initialise_Wrapper(void)
+{
+	// pre-Initialise code here...
+
+	bool32 result = openlrrGlobs.legoState.Initialise();
+
+	// NOTE: This call does not finish until the MainMenu has been left and a game started!!!
+	// post-Initialise code...
+
+	return result;
+}
+
+bool32 __cdecl OpenLRR_MainLoop_Wrapper(real32 elapsed)
+{
+	// pre-MainLoop code here...
+
+	bool32 result = openlrrGlobs.legoState.MainLoop(elapsed);
+
+	// NOTE: Similar to Initialise, the main loop does not run when in the FrontEnd!!!
+	// post-MainLoop code here...
+
+	return result;
+}
+
+void __cdecl OpenLRR_Shutdown_Wrapper(void)
+{
+	// pre-Shutdown code here...
+
+	openlrrGlobs.legoState.Shutdown();
+
+	// post-Shutdown code here...
+}
+
+#pragma endregion
+
+/**********************************************************************************
+ ******** OpenLRR Game Entry point
+ **********************************************************************************/
+
+#pragma region Entry point
+
+// This is the GAME entry point as called by WinMain,
+//  this should hook the Main_State loop functions and only perform basic initial setup.
+// (this can return bool32, but does not)
+// We're moving this to OpenLRR module to allow easy hooking and setup for the game loop
+// <LegoRR.exe @0041f950>
+void __cdecl Gods98::Gods_Go(const char* programName)
+{
+	log_firstcall();
+
+	// The program name MUST start with Lego* if we want all cfg,ae,ptl,ol assets to function.
+	// NOTE: This does not change WAD filename access, that has to be handled in Main_WinMain.
+	if (::_strnicmp(programName, "Lego", 4) != 0) {
+		// Maybe add an option if the user REALLY wants to redefine everything under something other
+		// than Lego*, but for now, this is just 
+		std::sprintf(openlrrGlobs.legoProgramName, "%s%s", "Lego", programName);
+	}
+	else {
+		std::strcpy(openlrrGlobs.legoProgramName, programName);
+	}
+	LegoRR::Lego_Gods_Go_Setup(openlrrGlobs.legoProgramName, &openlrrGlobs.legoState);
+
+
+	/// FLUFF OPENLRR: Wrap the program name in parenthesis and start with "OpenLRR"
+	char buff[1024];
+	if (::_stricmp(programName, "OpenLRR") != 0) {
+		std::sprintf(buff, "%s (%s)", "OpenLRR", programName);
+		programName = buff;
+	}
+	Main_SetTitle(programName);
+
+
+	// These will call the appropriate openlrrGlobs.legoState functions.
+	Gods98::Main_State mainState = {
+		OpenLRR_Initialise_Wrapper,
+		OpenLRR_MainLoop_Wrapper,
+		OpenLRR_Shutdown_Wrapper,
+	};
+
+	Main_SetState(&mainState);
 }
 
 #pragma endregion

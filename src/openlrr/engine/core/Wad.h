@@ -50,21 +50,14 @@ typedef void (__cdecl* WadProgressUpdate)(sint32 percent, bool32 debug, const ch
 
 #pragma region Enums
 
-//#define WAD_FILE_UNCOMPRESSED (1 << 0)
-//#define WAD_FILE_RNCOMPRESSED (1 << 1)
-//#define WAD_FILE_IS_IN_WAD    (1 << 2)
-
-namespace _ns_Wad_EntryFlags {
-enum Wad_EntryFlags : uint32
+flags_scoped(Wad_EntryFlags) : uint32
 {
-	WAD_FILE_NONE         = 0,
-	WAD_FILE_UNCOMPRESSED = (1 << 0),
-	WAD_FILE_RNCOMPRESSED = (1 << 1),
-	WAD_FILE_IS_IN_WAD    = (1 << 2),
+	WADENTRY_FLAG_NONE         = 0,
+	WADENTRY_FLAG_UNCOMPRESSED = (1 << 0),
+	WADENTRY_FLAG_RNCOMPRESSED = (1 << 1),
+	WADENTRY_FLAG_IS_IN_WAD    = (1 << 2),
 };
-DEFINE_ENUM_FLAG_OPERATORS(Wad_EntryFlags);
-static_assert(sizeof(Wad_EntryFlags) == 0x4, "");
-} using Wad_EntryFlags = _ns_Wad_EntryFlags::Wad_EntryFlags;
+flags_scoped_end(Wad_EntryFlags, 0x4);
 
 #pragma endregion
 
@@ -98,7 +91,7 @@ struct WadEntry
 	};
 	/*10*/
 };
-static_assert(sizeof(WadEntry) == 0x10, "");
+assert_sizeof(WadEntry, 0x10);
 
 
 struct Wad
@@ -115,7 +108,7 @@ struct Wad
 	/*20,4*/ sint32 numFiles;
 	/*24*/
 };
-static_assert(sizeof(Wad) == 0x24, "");
+assert_sizeof(Wad, 0x24);
 
 
 struct Wad_FileHandle
@@ -126,7 +119,7 @@ struct Wad_FileHandle
 	/*0c,4*/ sint32 indexOfFileInWad;		// Index of the file in the wad structure
 	/*10*/
 };
-static_assert(sizeof(Wad_FileHandle) == 0x10, "");
+assert_sizeof(Wad_FileHandle, 0x10);
 
 
 struct Wad_Globs
@@ -140,7 +133,7 @@ struct Wad_Globs
 	/*1ac,640*/ Wad_FileHandle fileHandles[MAX_OPEN_FILES];
 	/*7ec*/
 };
-static_assert(sizeof(Wad_Globs) == 0x7ec, "");
+assert_sizeof(Wad_Globs, 0x7ec);
 
 #pragma endregion
 

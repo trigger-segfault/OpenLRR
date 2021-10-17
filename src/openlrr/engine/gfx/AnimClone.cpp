@@ -5,7 +5,7 @@
 
 #include "../core/Errors.h"
 #include "../core/Memory.h"
-#include "../Main.h"		// accessor: lpD3DRM()
+#include "../Graphics.h"	// accessor: lpD3DRM()
 #include "Containers.h"		// debug macro: Container_NoteCreation(o)
 #include "Lws.h"
 #include "Mesh.h"

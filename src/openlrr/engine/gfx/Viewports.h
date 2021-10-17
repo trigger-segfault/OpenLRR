@@ -52,17 +52,12 @@ struct Container;
 
 #pragma region Enums
 
-//#define VIEWPORT_FLAG_INITIALISED	0x00000001
-
-namespace _ns_Viewport_GlobFlags {
-enum Viewport_GlobFlags : uint32
+flags_scoped(Viewport_GlobFlags) : uint32
 {
-	VIEWPORT_FLAG_NONE = 0,
-	VIEWPORT_FLAG_INITIALISED = 0x1,
+	VIEWPORT_GLOB_FLAG_NONE        = 0,
+	VIEWPORT_GLOB_FLAG_INITIALISED = 0x1,
 };
-DEFINE_ENUM_FLAG_OPERATORS(Viewport_GlobFlags);
-static_assert(sizeof(Viewport_GlobFlags) == 0x4, "");
-} using Viewport_GlobFlags = _ns_Viewport_GlobFlags::Viewport_GlobFlags;
+flags_scoped_end(Viewport_GlobFlags, 0x4);
 
 #pragma endregion
 
@@ -84,7 +79,7 @@ struct Viewport
 	/*1c,4*/ Viewport* nextFree;
 	/*20*/
 };
-static_assert(sizeof(Viewport) == 0x20, "");
+assert_sizeof(Viewport, 0x20);
 
 
 struct Viewport_PickInfo
@@ -95,7 +90,7 @@ struct Viewport_PickInfo
 	/*0c,c*/ Vector3F position;
 	/*18*/
 };
-static_assert(sizeof(Viewport_PickInfo) == 0x18, "");
+assert_sizeof(Viewport_PickInfo, 0x18);
 
 
 struct Viewport_Pick
@@ -104,7 +99,7 @@ struct Viewport_Pick
 	/*4,4*/ uint32 pickCount;
 	/*8*/
 };
-static_assert(sizeof(Viewport_Pick) == 0x8, "");
+assert_sizeof(Viewport_Pick, 0x8);
 
 
 struct Viewport_Globs
@@ -115,7 +110,7 @@ struct Viewport_Globs
 	/*88,4*/ Viewport_GlobFlags flags;
 	/*8c*/
 };
-static_assert(sizeof(Viewport_Globs) == 0x8c, "");
+assert_sizeof(Viewport_Globs, 0x8c);
 
 #pragma endregion
 
@@ -137,7 +132,7 @@ extern Viewport_Globs & viewportGlobs;
 #pragma region Macros
 
 #ifdef DEBUG
-	#define Viewport_CheckInit()			if (!(viewportGlobs.flags & VIEWPORT_FLAG_INITIALISED)) Error_Fatal(TRUE, "Error: Viewport_Intitialise() Has Not Been Called");
+	#define Viewport_CheckInit()			if (!(viewportGlobs.flags & Viewport_GlobFlags::VIEWPORT_GLOB_FLAG_INITIALISED)) Error_Fatal(true, "Error: Viewport_Intitialise() Has Not Been Called");
 #else
 	#define Viewport_CheckInit()
 #endif

@@ -1,9 +1,11 @@
-// openlrr.h : 
+// OpenLRR.h : 
 //
 
 #pragma once
 
 #include "platform/windows.h"
+
+#include "engine/Main.h"
 
 #include "common.h"
 
@@ -56,6 +58,8 @@ struct OpenLRR_Globs
 	HMENU			menu;
 	HACCEL			accels;
 
+	Gods98::Main_State	legoState; // Main_State assigned by Lego_Gods_Go
+	char			legoProgramName[256]; // Copied program name that is ensured to start with Lego*
 
 	// Game variables backup:
 	uint32			orig_programmerLevel;

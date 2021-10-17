@@ -59,9 +59,9 @@ public:
 
 
 	// <inlined>
-	IDirectDrawSurface3* GetSurface() { return this->m_surf; }
+	inline IDirectDrawSurface3* GetSurface() { return this->m_surf; }
 };
-static_assert(sizeof(G98CMovie) == 0x38, "");
+assert_sizeof(G98CMovie, 0x38);
 
 #pragma endregion
 

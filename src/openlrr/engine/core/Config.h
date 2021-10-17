@@ -51,22 +51,17 @@ enum Keys : uint8;
 
 #pragma region Enums
 
-//#define CONFIG_FLAG_INITIALISED		0x00000001
-//#define CONFIG_FLAG_LOADINGCONFIG	0x00000002
-
 enum Config_GlobFlags : uint32
 {
-	CONFIG_FLAG_NONE          = 0,
+	CONFIG_GLOB_FLAG_NONE          = 0,
 
-	CONFIG_FLAG_INITIALISED   = 0x1,
-	CONFIG_FLAG_LOADINGCONFIG = 0x2,
-
+	CONFIG_GLOB_FLAG_INITIALISED   = 0x1,
+	CONFIG_GLOB_FLAG_LOADINGCONFIG = 0x2,
 };
-DEFINE_ENUM_FLAG_OPERATORS(Config_GlobFlags);
-static_assert(sizeof(Config_GlobFlags) == 0x4, "");
+flags_end(Config_GlobFlags, 0x4);
 
 
-enum Config_ReadStage : sint32
+enum class Config_ReadStage : sint32
 {
 	Config_ReadStage_PreName = 0,
 	Config_ReadStage_Name,
@@ -75,7 +70,7 @@ enum Config_ReadStage : sint32
 
 	Config_ReadStage_End,
 };
-static_assert(sizeof(Config_ReadStage) == 0x4, "");
+assert_sizeof(Config_ReadStage, 0x4);
 
 #pragma endregion
 
@@ -98,7 +93,7 @@ struct Config
 	/*1c,4*/ Config* nextFree; // (listSet field)
 	/*20*/
 };
-static_assert(sizeof(Config) == 0x20, "");
+assert_sizeof(Config, 0x20);
 
 
 struct Config_Globs
@@ -110,7 +105,7 @@ struct Config_Globs
 	/*488,4*/ Config_GlobFlags flags;
 	/*48c*/
 };
-static_assert(sizeof(Config_Globs) == 0x48c, "");
+assert_sizeof(Config_Globs, 0x48c);
 
 #pragma endregion
 
@@ -132,7 +127,7 @@ extern Config_Globs & configGlobs;
 #pragma region Functions
 
 #ifdef DEBUG
-	#define Config_CheckInit()			if (!(configGlobs.flags & Config_GlobFlags::CONFIG_FLAG_INITIALISED)) Error_Fatal(TRUE, "Error: Config_Intitialise() Has Not Been Called");
+	#define Config_CheckInit()			if (!(configGlobs.flags & Config_GlobFlags::CONFIG_GLOB_FLAG_INITIALISED)) Error_Fatal(true, "Error: Config_Intitialise() Has Not Been Called");
 #else
 	#define Config_CheckInit()
 #endif
@@ -223,9 +218,14 @@ void __cdecl Config_AddList(void);
 
 
 #define Config_GetIntValue(c,s)		std::atoi(Gods98::Config_GetTempStringValue((c),(s))?Gods98::Config_GetTempStringValue((c),(s)):"")
-#define Config_GetRealValue(c,s)	(float)std::atof(Gods98::Config_GetTempStringValue((c),(s))?Gods98::Config_GetTempStringValue((c),(s)):"")
+#define Config_GetRealValue(c,s)	(real32)std::atof(Gods98::Config_GetTempStringValue((c),(s))?Gods98::Config_GetTempStringValue((c),(s)):"")
 #define Config_Get3DCoord(c,s,v)	Gods98::Config_GetCoord((c),(s),&((v)->x),&((v)->y),&((v)->z))
 #define Config_Get2DCoord(c,s,x,y)	Gods98::Config_GetCoord((c),(s),(x),(y),nullptr)
+
+// Returns true only if the value is found, and is a valid TRUE constant.
+#define Config_GetBoolOrFalse(c,s)	(Gods98::Config_GetBoolValue((c),(s)) == BoolTri::BOOL3_TRUE)
+// Returns true only if the value is found, and IS NOT a valid FALSE constant.
+#define Config_GetBoolOrTrue(c,s)	(Gods98::Config_GetBoolValue((c),(s)) != BoolTri::BOOL3_FALSE)
 
 /// CUSTOM:
 #define Config_ID(s, ...) Gods98::Config_BuildStringID(s, __VA_ARGS__, nullptr)

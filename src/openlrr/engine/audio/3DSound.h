@@ -72,15 +72,7 @@ namespace Gods98
 
 #pragma region Enums
 
-/*
-#define SOUND3D_FLAG_USED						0x00000001
-#define SOUND3D_FLAG_ACTIVE						0x00000002
-#define SOUND3D_FLAG_MULTI						0x00000004
-#define SOUND3D_FLAG_STREAM						0x00000008
-*/
-
-namespace _ns_Sound3DFlags {
-enum Sound3DFlags : uint32
+flags_scoped(Sound3DFlags) : uint32
 {
 	SOUND3D_FLAG_NONE   = 0,
 
@@ -89,21 +81,24 @@ enum Sound3DFlags : uint32
 	SOUND3D_FLAG_MULTI  = 0x4,
 	SOUND3D_FLAG_STREAM = 0x8,
 };
-DEFINE_ENUM_FLAG_OPERATORS(Sound3DFlags);
-static_assert(sizeof(Sound3DFlags) == 0x4, "");
-} using Sound3DFlags = _ns_Sound3DFlags::Sound3DFlags;
+flags_scoped_end(Sound3DFlags, 0x4);
 
 
-namespace _ns_Sound3D_Play {
-enum Sound3D_Play : sint32 // Sound3D_PlayTAG
+// (unused)
+flags_scoped(Sound3D_GlobFlags) : uint32
+{
+	SOUND3D_GLOB_FLAG_NONE = 0,
+};
+flags_scoped_end(Sound3D_GlobFlags, 0x4);
+
+
+enum class Sound3D_Play : sint32 // Sound3D_PlayTAG
 {
 	Sound3D_Play_OnFrame = 0,
 	Sound3D_Play_OnPos   = 1,
 	Sound3D_Play_Normal  = 2,
-
 };
-static_assert(sizeof(Sound3D_Play) == 0x4, "");
-} using Sound3D_Play = _ns_Sound3D_Play::Sound3D_Play;
+assert_sizeof(Sound3D_Play, 0x4);
 
 #pragma endregion
 
@@ -132,7 +127,7 @@ struct Sound3D_WaveData
 	/*50,4*/ bool32 bFoundEnd;	    // Timer found file end
 	/*54*/
 };
-static_assert(sizeof(Sound3D_WaveData) == 0x54, "");
+assert_sizeof(Sound3D_WaveData, 0x54);
 
 
 struct Sound3D_StreamData
@@ -143,7 +138,7 @@ struct Sound3D_StreamData
 	/*58,4*/ bool32 playing;
 	/*c*/
 };
-static_assert(sizeof(Sound3D_StreamData) == 0x5c, "");
+assert_sizeof(Sound3D_StreamData, 0x5c);
 
 
 struct Sound3D_SoundRecord
@@ -154,7 +149,7 @@ struct Sound3D_SoundRecord
 	/*0c,4*/ Sound3D_SoundRecord* next;
 	/*10*/
 };
-static_assert(sizeof(Sound3D_SoundRecord) == 0x10, "");
+assert_sizeof(Sound3D_SoundRecord, 0x10);
 
 
 struct Sound3D_SoundFrameRecord
@@ -165,7 +160,7 @@ struct Sound3D_SoundFrameRecord
 	/*10,4*/ Sound3D_SoundFrameRecord* next;
 	/*14*/
 };
-static_assert(sizeof(Sound3D_SoundFrameRecord) == 0x14, "");
+assert_sizeof(Sound3D_SoundFrameRecord, 0x14);
 
 
 struct Sound3D_SoundData
@@ -183,7 +178,7 @@ struct Sound3D_SoundData
 	/*130,4*/ Sound3DFlags flags;
 	/*134*/
 };
-static_assert(sizeof(Sound3D_SoundData) == 0x134, "");
+assert_sizeof(Sound3D_SoundData, 0x134);
 
 
 struct Sound3D_Globs
@@ -204,7 +199,7 @@ struct Sound3D_Globs
 	/*000e0,2d1e0*/ Sound3D_SoundData soundTable[SOUND3D_MAXSAMPLES];
 	/*2d2c0,4*/ bool32 intialised;
 	/*2d2c4,4*/ sint32 windowsVolume;
-	/*2d2c8,4*/ uint32 flags; // (unused)
+	/*2d2c8,4*/ Sound3D_GlobFlags flags; // (unused)
 	/*2d2cc,50*/ IDirect3DRMFrame3* updateFrameList[SOUND3D_MAXUPDATEFRAMES];
 	// [globs: end]
 	/*2d31c,4*/ uint32 reserved1;
@@ -215,7 +210,7 @@ struct Sound3D_Globs
 	/*2d340,c*/ Vector3F s_ListenerCallback_oldOrienUp;
 	/*2d34c*/
 };
-static_assert(sizeof(Sound3D_Globs) == 0x2d34c, "");
+assert_sizeof(Sound3D_Globs, 0x2d34c);
 
 #pragma endregion
 

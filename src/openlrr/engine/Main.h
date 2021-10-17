@@ -21,16 +21,9 @@
 
 #pragma region Forward Declarations
 
-struct IDirectDraw;
-struct IDirectDrawSurface4;
 struct IDirect3DRM3;
 struct IDirect3DRMDevice3;
 struct IDirect3DDevice3;
-enum _D3DRENDERSTATETYPE;
-typedef enum _D3DRENDERSTATETYPE D3DRENDERSTATETYPE;
-static_assert(sizeof(D3DRENDERSTATETYPE) == 0x4, "");
-struct tagRECT;
-typedef struct tagRECT RECT;
 
 #pragma endregion
 
@@ -44,7 +37,7 @@ namespace Gods98
 
 #pragma region Forward Declarations
 
-struct DirectDraw_Device;
+//struct Graphics_Device;
 
 #pragma endregion
 
@@ -68,7 +61,7 @@ typedef void (__cdecl* MainWindowCallback)(HWND hWnd, UINT message, WPARAM wPara
 
 #pragma region Constants
 
-#define MAIN_MAXRENDERSTATES				200
+#define GRAPHICS_MAXRENDERSTATES			200
 
 #pragma endregion
 
@@ -84,7 +77,7 @@ flags_scoped(MainFlags) : uint32
 
 	MAIN_FLAG_UPDATED					= 0x1,			// (runtime) D3D (retained) engine has been updated this loop
 	MAIN_FLAG_FULLSCREEN				= 0x2,			// (runtime) App is in fullscreen mode
-	MAIN_FLAG_VIDEOTEXTURE				= 0x4,			// (runtime) Set if `device->flags & DIRECTDRAW_FLAG_DEVICE_VIDEOTEXTURE`
+	MAIN_FLAG_VIDEOTEXTURE				= 0x4,			// (runtime) Set if `device->flags & GRAPHICS_DEVICE_FLAG_VIDEOTEXTURE`
 	MAIN_FLAG_MIPMAPENABLED				= 0x8,			// (runtime) 
 	MAIN_FLAG_PAUSED					= 0x10,			// (runtime) Game loop elapsed time is 0.0 (different from in-game pause)
 	MAIN_FLAG_DONTMANAGETEXTURES		= 0x20,			// -nm : (runtime: Set if not -ftm)
@@ -125,15 +118,35 @@ flags_scoped(MainCLFlags) : uint32
 flags_scoped_end(MainCLFlags, 0x4);
 
 
-enum_scoped(MainQuality) : sint32
+// We can safely hardcode these values since D3DRM won't change
+// same as enum Main_Quality (just different symbol names)
+// (unused for now, until Graphics can be untangled from Main)
+enum class Graphics_FogMethod : uint32
 {
+	Vertex = 0x1, // = D3DRMFOGMETHOD_VERTEX,
+	Table  = 0x2, // = D3DRMFOGMETHOD_TABLE,
+	Any    = 0x4, // = D3DRMFOGMETHOD_ANY,
+};
+assert_sizeof(Graphics_FogMethod, 0x4);
+
+
+// same as enum Main_Quality (just different symbol names)
+enum class Graphics_Quality : uint32
+{
+	Wireframe = 0, // (placeholder: D3DRMRENDER_WIREFRAME)
+	UnlitFlat = 1, // (placeholder: D3DRMRENDER_UNLITFLAT) lighting not supported by immediate mode, same as Flat
+	Flat      = 2, // (placeholder: D3DRMRENDER_FLAT)
+	Gouraud   = 3, // (placeholder: D3DRMRENDER_GOURAUD)
+	Phong     = 4, // (placeholder: D3DRMRENDER_PHONG) CUSTOM: add remaining render quality combination, does this have any use?
+
+	/*/// OLD:
 	WIREFRAME      = 0,
-	UNLITFLATSHADE = 1, // (not parsed in Lego.cfg)
+	UNLITFLATSHADE = 1,
 	FLATSHADE      = 2,
 	GOURAUDSHADE   = 3,
-	PHONGSHADE     = 4, // (CUSTOM: add remaining render quality combination, does this have any use?)
+	PHONGSHADE     = 4,*/
 };
-enum_scoped_end(MainQuality, 0x4);
+assert_sizeof(Graphics_Quality, 0x4);
 
 
 /// CUSTOM: Behaviour for correcting 100% invisible mouse cursor in windowed mode.
@@ -166,41 +179,53 @@ struct Main_State
 assert_sizeof(Main_State, 0xc);
 
 
-struct Main_StateChangeData
+struct Graphics_StateChangeData
 {
 	/*0,4*/ uint32 origValue;
 	/*4,4*/ bool32 changed;
 	/*8*/
 };
-assert_sizeof(Main_StateChangeData, 0x8);
+assert_sizeof(Graphics_StateChangeData, 0x8);
 
 
 struct Main_Globs
 {
-	/*000,4*/	HWND hWnd;					// Handle for the LegoRR window
-	/*004,4*/	HINSTANCE hInst;			// Handle for the LegoRR module/instance
+	/*000,4*/	HWND hWnd;					// [WND] Handle for the LegoRR window
+	/*004,4*/	HINSTANCE hInst;			// [WND] Handle for the LegoRR module/instance
+
+	// [mandatory address]
 	/*008,4*/	bool32 active;				// App has focus (forced to true for FullScreen)
+
 	/*00c,4*/	bool32 exit;				// App will quit at the end of the current WinMain loop
-	/*010,4*/	const char* className;		// Name of the window class
+	/*010,4*/	const char* className;		// [WND] Name of the window class
 	/*014,100*/	char programName[256];		// Name of the program (with ".exe" stripped)
-	/*114,4*/	IDirect3DRM3* lpD3DRM;		// D3D (retained) engine
-	/*118,4*/	IDirect3DRMDevice3* device;	// D3D (retained) device
-	/*11c,4*/	IDirect3DDevice3* imDevice;	// D3D (immediate) engine
-	/*120,4*/	uint32 fogMethod;			// D3D (retained) scene fog method
+	/*114,4*/	IDirect3DRM3* lpD3DRM;		// [D3DRM] engine
+	/*118,4*/	IDirect3DRMDevice3* device;	// [D3DRM] device
+	/*11c,4*/	IDirect3DDevice3* imDevice;	// [D3D] engine
+	/*120,4*/	/*Graphics_FogMethod*/ uint32 fogMethod;	// [D3DRM] scene fog method
+
+	// [mandatory address]
 	/*124,4*/	uint32 appWidth;			// App resolution width
 	/*128,4*/	uint32 appHeight;			// App resolution height
+
 	/*12c,c*/	Main_State currState;		// State holding Initialise/MainLoop/Shutdown callbacks
 	/*138,4*/	bool32 stateSet;			// currState has been initialised
+
+	// [mandatory address]
 	/*13c,4*/	real32 fixedFrameTiming;	// Enforced elapsed-time passed to currState.MainLoop
-	/*140,640*/	Main_StateChangeData renderStateData[MAIN_MAXRENDERSTATES];	// D3D (retained) render states
-	/*780,4*/	uint32 style;				// Window (normal) style
-	/*784,4*/	MainFlags flags;			// Cmdline settings and dynamic runtime flags
+
+	/*140,640*/	Graphics_StateChangeData renderStateData[GRAPHICS_MAXRENDERSTATES];	// D3D (retained) render states
+	/*780,4*/	uint32 style;				// [WND] Window (normal) style
+
+	// [mandatory address]
+	/*784,4*/	MainFlags flags;			// Command line options and dynamic runtime flags
 	/*788,4*/	uint32 programmerLevel;
+
 	/*78c,80*/	char startLevel[128];
 	/*80c,80*/	char languageName[128];
 	/*88c,4*/	MainCLFlags clFlags;		// Cmdline -flags for enabling WIP features
-	/*890,4*/	HACCEL accels;				// Gods98 functionality has been modified and extended.
-	/*894,4*/	MainWindowCallback windowCallback;
+	/*890,4*/	HACCEL accels;				// [WND] Gods98 functionality has been modified and extended.
+	/*894,4*/	MainWindowCallback windowCallback; // [WND]
 	/*898*/
 };
 assert_sizeof(Main_Globs, 0x898);
@@ -227,17 +252,6 @@ struct Main_Globs2
 
 	/// CONTROL:
 	sint32				advanceFrames;	// Number of frames to advance when in the Main_IsPaused state
-
-	/// RENDER:
-	// All options passed to Main_Setup3D
-	//  (most of these can't really be used as the Mesh module currently is)
-	MainQuality			renderQuality;
-	bool32				dither;
-	bool32				linearFilter;
-	bool32				mipMap;
-	bool32				mipMapLinear;
-	bool32				blendTransparency;
-	bool32				sortTransparency;
 };
 
 #pragma endregion
@@ -253,6 +267,22 @@ extern Main_Globs & mainGlobs;
 
 /// CUSTOM: Extension of `Main_Globs` for OpenLRR-exclusive globals
 extern Main_Globs2 mainGlobs2;
+
+#pragma endregion
+
+
+/**********************************************************************************
+ ******** Game Entry point
+ **********************************************************************************/
+
+#pragma region Entry point
+
+// NOTE: This function is only declared here. Other modules may choose to implement it
+//  (currently moved to OpenLRR module)
+// This is the GAME entry point as called by WinMain,
+//  this should hook the Main_State loop functions and only perform basic initial setup.
+// <LegoRR.exe @0041f950>
+void __cdecl Gods_Go(const char* programName);
 
 #pragma endregion
 
@@ -289,6 +319,7 @@ void __cdecl Main_Sleep(uint32 milliseconds);
 
 
 
+#if 0
 // <inlined>
 __inline IDirect3DRM3* lpD3DRM(void) { return mainGlobs.lpD3DRM; }
 
@@ -303,15 +334,18 @@ __inline bool32 Main_VideoTexture(void) { return mainGlobs.flags & MainFlags::MA
 
 // <inlined>
 __inline bool32 Main_MIPMapEnabled(void) { return mainGlobs.flags & MainFlags::MAIN_FLAG_MIPMAPENABLED; }
+#endif
 
 // <inlined>
 __inline bool32 Main_FullScreen(void) { return mainGlobs.flags & MainFlags::MAIN_FLAG_FULLSCREEN; }
 
+#if 0
 // <inlined>
 __inline uint32 Main_GetFogMethod(void) { return mainGlobs.fogMethod; }
 
 // <inlined>
 __inline void Main_SetFogMethod(uint32 m) { mainGlobs.fogMethod = m; }
+#endif
 
 // <inlined>
 __inline HWND Main_hWnd(void) { return mainGlobs.hWnd; }
@@ -352,8 +386,10 @@ sint32 __stdcall Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrev
 void __cdecl Main_Exit(void);
 
 
+#if 0
 // <LegoRR.exe @00477e90>
 void __cdecl Main_DisableTextureManagement(void);
+#endif
 
 // <LegoRR.exe @00477eb0>
 void __cdecl Main_ParseCommandLine(const char* lpszCmdLine, OUT bool32* nosound, OUT bool32* insistOnCD);
@@ -373,14 +409,16 @@ void __cdecl Main_LoopUpdate(bool32 clear);
 __inline MainCLFlags Main_GetCLFlags(void) { return mainGlobs.clFlags; }
 MainCLFlags __cdecl noinline(Main_GetCLFlags)(void);
 
+#if 0
 // <LegoRR.exe @00478240>
 uint32 __cdecl Main_GetWindowsBitDepth(void);
 
 // <LegoRR.exe @00478260>
 void __cdecl Main_Finalise3D(void);
+#endif
 
 // <LegoRR.exe @00478290>
-bool32 __cdecl Main_SetState(Main_State* state);
+bool32 __cdecl Main_SetState(const Main_State* state);
 
 // <LegoRR.exe @004782c0>
 uint32 __cdecl Main_GetTime(void);
@@ -399,22 +437,28 @@ void __cdecl Main_HandleIO(void);
 // <LegoRR.exe @00478370>
 void __cdecl Main_SetupDisplay(bool32 fullScreen, uint32 xPos, uint32 yPos, uint32 width, uint32 height);
 
+#if 0
 // <LegoRR.exe @00478490>
-bool32 __cdecl Main_SetupDirect3D(const DirectDraw_Device* dev, IDirectDraw* ddraw1, IDirectDrawSurface4* backSurf, bool32 doubleBuffered);
+bool32 __cdecl Main_SetupDirect3D(const Graphics_Device* dev, IDirectDraw* ddraw1, IDirectDrawSurface4* backSurf, bool32 doubleBuffered);
+#endif
 
 // <LegoRR.exe @004785d0>
 void __cdecl Main_AdjustWindowRect(IN OUT Rect2I* rect);
 
+#if 0
 // <LegoRR.exe @004785f0>
-void __cdecl Main_Setup3D(MainQuality renderQuality, bool32 dither, bool32 linearFilter, bool32 mipMap,
+void __cdecl Main_Setup3D(Graphics_Quality renderQuality, bool32 dither, bool32 linearFilter, bool32 mipMap,
 						  bool32 mipMapLinear, bool32 blendTransparency, bool32 sortTransparency);
+#endif
 
 // <LegoRR.exe @00478690>
 void __cdecl Main_SetTitle(const char* title);
 
 
+#if 0
 // <missing>
 uint32 __cdecl Main_GetTrianglesDrawn(bool32 total);
+#endif
 
 
 // <LegoRR.exe @004786b0>
@@ -429,6 +473,7 @@ LRESULT __cdecl Main_WndProc_Windowed(HWND hWnd, UINT message, WPARAM wParam, LP
 // <LegoRR.exe @00478b40>
 LRESULT __stdcall Main_WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
+#if 0
 // <LegoRR.exe @00478b90>
 void __cdecl Main_ChangeRenderState(D3DRENDERSTATETYPE dwRenderStateType, uint32 dwRenderState);
 
@@ -436,6 +481,7 @@ void __cdecl Main_ChangeRenderState(D3DRENDERSTATETYPE dwRenderStateType, uint32
 ///        (it's possible this argument has been inlined, as it negates calling the entire function body.)
 // <LegoRR.exe @00478c00>
 void __cdecl Main_RestoreStates(void);
+#endif
 
 
 // <missing>
@@ -455,13 +501,6 @@ bool32 __cdecl Main_GetCDVolume(OUT real32* leftVolume, OUT real32* rightVolume)
 
 // <LegoRR.exe @00478c80>
 bool32 __cdecl Main_CDVolume(IN OUT real32* leftVolume, IN OUT real32* rightVolume, bool32 set);
-
-/*__inline bool32 Main_SetCDVolume(real32 leftVolume, real32 rightVolume) {
-	return Main_CDVolume(&leftVolume, &rightVolume, true);
-}
-__inline bool32 Main_GetCDVolume(OUT real32* leftVolume, OUT real32* rightVolume) {
-	return Main_CDVolume(leftVolume, rightVolume, false);
-}*/
 
 
 // <missing>

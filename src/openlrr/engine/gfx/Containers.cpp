@@ -21,7 +21,7 @@
 #include "../core/Utils.h"
 #include "../drawing/Bmp.h"
 #include "../drawing/DirectDraw.h"
-#include "../Main.h"
+#include "../Graphics.h"
 #include "Activities.h"    // defines
 #include "AnimClone.h"
 #include "Lws.h"
@@ -76,7 +76,7 @@ Gods98::Container_Globs & Gods98::containerGlobs = *(Gods98::Container_Globs*)0x
 // <LegoRR.exe @004729d0>
 Gods98::Container* __cdecl Gods98::Container_Initialise(const char* gameName)
 {
-	if (containerGlobs.flags & Container_GlobFlags::CONTAINER_FLAG_INITIALISED) Error_Fatal(true, "Containers already initialised");
+	if (containerGlobs.flags & Container_GlobFlags::CONTAINER_GLOB_FLAG_INITIALISED) Error_Fatal(true, "Containers already initialised");
 
 	std::memset(&containerGlobs, 0, sizeof(Container_Globs));
 
@@ -84,27 +84,27 @@ Gods98::Container* __cdecl Gods98::Container_Initialise(const char* gameName)
 		containerGlobs.listSet[loop] = nullptr;
 	}
 
-	containerGlobs.typeName[Container_Type::Container_Null] = CONTAINER_NULLSTRING;
-	containerGlobs.typeName[Container_Type::Container_Mesh] = CONTAINER_MESHSTRING;
-	containerGlobs.typeName[Container_Type::Container_Frame] = CONTAINER_FRAMESTRING;
-	containerGlobs.typeName[Container_Type::Container_Anim] = CONTAINER_ANIMSTRING;
-	containerGlobs.typeName[Container_Type::Container_LWS] = CONTAINER_LWSSTRING;
+	containerGlobs.typeName[(uint32)Container_Type::Null] = CONTAINER_NULLSTRING;
+	containerGlobs.typeName[(uint32)Container_Type::Mesh] = CONTAINER_MESHSTRING;
+	containerGlobs.typeName[(uint32)Container_Type::Frame] = CONTAINER_FRAMESTRING;
+	containerGlobs.typeName[(uint32)Container_Type::Anim] = CONTAINER_ANIMSTRING;
+	containerGlobs.typeName[(uint32)Container_Type::LWS] = CONTAINER_LWSSTRING;
 #pragma message ( "Are all 'Container_LWO' functions written?" )
-	containerGlobs.typeName[Container_Type::Container_LWO] = CONTAINER_LWOSTRING;
-	containerGlobs.typeName[Container_Type::Container_FromActivity] = CONTAINER_ACTIVITYSTRING;
-	containerGlobs.typeName[Container_Type::Container_Light] = nullptr;
+	containerGlobs.typeName[(uint32)Container_Type::LWO] = CONTAINER_LWOSTRING;
+	containerGlobs.typeName[(uint32)Container_Type::FromActivity] = CONTAINER_ACTIVITYSTRING;
+	containerGlobs.typeName[(uint32)Container_Type::Light] = nullptr;
 
-	containerGlobs.extensionName[Container_Type::Container_Null] = "";
-	containerGlobs.extensionName[Container_Type::Container_Mesh] = "x";
-	containerGlobs.extensionName[Container_Type::Container_Frame] = "x";
-	containerGlobs.extensionName[Container_Type::Container_Anim] = "x";
-	containerGlobs.extensionName[Container_Type::Container_FromActivity] = ACTIVITY_FILESUFFIX;
-	containerGlobs.extensionName[Container_Type::Container_Light] = "";
+	containerGlobs.extensionName[(uint32)Container_Type::Null] = "";
+	containerGlobs.extensionName[(uint32)Container_Type::Mesh] = "x";
+	containerGlobs.extensionName[(uint32)Container_Type::Frame] = "x";
+	containerGlobs.extensionName[(uint32)Container_Type::Anim] = "x";
+	containerGlobs.extensionName[(uint32)Container_Type::FromActivity] = ACTIVITY_FILESUFFIX;
+	containerGlobs.extensionName[(uint32)Container_Type::Light] = "";
 
 	containerGlobs.gameName = gameName;
 	containerGlobs.freeList = nullptr;
 	containerGlobs.listCount = 0;
-	containerGlobs.flags = Container_GlobFlags::CONTAINER_FLAG_INITIALISED;
+	containerGlobs.flags = Container_GlobFlags::CONTAINER_GLOB_FLAG_INITIALISED;
 
 	containerGlobs.textureCount = 0;
 	containerGlobs.sharedDir = nullptr;
@@ -154,7 +154,7 @@ void __cdecl Gods98::Container_Shutdown(void)
 	}
 
 	containerGlobs.freeList = nullptr;
-	containerGlobs.flags = Container_GlobFlags::CONTAINER_FLAG_NONE;
+	containerGlobs.flags = Container_GlobFlags::CONTAINER_GLOB_FLAG_NONE;
 
 	for (uint32 loop = 0; loop < containerGlobs.textureCount; loop++) {
 		if (containerGlobs.textureSet[loop].fileName) {
@@ -184,8 +184,8 @@ void __cdecl Gods98::Container_SetSharedTextureDirectory(const char* path)
 // <LegoRR.exe @00472ba0>
 void __cdecl Gods98::Container_EnableSoundTriggers(bool32 on)
 {
-	if (on) containerGlobs.flags |= Container_GlobFlags::CONTAINER_FLAG_TRIGGERENABLED;
-	else containerGlobs.flags &= ~Container_GlobFlags::CONTAINER_FLAG_TRIGGERENABLED;
+	if (on) containerGlobs.flags |= Container_GlobFlags::CONTAINER_GLOB_FLAG_TRIGGERENABLED;
+	else containerGlobs.flags &= ~Container_GlobFlags::CONTAINER_GLOB_FLAG_TRIGGERENABLED;
 }
 
 // <LegoRR.exe @00472bc0>
@@ -202,7 +202,7 @@ void __cdecl Gods98::Container_SetSoundTriggerCallback(ContainerSoundTriggerCall
 
 	containerGlobs.soundTriggerCallback = Callback;
 	containerGlobs.soundTriggerData = data;
-	containerGlobs.flags |= Container_GlobFlags::CONTAINER_FLAG_TRIGGERENABLED;
+	containerGlobs.flags |= Container_GlobFlags::CONTAINER_GLOB_FLAG_TRIGGERENABLED;
 }
 
 // <LegoRR.exe @00472c00>
@@ -237,7 +237,7 @@ Gods98::Container* __cdecl Gods98::Container_Create(Container* parent)
 	newContainer->hiddenFrame = nullptr;
 	newContainer->cloneData = nullptr;
 	newContainer->typeData = nullptr;
-	newContainer->type = Container_Type::Container_Null;
+	newContainer->type = Container_Type::Null;
 	newContainer->flags = ContainerFlags::CONTAINER_FLAG_NONE; //0x00000000;
 	newContainer->activityCallback = nullptr;
 	newContainer->activityCallbackData = nullptr;
@@ -293,9 +293,9 @@ void __cdecl Gods98::Container_Remove2(Container* dead, bool32 kill)
 		}
 	}*/
 
-	if (dead->type != Container_Type::Container_Reference) Container_SetParent(dead, nullptr);		// Unparent it first...
+	if (dead->type != Container_Type::Reference) Container_SetParent(dead, nullptr);		// Unparent it first...
 
-	if (dead->type == Container_Type::Container_FromActivity || dead->type == Container_Type::Container_Anim){
+	if (dead->type == Container_Type::FromActivity || dead->type == Container_Type::Anim){
 
 		if (dead->cloneData) {
 			if (kill){
@@ -312,7 +312,7 @@ void __cdecl Gods98::Container_Remove2(Container* dead, bool32 kill)
 	// typeData (as there are is an unlimited/unordered number of them) therefore
 	// they are stored in the frames AppData section... So release them...
 
-	if (dead->type == Container_Type::Container_FromActivity){
+	if (dead->type == Container_Type::FromActivity){
 //		IDirect3DRMAnimationSet** animSetList;
 		AnimClone** animCloneList;
 		IDirect3DRMFrame3** frameList;
@@ -343,7 +343,7 @@ void __cdecl Gods98::Container_Remove2(Container* dead, bool32 kill)
 		Mem_Free(animCloneList);
 		Mem_Free(frameList);
 
-	} else if (dead->type == Container_Type::Container_Mesh){
+	} else if (dead->type == Container_Type::Mesh){
 		
 		Mesh* transmesh;
 
@@ -370,7 +370,7 @@ void __cdecl Gods98::Container_Remove2(Container* dead, bool32 kill)
 			}
 
 		}
-	} else if (dead->type == Container_Type::Container_Anim){
+	} else if (dead->type == Container_Type::Anim){
 		
 //		IDirect3DRMAnimationSet* animSet = Container_Frame_GetAnimSet(dead->activityFrame);
 //		r = animSet->Release();
@@ -381,7 +381,7 @@ void __cdecl Gods98::Container_Remove2(Container* dead, bool32 kill)
 	}
 
 #ifdef _DEBUG_2
-	if (dead->type != Container_Type::Container_Reference) {
+	if (dead->type != Container_Type::Reference) {
 		Container_Frame_FreeName(dead->masterFrame);
 		Container_Frame_FreeName(dead->activityFrame);
 	}
@@ -390,8 +390,8 @@ void __cdecl Gods98::Container_Remove2(Container* dead, bool32 kill)
 
 	// Remove the typeData from the container and the AppData from the frames...
 	Container_FreeTypeData(dead);
-	if (dead->type != Container_Type::Container_Reference || !(dead->flags & ContainerFlags::CONTAINER_FLAG_DEADREFERENCE)) Container_Frame_RemoveAppData(dead->masterFrame);
-	if (dead->type != Container_Type::Container_Reference) Container_Frame_RemoveAppData(dead->activityFrame);
+	if (dead->type != Container_Type::Reference || !(dead->flags & ContainerFlags::CONTAINER_FLAG_DEADREFERENCE)) Container_Frame_RemoveAppData(dead->masterFrame);
+	if (dead->type != Container_Type::Reference) Container_Frame_RemoveAppData(dead->activityFrame);
 	Container_Frame_RemoveAppData(dead->hiddenFrame);
 
 	// Remove the frames and all unreferenced decendants from the hierachy...
@@ -405,7 +405,7 @@ void __cdecl Gods98::Container_Remove2(Container* dead, bool32 kill)
 //		}
 //		r = dead->activityFrame->Release();
 
-	if (dead->type != Container_Type::Container_Reference) {
+	if (dead->type != Container_Type::Reference) {
 
 		dead->masterFrame->GetParent(&parentFrame);
 //		parentFrame = CUF(tempFrame1);
@@ -454,7 +454,7 @@ Gods98::Container* __cdecl Gods98::Container_Load(Container* parent, const char*
 
 	std::strcpy(name, filename);
 
-	if (type == Container_Type::Container_FromActivity) {
+	if (type == Container_Type::FromActivity) {
 
 		char* argv[20];
 		uint32 argc;
@@ -466,7 +466,7 @@ Gods98::Container* __cdecl Gods98::Container_Load(Container* parent, const char*
 
 		std::strcpy(baseDir, name);
 		argc = Util_Tokenise(name, argv, "\\");
-		std::sprintf(tempString, "%s\\%s.%s", baseDir, argv[argc - 1], containerGlobs.extensionName[Container_Type::Container_FromActivity]);
+		std::sprintf(tempString, "%s\\%s.%s", baseDir, argv[argc - 1], containerGlobs.extensionName[(uint32)Container_Type::FromActivity]);
 
 		Error_Debug(Error_Format("Loading activity file \"%s\"\n", tempString));
 
@@ -505,8 +505,8 @@ Gods98::Container* __cdecl Gods98::Container_Load(Container* parent, const char*
 							std::sprintf(tempString2, "%s%s%s%s%s", containerGlobs.gameName, CONFIG_SEPARATOR, conf->dataString, CONFIG_SEPARATOR, "LWSFILE");
 							lws = BoolTri::BOOL3_TRUE == Config_GetBoolValue(rootConf, tempString2);
 							std::sprintf(tempString2, "%s%s%s%s%s", containerGlobs.gameName, CONFIG_SEPARATOR, conf->dataString, CONFIG_SEPARATOR, "LOOPING");
-							if (0 == Config_GetBoolValue(rootConf, tempString2)) looping = FALSE;
-							else looping = TRUE;
+							if (Config_GetBoolValue(rootConf, tempString2) == BoolTri::BOOL3_FALSE) looping = false;
+							else looping = true;
 
 							// Get the activity sample...
 
@@ -515,7 +515,7 @@ Gods98::Container* __cdecl Gods98::Container_Load(Container* parent, const char*
 							sampleStr = Config_GetStringValue(rootConf, tempString2);
 							//							){
 							//								sprintf(tempString2, "%s\\%s", baseDir, fileStr);
-							//								if ((sample = Sound_Load(tempString2)) == nullptr) Error_Fatal(TRUE, "Cannot load sample");
+							//								if ((sample = Sound_Load(tempString2)) == nullptr) Error_Fatal(true, "Cannot load sample");
 							//							} else sample = nullptr;
 
 							if (Container_AddActivity(cont, tempString, itemName, transCo, trigger, sampleStr, nullptr, lws, looping)) {
@@ -525,7 +525,7 @@ Gods98::Container* __cdecl Gods98::Container_Load(Container* parent, const char*
 							}
 							else Error_Fatal(true, Error_Format("Unable to load Activity \"%s\" from \"%s\"", itemName, tempString));
 
-							//						} else Error_Fatal(TRUE, Error_Format("Cannot get \"%s\" value from activity file", tempString2));
+							//						} else Error_Fatal(true, Error_Format("Cannot get \"%s\" value from activity file", tempString2));
 						}
 						else Error_Fatal(true, Error_Format("Unable to get item \"%s\" from activity file", tempString2));
 					}
@@ -534,28 +534,28 @@ Gods98::Container* __cdecl Gods98::Container_Load(Container* parent, const char*
 				}
 
 			}
-			else Error_Fatal(TRUE, Error_Format("Cannot Find Activity List %s", tempString));
+			else Error_Fatal(true, Error_Format("Cannot Find Activity List %s", tempString));
 
 			std::sprintf(tempString, "%s%s%s", containerGlobs.gameName, CONFIG_SEPARATOR, CONTAINER_SCALESTRING);
 			scale = Config_GetRealValue(rootConf, tempString);
-			if (0.0f != scale) cont->activityFrame->AddScale(D3DRMCOMBINE_REPLACE, scale, scale, scale);
+			if (scale != 0.0f) cont->activityFrame->AddScale(D3DRMCOMBINE_REPLACE, scale, scale, scale);
 
 			Config_Free(rootConf);
 		}
-		else Error_Warn(TRUE, Error_Format("Cannot Find File %s", tempString));
+		else Error_Warn(true, Error_Format("Cannot Find File %s", tempString));
 
 	}
-	else if (type == Container_Type::Container_Frame) {
+	else if (type == Container_Type::Frame) {
 
 		cont = Container_Create(parent);
 		cont->type = type;
 		// Just add it onto the activity frame...
-		sprintf(tempString, "%s.%s", name, containerGlobs.extensionName[type]);
+		sprintf(tempString, "%s.%s", name, containerGlobs.extensionName[(uint32)type]);
 		if (Container_FrameLoad(tempString, cont->activityFrame));
 		else Error_Warn(true, Error_Format("Cannot Load File \"%s\".\n", tempString));
 
 	}
-	else if (type == Container_Type::Container_Mesh) {
+	else if (type == Container_Type::Mesh) {
 
 		IDirect3DRMMesh* mesh;
 		void* fdata;
@@ -563,7 +563,7 @@ Gods98::Container* __cdecl Gods98::Container_Load(Container* parent, const char*
 
 		// Create a meshbuilder, retrieve the mesh object
 		// then attach it to the activity frame...
-		sprintf(tempString, "%s.%s", name, containerGlobs.extensionName[type]);
+		sprintf(tempString, "%s.%s", name, containerGlobs.extensionName[(uint32)type]);
 		if (fdata = File_LoadBinary(tempString, &fsize)) {
 			cont = Container_Create(parent);
 			cont->type = type;
@@ -574,16 +574,16 @@ Gods98::Container* __cdecl Gods98::Container_Load(Container* parent, const char*
 		}
 
 	}
-	else if (type == Container_Type::Container_Anim || type == Container_Type::Container_LWS) {
+	else if (type == Container_Type::Anim || type == Container_Type::LWS) {
 
 //		IDirect3DRMAnimationSet* animSet;
 		AnimClone* animClone;
 		uint32 frameCount;
 
 		cont = Container_Create(parent);
-		cont->type = Container_Type::Container_Anim;
-		sprintf(tempString, "%s.%s", name, containerGlobs.extensionName[Container_Type::Container_Anim]);
-		if (animClone = Container_LoadAnimSet(tempString, cont->activityFrame, &frameCount, (type == Container_Type::Container_LWS) /*? true : false*/, looping)) {
+		cont->type = Container_Type::Anim;
+		sprintf(tempString, "%s.%s", name, containerGlobs.extensionName[(uint32)Container_Type::Anim]);
+		if (animClone = Container_LoadAnimSet(tempString, cont->activityFrame, &frameCount, (type == Container_Type::LWS), looping)) {
 			Container_Frame_SetAppData(cont->activityFrame, cont, animClone, name, &frameCount, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
 		}
 		else {
@@ -593,7 +593,7 @@ Gods98::Container* __cdecl Gods98::Container_Load(Container* parent, const char*
 		}
 
 	}
-	else if (type == Container_Type::Container_LWO) {
+	else if (type == Container_Type::LWO) {
 
 		Mesh* mesh;
 		cont = Container_Create(parent);
@@ -614,7 +614,7 @@ Gods98::Container* __cdecl Gods98::Container_Load(Container* parent, const char*
 		}
 
 	}
-	else if (type == Container_Type::Container_Invalid) {
+	else if (type == Container_Type::Invalid) {
 
 		Error_Fatal(true, "Do not recognise container type");
 
@@ -658,7 +658,7 @@ bool32 __cdecl Gods98::Container_IsCurrentActivity(Container* cont, const char* 
 
 	Container_DebugCheckOK(cont);
 
-	if (cont->type == Container_Type::Container_FromActivity) {
+	if (cont->type == Container_Type::FromActivity) {
 		if (frame = Container_Frame_Find(cont, actname, 0)) return true;
 	}
 
@@ -674,7 +674,7 @@ bool32 __cdecl Gods98::Container_SetActivity(Container* cont, const char* actnam
 
 	Container_DebugCheckOK(cont);
 
-	if (cont->type == Container_Type::Container_FromActivity) {
+	if (cont->type == Container_Type::FromActivity) {
 		if (frame = Container_Frame_Find(cont, actname, 1)) {
 			if (cont->typeData != nullptr) {
 				if (cont->typeData->name != nullptr) {
@@ -720,7 +720,7 @@ bool32 __cdecl Gods98::Container_SetActivity(Container* cont, const char* actnam
 bool32 __cdecl Gods98::Container_Light_SetSpotPenumbra(Container* spotlight, real32 angle)
 {
 	Container_DebugCheckOK(spotlight);
-	Error_Fatal(spotlight->type!=Container_Type::Container_Light, "Container is not a light");
+	Error_Fatal(spotlight->type!=Container_Type::Light, "Container is not a light");
 
 	if (spotlight->typeData->light->SetPenumbra(angle) == D3DRM_OK) {
 		return true;
@@ -732,7 +732,7 @@ bool32 __cdecl Gods98::Container_Light_SetSpotPenumbra(Container* spotlight, rea
 bool32 __cdecl Gods98::Container_Light_SetSpotUmbra(Container* spotlight, real32 angle)
 {
 	Container_DebugCheckOK(spotlight);
-	Error_Fatal(spotlight->type!=Container_Type::Container_Light, "Container is not a light");
+	Error_Fatal(spotlight->type!=Container_Type::Light, "Container is not a light");
 
 	if (spotlight->typeData->light->SetUmbra(angle) == D3DRM_OK) {
 		return true;
@@ -744,7 +744,7 @@ bool32 __cdecl Gods98::Container_Light_SetSpotUmbra(Container* spotlight, real32
 bool32 __cdecl Gods98::Container_Light_SetSpotRange(Container* spotlight, real32 dist)
 {
 	Container_DebugCheckOK(spotlight);
-	Error_Fatal(spotlight->type!=Container_Type::Container_Light, "Container is not a light");
+	Error_Fatal(spotlight->type!=Container_Type::Light, "Container is not a light");
 
 	if (spotlight->typeData->light->SetRange(dist) == D3DRM_OK) {
 		return true;
@@ -758,7 +758,7 @@ void __cdecl Gods98::Container_Light_SetEnableContainer(Container* light, Contai
 	//IDirect3DRMLight* enableFrame;
 	IDirect3DRMFrame* enableFrame;
 	Container_DebugCheckOK(light || enable);
-	Error_Fatal(light->type!=Container_Type::Container_Light, "Container is not a light");
+	Error_Fatal(light->type!=Container_Type::Light, "Container is not a light");
 
 	enable->masterFrame->QueryInterface(Idl::IID_IDirect3DRMFrame, (void**)&enableFrame);
 	light->typeData->light->SetEnableFrame(enableFrame);
@@ -773,7 +773,7 @@ Gods98::Container* __cdecl Gods98::Container_MakeLight(Container* parent, Contai
 
 	if (cont) {
 
-		cont->type = Container_Type::Container_Light;
+		cont->type = Container_Type::Light;
 
 		/// NEW GODS98: New feature not present in LegoRR
 		//if (type == Container_Light::Container_Light_Ambient) Mesh_SetAmbientLight(r, g, b);
@@ -784,7 +784,7 @@ Gods98::Container* __cdecl Gods98::Container_MakeLight(Container* parent, Contai
 			cont->activityFrame->AddLight( light);
 			Container_SetTypeData(cont, nullptr, light, nullptr, nullptr);
 		}
-		else Error_Fatal(TRUE, "Unable to create light");
+		else Error_Fatal(true, "Unable to create light");
 
 #ifdef _DEBUG_2
 		Container_Frame_FormatName(cont->masterFrame, "Light type #%d (%0.2f,%0.2f,%0.2f)", type, r, g, b);
@@ -804,28 +804,28 @@ Gods98::Container* __cdecl Gods98::Container_MakeMesh2(Container* parent, Contai
 	Container_DebugCheckOK(CONTAINER_DEBUG_NOTREQUIRED);
 
 	if (cont) {
-		cont->type = Container_Type::Container_Mesh;
+		cont->type = Container_Type::Mesh;
 
 		/// FIX APPLY: Container_MeshType_Subtractive has no comparison to type
 		///             (if statement is always true)
-		if (type == Container_MeshType::Container_MeshType_Transparent ||
-			type == Container_MeshType::Container_MeshType_Immediate ||
-			type == Container_MeshType::Container_MeshType_Additive ||
-			type == Container_MeshType::Container_MeshType_Subtractive)
+		if (type == Container_MeshType::Transparent ||
+			type == Container_MeshType::Immediate ||
+			type == Container_MeshType::Additive ||
+			type == Container_MeshType::Subtractive)
 		{
 
-			Mesh_RenderFlags flags = Mesh_RenderFlags::MESH_FLAG_TRANSFORM_PARENTPOS;
+			Mesh_RenderFlags flags = Mesh_RenderFlags::MESH_TRANSFORM_FLAG_PARENTPOS;
 			Mesh* transmesh;
 
 			switch (type) {
-			case Container_MeshType::Container_MeshType_Transparent:	flags |= Mesh_RenderFlags::MESH_FLAG_RENDER_ALPHATRANS;		break;
-			case Container_MeshType::Container_MeshType_Additive:		flags |= Mesh_RenderFlags::MESH_FLAG_RENDER_ALPHASA1;		break;
+			case Container_MeshType::Transparent:	flags |= Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHATRANS;		break;
+			case Container_MeshType::Additive:		flags |= Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHASA1;		break;
 			/// NEW GODS98: Subtractive does not exist in LegoRR,
 			///              checking to see if any side effects exist due to this...
-			case Container_MeshType::Container_MeshType_Subtractive:	flags |= Mesh_RenderFlags::MESH_FLAG_RENDER_ALPHASA0;		break;
+			case Container_MeshType::Subtractive:	flags |= Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHASA0;		break;
 			}
 
-			transmesh = Mesh_CreateOnFrame(cont->activityFrame, nullptr, flags, nullptr, Mesh_Type::Mesh_Type_Norm);
+			transmesh = Mesh_CreateOnFrame(cont->activityFrame, nullptr, flags, nullptr, Mesh_Type::Norm);
 			Container_SetTypeData(cont, nullptr, nullptr, nullptr, transmesh);
 
 		}
@@ -836,7 +836,7 @@ Gods98::Container* __cdecl Gods98::Container_MakeMesh2(Container* parent, Contai
 				cont->activityFrame->AddVisual((IUnknown*)mesh);
 				Container_SetTypeData(cont, nullptr, nullptr, mesh, nullptr);
 
-				if (type == Container_MeshType::Container_MeshType_SeperateMeshes) {
+				if (type == Container_MeshType::SeperateMeshes) {
 
 					Container_MeshAppData* appdata = (Container_MeshAppData*)Mem_Alloc(sizeof(Container_MeshAppData));
 					appdata->listSize = CONTAINER_MESHGROUPBLOCKSIZE;
@@ -877,7 +877,7 @@ Gods98::Container* __cdecl Gods98::Container_Clone(Container* orig)
 
 	Container_DebugCheckOK(orig);
 
-	if (orig->type == Container_Type::Container_Mesh) {
+	if (orig->type == Container_Type::Mesh) {
 
 		// Special case - Don't allow cloning of separated group meshes...
 
@@ -886,7 +886,7 @@ Gods98::Container* __cdecl Gods98::Container_Clone(Container* orig)
 		if (mesh->GetAppData()) Error_Fatal(true, "Cannot clone separated mesh objects");
 	}
 
-	if (orig->type == Container_Type::Container_FromActivity || orig->type == Container_Type::Container_Anim) {
+	if (orig->type == Container_Type::FromActivity || orig->type == Container_Type::Anim) {
 
 		// If the object being cloned is a clone itself then use the original
 		if (orig->cloneData) if (orig->cloneData->clonedFrom) orig = orig->cloneData->clonedFrom;
@@ -962,7 +962,7 @@ Gods98::Container* __cdecl Gods98::Container_Clone(Container* orig)
 	}
 	else cont->typeData = nullptr;
 
-	if (orig->type == Container_Type::Container_FromActivity || orig->type == Container_Type::Container_Anim) {
+	if (orig->type == Container_Type::FromActivity || orig->type == Container_Type::Anim) {
 
 		// The new container obviously will have no cloneData.
 		cont->cloneData = (Container_CloneData*)Mem_Alloc(sizeof(Container_CloneData));
@@ -974,7 +974,7 @@ Gods98::Container* __cdecl Gods98::Container_Clone(Container* orig)
 		loadRef++;
 	}
 
-	if (cont->type == Container_Type::Container_Mesh) {
+	if (cont->type == Container_Type::Mesh) {
 
 		IDirect3DRMMesh* mesh = cont->typeData->mesh;
 		Error_Fatal(!mesh, "TypeData missing on Object");
@@ -987,7 +987,7 @@ Gods98::Container* __cdecl Gods98::Container_Clone(Container* orig)
 
 
 	}
-	else if (cont->type == Container_Type::Container_FromActivity) {
+	else if (cont->type == Container_Type::FromActivity) {
 
 		uint32 loop, count;
 		IDirect3DRMFrame3** frameList;
@@ -1032,7 +1032,7 @@ Gods98::Container* __cdecl Gods98::Container_Clone(Container* orig)
 #endif // _DEBUG_2
 
 	}
-	else if (cont->type == Container_Type::Container_Anim) {
+	else if (cont->type == Container_Type::Anim) {
 
 //		IDirect3DRMAnimationSet* animSet;
 		const char* fname;
@@ -1050,7 +1050,7 @@ Gods98::Container* __cdecl Gods98::Container_Clone(Container* orig)
 		Container_Frame_SetAppData(cont->activityFrame, cont, newClone, fname, &frameCount, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
 
 	}
-	else if (cont->type == Container_Type::Container_LWO) {
+	else if (cont->type == Container_Type::LWO) {
 
 		Mesh* mesh = cont->typeData->transMesh;
 		Error_Fatal(!mesh, "TypeData missing on Object");
@@ -1084,7 +1084,7 @@ void __cdecl Gods98::Container_Hide(Container* cont, bool32 hide)
 	hidden = cont->flags & ContainerFlags::CONTAINER_FLAG_HIDDEN;
 	Container_DebugCheckOK(cont);
 
-//	if (cont->type == Container_Type::Container_Mesh) {
+//	if (cont->type == Container_Type::Mesh) {
 //		Mesh* transmesh;
 //		Error_Fatal(cont->typeData==nullptr, "Mesh has no typeData");
 //		if (transmesh = cont->typeData->transMesh) {
@@ -1141,10 +1141,10 @@ Gods98::Container* __cdecl Gods98::Container_SearchTree(Container* root, const c
 	}
 #endif // CONTAINER_MATCHHIDDENHIERARCHY
 
-	if (mode == Container_SearchMode::Container_SearchMode_FirstMatch || mode == Container_SearchMode::Container_SearchMode_NthMatch) {
+	if (mode == Container_SearchMode::FirstMatch || mode == Container_SearchMode::NthMatch) {
 		if (search.resultFrame) return Container_Frame_GetContainer(search.resultFrame);
 	}
-	else if (mode == Container_SearchMode::Container_SearchMode_MatchCount) *count = search.count;
+	else if (mode == Container_SearchMode::MatchCount) *count = search.count;
 
 	return nullptr;
 }
@@ -1165,12 +1165,12 @@ const char* __cdecl Gods98::Container_FormatPartName(Container* cont, const char
 
 	Container_DebugCheckOK(cont);
 
-	if (cont->type == Container_Type::Container_FromActivity) {
+	if (cont->type == Container_Type::FromActivity) {
 		Error_Fatal(!cont->typeData, "Container has no typeData");
 		frame = Container_Frame_Find(cont, cont->typeData->name, 0);
 		Error_Fatal(frame == nullptr, "Cannot locate current activities frame");
 	}
-	else if (cont->type == Container_Type::Container_Anim) {
+	else if (cont->type == Container_Type::Anim) {
 		frame = cont->activityFrame;
 	}
 	else {
@@ -1234,7 +1234,7 @@ void __cdecl Gods98::Container_SetFogMode(uint32 mode)
 {
 	containerGlobs.rootContainer->masterFrame->SetSceneFogMode((D3DRMFOGMODE)mode);
 	// 3Dfx requires table fog and software requires vertex fog...
-	containerGlobs.rootContainer->masterFrame->SetSceneFogMethod(Main_GetFogMethod());
+	containerGlobs.rootContainer->masterFrame->SetSceneFogMethod(Graphics_GetFogMethod());
 }
 
 // <LegoRR.exe @00474160>
@@ -1248,7 +1248,7 @@ void __cdecl Gods98::Container_SetPerspectiveCorrection(Container* cont, bool32 
 {
 	Container_DebugCheckOK(cont);
 
-	if (cont->type == Container_Type::Container_FromActivity) {
+	if (cont->type == Container_Type::FromActivity) {
 
 		// Set on every group of every mesh of every frame of every activity of the object...
 
@@ -1262,7 +1262,7 @@ void __cdecl Gods98::Container_SetPerspectiveCorrection(Container* cont, bool32 
 		Mem_Free(frameList);
 
 	}
-	else if (cont->type == Container_Type::Container_Mesh) {
+	else if (cont->type == Container_Type::Mesh) {
 
 		// Set on every group of the mesh...
 
@@ -1603,11 +1603,11 @@ Gods98::Container_Texture* __cdecl Gods98::Container_LoadTexture2(const char* fn
 				if (r == D3DRMERR_FILENOTFOUND)
 				{
 					Error_Warn(true, Error_Format("Invalid filename specified \"%s\"", path));
-					Error_LogLoadError(true, Error_Format("%d\t%s", Error_LoadError_InvalidFName, path));
+					Error_LogLoadError(true, Error_Format("%d\t%s", (sint32)Error_LoadError::InvalidFName, path));
 				}
 				else
 				{
-					Error_LogLoadError(true, Error_Format("%d\t%s", Error_LoadError_RMTexture, path));
+					Error_LogLoadError(true, Error_Format("%d\t%s", (sint32)Error_LoadError::RMTexture, path));
 					Error_Warn(true, Error_Format("Cannot open file %s", path));
 				}
 
@@ -1646,11 +1646,11 @@ void __cdecl Gods98::Container_Mesh_Swap(Container* target, Container* origin, b
 	Mesh* transmesh;
 
 	Container_DebugCheckOK(target);
-	Error_Fatal(target->type!=Container_Type::Container_Reference && target->type!=Container_Type::Container_Mesh, "Container_Mesh_Swap() can only be used with a reference or mesh object as the 'target' container");
+	Error_Fatal(target->type!=Container_Type::Reference && target->type!=Container_Type::Mesh, "Container_Mesh_Swap() can only be used with a reference or mesh object as the 'target' container");
 	Error_Fatal((target->flags & ContainerFlags::CONTAINER_FLAG_MESHSWAPPED) && !restore, "Container_Mesh_Swap() called without restoring previous swap");
 	Error_Fatal(!(target->flags & ContainerFlags::CONTAINER_FLAG_MESHSWAPPED) && restore, "Container_Mesh_Swap() called with restore without a previous swap");
 
-	if (target->type == Container_Type::Container_Reference) frame = target->masterFrame;
+	if (target->type == Container_Type::Reference) frame = target->masterFrame;
 	else frame = target->activityFrame;
 
 	if (!restore) {	// Move all the existing visuals onto the hidden frame...
@@ -1674,7 +1674,7 @@ void __cdecl Gods98::Container_Mesh_Swap(Container* target, Container* origin, b
 		}
 
 		/*		if (origin) {
-					Error_Fatal(origin->type!=Container_Type::Container_Mesh, "Container_Mesh_Swap() called with non-mesh object as 'origin' container");
+					Error_Fatal(origin->type!=Container_Type::Mesh, "Container_Mesh_Swap() called with non-mesh object as 'origin' container");
 					mesh = origin->typeData->mesh;
 					Error_Fatal(!mesh, "Container has no mesh object");
 					Error_Fatal(mesh->GetAppData(), "Not yet supported with separate mesh groups");
@@ -1754,7 +1754,7 @@ uint32 __cdecl Gods98::Container_Mesh_AddGroup(Container* cont, uint32 vertexCou
 
 	Container_DebugCheckOK(cont);
 
-	Error_Fatal(cont->type!=Container_Type::Container_Mesh, "Container_Mesh_AddGroup() called with non mesh object");
+	Error_Fatal(cont->type!=Container_Type::Mesh, "Container_Mesh_AddGroup() called with non mesh object");
 
 	if (transmesh = cont->typeData->transMesh) {
 
@@ -1830,7 +1830,7 @@ uint32 __cdecl Gods98::Container_Mesh_GetGroupCount(Container* cont)
 	Mesh* transmesh;
 
 	Container_DebugCheckOK(cont);
-	Error_Fatal(cont->type!=Container_Type::Container_Mesh && cont->type!=Container_Type::Container_LWO, "Container_Mesh_GetGroupCount() called with non mesh object");
+	Error_Fatal(cont->type!=Container_Type::Mesh && cont->type!=Container_Type::LWO, "Container_Mesh_GetGroupCount() called with non mesh object");
 	Error_Fatal(!cont->typeData, "Container has no typeData");
 
 	if (transmesh = cont->typeData->transMesh) {
@@ -1857,7 +1857,7 @@ void __cdecl Gods98::Container_Mesh_SetQuality(Container* cont, uint32 groupID, 
 {
 	Mesh* transmesh;
 
-	Error_Fatal(cont->type!=Container_Type::Container_Mesh, "Container_Mesh_SetQuality() called with non mesh object");
+	Error_Fatal(cont->type!=Container_Type::Mesh, "Container_Mesh_SetQuality() called with non mesh object");
 
 	if (transmesh = cont->typeData->transMesh) {
 
@@ -1867,10 +1867,11 @@ void __cdecl Gods98::Container_Mesh_SetQuality(Container* cont, uint32 groupID, 
 	else {
 
 		D3DRMRENDERQUALITY d3drmqual;
-		if (quality == Container_Quality::Container_Quality_Wireframe) d3drmqual = D3DRMRENDER_WIREFRAME;
-		if (quality == Container_Quality::Container_Quality_UnlitFlat) d3drmqual = D3DRMRENDER_UNLITFLAT;
-		if (quality == Container_Quality::Container_Quality_Flat) d3drmqual = D3DRMRENDER_FLAT;
-		if (quality == Container_Quality::Container_Quality_Gouraud) d3drmqual = D3DRMRENDER_GOURAUD;
+		if (quality == Container_Quality::Wireframe) d3drmqual = D3DRMRENDER_WIREFRAME;
+		if (quality == Container_Quality::UnlitFlat) d3drmqual = D3DRMRENDER_UNLITFLAT;
+		if (quality == Container_Quality::Flat)      d3drmqual = D3DRMRENDER_FLAT;
+		if (quality == Container_Quality::Gouraud)   d3drmqual = D3DRMRENDER_GOURAUD;
+		if (quality == Container_Quality::Phong)     d3drmqual = D3DRMRENDER_PHONG;
 
 		Container_DebugCheckOK(cont);
 		Error_Fatal(!cont->typeData, "Container has no typeData");
@@ -1893,7 +1894,7 @@ bool32 __cdecl Gods98::Container_Mesh_IsGroupHidden(Container* cont, uint32 grou
 	Mesh* transmesh;
 
 	Container_DebugCheckOK(cont);
-	Error_Fatal(cont->type!=Container_Type::Container_Mesh, "Container_Mesh_IsGroupHidden() called with non mesh object");
+	Error_Fatal(cont->type!=Container_Type::Mesh, "Container_Mesh_IsGroupHidden() called with non mesh object");
 	Error_Fatal(!cont->typeData, "Container has no typeData");
 
 	if (transmesh = cont->typeData->transMesh) {
@@ -1931,7 +1932,7 @@ void __cdecl Gods98::Container_Mesh_HideGroup(Container* cont, uint32 group, boo
 	Mesh* transmesh;
 
 	Container_DebugCheckOK(cont);
-	Error_Fatal(cont->type!=Container_Type::Container_Mesh, "Container_Mesh_HideGroup() called with non mesh object");
+	Error_Fatal(cont->type!=Container_Type::Mesh, "Container_Mesh_HideGroup() called with non mesh object");
 	Error_Fatal(!cont->typeData, "Container has no typeData");
 
 	if (transmesh = cont->typeData->transMesh) {
@@ -2005,7 +2006,7 @@ bool32 __cdecl Gods98::Container_Mesh_GetGroup(Container* cont, uint32 groupID,
 
 	Container_DebugCheckOK(cont);
 
-	Error_Fatal(cont->type!=Container_Type::Container_Mesh && cont->type!=Container_Type::Container_LWO, "Container_Mesh_GetGroup() called with non mesh object");
+	Error_Fatal(cont->type!=Container_Type::Mesh && cont->type!=Container_Type::LWO, "Container_Mesh_GetGroup() called with non mesh object");
 	Error_Fatal(!cont->typeData, "Container has no typeData");
 
 	if (transmesh = cont->typeData->transMesh) {
@@ -2042,7 +2043,7 @@ uint32 __cdecl Gods98::Container_Mesh_GetVertices(Container* cont, uint32 groupI
 
 	Container_DebugCheckOK(cont);
 
-	Error_Fatal(cont->type!=Container_Type::Container_Mesh && cont->type!=Container_Type::Container_LWO, "Container_Mesh_GetVertices() called with non mesh object");
+	Error_Fatal(cont->type!=Container_Type::Mesh && cont->type!=Container_Type::LWO, "Container_Mesh_GetVertices() called with non mesh object");
 
 	if (transmesh = cont->typeData->transMesh) {
 
@@ -2078,7 +2079,7 @@ uint32 __cdecl Gods98::Container_Mesh_SetVertices(Container* cont, uint32 groupI
 
 	Container_DebugCheckOK(cont);
 
-	Error_Fatal(cont->type!=Container_Type::Container_Mesh && cont->type!=Container_Type::Container_LWO, "Container_Mesh_SetVertices() called with non mesh object");
+	Error_Fatal(cont->type!=Container_Type::Mesh && cont->type!=Container_Type::LWO, "Container_Mesh_SetVertices() called with non mesh object");
 
 	if (transmesh = cont->typeData->transMesh) {
 
@@ -2118,7 +2119,7 @@ void __cdecl Gods98::Container_Mesh_SetTexture(Container* cont, uint32 groupID, 
 
 	Container_DebugCheckOK(cont);
 
-	Error_Fatal(cont->type!=Container_Type::Container_Mesh && cont->type!=Container_Type::Container_LWO, "Container_Mesh_SetTexture() called with non mesh object");
+	Error_Fatal(cont->type!=Container_Type::Mesh && cont->type!=Container_Type::LWO, "Container_Mesh_SetTexture() called with non mesh object");
 
 	if (transmesh = cont->typeData->transMesh) {
 
@@ -2162,7 +2163,7 @@ void __cdecl Gods98::Container_Mesh_SetPerspectiveCorrection(Container* cont, ui
 	Mesh* transmesh;
 
 	Container_DebugCheckOK(cont);
-	Error_Fatal(cont->type!=Container_Type::Container_Mesh && cont->type!=Container_Type::Container_LWO, "Container_Mesh_SetPerspectiveCorrection() called with non mesh object");
+	Error_Fatal(cont->type!=Container_Type::Mesh && cont->type!=Container_Type::LWO, "Container_Mesh_SetPerspectiveCorrection() called with non mesh object");
 
 	if (transmesh = cont->typeData->transMesh) {
 
@@ -2191,7 +2192,7 @@ bool32 __cdecl Gods98::Container_Mesh_Scale(Container* cont, real32 x, real32 y,
 	Mesh* transmesh;
 
 	Container_DebugCheckOK(cont);
-	Error_Fatal(cont->type!=Container_Type::Container_Mesh && cont->type!=Container_Type::Container_LWO, "Container_Mesh_Scale() called with non mesh object");
+	Error_Fatal(cont->type!=Container_Type::Mesh && cont->type!=Container_Type::LWO, "Container_Mesh_Scale() called with non mesh object");
 
 	if (transmesh = cont->typeData->transMesh) {
 
@@ -2224,7 +2225,7 @@ bool32 __cdecl Gods98::Container_Mesh_GetBox(Container* cont, OUT Box3F* box)
 	Container_MeshAppData* appdata;
 
 	Container_DebugCheckOK(cont);
-	Error_Fatal(cont->type != Container_Type::Container_Mesh, "Container_Mesh_GetBox() called with non mesh object");
+	Error_Fatal(cont->type != Container_Type::Mesh, "Container_Mesh_GetBox() called with non mesh object");
 	Error_Fatal(!mesh, "'From' Container has no mesh object");
 	mesh->GetBox((LPD3DRMBOX)box);
 
@@ -2262,7 +2263,7 @@ void __cdecl Gods98::Container_Mesh_SetEmissive(Container* cont, uint32 groupID,
 	Mesh* transmesh;
 
 	Container_DebugCheckOK(cont);
-	Error_Fatal(cont->type!=Container_Type::Container_Mesh && cont->type!=Container_Type::Container_LWO, "Container_Mesh_SetEmissive() called with non mesh object");
+	Error_Fatal(cont->type!=Container_Type::Mesh && cont->type!=Container_Type::LWO, "Container_Mesh_SetEmissive() called with non mesh object");
 
 	if (transmesh = cont->typeData->transMesh) {
 
@@ -2304,7 +2305,7 @@ void __cdecl Gods98::Container_Mesh_SetColourAlpha(Container* cont, uint32 group
 	Mesh* transmesh;
 
 	Container_DebugCheckOK(cont);
-	Error_Fatal(cont->type!=Container_Type::Container_Mesh && cont->type!=Container_Type::Container_LWO, "Container_Mesh_SetColourAlpha() called with non mesh object");
+	Error_Fatal(cont->type!=Container_Type::Mesh && cont->type!=Container_Type::LWO, "Container_Mesh_SetColourAlpha() called with non mesh object");
 
 	D3DCOLOR colour = Container_GetRGBAColour(r, g, b, a);
 
@@ -2358,7 +2359,7 @@ void __cdecl Gods98::Container_SetColourAlpha(Container* cont, real32 r, real32 
 	
 	D3DCOLOR colour = Container_GetRGBAColour(r, g, b, a);
 
-	if (cont->type == Container_Type::Container_Light){
+	if (cont->type == Container_Type::Light){
 		Error_Fatal(!cont->typeData->light, "typedata has no light");
 		cont->typeData->light->SetColor(colour);
 
@@ -2375,18 +2376,18 @@ void __cdecl Gods98::Container_SetColourAlpha(Container* cont, real32 r, real32 
 	}
 
 	/*
-	if (cont->type == Container_Type::Container_Light){
+	if (cont->type == Container_Type::Light){
 		Error_Fatal(!cont->typeData->light, "typedata has no light");
 		cont->typeData->light->SetColor(colour);
-	} else if (cont->type == Container_Type::Container_Mesh){
+	} else if (cont->type == Container_Type::Mesh){
 //		Error_Fatal(!cont->typeData->mesh, "typedata has no mesh");
 		cont->activityFrame->SetColor(colour);
 		cont->activityFrame->SetMaterialMode(D3DRMMATERIAL_FROMFRAME);
 //		cont->typeData->mesh->SetGroupColor(groupID, colour);
-//	} else if (cont->type == Container_Type::Container_Mesh){  // yes, this was checking the same type again
+//	} else if (cont->type == Container_Type::Mesh){  // yes, this was checking the same type again
 //		Error_Fatal(!cont->typeData->meshbuilder, "typedata has no meshbuilder");
 //		cont->typeData->meshbuilder->SetColor(colour);
-//	} else if (cont->type == Container_Type::Container_FromActivity){
+//	} else if (cont->type == Container_Type::FromActivity){
 //		Error_Fatal(!cont->typeData->name, "typedata has no activity name");
 	} else Error_Warn(true, Error_Format("Code not implemented for Container type #%d", cont->type));*/
 }
@@ -2411,7 +2412,7 @@ real32 __cdecl Gods98::Container_SetAnimationTime(Container* cont, real32 time)
 
 	Container_DebugCheckOK(cont);
 
-	if (cont->type == Container_Type::Container_FromActivity){
+	if (cont->type == Container_Type::FromActivity){
 		Error_Fatal(!cont->typeData, "Container has no typeData");
 
 		currAnimName = cont->typeData->name;
@@ -2431,14 +2432,14 @@ real32 __cdecl Gods98::Container_SetAnimationTime(Container* cont, real32 time)
 			if (cont->flags & ContainerFlags::CONTAINER_FLAG_TRIGGERSAMPLE){
 				const char* sound;
 				if (sound = Container_Frame_GetSample(frame)){
-					if (containerGlobs.soundTriggerCallback && (containerGlobs.flags & Container_GlobFlags::CONTAINER_FLAG_TRIGGERENABLED)) containerGlobs.soundTriggerCallback(sound, cont, containerGlobs.soundTriggerData);
+					if (containerGlobs.soundTriggerCallback && (containerGlobs.flags & Container_GlobFlags::CONTAINER_GLOB_FLAG_TRIGGERENABLED)) containerGlobs.soundTriggerCallback(sound, cont, containerGlobs.soundTriggerData);
 				}
 				cont->flags &= ~ContainerFlags::CONTAINER_FLAG_TRIGGERSAMPLE;
 			}
 
 		} else Error_Warn(true, "Couldn't find frame (thus AnimationSet) to SetTime() on");
 
-	} else if (cont->type == Container_Type::Container_Anim) {
+	} else if (cont->type == Container_Type::Anim) {
 
 //		animSet = Container_Frame_GetAnimSet(cont->activityFrame);
 		animClone = Container_Frame_GetAnimClone(cont->activityFrame);
@@ -2494,7 +2495,7 @@ void __cdecl Gods98::Container_ForceAnimationUpdate(Container* cont)
 		IDirect3DRMFrame3* frame;
 		real32 time;
 
-		if (cont->type == Container_Type::Container_FromActivity) {
+		if (cont->type == Container_Type::FromActivity) {
 			Error_Fatal(!cont->typeData, "Container has no typeData");
 			if (frame = Container_Frame_Find(cont, cont->typeData->name, 0)) {
 				animClone = Container_Frame_GetAnimClone(frame);
@@ -2502,7 +2503,7 @@ void __cdecl Gods98::Container_ForceAnimationUpdate(Container* cont)
 			}
 			else Error_Warn(true, "Couldn't find frame (thus AnimationSet) to SetTime() on");
 		}
-		else if (cont->type == Container_Type::Container_Anim) {
+		else if (cont->type == Container_Type::Anim) {
 			animClone = Container_Frame_GetAnimClone(cont->activityFrame);
 			time = Container_Frame_GetCurrTime(cont->activityFrame);
 		}
@@ -2520,7 +2521,7 @@ real32 __cdecl Gods98::Container_GetAnimationTime(Container* cont)
 
 	Container_DebugCheckOK(cont);
 	
-	if (cont->type == Container_Type::Container_FromActivity) {
+	if (cont->type == Container_Type::FromActivity) {
 		Error_Fatal(!cont->typeData, "Container has no typeData");
 
 		currAnimName = cont->typeData->name;
@@ -2528,7 +2529,7 @@ real32 __cdecl Gods98::Container_GetAnimationTime(Container* cont)
 			time = Container_Frame_GetCurrTime(frame);
 		} else Error_Warn(true, "Couldn't find frame (thus AnimationSet) to SetTime() on");
 		
-	} else if (cont->type == Container_Type::Container_Anim) {
+	} else if (cont->type == Container_Type::Anim) {
 
 		time = Container_Frame_GetCurrTime(cont->activityFrame);
 
@@ -2543,12 +2544,12 @@ uint32 __cdecl Gods98::Container_GetAnimationFrames(Container* cont)
 	IDirect3DRMFrame3* frame = nullptr;
 	char* currAnimName;
 
-	if (cont->type == Container_Type::Container_FromActivity) {
+	if (cont->type == Container_Type::FromActivity) {
 		Error_Fatal(!cont->typeData, "Container has no typeData");
 		currAnimName = cont->typeData->name;
 		frame = Container_Frame_Find(cont, currAnimName, 0);
 	}
-	else if (cont->type == Container_Type::Container_Anim) {
+	else if (cont->type == Container_Type::Anim) {
 		frame = cont->activityFrame;
 	}
 
@@ -2607,7 +2608,7 @@ void __cdecl Gods98::Container_GetOrientation(Container* cont, OPTIONAL Containe
 }
 
 // <LegoRR.exe @00475840>
-void __cdecl Gods98::Container_AddRotation(Container* cont, Container_Combine_Type combine,
+void __cdecl Gods98::Container_AddRotation(Container* cont, Container_Combine combine,
 								real32 x, real32 y, real32 z, real32 angle)
 {
 	IDirect3DRMFrame3* frame;
@@ -2628,7 +2629,7 @@ void __cdecl Gods98::Container_AddRotation(Container* cont, Container_Combine_Ty
 }
 
 // <LegoRR.exe @00475870>
-void __cdecl Gods98::Container_AddScale(Container* cont, Container_Combine_Type combine,
+void __cdecl Gods98::Container_AddScale(Container* cont, Container_Combine combine,
 								real32 x, real32 y, real32 z)
 {
 	IDirect3DRMFrame3* frame;
@@ -2649,7 +2650,7 @@ void __cdecl Gods98::Container_AddScale(Container* cont, Container_Combine_Type 
 }
 
 // <LegoRR.exe @004758a0>
-void __cdecl Gods98::Container_AddTranslation(Container* cont, Container_Combine_Type combine,
+void __cdecl Gods98::Container_AddTranslation(Container* cont, Container_Combine combine,
 								real32 x, real32 y, real32 z)
 {
 	IDirect3DRMFrame3* frame;
@@ -2672,17 +2673,18 @@ void __cdecl Gods98::Container_AddTranslation(Container* cont, Container_Combine
 // <LegoRR.exe @004758d0>
 void __cdecl Gods98::Container_ClearTransform(Container* cont)
 {
-	Matrix4F mat;
-	mat[0][0] = 1.0f;	mat[1][0] = 0.0f;	mat[2][0] = 0.0f;	mat[3][0] = 0.0f;
-	mat[0][1] = 0.0f;	mat[1][1] = 1.0f;	mat[2][1] = 0.0f;	mat[3][1] = 0.0f;
-	mat[0][2] = 0.0f;	mat[1][2] = 0.0f;	mat[2][2] = 1.0f;	mat[3][2] = 0.0f;
-	mat[0][3] = 0.0f;	mat[1][3] = 0.0f;	mat[2][3] = 0.0f;	mat[3][3] = 1.0f;
+	Matrix4F identity = {
+		{ 1.0f, 0.0f, 0.0f, 0.0f },
+		{ 0.0f, 1.0f, 0.0f, 0.0f },
+		{ 0.0f, 0.0f, 1.0f, 0.0f },
+		{ 0.0f, 0.0f, 0.0f, 1.0f },
+	};
 
-	Container_AddTransform(cont, Container_Combine_Type::Container_Combine_Replace, mat);
+	Container_AddTransform(cont, Container_Combine::Replace, identity);
 }
 
 // <LegoRR.exe @00475970>
-void __cdecl Gods98::Container_AddTransform(Container* cont, Container_Combine_Type combine,
+void __cdecl Gods98::Container_AddTransform(Container* cont, Container_Combine combine,
 								const Matrix4F mat)
 {
 	IDirect3DRMFrame3* frame;
@@ -2800,7 +2802,7 @@ real32 __cdecl Gods98::Container_GetTransCoef(Container* cont)
 
 	Container_DebugCheckOK(cont);
 
-	if (cont->type == Container_Type::Container_FromActivity){
+	if (cont->type == Container_Type::FromActivity){
 
 		if (cont->typeData != nullptr) {
 			if (cont->typeData->name != nullptr) {
@@ -2825,7 +2827,7 @@ Gods98::Container* __cdecl Gods98::Container_SearchOwner(IDirect3DRMFrame3* fram
 
 	while (owner == nullptr && frame != nullptr){
 		if (test = Container_Frame_GetOwner(frame)){
-			if (test->type != Container_Type::Container_Reference) owner = test;
+			if (test->type != Container_Type::Reference) owner = test;
 		}
 		frame->GetParent(&parent);
 		if (parent) {
@@ -2868,7 +2870,7 @@ Gods98::Container* __cdecl Gods98::Container_Frame_GetContainer(IDirect3DRMFrame
 			//			cont->hiddenFrame = nullptr;
 			cont->activityFrame = nullptr;
 
-			cont->type = Container_Type::Container_Reference;
+			cont->type = Container_Type::Reference;
 
 			frame->AddDestroyCallback(Container_Frame_ReferenceDestroyCallback, nullptr);
 
@@ -2911,7 +2913,7 @@ Gods98::Container_Type __cdecl Gods98::Container_ParseTypeString(const char* str
 		if (argc > 1 && ::_stricmp(argv[1], "NOTEXTURE") == 0) *noTexture = true;
 		else *noTexture = false;
 
-		for (uint32 loop=0 ; loop<Container_Type::Container_TypeCount ; loop++){
+		for (uint32 loop=0; loop<(uint32)Container_Type::TypeCount; loop++){
 			if (containerGlobs.typeName[loop] != nullptr){
 				if (::_stricmp(containerGlobs.typeName[loop], string) == 0) {
 					return (Container_Type)loop;
@@ -2919,7 +2921,7 @@ Gods98::Container_Type __cdecl Gods98::Container_ParseTypeString(const char* str
 			}
 		}
 	} else Error_Fatal(true, "Null string passed to Container_ParseTypeString()");
-	return Container_Type::Container_Invalid;
+	return Container_Type::Invalid;
 }
 
 // <LegoRR.exe @00475cb0>
@@ -2966,7 +2968,7 @@ uint32 __cdecl Gods98::Container_GetActivities(Container* cont, OUT IDirect3DRMF
 	char* name;
 	HRESULT r;
 
-	if (cont->type == Container_Type::Container_FromActivity){
+	if (cont->type == Container_Type::FromActivity){
 		for (uint32 source=0 ; source<2 ; source++){
 
 			if (source == 0) sourceFrame = cont->activityFrame;
@@ -3033,19 +3035,19 @@ void __cdecl Gods98::Container_FreeTypeData(Container* cont)
 	HRESULT r;
 
 	if (cont->typeData) {
-		if (cont->type == Container_Type::Container_FromActivity) {
+		if (cont->type == Container_Type::FromActivity) {
 			Mem_Free(cont->typeData->name);
 		}
-		else if (cont->type == Container_Type::Container_Light) {
+		else if (cont->type == Container_Type::Light) {
 			r = cont->typeData->light->Release();
 		}
-		else if (cont->type == Container_Type::Container_Mesh) {
+		else if (cont->type == Container_Type::Mesh) {
 			if (cont->typeData->mesh) {
 				cont->activityFrame->DeleteVisual((IUnknown*)cont->typeData->mesh);
 				r = cont->typeData->mesh->Release();
 			}
 		}
-		else if (cont->type == Container_Type::Container_LWO) {
+		else if (cont->type == Container_Type::LWO) {
 			if (cont->typeData->transMesh)
 				Mesh_Remove(cont->typeData->transMesh, cont->activityFrame);
 		}
@@ -3064,7 +3066,7 @@ bool32 __cdecl Gods98::Container_AddActivity2(Container* cont, const char* filen
 	uint32 frameCount;
 	AnimClone* animClone;
 
-	std::sprintf(xFile, "%s.%s", filename, containerGlobs.extensionName[Container_Type::Container_Anim]);
+	std::sprintf(xFile, "%s.%s", filename, containerGlobs.extensionName[(uint32)Container_Type::Anim]);
 
 	if (lpD3DRM()->CreateFrame(cont->hiddenFrame, &newFrame) == D3DRM_OK){
 		Container_NoteCreation(newFrame);
@@ -3386,20 +3388,20 @@ bool32 __cdecl Gods98::Container_Frame_SearchCallback(IDirect3DRMFrame3* frame, 
 		// corresponds to a '?' in the search string...
 		for (uint32 loop=0 ; loop<len ; loop++) if (search->string[loop] == '?') name[loop] = '?';
 
-		if (search->mode == Container_SearchMode::Container_SearchMode_FirstMatch) {
+		if (search->mode == Container_SearchMode::FirstMatch) {
 			search->resultFrame = nullptr;
 			if (search->caseSensitive) {
 				if (std::strcmp(name, search->string) == 0) search->resultFrame = frame;
 			} else {
 				if (::_stricmp(name, search->string) == 0) search->resultFrame = frame;
 			}
-		} else if (search->mode == Container_SearchMode::Container_SearchMode_MatchCount) {
+		} else if (search->mode == Container_SearchMode::MatchCount) {
 			if (search->caseSensitive) {
 				if (std::strcmp(name, search->string) == 0) search->count++;
 			} else {
 				if (::_stricmp(name, search->string) == 0) search->count++;
 			}
-		} else if (search->mode == Container_SearchMode::Container_SearchMode_NthMatch){
+		} else if (search->mode == Container_SearchMode::NthMatch){
 			search->resultFrame = nullptr;
 			if (search->caseSensitive) {
 				if (std::strcmp(name, search->string) == 0) search->count++;
@@ -3467,7 +3469,7 @@ Gods98::AnimClone* __cdecl Gods98::Container_LoadAnimSet(const char* fname, IDir
 					Container_NoteCreation(animSet);
 					
 					tData.xFileName = fname;
-					tData.flags = Container_TextureFlags::CONTAINER_TEXTURE_NONE;
+					tData.flags = Container_TextureFlags::CONTAINER_TEXTURE_FLAG_NONE;
 					
 					if (animSet->Load(&buffer, nullptr, D3DRMLOAD_FROMMEMORY, Container_TextureLoadCallback, &tData, rootFrame) == D3DRM_OK){
 	//				if (animSet->Load(&buffer, nullptr, D3DRMLOAD_FROMMEMORY, nullptr, nullptr, rootFrame) == D3DRM_OK){
@@ -3528,7 +3530,7 @@ bool32 __cdecl Gods98::Container_FrameLoad(const char* fname, IDirect3DRMFrame3*
 	if (buffer.lpMemory = File_LoadBinary(fname, (uint32*)&buffer.dSize)){
 
 		tData.xFileName = fname;
-		tData.flags = Container_TextureFlags::CONTAINER_TEXTURE_NONE;
+		tData.flags = Container_TextureFlags::CONTAINER_TEXTURE_FLAG_NONE;
 
 		if (frame->Load(&buffer, nullptr, D3DRMLOAD_FROMMEMORY, Container_TextureLoadCallback, &tData) == D3DRM_OK){
 //		if (frame->Load(&buffer, nullptr, D3DRMLOAD_FROMMEMORY, nullptr, nullptr) == D3DRM_OK){
@@ -3556,8 +3558,8 @@ IDirect3DRMMesh* __cdecl Gods98::Container_MeshLoad(void* file_data, uint32 file
 		Container_NoteCreation(mb);
 
 		tData.xFileName = file_name;
-		tData.flags = Container_TextureFlags::CONTAINER_TEXTURE_NONE;
-		if (noTexture) tData.flags |= Container_TextureFlags::CONTAINER_TEXTURE_NOLOAD;
+		tData.flags = Container_TextureFlags::CONTAINER_TEXTURE_FLAG_NONE;
+		if (noTexture) tData.flags |= Container_TextureFlags::CONTAINER_TEXTURE_FLAG_NOLOAD;
 
 		if (mb->Load(&buffer, nullptr, D3DRMLOAD_FROMMEMORY, Container_TextureLoadCallback, &tData) == D3DRM_OK){
 //		if (mb->Load(&buffer, nullptr, D3DRMLOAD_FROMMEMORY, nullptr, nullptr) == D3DRM_OK){
@@ -3582,7 +3584,7 @@ HRESULT __cdecl Gods98::Container_TextureLoadCallback(char* name, void* data, LP
 	Container_TextureData* textureData = (Container_TextureData*)data;
 	Container_Texture* text;
 
-	if (!(textureData->flags & Container_TextureFlags::CONTAINER_TEXTURE_NOLOAD)){
+	if (!(textureData->flags & Container_TextureFlags::CONTAINER_TEXTURE_FLAG_NOLOAD)){
 
 		char path[1024];
 		char* tag = nullptr;
@@ -3632,7 +3634,7 @@ HRESULT __cdecl Gods98::Container_TextureLoadCallback(char* name, void* data, LP
 	#ifndef CONTAINER_DONTFLIPTEXTURES
 				Container_YFlipTexture(*texture);
 	#endif
-				if (Main_MIPMapEnabled()) {
+				if (Graphics_MIPMapEnabled()) {
 					HRESULT r = (*texture)->GenerateMIPMap(0);
 				}
 

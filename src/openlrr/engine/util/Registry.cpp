@@ -19,8 +19,7 @@ const char* __cdecl Gods98::Registry_GetKeyFromPath(const char* path, OUT char* 
 	log_firstcall();
 
 	*str = '\0';
-	while (*path && *path != '\\')
-	{
+	while (*path && *path != '\\') {
 		*str = *path;
 		path++;
 		str++;
@@ -36,7 +35,7 @@ const char* __cdecl Gods98::Registry_GetKeyFromPath(const char* path, OUT char* 
 // <CLGen.exe @00401690>
 bool32 __cdecl Gods98::Registry_SetValue(const char* path,
 					   const char* key, 
-					   RegistryType dataType,
+					   RegistryValue dataType,
 					   const void* data, 
 					   uint32 dataSize)
 {
@@ -47,7 +46,7 @@ bool32 __cdecl Gods98::Registry_SetValue(const char* path,
 // <LegoRR.exe @0048b620>
 bool32 __cdecl Gods98::Registry_GetValue(const char* path,
 					   const char* key, 
-					   RegistryType dataType, 
+					   RegistryValue dataType, 
 					   OUT void* data, 
 					   uint32 dataSize)
 {
@@ -60,7 +59,7 @@ bool32 __cdecl Gods98::Registry_GetValue(const char* path,
 bool32 __cdecl Gods98::Registry_SetValue_Recursive(HKEY parent,
 										const char* path, 
 										const char* key, 
-										RegistryType dataType,
+										RegistryValue dataType,
 										const void* data, 
 										uint32 dataSize)
 {
@@ -69,27 +68,26 @@ bool32 __cdecl Gods98::Registry_SetValue_Recursive(HKEY parent,
 
 	const char* newPath = Registry_GetKeyFromPath(path, str);
 
-	if (!str[0])
-	{
+	if (!str[0]) {
 		// Set the value
-		switch (dataType)
-		{
-		case RegistryType::REGISTRY_STRING_VALUE:
+		switch (dataType) {
+		case RegistryValue::String:
 			::RegSetValueExA(parent, key, 0, REG_SZ, (const BYTE*)data, dataSize);
 			return true;
-		case RegistryType::REGISTRY_DWORD_VALUE:
+
+		case RegistryValue::Dword:
 			::RegSetValueExA(parent, key, 0, REG_DWORD, (const BYTE*)data, dataSize);
 			return true;
+
 		default:
-			return FALSE;
+			return false;
 		}
 	}
-	else
-	{
+	else {
 		// Open the key and recurse
 		::RegCreateKeyA(parent, str, &localKey);
 
-		if (!localKey) return FALSE;
+		if (!localKey) return false;
 
 		bool32 retVal = (bool32)Registry_SetValue_Recursive(localKey, newPath, key, dataType, data, dataSize);
 		
@@ -103,7 +101,7 @@ bool32 __cdecl Gods98::Registry_SetValue_Recursive(HKEY parent,
 bool32 __cdecl Gods98::Registry_GetValue_Recursive(HKEY parent,
 										const char* path,
 										const char* key,
-										RegistryType dataType,
+										RegistryValue dataType,
 										OUT void* data,
 										uint32 dataSize)
 {
@@ -114,24 +112,23 @@ bool32 __cdecl Gods98::Registry_GetValue_Recursive(HKEY parent,
 
 	const char* newPath = Registry_GetKeyFromPath(path, str);
 
-	if (!str[0])
-	{
+	if (!str[0]) {
 		DWORD _dataSize = dataSize;
 		DWORD _dataType = 0;
 
 		// Set the value
-		switch (dataType)
-		{
-		case REGISTRY_STRING_VALUE:
-			return ::RegQueryValueExA(parent, key, 0, &_dataType, (BYTE*)data, &_dataSize) == ERROR_SUCCESS;
-		case REGISTRY_DWORD_VALUE:
-			return ::RegQueryValueExA(parent, key, 0, &_dataType, (BYTE*)data, &_dataSize) == ERROR_SUCCESS;
+		switch (dataType) {
+		case RegistryValue::String:
+			return (::RegQueryValueExA(parent, key, 0, &_dataType, (BYTE*)data, &_dataSize) == ERROR_SUCCESS);
+
+		case RegistryValue::Dword:
+			return (::RegQueryValueExA(parent, key, 0, &_dataType, (BYTE*)data, &_dataSize) == ERROR_SUCCESS);
+
 		default:
-			return FALSE;
+			return false;
 		}
 	}
-	else
-	{
+	else {
 		// Open the key and recurse
 		::RegCreateKeyA(parent, str, &localKey);
 

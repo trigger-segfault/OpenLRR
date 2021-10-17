@@ -655,7 +655,7 @@ bool32 __cdecl Gods98::LoadLWOB(const char* fn, LWSIZE* sd, real32** verts, LWPO
 		else if(!::_stricmp(cbuff, "POLS"))
 			POLSprc(file, sizeData, polys, csize, dflag);
 		else
-			File_Seek(file, csize, SEEK_CUR);
+			File_Seek(file, csize, SeekOrigin::Current);
 
 		length-=(8+csize);
 	}

@@ -52,8 +52,8 @@ enum LightWave_TexBits : uint32
 	TF_SEQUENCE       = 7,
 	TF_MAX            = 8,
 };
-DEFINE_ENUM_FLAG_OPERATORS(LightWave_TexBits);
-static_assert(sizeof(LightWave_TexBits) == 0x4, "");
+flags_end(LightWave_TexBits, 0x4);
+
 
 enum LightWave_TexFlags : uint32
 {
@@ -67,19 +67,8 @@ enum LightWave_TexFlags : uint32
 	TFM_PIXEL_BLENDING = (1<<TF_PIXEL_BLENDING) /*0x20*/,
 	TFM_ANTIALIASING   = (1<<TF_ANTIALIASING)   /*0x40*/,
 	TFM_SEQUENCE       = (1<<TF_SEQUENCE)       /*0x80*/,
-	//TF_MAX = 8,
 };
-DEFINE_ENUM_FLAG_OPERATORS(LightWave_TexFlags);
-static_assert(sizeof(LightWave_TexFlags) == 0x4, "");
-
-/*#define	TFM_AXIS_X				(1<<TF_AXIS_X)
-#define	TFM_AXIS_Y				(1<<TF_AXIS_Y)
-#define	TFM_AXIS_Z				(1<<TF_AXIS_Z)
-#define	TFM_WORLD_COORD			(1<<TF_WORLD_COORD)
-#define	TFM_NEGATIVE_IMAGE		(1<<TF_NEGATIVE_IMAGE)
-#define	TFM_PIXEL_BLENDING		(1<<TF_PIXEL_BLENDING)
-#define	TFM_ANTIALIASING		(1<<TF_ANTIALIASING)
-#define	TFM_SEQUENCE			(1<<TF_SEQUENCE)*/
+flags_end(LightWave_TexFlags, 0x4);
 
 
 // srfFlags bit enumeration
@@ -97,8 +86,8 @@ enum LightWave_SurfBits : uint32
     SF_ADDITIVE        = 9,
 	SF_MAX             = 10,
 };
-DEFINE_ENUM_FLAG_OPERATORS(LightWave_SurfBits);
-static_assert(sizeof(LightWave_SurfBits) == 0x4, "");
+flags_end(LightWave_SurfBits, 0x4);
+
 
 enum LightWave_SurfFlags : uint32
 {
@@ -115,19 +104,7 @@ enum LightWave_SurfFlags : uint32
 	SFM_DOUBLESIDED     = (1<<SF_DOUBLESIDED)     /*0x100*/,
 	SFM_ADDITIVE        = (1<<SF_ADDITIVE)        /*0x200*/,
 };
-DEFINE_ENUM_FLAG_OPERATORS(LightWave_SurfFlags);
-static_assert(sizeof(LightWave_SurfFlags) == 0x4, "");
-
-/*#define SFM_LUMINOUS				(1<<SF_LUMINOUS)
-#define SFM_OUTLINE					(1<<SF_OUTLINE)
-#define SFM_SMOOTHING				(1<<SF_SMOOTHING)
-#define SFM_COLORHIGHLIGHTS			(1<<SF_COLORHIGHLIGHTS)
-#define SFM_COLORFILTER				(1<<SF_COLORFILTER)
-#define SFM_OPAQUEEDGE				(1<<SF_OPAQUEEDGE)
-#define SFM_TRANSPARENTEDGE			(1<<SF_TRANSPARENTEDGE)
-#define SFM_SHARPTERMINATOR			(1<<SF_SHARPTERMINATOR)
-#define SFM_DOUBLESIDED				(1<<SF_DOUBLESIDED)
-#define SFM_ADDITIVE				(1<<SF_ADDITIVE)*/
+flags_end(LightWave_SurfFlags, 0x4);
 
 
 enum LightWave_TexType : uint32
@@ -137,7 +114,7 @@ enum LightWave_TexType : uint32
 	MT_SPHERICAL   = 2,
 	MT_MAX         = 3,
 };
-static_assert(sizeof(LightWave_TexType) == 0x4, "");
+assert_sizeof(LightWave_TexType, 0x4);
 
 #pragma endregion
 
@@ -153,7 +130,7 @@ struct LWSURFLIST
 	/*4,4*/ char** srflName;
 	/*8*/
 };
-static_assert(sizeof(LWSURFLIST) == 0x8, "");
+assert_sizeof(LWSURFLIST, 0x8);
 
 
 struct LWSIZE
@@ -163,7 +140,7 @@ struct LWSIZE
 	/*8,4*/ uint32 lwSurfaceCount;
 	/*c*/
 };
-static_assert(sizeof(LWSIZE) == 0xc, "");
+assert_sizeof(LWSIZE, 0xc);
 
 
 struct LWPOLY
@@ -173,7 +150,7 @@ struct LWPOLY
 	/*8,4*/ uint16* plyData;
 	/*c*/
 };
-static_assert(sizeof(LWPOLY) == 0xc, "");
+assert_sizeof(LWPOLY, 0xc);
 
 
 // ColourRGBAPacked with differently-named fields
@@ -185,7 +162,7 @@ struct LWRGB
 	/*3,1*/ uint8 colAlpha;
 	/*4*/
 };
-static_assert(sizeof(LWRGB) == 0x4, "");
+assert_sizeof(LWRGB, 0x4);
 
 // Vector3F with differently-named fields
 struct TEXDATA
@@ -195,7 +172,7 @@ struct TEXDATA
 	/*8,4*/ real32 tdZ;
 	/*c*/
 };
-static_assert(sizeof(TEXDATA) == 0xc, "");
+assert_sizeof(TEXDATA, 0xc);
 
 
 struct LWSURFACE
@@ -219,7 +196,7 @@ struct LWSURFACE
 	/*50,4*/ real32 srfSpecPower;
 	/*54*/
 };
-static_assert(sizeof(LWSURFACE) == 0x54, "");
+assert_sizeof(LWSURFACE, 0x54);
 
 
 struct APPOBJ
@@ -232,7 +209,7 @@ struct APPOBJ
 	/*1c,4*/ File* aoFileUV;
 	/*20*/
 };
-static_assert(sizeof(APPOBJ) == 0x20, "");
+assert_sizeof(APPOBJ, 0x20);
 
 #pragma endregion
 
