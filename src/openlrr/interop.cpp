@@ -38,10 +38,15 @@
 #include "engine/core/Wad.h"
 #include "engine/Init.h"
 
-#include "game/object/BezierCurve.h"
-#include "game/front/FrontEnd.h"
-#include "game/Game.h"
 #include "game/audio/SFX.h"
+#include "game/front/FrontEnd.h"
+#include "game/interface/Messages.h"
+#include "game/object/BezierCurve.h"
+#include "game/object/Object.h"
+#include "game/object/Stats.h"
+#include "game/objective/PTL.h"
+#include "game/world/Camera.h"
+#include "game/Game.h"
 
 
 #define return_interop(result) { std::printf("%s %s\n", __FUNCTION__, (result?"OK":"failed")); } return result;
@@ -1451,6 +1456,22 @@ bool interop_hook_Gods98_Init(void)
 }
 
 
+bool interop_hook_LegoRR_BezierCurve(void)
+{   bool result = true;
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x00406520, LegoRR::BezierCurve_Curve);
+	//result &= hook_write_jmpret(0x00406660, LegoRR::BezierCurve_Vector2DDistance);
+
+	// used by: LegoObject, Weapons
+	result &= hook_write_jmpret(0x00406690, LegoRR::BezierCurve_Vector2DChangeLength);
+	result &= hook_write_jmpret(0x004066e0, LegoRR::BezierCurve_UpdateDistances);
+	result &= hook_write_jmpret(0x00406750, LegoRR::BezierCurve_BuildPoints);
+	result &= hook_write_jmpret(0x004067f0, LegoRR::BezierCurve_Interpolate);
+	
+	return_interop(result);
+}
+
 bool interop_hook_LegoRR_FrontEnd(void)
 {   bool result = true;
 
@@ -1459,6 +1480,129 @@ bool interop_hook_LegoRR_FrontEnd(void)
 	result &= hook_write_jmpret(0x004156f0, LegoRR::Front_ShowIntroSplash);
 	result &= hook_write_jmpret(0x00415840, LegoRR::Front_ShowIntroMovie);
 
+	return_interop(result);
+}
+
+bool interop_hook_LegoRR_LegoCamera(void)
+{   bool result = true;
+	
+	// used by: Lego_Initialise
+	result &= hook_write_jmpret(0x00435a50, LegoRR::Camera_Create);
+	// used by: Lego_HandleKeys
+	result &= hook_write_jmpret(0x00435cc1, LegoRR::Camera_EnableFreeMovement);
+	// used by: Lego_Shutdown_Debug
+	result &= hook_write_jmpret(0x00435cf8, LegoRR::Camera_Free);
+	// used by: Lego_Initialise
+	result &= hook_write_jmpret(0x00435d3e, LegoRR::Camera_InitCameraMovements);
+
+	// (unused)
+	//result &= hook_write_jmpret(0x00435d65, LegoRR::Camera_CopyFPPositionOrientation);
+
+	result &= hook_write_jmpret(0x00435deb, LegoRR::Camera_TrackObject);
+	result &= hook_write_jmpret(0x00435e24, LegoRR::Camera_SetFPObject);
+
+	// used by: Lego_MainLoop
+	result &= hook_write_jmpret(0x00435e3b, LegoRR::Camera_GetFPCameraFrame);
+	// used by: Game_UpdateTopdownCamera
+	result &= hook_write_jmpret(0x00435e46, LegoRR::Camera_StopMovement);
+
+	result &= hook_write_jmpret(0x00435e58, LegoRR::Camera_GetMouseScrollIndent);
+	result &= hook_write_jmpret(0x00435e62, LegoRR::Camera_Shake);
+
+	// used by: Lego_MainLoop
+	result &= hook_write_jmpret(0x00435e8c, LegoRR::Camera_Update);
+
+	// used by: Lego_Initialise
+	result &= hook_write_jmpret(0x00436a53, LegoRR::Camera_SetTiltRange);
+	result &= hook_write_jmpret(0x00436a82, LegoRR::Camera_SetTilt);
+	result &= hook_write_jmpret(0x00436b22, LegoRR::Camera_AddTilt);
+
+	// (unused)
+	//result &= hook_write_jmpret(0x00436b43, LegoRR::Camera_SetRotationRange);
+	
+	result &= hook_write_jmpret(0x00436b75, LegoRR::Camera_SetRotation);
+	result &= hook_write_jmpret(0x00436c16, LegoRR::Camera_AddRotation);
+
+	// used by: Lego_Initialise
+	result &= hook_write_jmpret(0x00436c3a, LegoRR::Camera_SetZoomRange);
+	
+	result &= hook_write_jmpret(0x00436c6c, LegoRR::Camera_SetZoom);
+	result &= hook_write_jmpret(0x00436cc7, LegoRR::Camera_AddZoom);
+
+	// (unused)
+	//result &= hook_write_jmpret(0x00436ceb, LegoRR::Camera_AddTranslation2D);
+	result &= hook_write_jmpret(0x00436d0b, LegoRR::Camera_GetTopdownPosition);
+	result &= hook_write_jmpret(0x00436d2d, LegoRR::Camera_SetTopdownPosition);
+	result &= hook_write_jmpret(0x00436d55, LegoRR::Camera_GetTopdownWorldPos);
+
+	// (unused)
+	//result &= hook_write_jmpret(0x00436d9b, LegoRR::Camera_GetRotation);
+	
+	// used by: Game_UpdateTopdownCamera
+	result &= hook_write_jmpret(0x00436da9, LegoRR::Camera_Move);
+	
+	return_interop(result);
+}
+
+bool interop_hook_LegoRR_Messages(void)
+{   bool result = true;
+	
+	// used by: Lego_Initialise
+	result &= hook_write_jmpret(0x00451f90, LegoRR::Message_Initialise);
+
+	result &= hook_write_jmpret(0x00452220, LegoRR::Message_RemoveLiveObject);
+
+	// used by: PTL_Initialise
+	result &= hook_write_jmpret(0x00452290, LegoRR::Message_LookupPTLEventIndex);
+	// used by: Lego_Initialise
+	result &= hook_write_jmpret(0x004522d0, LegoRR::Message_Debug_RegisterSelectedUnitHotkey);
+
+	result &= hook_write_jmpret(0x00452320, LegoRR::Message_AddMessageAction);
+
+	/// NOT IMPLEMENTED YET
+	//result &= hook_write_jmpret(0x00452390, LegoRR::Message_PTL_Update);
+	//result &= hook_write_jmpret(0x004526f0, LegoRR::Message_PTL_PickRandomFloor);
+	//result &= hook_write_jmpret(0x00452770, LegoRR::Message_LiveObject_FUN_00452770);
+
+	result &= hook_write_jmpret(0x004527e0, LegoRR::Message_CopySelectedUnits);
+	result &= hook_write_jmpret(0x00452840, LegoRR::Message_GetSelectedUnits2);
+	result &= hook_write_jmpret(0x00452870, LegoRR::Message_AnyUnitSelected);
+	result &= hook_write_jmpret(0x00452880, LegoRR::Message_GetPrimarySelectedUnit);
+	result &= hook_write_jmpret(0x004528a0, LegoRR::Message_GetSelectedUnits);
+	result &= hook_write_jmpret(0x004528b0, LegoRR::Message_GetNumSelectedUnits);
+
+	// used by: Level_Free
+	result &= hook_write_jmpret(0x004528c0, LegoRR::Message_CleanupSelectedUnitsCount);
+
+	/// NOT IMPLEMENTED YET
+	//result &= hook_write_jmpret(0x004528d0, LegoRR::Message_LiveObject_Check_IsSelected_OrFlags3_200000);
+
+	result &= hook_write_jmpret(0x00452910, LegoRR::Message_FindIndexOfObject);
+
+	/// NOT IMPLEMENTED YET
+	//result &= hook_write_jmpret(0x00452950, LegoRR::Message_LiveObject_Check_FUN_00452950);
+	//result &= hook_write_jmpret(0x00452980, LegoRR::Message_PTL_Select_LiveObject);
+	//result &= hook_write_jmpret(0x004529a0, LegoRR::Message_LiveObject_DoSelect_FUN_004529a0);
+	//result &= hook_write_jmpret(0x00452b30, LegoRR::Message_LiveObject_Check_FUN_00452b30);
+	//result &= hook_write_jmpret(0x00452b80, LegoRR::Message_PTL_ReduceSelection);
+	//result &= hook_write_jmpret(0x00452ea0, LegoRR::Message_PTL_ClearSelection);
+	//result &= hook_write_jmpret(0x00452f10, LegoRR::Message_PTL_Deselect_LiveObject);
+	//result &= hook_write_jmpret(0x00452f80, LegoRR::Message_PTL_Debug_DestroyAll);
+	//result &= hook_write_jmpret(0x00453020, LegoRR::Message_PTL_FirstPerson);
+
+	
+	return_interop(result);
+}
+
+bool interop_hook_LegoRR_PTL(void)
+{   bool result = true;
+	
+	// used by: Lego_LoadLevel
+	result &= hook_write_jmpret(0x0045daa0, LegoRR::PTL_Initialise);
+
+	// used by: Message_PTL_Update
+	result &= hook_write_jmpret(0x0045db30, LegoRR::PTL_EventToAction);
+	
 	return_interop(result);
 }
 
@@ -1471,6 +1615,76 @@ bool interop_hook_LegoRR_SFX(void)
 	// Fix apply for sound groups cutting out the first-listed sound
 	result &= hook_write_jmpret(0x00464fc0, LegoRR::SFX_Sample_LoadProperty);
 
+	return_interop(result);
+}
+
+bool interop_hook_LegoRR_Stats(void)
+{   bool result = true;
+	
+	result &= hook_write_jmpret(0x00466aa0, LegoRR::Stats_Initialise);
+	result &= hook_write_jmpret(0x00469d50, LegoRR::Stats_AddToolTaskType);
+	result &= hook_write_jmpret(0x00469d80, LegoRR::Stats_GetCostOre);
+	result &= hook_write_jmpret(0x00469db0, LegoRR::Stats_GetCostCrystal);
+	result &= hook_write_jmpret(0x00469de0, LegoRR::Stats_GetCostRefinedOre);
+	result &= hook_write_jmpret(0x00469e10, LegoRR::StatsObject_GetCrystalDrain);
+	result &= hook_write_jmpret(0x00469e40, LegoRR::StatsObject_GetCapacity);
+	result &= hook_write_jmpret(0x00469e70, LegoRR::StatsObject_GetMaxCarry);
+	result &= hook_write_jmpret(0x00469ea0, LegoRR::StatsObject_GetCarryStart);
+	result &= hook_write_jmpret(0x00469ed0, LegoRR::StatsObject_SetObjectLevel);
+	result &= hook_write_jmpret(0x00469f70, LegoRR::StatsObject_GetRouteSpeed);
+	result &= hook_write_jmpret(0x00469f80, LegoRR::StatsObject_GetDrillTimeType);
+	result &= hook_write_jmpret(0x00469fa0, LegoRR::StatsObject_GetRubbleCoef);
+	result &= hook_write_jmpret(0x00469fc0, LegoRR::StatsObject_GetWakeRadius);
+	result &= hook_write_jmpret(0x00469fe0, LegoRR::StatsObject_GetPathCoef);
+	result &= hook_write_jmpret(0x0046a000, LegoRR::StatsObject_GetCollRadius);
+	result &= hook_write_jmpret(0x0046a010, LegoRR::StatsObject_GetCollHeight);
+	result &= hook_write_jmpret(0x0046a020, LegoRR::StatsObject_GetPickSphere);
+	result &= hook_write_jmpret(0x0046a030, LegoRR::StatsObject_GetPainThreshold);
+	result &= hook_write_jmpret(0x0046a050, LegoRR::StatsObject_GetAlertRadius);
+	result &= hook_write_jmpret(0x0046a060, LegoRR::StatsObject_GetCollBox);
+	result &= hook_write_jmpret(0x0046a070, LegoRR::StatsObject_GetTrackDist);
+	result &= hook_write_jmpret(0x0046a080, LegoRR::StatsObject_GetHealthDecayRate);
+	result &= hook_write_jmpret(0x0046a0a0, LegoRR::StatsObject_GetEnergyDecayRate);
+	result &= hook_write_jmpret(0x0046a0c0, LegoRR::Stats_GetOxygenCoef);
+	result &= hook_write_jmpret(0x0046a0e0, LegoRR::StatsObject_GetOxygenCoef);
+	result &= hook_write_jmpret(0x0046a100, LegoRR::StatsObject_GetSurveyRadius);
+	result &= hook_write_jmpret(0x0046a120, LegoRR::StatsObject_GetStatsFlags1);
+	result &= hook_write_jmpret(0x0046a140, LegoRR::StatsObject_GetStatsFlags2);
+	result &= hook_write_jmpret(0x0046a160, LegoRR::StatsObject_GetStatsFlags3);
+	result &= hook_write_jmpret(0x0046a180, LegoRR::Stats_GetStatsFlags1);
+	result &= hook_write_jmpret(0x0046a1a0, LegoRR::Stats_GetStatsFlags2);
+	result &= hook_write_jmpret(0x0046a1c0, LegoRR::Stats_GetStatsFlags3);
+	result &= hook_write_jmpret(0x0046a1e0, LegoRR::StatsObject_GetRepairValue);
+	result &= hook_write_jmpret(0x0046a200, LegoRR::Stats_GetLevels);
+	result &= hook_write_jmpret(0x0046a220, LegoRR::Stats_GetWaterEntrances);
+	result &= hook_write_jmpret(0x0046a250, LegoRR::StatsObject_GetDrillSoundType);
+	result &= hook_write_jmpret(0x0046a280, LegoRR::StatsObject_GetEngineSound);
+	result &= hook_write_jmpret(0x0046a2a0, LegoRR::StatsObject_GetRestPercent);
+	result &= hook_write_jmpret(0x0046a2c0, LegoRR::StatsObject_GetCarryMinHealth);
+	result &= hook_write_jmpret(0x0046a2e0, LegoRR::StatsObject_GetAttackRadius);
+	result &= hook_write_jmpret(0x0046a300, LegoRR::StatsObject_GetStampRadius);
+	result &= hook_write_jmpret(0x0046a320, LegoRR::StatsObject_GetNumOfToolsCanCarry);
+	result &= hook_write_jmpret(0x0046a340, LegoRR::StatsObject_GetUpgradeTime);
+	result &= hook_write_jmpret(0x0046a360, LegoRR::StatsObject_GetFunctionCoef);
+	result &= hook_write_jmpret(0x0046a380, LegoRR::Stats_GetUpgradeCostOre);
+	result &= hook_write_jmpret(0x0046a3b0, LegoRR::Stats_GetUpgradeCostStuds);
+	result &= hook_write_jmpret(0x0046a3e0, LegoRR::Stats_FindToolFromTaskType);
+	result &= hook_write_jmpret(0x0046a430, LegoRR::StatsObject_GetFlocks_Height);
+	result &= hook_write_jmpret(0x0046a450, LegoRR::StatsObject_GetFlocks_Randomness);
+	result &= hook_write_jmpret(0x0046a470, LegoRR::StatsObject_GetFlocks_Turn);
+	result &= hook_write_jmpret(0x0046a490, LegoRR::StatsObject_GetFlocks_Tightness);
+	result &= hook_write_jmpret(0x0046a4b0, LegoRR::StatsObject_GetFlocks_Speed);
+	result &= hook_write_jmpret(0x0046a4d0, LegoRR::StatsObject_GetFlocks_Size);
+	result &= hook_write_jmpret(0x0046a4f0, LegoRR::StatsObject_GetFlocks_GoalUpdate);
+	result &= hook_write_jmpret(0x0046a510, LegoRR::StatsObject_GetFlocks_AttackTime);
+	result &= hook_write_jmpret(0x0046a530, LegoRR::StatsObject_GetAwarenessRange);
+	result &= hook_write_jmpret(0x0046a550, LegoRR::StatsObject_GetPusherDist);
+	result &= hook_write_jmpret(0x0046a570, LegoRR::StatsObject_GetPusherDamage);
+	result &= hook_write_jmpret(0x0046a590, LegoRR::StatsObject_GetLaserDamage);
+	result &= hook_write_jmpret(0x0046a5b0, LegoRR::StatsObject_GetFreezerDamage);
+	result &= hook_write_jmpret(0x0046a5d0, LegoRR::StatsObject_GetObjectFreezerTime);
+	result &= hook_write_jmpret(0x0046a5f0, LegoRR::StatsObject_Debug_ToggleObjectPower);
+	
 	return_interop(result);
 }
 
@@ -1513,19 +1727,18 @@ bool interop_hook_all(void)
 	//result &= interop_hook_Gods98_Init(); // no need to hook, used by: WinMain
 
 
+	result &= interop_hook_LegoRR_BezierCurve();
+	result &= interop_hook_LegoRR_LegoCamera();
+	result &= interop_hook_LegoRR_Messages();
+	result &= interop_hook_LegoRR_PTL();
+	result &= interop_hook_LegoRR_Stats();
+
 	// Only a few functions from each of these have been
 	// defined in order to fix certain original bugs.
 	result &= interop_hook_LegoRR_FrontEnd();
 	result &= interop_hook_LegoRR_SFX();
 
 	//result &= hook_write_jmpret(0x0042c260, LegoRR::Level_HandleEmergeTriggers);
-
-	/*result &= hook_write_jmpret(0x00406520, LegoRR::Routing_Curve);
-	result &= hook_write_jmpret(0x00406660, LegoRR::Routing_Vector2DDistance);
-	result &= hook_write_jmpret(0x00406690, LegoRR::Routing_Vector2DChangeLength);
-	result &= hook_write_jmpret(0x004066e0, LegoRR::Routing_UpdateDistances);
-	result &= hook_write_jmpret(0x00406750, LegoRR::Routing_BuildPoints);
-	result &= hook_write_jmpret(0x004067f0, LegoRR::Routing_Interpolate);*/
 
 	return_interop(result);
 }

@@ -35,10 +35,11 @@ void __cdecl LegoRR::SFX_InitHashNames(void)
     sfxGlobs.globalSampleSoundHandle = -1;
     sfxGlobs.globalSampleSFXType = SFX_NULL; // SFX__INVALID;
 
-    sfxGlobs.hashNameList = (uint32*)Gods98::Mem_Alloc(495 * sizeof(uint32)); //0x7bc
+    uint32 arraySize = SFX_MAXSAMPLES * sizeof(uint32);
+    sfxGlobs.hashNameList = (uint32*)Gods98::Mem_Alloc(arraySize); //0x7bc
     
     /// FIX APPLY: test ensuring zeroed-out array
-    std::memset(sfxGlobs.hashNameList, 0, (495 * sizeof(uint32)));
+    std::memset(sfxGlobs.hashNameList, 0, arraySize); // (SFX_MAXSAMPLES * sizeof(uint32)));
 
     SFX_RegisterName(SFX_NULL);
     SFX_RegisterName(SFX_Stamp);
@@ -90,7 +91,60 @@ void __cdecl LegoRR::SFX_InitHashNames(void)
 }
 
 // <LegoRR.exe @00464ee0>
-//void __cdecl LegoRR::SFX_Container_SoundTriggerCallback(const char* sampleName, Gods98::Container* cont, void* data);
+void __cdecl LegoRR::SFX_Container_SoundTriggerCallback(const char* sampleName, Gods98::Container* cont, void* data)
+{
+    SFX_Type sfxType = SFX_Type::SFX_NULL; // dummy init
+    if (SFX_GetType(sampleName, &sfxType)) {
+
+#define SFX_Sample_Container_Random_Play_OrInitSoundUnk   ((void(__cdecl*)(Gods98::Container*,SFX_Type,bool32,bool32,Vector3F*))0x00465310)
+        // <LegoRR.exe @00465310>
+        //void __cdecl SFX_Sample_Container_Random_Play_OrInitSoundUnk(Container * cont, SFX_Type sfxType, bool32 loop, bool32 sound3D, Vector3F * opt_position);
+        SFX_Sample_Container_Random_Play_OrInitSoundUnk(cont, sfxType, false, true, nullptr);
+
+#undef SFX_Sample_Container_Random_Play_OrInitSoundUnk
+
+    }
+}
+
+// <LegoRR.exe @00464f10>
+void __cdecl LegoRR::SFX_SetSamplePopulateMode(bool32 populate)
+{
+    if (populate)
+        sfxGlobs.audioFlags |= SFX_GlobFlags::SFX_GLOB_FLAG_POPULATEMODE;
+    else
+        sfxGlobs.audioFlags &= ~SFX_GlobFlags::SFX_GLOB_FLAG_POPULATEMODE;
+}
+
+// <LegoRR.exe @00464f30>
+bool32 __cdecl LegoRR::SFX_GetType(OPTIONAL const char* sfxName, OUT SFX_Type* sfxType)
+{
+    if (sfxName != nullptr) {
+        uint32 hashValue = Gods98::Util_HashString(sfxName, false, true);
+
+        uint32 totalCount = sfxGlobs.hashNameCount + (uint32)SFX_Type::SFX_Preload_Count;
+        for (uint32 i = 0; i < totalCount; i++) {
+            if (hashValue == sfxGlobs.hashNameList[i]) {
+                *sfxType = (SFX_Type)i;
+                return true;
+            }
+        }
+
+        // This flag presumably states the SFX table is still being built
+        if (sfxGlobs.audioFlags & SFX_GlobFlags::SFX_GLOB_FLAG_POPULATEMODE) {
+            *sfxType = (SFX_Type)totalCount;
+            // Removed duplicate call to Util_HashString, present in LegoRR
+            sfxGlobs.hashNameList[totalCount] = hashValue;
+
+            // We can't use this inside the array because of the SFX_Preload_Count difference.
+            sfxGlobs.hashNameCount++;
+            return true;
+        }
+    }
+    return false;
+}
+
+// <LegoRR.exe @00464ee0>
+//void __cdecl SFX_Container_SoundTriggerCallback(const char* sampleName, Gods98::Container* cont, void* data);
 
 // <LegoRR.exe @00464fc0>
 bool32 __cdecl LegoRR::SFX_Sample_LoadProperty(char* value, sint32 index)

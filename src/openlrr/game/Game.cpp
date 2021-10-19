@@ -13,7 +13,7 @@
 #pragma region Forward Declarations
 
 /// TODO: Remove me once Lego module is finished
-#define Level_TryGeneratedRockMonster ((LegoRR::LegoObject*(__cdecl*)(int**, LegoRR::ObjectType, sint32, uint32, uint32))0x0043b1f0)
+#define Level_TryGeneratedRockMonster ((LegoRR::LegoObject*(__cdecl*)(int**, LegoRR::LegoObject_Type, sint32, uint32, uint32))0x0043b1f0)
 
 #pragma endregion
 
@@ -98,7 +98,7 @@ LegoRR::Lego_Globs & LegoRR::legoGlobs = *(LegoRR::Lego_Globs*)0x005570c0;
 
 
 // <LegoRR.exe @0042c260>
-bool32 __cdecl LegoRR::Level_HandleEmergeTriggers(LevelData* level, const Point2I* blockPos, OUT Point2I* emergeBlockPos)
+bool32 __cdecl LegoRR::Level_HandleEmergeTriggers(Lego_Level* level, const Point2I* blockPos, OUT Point2I* emergeBlockPos)
 {
     /// DEBUG: (testing) Enable multiple emerges at once :)
 #define DEBUG_MULTIPLE_EMERGE
@@ -119,8 +119,8 @@ bool32 __cdecl LegoRR::Level_HandleEmergeTriggers(LevelData* level, const Point2
                 if (emergePt->used) {
 
                     LegoObject* legoObj = Level_TryGeneratedRockMonster(
-                        (int**)((uint8*)legoGlobs.RockMonsterData_TABLE + (level->EmergeCreature*0x74)),
-                        ObjectType::OBJECT_ROCKMONSTER, level->EmergeCreature,
+                        (int**)((uint8*)legoGlobs.rockMonsterData + (level->EmergeCreature*0x74)),
+                        LegoObject_RockMonster, level->EmergeCreature,
                         emergePt->blockPos.x, emergePt->blockPos.y);
                     
                     if (legoObj != nullptr) {

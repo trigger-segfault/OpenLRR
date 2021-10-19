@@ -41,6 +41,13 @@ struct Coord2I {
 	/*4*/
 }; assert_sizeof(Coord2I, 0x4);
 
+// COORD (unsigned)
+struct Coord2U {
+	/*0,2*/ uint16 x;
+	/*2,2*/ uint16 y;
+	/*4*/
+}; assert_sizeof(Coord2U, 0x4);
+
 
 // POINT
 struct Point2I {

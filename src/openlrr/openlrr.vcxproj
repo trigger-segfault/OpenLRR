@@ -199,6 +199,7 @@
     <ClInclude Include="engine\video\Movie.h" />
     <ClInclude Include="engine\video\Movie.hpp" />
     <ClInclude Include="game\audio\SFX.h" />
+    <ClInclude Include="game\Debug.h" />
     <ClInclude Include="game\effects\DamageText.h" />
     <ClInclude Include="game\effects\DynamicMesh.h" />
     <ClInclude Include="game\effects\Effects.h" />
@@ -211,6 +212,7 @@
     <ClInclude Include="game\front\Reward.h" />
     <ClInclude Include="game\front\RewardScroll.h" />
     <ClInclude Include="game\Game.h" />
+    <ClInclude Include="game\GameCommon.h" />
     <ClInclude Include="game\interface\Encyclopedia.h" />
     <ClInclude Include="game\interface\HelpWindow.h" />
     <ClInclude Include="game\interface\hud\Advisor.h" />
@@ -315,6 +317,7 @@
     <ClCompile Include="engine\video\Animation.cpp" />
     <ClCompile Include="engine\video\Movie.cpp" />
     <ClCompile Include="game\audio\SFX.cpp" />
+    <ClCompile Include="game\Debug.cpp" />
     <ClCompile Include="game\effects\DamageText.cpp" />
     <ClCompile Include="game\effects\Effects.cpp" />
     <ClCompile Include="game\effects\LightEffects.cpp" />

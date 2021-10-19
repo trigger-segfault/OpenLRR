@@ -161,6 +161,9 @@ __inline Vector3F* Maths_Vector3DScale(OUT Vector3F* r, const Vector3F* a, real3
 Vector3F* __cdecl noinline(Maths_Vector3DNormalize)(OUT Vector3F* r);
 __inline Vector3F* Maths_Vector3DNormalize(OUT Vector3F* r) { Maths_Vector3DScale(r, r, 1.0f/Maths_Vector3DLength(r)); return r; }
 
+/// CUSTOM:
+__inline Vector3F* Maths_Vector3DSetLength(OUT Vector3F* r, const Vector3F* a, real32 l) { real32 m = Maths_Vector3DModulus(a); return Maths_Vector3DScale(r, a, (1.0f/m) * l); }
+
 
 // <inlined>
 __inline Vector3F* Maths_Vector3DInterpolate(OUT Vector3F* result, const Vector3F* start, const Vector3F* end, real32 delta) { Maths_Vector3DSubtract(result, end, start); Maths_Vector3DScale(result, result, delta); Maths_Vector3DAdd(result, start, result); return result; }
