@@ -372,29 +372,29 @@ sint32 __cdecl Gods98::_Wad_FileOpen(const char* fName, Wad_HandleValue wadNo)
 {
 	log_firstcall();
 
-	sint32 indexOfFileInWad, fileHandle;
+	sint32 fileNo, fileHandle;
 
 	// Search the file handles for a free one.
 	if ((fileHandle = Wad_FindFreeFileHandle()) == WAD_ERROR) return WAD_ERROR;
 
 	// Search the wad for the file and get its index
-	if ((indexOfFileInWad = Wad_IsFileInWad(fName, wadNo)) == WAD_ERROR) return WAD_ERROR;
+	if ((fileNo = Wad_IsFileInWad(fName, wadNo)) == WAD_ERROR) return WAD_ERROR;
 
 	// Allocate a block of memory for the file and read it from the disk
-	void* ptr = std::malloc(Wad_FileCompressedLength(wadNo, indexOfFileInWad));
+	void* ptr = std::malloc(Wad_FileCompressedLength(wadNo, fileNo));
 	if (!ptr) {
 		return WAD_ERROR;
 	}
 
-	std::fseek(Wad_Get(wadNo)->fWad, Wad_Get(wadNo)->wadEntries[indexOfFileInWad].addr, SEEK_SET);
-	if (std::fread(ptr, Wad_FileCompressedLength(wadNo, indexOfFileInWad), 1, Wad_Get(wadNo)->fWad) != 1)
+	std::fseek(Wad_Get(wadNo)->fWad, Wad_Get(wadNo)->wadEntries[fileNo].addr, SEEK_SET);
+	if (std::fread(ptr, Wad_FileCompressedLength(wadNo, fileNo), 1, Wad_Get(wadNo)->fWad) != 1)
 	{
 		std::free(ptr);
 		return WAD_ERROR;
 	}
 
 	// If the file is compressed then it must be decompressed first
-	if (Wad_Get(wadNo)->wadEntries[indexOfFileInWad].compression & Wad_EntryFlags::WADENTRY_FLAG_RNCOMPRESSED)
+	if (Wad_Get(wadNo)->wadEntries[fileNo].compression & Wad_EntryFlags::WADENTRY_FLAG_RNCOMPRESSED)
 	{
 		void *newBuffer = nullptr;
 		RNC_Uncompress(ptr, &newBuffer);
@@ -405,8 +405,8 @@ sint32 __cdecl Gods98::_Wad_FileOpen(const char* fName, Wad_HandleValue wadNo)
 	// Fill out the file handle data
 	wadGlobs.fileHandles[fileHandle].data = ptr;
 	wadGlobs.fileHandles[fileHandle].active = true;
-	wadGlobs.fileHandles[fileHandle].wadFile = wadNo;
-	wadGlobs.fileHandles[fileHandle].indexOfFileInWad = indexOfFileInWad;
+	wadGlobs.fileHandles[fileHandle].wadNo = wadNo;
+	wadGlobs.fileHandles[fileHandle].fileNo = fileNo;
 
 	return fileHandle;
 }
@@ -464,7 +464,7 @@ sint32 __cdecl Gods98::Wad_hLength(sint32 handle)
 {
 	log_firstcall();
 
-	return Wad_FileLength(wadGlobs.fileHandles[handle].wadFile, wadGlobs.fileHandles[handle].indexOfFileInWad);
+	return Wad_FileLength(wadGlobs.fileHandles[handle].wadNo, wadGlobs.fileHandles[handle].fileNo);
 }
 
 // <LegoRR.exe @0048c2f0>

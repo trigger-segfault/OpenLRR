@@ -2596,7 +2596,7 @@ void __cdecl Gods98::Container_GetPosition(Container* cont, OPTIONAL Container* 
 }
 
 // <LegoRR.exe @004757c0>
-void __cdecl Gods98::Container_GetOrientation(Container* cont, OPTIONAL Container* ref, OUT Vector3F* dir, OUT Vector3F* up)
+void __cdecl Gods98::Container_GetOrientation(Container* cont, OPTIONAL Container* ref, OPTIONAL OUT Vector3F* dir, OPTIONAL OUT Vector3F* up)
 {
 	IDirect3DRMFrame3* refFrame, *frame;
 	Vector3F vdir, vup;

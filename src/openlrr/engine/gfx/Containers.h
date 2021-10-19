@@ -695,7 +695,7 @@ void __cdecl Container_SetOrientation(Container* cont, OPTIONAL Container* ref,
 void __cdecl Container_GetPosition(Container* cont, OPTIONAL Container* ref, OUT Vector3F* pos);
 
 // <LegoRR.exe @004757c0>
-void __cdecl Container_GetOrientation(Container* cont, OPTIONAL Container* ref, OUT Vector3F* dir, OUT Vector3F* up);
+void __cdecl Container_GetOrientation(Container* cont, OPTIONAL Container* ref, OPTIONAL OUT Vector3F* dir, OPTIONAL OUT Vector3F* up);
 
 // <LegoRR.exe @00475840>
 void __cdecl Container_AddRotation(Container* cont, Container_Combine combine,

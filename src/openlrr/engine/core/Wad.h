@@ -115,8 +115,8 @@ struct Wad_FileHandle
 {
 	/*00,4*/ void* data;					// Pointer to the file data
 	/*04,4*/ bool32 active;				// Is this handle active already
-	/*08,4*/ Wad_HandleValue wadFile;				// Wad file this handle uses
-	/*0c,4*/ sint32 indexOfFileInWad;		// Index of the file in the wad structure
+	/*08,4*/ Wad_HandleValue wadNo;				// Wad file this handle uses
+	/*0c,4*/ sint32 fileNo;		// Index of the file in the wad structure
 	/*10*/
 };
 assert_sizeof(Wad_FileHandle, 0x10);
