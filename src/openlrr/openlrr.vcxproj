@@ -201,10 +201,8 @@
     <ClInclude Include="game\audio\SFX.h" />
     <ClInclude Include="game\Debug.h" />
     <ClInclude Include="game\effects\DamageText.h" />
-    <ClInclude Include="game\effects\DynamicMesh.h" />
     <ClInclude Include="game\effects\Effects.h" />
     <ClInclude Include="game\effects\LightEffects.h" />
-    <ClInclude Include="game\effects\MeshLOD.h" />
     <ClInclude Include="game\effects\Smoke.h" />
     <ClInclude Include="game\front\Credits.h" />
     <ClInclude Include="game\front\FrontEnd.h" />
@@ -213,9 +211,9 @@
     <ClInclude Include="game\front\RewardScroll.h" />
     <ClInclude Include="game\Game.h" />
     <ClInclude Include="game\GameCommon.h" />
+    <ClInclude Include="game\interface\Advisor.h" />
     <ClInclude Include="game\interface\Encyclopedia.h" />
     <ClInclude Include="game\interface\HelpWindow.h" />
-    <ClInclude Include="game\interface\hud\Advisor.h" />
     <ClInclude Include="game\interface\hud\Bubbles.h" />
     <ClInclude Include="game\interface\hud\ObjInfo.h" />
     <ClInclude Include="game\interface\InfoMessages.h" />
@@ -248,10 +246,12 @@
     <ClInclude Include="game\objective\Quota.h" />
     <ClInclude Include="game\world\Camera.h" />
     <ClInclude Include="game\world\Construction.h" />
+    <ClInclude Include="game\world\Detail.h" />
     <ClInclude Include="game\world\ElectricFence.h" />
     <ClInclude Include="game\world\Erode.h" />
     <ClInclude Include="game\world\Fallin.h" />
     <ClInclude Include="game\world\Map3D.h" />
+    <ClInclude Include="game\world\MeshLOD.h" />
     <ClInclude Include="game\world\Roof.h" />
     <ClInclude Include="game\world\SelectPlace.h" />
     <ClInclude Include="game\world\SpiderWeb.h" />
@@ -279,6 +279,7 @@
   <ItemGroup>
     <None Include="cpp.hint" />
     <None Include="engine\README.md" />
+    <None Include="game\README.md" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
@@ -327,9 +328,9 @@
     <ClCompile Include="game\front\Loader.cpp" />
     <ClInclude Include="game\front\Reward.cpp" />
     <ClCompile Include="game\Game.cpp" />
+    <ClCompile Include="game\interface\Advisor.cpp" />
     <ClCompile Include="game\interface\Encyclopedia.cpp" />
     <ClCompile Include="game\interface\HelpWindow.cpp" />
-    <ClCompile Include="game\interface\hud\Advisor.cpp" />
     <ClCompile Include="game\interface\hud\Bubbles.cpp" />
     <ClCompile Include="game\interface\hud\ObjInfo.cpp" />
     <ClCompile Include="game\interface\InfoMessages.cpp" />
