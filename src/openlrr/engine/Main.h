@@ -89,7 +89,7 @@ flags_scoped(MainFlags) : uint32
 	MAIN_FLAG_SAVELANGFILE				= 0x800,		// -langsuffix : (disabled)
 	MAIN_FLAG_LANGDUMPUNKNOWN			= 0x1000,		// -langdump : (disabled)
 	MAIN_FLAG_DEBUGMODE					= 0x2000,		// -debug : Basic debug mode features
-	MAIN_FLAG_DUALMOUSE					= 0x4000,		// -nodualmouse : (negate) 
+	MAIN_FLAG_DUALMOUSE					= 0x4000,		// -dualmouse : 
 	MAIN_FLAG_DEBUGCOMPLETE				= 0x8000,		// -debugcomplete : full debug mode features, triggers -debug
 	MAIN_FLAG_TESTERCALL				= 0x10000,		// -testercall : Similar to -testlevels, but with extended behaviour
 	MAIN_FLAG_LEVELSOPEN				= 0x20000,		// -testlevels : All levels are unlocked

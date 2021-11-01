@@ -448,7 +448,7 @@ void __cdecl Gods98::Main_ParseCommandLine(const char* lpCmdLine, OUT bool32* no
 	if (Util_StrIStr(lpCmdLine, "-fvf")) mainGlobs.flags |= MainFlags::MAIN_FLAG_FORCEVERTEXFOG;
 	if (Util_StrIStr(lpCmdLine, "-best")) mainGlobs.flags |= MainFlags::MAIN_FLAG_BEST;
 	if (Util_StrIStr(lpCmdLine, "-window")) mainGlobs.flags |= MainFlags::MAIN_FLAG_WINDOW;
-	if (Util_StrIStr(lpCmdLine, "-nodualmouse")) mainGlobs.flags &= ~MainFlags::MAIN_FLAG_DUALMOUSE;
+	if (Util_StrIStr(lpCmdLine, "-dualmouse")) mainGlobs.flags |= MainFlags::MAIN_FLAG_DUALMOUSE;
 	if (Util_StrIStr(lpCmdLine, "-debugcomplete")) mainGlobs.flags |= MainFlags::MAIN_FLAG_DEBUGCOMPLETE;
 	if (Util_StrIStr(lpCmdLine, "-testercall")) { mainGlobs.flags |= MainFlags::MAIN_FLAG_TESTERCALL; mainGlobs.programmerLevel=2; }
 	if (Util_StrIStr(lpCmdLine, "-testlevels")) mainGlobs.flags |= MainFlags::MAIN_FLAG_LEVELSOPEN;
