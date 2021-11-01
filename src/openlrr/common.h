@@ -1,4 +1,4 @@
-// common.h : include file for standard C runtime include files,
+// common.h : Include file for standard C runtime include files,
 //            or project specific include files.
 //
 

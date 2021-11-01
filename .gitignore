@@ -52,7 +52,7 @@ _unused/
 *.lib
 
 # Executables
-*.exe
+#*.exe
 *.out
 *.app
 

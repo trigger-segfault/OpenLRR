@@ -55,12 +55,24 @@ bool InjectOpenLRR(HINSTANCE hInstanceDll)
     static const constexpr uint32 PROCESS_EIP       = 0x0048F2C0; // LegoRR.exe!entry
     static const constexpr uint32 PROCESS_WINMAIN   = 0x00477a60; // LegoRR.exe!WinMain
 
-    if (hook_cmp(PROCESS_EIP, eipPatch, sizeof(eipPatch)) == 0)
-        openlrrGlobs.method = InjectMethod::Injector;
+	// Determine if openlrr "Start" executable was used to load this dll.
+	static const constexpr uint8 winmainStart[6]    = { 0xFF, 0x74, 0x24, 0x10, 0xFF, 0x74 };
+
+	if (hook_cmp(PROCESS_EIP, eipPatch, sizeof(eipPatch)) == 0) {
+		openlrrGlobs.method = InjectMethod::Injector;
+	}
+	else if (hook_cmp(PROCESS_WINMAIN, winmainStart, sizeof(winmainStart)) == 0) {
+		openlrrGlobs.method = InjectMethod::DllStart;
+		// In this scenario we do not want to touch the WinMain assembly, return here.
+		return true;
+	}
 
 
     // Redirect `LegoRR.exe!WinMain` to immediately jump to `openlrr.dll!StartOpenLRR`.
-    bool result = hook_write_jmpret(PROCESS_WINMAIN, StartOpenLRR);
+	//uint8 winmainBackup[6] = { 0 };
+	bool result = hook_write_jmpret(PROCESS_WINMAIN, StartOpenLRRInjected);// , winmainBackup);
+	//if (std::memcmp(winmainBackup, winmainStart, sizeof(winmainStart)) == 0)
+	//	openlrrGlobs.method = InjectMethod::
 
     // Alternate hook method. Less stable, and not supported by openlrr-injector.
     //// Replaces `LegoRR.exe!entry`'s call to `LegoRR.exe!WinMain` with `openlrr.dll!StartOpenLRR`.
@@ -436,7 +448,13 @@ void __cdecl Gods98::Gods_Go(const char* programName)
 
 	// The program name MUST start with Lego* if we want all cfg,ae,ptl,ol assets to function.
 	// NOTE: This does not change WAD filename access, that has to be handled in Main_WinMain.
-	if (::_strnicmp(programName, "Lego", 4) != 0) {
+	if (::_stricmp(programName, "OpenLRR") == 0 ||
+		::_stricmp(programName, "OpenLRR-d") == 0)
+	{
+		// Forcefully default to the standard "LegoRR" name. This is a terrible solution...
+		std::strcpy(openlrrGlobs.legoProgramName, "LegoRR");
+	}
+	else if (::_strnicmp(programName, "Lego", 4) != 0) {
 		// Maybe add an option if the user REALLY wants to redefine everything under something other
 		// than Lego*, but for now, this is just 
 		std::sprintf(openlrrGlobs.legoProgramName, "%s%s", "Lego", programName);
@@ -449,8 +467,18 @@ void __cdecl Gods98::Gods_Go(const char* programName)
 
 	/// FLUFF OPENLRR: Wrap the program name in parenthesis and start with "OpenLRR"
 	char buff[1024];
-	if (::_stricmp(programName, "OpenLRR") != 0) {
-		std::sprintf(buff, "%s (%s)", "OpenLRR", programName);
+	if (::_stricmp(programName, "OpenLRR") == 0 ||
+		::_stricmp(programName, "OpenLRR-d") == 0)
+	{
+		#ifdef NDEBUG
+		std::sprintf(buff, "%s", "OpenLRR"); // Release build
+		#else
+		std::sprintf(buff, "%s (%s)", "OpenLRR", "Debug"); // Debug build
+		#endif
+		programName = buff;
+	}
+	else {
+		std::sprintf(buff, "%s (%s)", "OpenLRR", programName); // List the startup program name
 		programName = buff;
 	}
 	Main_SetTitle(programName);
@@ -468,8 +496,7 @@ void __cdecl Gods98::Gods_Go(const char* programName)
 
 #pragma endregion
 
-
-extern "C" __declspec(dllexport) sint32 __stdcall StartOpenLRR(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, sint32 nCmdShow)
+sint32 __stdcall LaunchOpenLRR(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, sint32 nCmdShow)
 {
     openlrrGlobs.hInstMain = hInstance;
     openlrrGlobs.conout = MakeConsole();
@@ -480,6 +507,7 @@ extern "C" __declspec(dllexport) sint32 __stdcall StartOpenLRR(HINSTANCE hInstan
     case InjectMethod::NotAttached: methodName = "NotAttached"; break;
     case InjectMethod::Injector:    methodName = "Injector";    break;
     case InjectMethod::DllImport:   methodName = "DllImport";   break;
+    case InjectMethod::DllStart:    methodName = "DllStart";    break;
     default:                        methodName = "<???>";       break;
     }
     std::printf("InjectMethod::%s\n", methodName);
@@ -517,8 +545,18 @@ extern "C" __declspec(dllexport) sint32 __stdcall StartOpenLRR(HINSTANCE hInstan
     return Gods98::Main_WinMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 }
 
-extern "C" __declspec(dllexport) void __cdecl Dummy(void)
+sint32 __stdcall StartOpenLRRInjected(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, sint32 nCmdShow)
 {
+	return LaunchOpenLRR(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 }
+
+extern "C" __declspec(dllexport) sint32 __cdecl StartOpenLRR(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, sint32 nCmdShow)
+{
+	return LaunchOpenLRR(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+}
+
+/*extern "C" __declspec(dllexport) void __cdecl Dummy(void)
+{
+}*/
 
 #pragma endregion

@@ -220,7 +220,17 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 	// Initialise everything (memory, window, DirectDraw, etc.)
 	Error_Initialise();
 	Mem_Initialise();
-	File_Initialise(mainGlobs.programName, insistOnCD, productRegistry);
+
+	/// OPENLRR TEMP: Heavier measures against OpenLRR-named executables causing crashes from WAD load failures
+	const char* wadProgramName = "LegoRR";
+	if (::_stricmp(mainGlobs.programName, "OpenLRR") != 0 &&
+		::_stricmp(mainGlobs.programName, "OpenLRR-d") != 0)
+	{
+		// Only use the executable name when not "OpenLRR(-d)". This is a terrible solution...
+		wadProgramName = mainGlobs.programName;
+	}
+	File_Initialise(wadProgramName, insistOnCD, productRegistry);
+
 	Config_Initialise();
 	/// OLD LEGORR: This is called earlier than in Gods98
 	///  (this had to be moved due to attempting access of Main_hWnd() before assignment)

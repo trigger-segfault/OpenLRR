@@ -23,6 +23,7 @@ enum class InjectMethod
 	NotAttached, // There is no `LegoRR.exe`. OpenLRR is running on its own
 	Injector,    // OpenLRR-Injector method. Launcher program that safely injects `openlrr.dll` before `LegoRR.exe` can run
 	DllImport,   // Community Edition method. An existing executable that imports `openlrr.dll`
+	DllStart,    // OpenRCT2 method. An existing executable that imports `openlrr.dll` and calls `StartOpenLRR`
 };
 
 // User-selectable icon to display with the window.
@@ -100,11 +101,12 @@ FILE* MakeConsole(void);
 bool InjectOpenLRR(HINSTANCE hInstanceDll);
 
 // Perform OpenLRR initialisation then call `Gods98::Main_WinMain`.
-extern "C" __declspec(dllexport) sint32 __stdcall StartOpenLRR(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, sint32 cmdShow);
+sint32 __stdcall StartOpenLRRInjected(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, sint32 cmdShow);
+extern "C" __declspec(dllexport) sint32 __cdecl StartOpenLRR(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, sint32 cmdShow);
 
 // Community Edition requires that this function be exported by lrrce.dll.
 // This requires `extern "C"` and `__cdecl` to avoid function name mangling.
 // Do not remove this, as launching via the Community Edition method is still supported!
-extern "C" __declspec(dllexport) void __cdecl Dummy(void);
+//extern "C" __declspec(dllexport) void __cdecl Dummy(void);
 
 #pragma endregion
