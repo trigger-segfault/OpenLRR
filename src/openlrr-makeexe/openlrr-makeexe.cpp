@@ -413,6 +413,7 @@ static void PatchWinMain(PE::PEFile& pefile, PE::PESectionSPtr text, rva32_t thu
 	uint8_t ASM_PUSHARG[] = { 0xff, 0x74, 0x24, 0x10 };
 	uint8_t ASM_CALL[] = { 0xff, 0x15 };// , 0x00, 0x00, 0x00, 0x00 };
 	uint32_t callAddr = (uint32_t)pefile.RVA2Address(thunkAddr);
+	uint8_t ASM_ADDESP10[] = { 0x83, 0xc4, 0x10 };
 	uint8_t ASM_RET10[] = { 0xc2, 0x10, 0x00 };
 
 
@@ -424,7 +425,8 @@ static void PatchWinMain(PE::PEFile& pefile, PE::PESectionSPtr text, rva32_t thu
 	}
 	textStream.Write(ASM_CALL, sizeof(ASM_CALL));
 	textStream.Write(&callAddr, sizeof(callAddr)); // call an absolute address
-	textStream.Write(ASM_RET10, sizeof(ASM_RET10));
+	textStream.Write(ASM_ADDESP10, sizeof(ASM_ADDESP10)); // restore stack position after __cdecl function
+	textStream.Write(ASM_RET10, sizeof(ASM_RET10)); // restore stack position for this WinMain __stdcall function
 
 	_tprintf(_T("WinMain patched @ 0x%08x\n"), pefile.Address2RVA(PROCESS_WINMAIN));
 }
