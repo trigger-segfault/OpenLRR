@@ -17,6 +17,8 @@
 // <LegoRR.exe @00507528>
 Gods98::Font_Globs & Gods98::fontGlobs = *(Gods98::Font_Globs*)0x00507528; // (no init)
 
+Gods98::Font_ListSet Gods98::fontListSet = Gods98::Font_ListSet(Gods98::fontGlobs);
+
 #pragma endregion
 
 /**********************************************************************************
@@ -30,12 +32,13 @@ void __cdecl Gods98::Font_Initialise(void)
 {
 	log_firstcall();
 
-	for (uint32 loop = 0; loop < FONT_MAXLISTS; loop++) {
+	fontListSet.Initialise();
+	/*for (uint32 loop = 0; loop < FONT_MAXLISTS; loop++) {
 		fontGlobs.listSet[loop] = nullptr;
 	}
 
 	fontGlobs.freeList = nullptr;
-	fontGlobs.listCount = 0;
+	fontGlobs.listCount = 0;*/
 	fontGlobs.flags = Font_GlobFlags::FONT_GLOB_FLAG_INITIALISED;
 }
 
@@ -44,13 +47,15 @@ void __cdecl Gods98::Font_Shutdown(void)
 {
 	log_firstcall();
 
-	Font_RunThroughLists(Font_RemoveCallback, nullptr);
+	Font_RemoveAll();
+	//Font_RunThroughLists(Font_RemoveCallback, nullptr);
 
-	for (uint32 loop = 0; loop < FONT_MAXLISTS; loop++) {
+	fontListSet.Shutdown();
+	/*for (uint32 loop = 0; loop < FONT_MAXLISTS; loop++) {
 		if (fontGlobs.listSet[loop]) Mem_Free(fontGlobs.listSet[loop]);
 	}
 
-	fontGlobs.freeList = nullptr;
+	fontGlobs.freeList = nullptr;*/
 	fontGlobs.flags = Font_GlobFlags::FONT_GLOB_FLAG_NONE;
 }
 
@@ -284,8 +289,9 @@ void __cdecl Gods98::Font_Remove(Font* dead)
 
 	Image_Remove(dead->image);
 
-	dead->nextFree = fontGlobs.freeList;
-	fontGlobs.freeList = dead;
+	fontListSet.Remove(dead);
+	/*dead->nextFree = fontGlobs.freeList;
+	fontGlobs.freeList = dead;*/
 }
 
 // <LegoRR.exe @0047a840>
@@ -295,12 +301,14 @@ Gods98::Font* __cdecl Gods98::Font_Create(Image* image)
 
 	Font_CheckInit();
 
-	if (fontGlobs.freeList == nullptr) Font_AddList();
+	Font* newFont = fontListSet.Add(true); // Memzero before returning.
+
+	/*if (fontGlobs.freeList == nullptr) Font_AddList();
 
 	Font* newFont = fontGlobs.freeList;
 	fontGlobs.freeList = newFont->nextFree;
 	std::memset(newFont, 0, sizeof(Font));
-	newFont->nextFree = newFont;
+	newFont->nextFree = newFont;*/
 
 	newFont->image = image;
 
@@ -310,11 +318,13 @@ Gods98::Font* __cdecl Gods98::Font_Create(Image* image)
 // <LegoRR.exe @0047a880>
 void __cdecl Gods98::Font_AddList(void)
 {
+	// NOTE: This function is no longer called, fontListSet.Add already does so.
 	log_firstcall();
 
 	Font_CheckInit();
 
-	Error_Fatal(fontGlobs.listCount+1 >= FONT_MAXLISTS, "Run out of lists");
+	fontListSet.AddList();
+	/*Error_Fatal(fontGlobs.listCount+1 >= FONT_MAXLISTS, "Run out of lists");
 
 	uint32 count = 0x00000001 << fontGlobs.listCount;
 
@@ -330,9 +340,17 @@ void __cdecl Gods98::Font_AddList(void)
 		list[count-1].nextFree = fontGlobs.freeList;
 		fontGlobs.freeList = list;
 
-	} else Error_Fatal(true, Error_Format("Unable to allocate %d bytes of memory for new list.\n", sizeof(Font) * count));
+	} else Error_Fatal(true, Error_Format("Unable to allocate %d bytes of memory for new list.\n", sizeof(Font) * count));*/
 }
 
+
+/// CUSTOM:
+void __cdecl Gods98::Font_RemoveAll(void)
+{
+	for (Font* font : fontListSet.EnumerateAlive()) {
+		Font_Remove(font);
+	}
+}
 
 
 
@@ -356,9 +374,12 @@ void __cdecl Gods98::Font_RemoveCallback(Font* font, void* data)
 }
 
 // <missing>
-void __cdecl Gods98::Font_RunThroughLists(FontRunThroughListsCallback Callback, void* data)
+void __cdecl Gods98::Font_RunThroughLists(FontRunThroughListsCallback callback, void* data)
 {
-	for (uint32 list = 0; list < fontGlobs.listCount; list++) {
+	for (Font* font : fontListSet.EnumerateAlive()) {
+		callback(font, data);
+	}
+	/*for (uint32 list = 0; list < fontGlobs.listCount; list++) {
 		if (fontGlobs.listSet[list]) {
 			uint32 count = 0x00000001 << list;
 			for (uint32 loop = 0; loop < count; loop++) {
@@ -373,7 +394,7 @@ void __cdecl Gods98::Font_RunThroughLists(FontRunThroughListsCallback Callback, 
 				}
 			}
 		}
-	}
+	}*/
 }
 
 /*

@@ -17,10 +17,32 @@
 
 
 /**********************************************************************************
+ ******** Globals
+ **********************************************************************************/
+
+#pragma region Globals
+
+// <LegoRR.exe @00557fc0>
+LegoRR::Front_Globs & LegoRR::frontGlobs = *(LegoRR::Front_Globs*)0x00557fc0;
+
+#pragma endregion
+
+/**********************************************************************************
  ******** Functions
  **********************************************************************************/
 
 #pragma region Functions
+
+// <LegoRR.exe @00414c10>
+bool32 __cdecl LegoRR::Front_IsIntrosEnabled(void)
+{
+	BoolTri res = Gods98::Config_GetBoolValue(legoGlobs.config, Config_ID("Main", "DontPlayAvis"));
+
+	if (Gods98::mainGlobs2.cmdNoIntro)
+		return false;
+
+	return ((res != BoolTri::BOOL3_TRUE) && (Gods98::Main_ProgrammerMode() < 3));
+}
 
 /*// <LegoRR.exe @00415080>
 void __cdecl LegoRR::Front_UpdateOptionsSliders(void)

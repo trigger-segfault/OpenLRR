@@ -74,14 +74,27 @@ bool32 __cdecl Gods98::Init_Initialise(bool32 setup, bool32 debug, bool32 best, 
 //	Init_AddValidMode(640, 400, 16);
 //	Init_AddValidMode(640, 400, 32);
 //	if (debug) Init_AddValidMode(640, 480, 8);
-	Init_AddValidMode(640, 480, 16);
+	uint32 resWidth  = (mainGlobs2.cmdResWidth  != 0 ? mainGlobs2.cmdResWidth  : 640);
+	uint32 resHeight = (mainGlobs2.cmdResHeight != 0 ? mainGlobs2.cmdResHeight : 480);
+	uint32 bpp       = (mainGlobs2.cmdBitDepth  != 0 ? mainGlobs2.cmdBitDepth  : 16);
+
+	Init_AddValidMode(resWidth, resHeight, bpp);
+
+	if (resWidth != 640 || resHeight != 480)
+		Init_AddValidMode(640, 480, bpp);
+	//Init_AddValidMode(640, 480, 16);
+
 //	Init_AddValidMode(640, 480, 24);
 	//Init_AddValidMode(800, 600, 16);
 	//Init_AddValidMode(1024, 768, 16);
 
 	if (debug) {
-		Init_AddValidMode(800, 600, 16);
-		Init_AddValidMode(1024, 768, 16);
+		if (resWidth != 800 || resHeight != 600)
+			Init_AddValidMode(800, 600, bpp);
+		if (resWidth != 1024 || resHeight != 768)
+			Init_AddValidMode(1024, 768, bpp);
+		//Init_AddValidMode(800, 600, 16);
+		//Init_AddValidMode(1024, 768, 16);
 	}
 //	Init_AddValidMode(640, 480, 32);
 

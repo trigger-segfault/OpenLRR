@@ -4,6 +4,7 @@
 #include "../../platform/windows.h"
 
 #include "../util/Registry.h"
+#include "../Main.h"
 #include "Errors.h"
 #include "Memory.h"
 #include "Utils.h"
@@ -69,15 +70,32 @@ void __cdecl Gods98::File_Initialise(const char* programName, bool32 insistOnCD,
 
 	::_getcwd(cwd, sizeof(cwd));
 	if (cwd[std::strlen(cwd) - 1] == '\\') cwd[std::strlen(cwd) - 1] = '\0';
-	std::sprintf(fileGlobs.dataDir, "%s\\%s", cwd, FILE_DATADIRNAME);
+
+	if (*mainGlobs2.cmdDataDir != '\0') {
+		std::sprintf(fileGlobs.dataDir, "%s", mainGlobs2.cmdDataDir);
+	}
+	else {
+		std::sprintf(fileGlobs.dataDir, "%s\\%s", cwd, FILE_DATADIRNAME);
+	}
 	//sprintf(fileGlobs.exeDir, "%s", cwd);
 
 //#ifdef _GODS98_USEWAD_
 	{
 		char wadFile[FILE_MAXPATH];
-		char cwdBase[FILE_MAXPATH];
+		//char cwdBase[FILE_MAXPATH];
+		//::_getcwd(cwdBase, sizeof(cwdBase));
+
+		const char* wadDir;
+		if (*mainGlobs2.cmdWadDir != '\0') {
+			wadDir = mainGlobs2.cmdDataDir;
+		}
+		else {
+			wadDir = cwd;
+		}
+
 		for (uint32 i = 0; i < MAX_WADS; i++) {
-			std::sprintf(wadFile, "%s%i.wad", programName, (int)i);
+			std::sprintf(wadFile, "%s\\%s%i.wad", wadDir, programName, (int)i);
+			//std::sprintf(wadFile, "%s%i.wad", programName, (int)i);
 			wad = File_LoadWad(wadFile);
 			if (wad == WAD_ERROR) {
 				Error_Warn(true, Error_Format("Cannot load %s", wadFile));
@@ -86,9 +104,12 @@ void __cdecl Gods98::File_Initialise(const char* programName, bool32 insistOnCD,
 				foundWad = true;
 			}
 		}
-		::_getcwd(cwdBase, sizeof(cwdBase));
-		std::strcat(cwdBase, "\\Data");
-		File_SetBaseSearchPath(cwdBase);
+		//::_getcwd(cwdBase, sizeof(cwdBase));
+		//std::strcat(cwdBase, "\\Data");
+		//File_SetBaseSearchPath(cwdBase);
+		//std::strcat(cwd, "\\Data");
+		//File_SetBaseSearchPath(cwd);
+		File_SetBaseSearchPath(fileGlobs.dataDir);
 	}
 //#endif // _GODS98_USEWAD_
 
@@ -109,6 +130,12 @@ void __cdecl Gods98::File_Initialise(const char* programName, bool32 insistOnCD,
 
 	if (!foundCD && !foundWad) {     // Assume that if a wad is found then it is the correct one.
 
+		//const char* dataDirName = FILE_DATADIRNAME;
+		const char* dataDirName = fileGlobs.dataDir;
+		for (const char* s = dataDirName; *s != '\0'; s++) {
+			if (*s == '\\') dataDirName = s + 1;
+		}
+
 		failed = true;
 
 		_finddata32_t findData;
@@ -116,7 +143,8 @@ void __cdecl Gods98::File_Initialise(const char* programName, bool32 insistOnCD,
 		if ((handle = ::_findfirst32("*.*", &findData)) != -1) {
 			do {
 				if (findData.attrib & _A_SUBDIR) {
-					if (::_stricmp(findData.name, FILE_DATADIRNAME) == 0) {
+					//if (::_stricmp(findData.name, FILE_DATADIRNAME) == 0) {
+					if (::_stricmp(findData.name, dataDirName) == 0) {
 						failed = false;
 						break;
 					}
@@ -128,7 +156,8 @@ void __cdecl Gods98::File_Initialise(const char* programName, bool32 insistOnCD,
 	}
 
 	if (insistOnCD) {
-		std::sprintf(fname, "%s\\%s", FILE_DATADIRNAME, FILE_KEYFILENAME);
+		//std::sprintf(fname, "%s\\%s", FILE_DATADIRNAME, FILE_KEYFILENAME);
+		std::sprintf(fname, "%s\\%s", fileGlobs.dataDir, FILE_KEYFILENAME);
 		if (fp = std::fopen(fname, "r")) {
 			std::fclose(fp);
 			failed = true;
@@ -138,10 +167,12 @@ void __cdecl Gods98::File_Initialise(const char* programName, bool32 insistOnCD,
 	if (!failed) {
 
 		// If everything started up ok (CD in or WAD found), then ensure the data directory exists...
-		::_mkdir(FILE_DATADIRNAME);
+		//::_mkdir(FILE_DATADIRNAME);
+		::_mkdir(fileGlobs.dataDir);
 
 		// Remove the 'delme' file if it exists...
-		std::sprintf(fname, "%s\\%s", FILE_DATADIRNAME, FILE_DELMEFILENAME);
+		//std::sprintf(fname, "%s\\%s", FILE_DATADIRNAME, FILE_DELMEFILENAME);
+		std::sprintf(fname, "%s\\%s", fileGlobs.dataDir, FILE_DELMEFILENAME);
 		
 		if (fp = std::fopen(fname, "r")) {
 			std::fclose(fp);
@@ -268,7 +299,8 @@ void __cdecl Gods98::File_MakeDir(const char* path)
 
 	char name[FILE_MAXPATH];
 
-	std::sprintf(name, "%s\\%s", FILE_DATADIRNAME, path);
+	std::sprintf(name, "%s\\%s", fileGlobs.dataDir, path);
+	//std::sprintf(name, "%s\\%s", FILE_DATADIRNAME, path);
 
 	for (char* s = name; *s != '\0'; s++) {
 		if (*s == '\\') {
@@ -331,7 +363,7 @@ Gods98::File* __cdecl Gods98::File_Open(const char* fName, const char* mode)
 	}
 	case FileSys::Error:
 	default:
-		File_Error("%s(%i) : Error in call to %s\n", __FILE__, __LINE__, "File_Open");
+		File_Error("%s(%i) : Error in call to %s\n", Error__FILE__, __LINE__, "File_Open");
 		break;
 	}
 	return nullptr;
@@ -373,7 +405,7 @@ sint32 __cdecl Gods98::File_Seek(File* f, sint32 pos, SeekOrigin mode)
 
 	case FileSys::Error:
 	default:
-		File_Error("%s(%i) : Unknown file system in call to %s", __FILE__, __LINE__, "File_Seek");
+		File_Error("%s(%i) : Unknown file system in call to %s", Error__FILE__, __LINE__, "File_Seek");
 		break;
 	}
 	return 0;
@@ -401,7 +433,7 @@ sint32 __cdecl Gods98::File_Read(OUT void* buffer, sint32 size, sint32 count, Fi
 	}
 	case FileSys::Error:
 	default:
-		File_Error("%s(%i) : Unknown file system in call to %s", __FILE__, __LINE__, "File_Read");
+		File_Error("%s(%i) : Unknown file system in call to %s", Error__FILE__, __LINE__, "File_Read");
 		break;
 	}
 	return 0;
@@ -423,7 +455,7 @@ sint32 __cdecl Gods98::File_Write(const void* buffer, sint32 size, sint32 count,
 		break;
 	case FileSys::Error:
 	default:
-		File_Error("%s(%i) : Unknown file system in call to %s", __FILE__, __LINE__, "File_Write");
+		File_Error("%s(%i) : Unknown file system in call to %s", Error__FILE__, __LINE__, "File_Write");
 		break;
 	}
 	return 0;
@@ -443,7 +475,7 @@ sint32 __cdecl Gods98::File_Close(File* f)
 		break;
 	case FileSys::Error:
 	default:
-		File_Error("%s(%i) : Unknown file system in call to %s", __FILE__, __LINE__, "File_Close");
+		File_Error("%s(%i) : Unknown file system in call to %s", Error__FILE__, __LINE__, "File_Close");
 		break;
 	}
 	return 0;
@@ -463,7 +495,7 @@ sint32 __cdecl Gods98::File_EOF(File* f)
 
 	case FileSys::Error:
 	default:
-		File_Error("%s(%i) : Unknown file system in call to %s", __FILE__, __LINE__, "File_EOF");
+		File_Error("%s(%i) : Unknown file system in call to %s", Error__FILE__, __LINE__, "File_EOF");
 		break;
 	}
 	return 0;
@@ -485,7 +517,7 @@ sint32 __cdecl Gods98::File_Tell(File* f)
 
 	case FileSys::Error:
 	default:
-		File_Error("%s(%i) : Unknown file system in call to %s", __FILE__, __LINE__, "File_Tell");
+		File_Error("%s(%i) : Unknown file system in call to %s", Error__FILE__, __LINE__, "File_Tell");
 		break;
 	}
 	return 0;
@@ -505,7 +537,7 @@ sint32 __cdecl Gods98::File_Flush(File* f)
 
 	case FileSys::Error:
 	default:
-		File_Error("%s(%i) : Unknown file system in call to %s", __FILE__, __LINE__, "File_Flush");
+		File_Error("%s(%i) : Unknown file system in call to %s", Error__FILE__, __LINE__, "File_Flush");
 		break;
 	}
 	return 0;
@@ -573,7 +605,7 @@ sint32 __cdecl Gods98::File_GetC(File* f)
 	}
 	case FileSys::Error:
 	default:
-		File_Error("%s(%i) : Unknown file system in call to %s", __FILE__, __LINE__, "File_GetC");
+		File_Error("%s(%i) : Unknown file system in call to %s", Error__FILE__, __LINE__, "File_GetC");
 		break;
 	}
 	return 0;
@@ -621,7 +653,7 @@ char* __cdecl Gods98::File_GetS(OUT char* fgetsBuffer, sint32 num, File* f)
 
 	case FileSys::Error:
 	default:
-		File_Error("%s(%i) : Unknown file system in call to %s", __FILE__, __LINE__, "File_GetS");
+		File_Error("%s(%i) : Unknown file system in call to %s", Error__FILE__, __LINE__, "File_GetS");
 		break;
 	}
 	return 0;
@@ -651,7 +683,7 @@ sint32 __cdecl Gods98::File_PrintF(File* f, const char* msg, ...)
 		break;
 	case FileSys::Error:
 	default:
-		File_Error("%s(%i) : Unknown file system in call to %s", __FILE__, __LINE__, "File_PrintF");
+		File_Error("%s(%i) : Unknown file system in call to %s", Error__FILE__, __LINE__, "File_PrintF");
 		break;
 	}
 	return 0;
@@ -961,7 +993,7 @@ void __cdecl Gods98::File_CheckRedundantFiles(const char* logName)
 {
 	log_firstcall();
 
-	char fileName[1024];
+	char fileName[1024] = { 0 };
 
 
 	// Yep... this is as broken as it looks

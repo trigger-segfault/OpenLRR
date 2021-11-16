@@ -12,10 +12,10 @@
 #include "../../engine/gfx/Containers.h"
 #include "../../engine/drawing/Images.h"
 
+#include "../GameCommon.h"
+
 #include "../audio/SFX.h"
 #include "Object.h"
-
-#include "../GameCommon.h"
 
 
 namespace LegoRR

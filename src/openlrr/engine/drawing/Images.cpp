@@ -23,6 +23,8 @@
 // <LegoRR.exe @00534908>
 Gods98::Image_Globs & Gods98::imageGlobs = *(Gods98::Image_Globs*)0x00534908;
 
+Gods98::Image_ListSet Gods98::imageListSet = Gods98::Image_ListSet(Gods98::imageGlobs);
+
 #pragma endregion
 
 /**********************************************************************************
@@ -42,9 +44,10 @@ void __cdecl Gods98::Image_Initialise(void)
 
 	if (imageGlobs.flags & Image_GlobFlags::IMAGE_GLOB_FLAG_INITIALISED) Error_Fatal(true, "Images already initialised");
 
-	for (uint32 loop=0 ; loop<IMAGE_MAXLISTS ; loop++){
+	imageListSet.Initialise();
+	/*for (uint32 loop=0 ; loop<IMAGE_MAXLISTS ; loop++){
 		imageGlobs.listSet[loop] = nullptr;
-	}
+	}*/
 
 	// Global Initialisation here...
 
@@ -58,11 +61,12 @@ void __cdecl Gods98::Image_Shutdown(void)
 
 	Image_RemoveAll();
 
-	for (uint32 loop = 0; loop < IMAGE_MAXLISTS; loop++) {
+	imageListSet.Shutdown();
+	/*for (uint32 loop = 0; loop < IMAGE_MAXLISTS; loop++) {
 		if (imageGlobs.listSet[loop]) Mem_Free(imageGlobs.listSet[loop]);
 	}
 
-	imageGlobs.freeList = nullptr;
+	imageGlobs.freeList = nullptr;*/
 	imageGlobs.flags = Image_GlobFlags::IMAGE_GLOB_FLAG_NONE;
 }
 
@@ -76,8 +80,9 @@ void __cdecl Gods98::Image_Remove(Image* dead)
 
 	dead->surface->Release();
 
-	dead->nextFree = imageGlobs.freeList;
-	imageGlobs.freeList = dead;
+	imageListSet.Remove(dead);
+	/*dead->nextFree = imageGlobs.freeList;
+	imageGlobs.freeList = dead;*/
 }
 
 // <LegoRR.exe @0047d750>
@@ -88,27 +93,23 @@ bool32 __cdecl Gods98::Image_CopyToDataToSurface(IDirectDrawSurface4* surface, B
 	DDSURFACEDESC2 desc = { 0 };
 	desc.dwSize = sizeof(desc);
 
-	if (surface->Lock(nullptr, &desc, DDLOCK_WAIT | DDLOCK_WRITEONLY, nullptr) == DD_OK)
-	{
-		if (image->depth < 8)
-		{
-			Error_Warn(true, "Please use 8/24 bit surfaces");
-		}
-		else if (image->depth == 8)
-		{
+	if (surface->Lock(nullptr, &desc, DDLOCK_WAIT | DDLOCK_WRITEONLY, nullptr) == DD_OK) {
+		switch (image->depth) {
+		case 8:
 			Image_8BitSourceCopy(&desc, image);
-		}
-		else if (image->depth == 16)
-		{
+			break;
+		case 16:
 			Error_Warn(true, "16 bit image specified - surely BMP's cant do that");
-		}
-		else if (image->depth == 24)
-		{
+			break;
+		case 24:
 			Image_24BitSourceCopy(&desc, image);
-		}
-		else if (image->depth == 32)
-		{
+			break;
+		case 32:
 			Error_Warn(true, "32 bit images are no fun - 8 and 24 only please");
+			break;
+		default:
+			if (image->depth < 8) Error_Warn(true, "Please use 8/24 bit surfaces");
+			break;
 		}
 		
 		surface->Unlock(nullptr);
@@ -564,11 +565,12 @@ Gods98::Image* __cdecl Gods98::Image_Create(IDirectDrawSurface4* surface, uint32
 
 	Image_CheckInit();
 
-	if (imageGlobs.freeList == nullptr) Image_AddList();
+	Image* newImage = imageListSet.Add(false); // No need to memzero, all fields are assigned.
+	/*if (imageGlobs.freeList == nullptr) Image_AddList();
 	
 	Image* newImage = imageGlobs.freeList;
 	imageGlobs.freeList = newImage->nextFree;
-	newImage->nextFree = newImage;
+	newImage->nextFree = newImage;*/
 
 	newImage->flags = ImageFlags::IMAGE_FLAG_NONE;
 	newImage->width = width;
@@ -584,11 +586,13 @@ Gods98::Image* __cdecl Gods98::Image_Create(IDirectDrawSurface4* surface, uint32
 // <LegoRR.exe @0047e380>
 void __cdecl Gods98::Image_AddList(void)
 {
+	// NOTE: This function is no longer called, imageListSet.Add already does so.
 	log_firstcall();
 
 	Image_CheckInit();
 
-	Error_Fatal(imageGlobs.listCount+1 >= IMAGE_MAXLISTS, "Run out of lists");
+	imageListSet.AddList();
+	/*Error_Fatal(imageGlobs.listCount+1 >= IMAGE_MAXLISTS, "Run out of lists");
 
 	uint32 count = 0x00000001 << imageGlobs.listCount;
 
@@ -604,7 +608,7 @@ void __cdecl Gods98::Image_AddList(void)
 		list[count-1].nextFree = imageGlobs.freeList;
 		imageGlobs.freeList = list;
 
-	} else Error_Fatal(true, Error_Format("Unable to allocate %d bytes of memory for new list.\n", sizeof(Image) * count));
+	} else Error_Fatal(true, Error_Format("Unable to allocate %d bytes of memory for new list.\n", sizeof(Image) * count));*/
 }
 
 // <LegoRR.exe @0047e3f0>
@@ -612,7 +616,10 @@ void __cdecl Gods98::Image_RemoveAll(void)
 {
 	log_firstcall();
 
-	for (uint32 list=0 ; list<imageGlobs.listCount ; list++){
+	for (Image* image : imageListSet.EnumerateAlive()) {
+		Image_Remove(image);
+	}
+	/*for (uint32 list=0 ; list<imageGlobs.listCount ; list++){
 		if (imageGlobs.listSet[list]){
 			uint32 count = 0x00000001 << list;
 			for (uint32 loop=0 ; loop<count ; loop++){
@@ -626,7 +633,7 @@ void __cdecl Gods98::Image_RemoveAll(void)
 				}
 			}
 		}
-	}
+	}*/
 }
 
 // <LegoRR.exe @0047e450>

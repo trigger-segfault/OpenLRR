@@ -11,6 +11,8 @@
 #include "../../common.h"
 #include "../geometry.h"
 
+#include "../core/ListSet.hpp"
+
 
 /**********************************************************************************
  ******** Forward Global Namespace Declarations
@@ -149,6 +151,9 @@ struct Image_Globs
 };
 assert_sizeof(Image_Globs, 0x8c);
 
+
+using Image_ListSet = ListSet::Collection<Gods98::Image_Globs>;
+
 #pragma endregion
 
 /**********************************************************************************
@@ -159,6 +164,8 @@ assert_sizeof(Image_Globs, 0x8c);
 
 // <LegoRR.exe @00534908>
 extern Image_Globs & imageGlobs;
+
+extern Image_ListSet imageListSet;
 
 #pragma endregion
 

@@ -164,9 +164,24 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 		::_strupr(s);																	// Ensure .exe is in upper case.
 		if (s = std::strstr(mainGlobs.programName, ".EXE")) *s = '\0';					// Strip off .EXE
 
-		/// OPENLRR TEMP: Use the '-' as a separator for the base exe name
-		if (s = std::strstr(mainGlobs.programName, "-")) *s = '\0';					// Strip off '-'
+		/*if (!mainGlobs2.cmdExactName) {
+			/// OPENLRR TEMP: Use the '-' as a separator for the base exe name
+			if (s = std::strstr(mainGlobs.programName, "-")) *s = '\0';					// Strip off '-'
+		}*/
 	}
+
+	/*/// OPENLRR CUSTOM: Default to LegoRR name for OpenLRR
+	if (!mainGlobs2.cmdExactName &&
+		(::_stricmp(mainGlobs.programName, "OpenLRR") == 0 ||
+		 ::_stricmp(mainGlobs.programName, "OpenLRR-d") == 0))
+	{
+		// Forcefully default to the standard "LegoRR" name. This is a terrible solution...
+		std::strcpy(mainGlobs.programName, "LegoRR");
+		std::sprintf("%s", "LegoRR");
+		// Only use the executable name when not "OpenLRR(-d)". This is a terrible solution...
+		wadProgramName = "LegoRR";
+	}*/
+
 	Mem_Free(getCL); // no longer used
 
 
@@ -203,14 +218,29 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 		char commandLine[1024];
 		char tempStr[1024];
 
-		if (Registry_GetValue(productRegistry, "StandardParameters", RegistryValue::String, tempStr, sizeof(tempStr))) {
+		/// OPENLRR CUSTOM: Option to disable StandardParameters
+		mainGlobs2.cmdNoCLGen = (Util_StrIStr(lpCmdLine, "-noclgen") != nullptr);
+
+		if (!mainGlobs2.cmdNoCLGen &&
+			Registry_GetValue(productRegistry, "StandardParameters", RegistryValue::String, tempStr, sizeof(tempStr)))
+		{
 			std::sprintf(commandLine, "%s %s", lpCmdLine, tempStr);
-		} else std::sprintf(commandLine, "%s", lpCmdLine);
+		}
+		else {
+			std::sprintf(commandLine, "%s", lpCmdLine);
+		}
 
 		/// NEW GODS98: Not present in LegoRR.exe
 //		//mainGlobs.flags |= MainFlags::MAIN_FLAG_BEST;
 		//mainGlobs.flags |= MainFlags::MAIN_FLAG_DUALMOUSE;
 		Main_ParseCommandLine(commandLine, &nosound, &insistOnCD);
+
+
+		/// OPENLRR CUSTOM: Default to LegoRR name for OpenLRR
+		if (!mainGlobs2.cmdExactName) {
+			// Forcefully default to the standard "LegoRR" name. This is a terrible solution...
+			std::strcpy(mainGlobs.programName, "LegoRR");
+		}
 	}
 
 	if (!Registry_GetValue(productRegistry, "NoHALMessage", RegistryValue::String, noHALMsg, sizeof(noHALMsg))) {
@@ -222,12 +252,9 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 	Mem_Initialise();
 
 	/// OPENLRR TEMP: Heavier measures against OpenLRR-named executables causing crashes from WAD load failures
-	const char* wadProgramName = "LegoRR";
-	if (::_stricmp(mainGlobs.programName, "OpenLRR") != 0 &&
-		::_stricmp(mainGlobs.programName, "OpenLRR-d") != 0)
-	{
-		// Only use the executable name when not "OpenLRR(-d)". This is a terrible solution...
-		wadProgramName = mainGlobs.programName;
+	const char* wadProgramName = mainGlobs.programName;
+	if (*mainGlobs2.cmdWadName != '\0') {
+		wadProgramName = mainGlobs2.cmdWadName;
 	}
 	File_Initialise(wadProgramName, insistOnCD, productRegistry);
 
@@ -269,10 +296,14 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 			//  (this acts as a sort-of entrypoint for LegoRR game code)
 			//  (we can also perform OpenLRR hooking in this function,
 			//   rather than using Main_SetState)
-			Gods_Go(mainGlobs.programName);
+			const char* gameProgramName = mainGlobs.programName;
+			if (*mainGlobs2.cmdGameName != '\0') {
+				gameProgramName = mainGlobs2.cmdGameName;
+			}
+			Gods_Go(gameProgramName);
 
 			// If the game wants to run in state mode...
-			if (mainGlobs.stateSet){
+			if (mainGlobs.stateSet) {
 
 				// Run their initialisation code (if required)...
 				if (mainGlobs.currState.Initialise != nullptr) {
@@ -432,6 +463,112 @@ void __cdecl Gods98::Main_Exit(void)
 	std::exit(0);
 }
 
+// Returns the position after the end of the parsed argument. (very lazy with unescaping)
+static const char* Main_NextCommandLineArg(OUT char* buffer, const char* loc)
+{
+	// Skip whitespace
+	while (std::isspace((uchar8)*loc)) loc++;
+
+	uint32 length = 0;
+	buffer[0] = '\0';
+
+	if (*loc == '\0')
+		return nullptr; // No more arguments, return nullptr
+
+	bool32 quoted = false;
+	/*if (*loc == '\"') {
+		quoted = true;
+		loc++;
+	}*/
+	while (*loc != '\0' || (!quoted && std::isspace((uchar8)*loc))) {
+		char c = *loc++;
+
+		if (c == '\"') {
+			quoted = !quoted;
+			continue;
+		}
+		else if (c == '\\') {
+			if (*loc == '\"' || *loc == '\\') {
+				c = *loc++; // Literal escape (skip first '\\')
+			}
+			// Otherwise not escape, continue normally
+		}
+
+		buffer[length++] = c;
+	}
+	buffer[length] = '\0'; // null-terminate
+
+	return loc; // Return pointer to next character after argument
+	/*
+
+	bool32 escape = false;
+	if (*loc == '\"') {
+		
+		quoted = true;
+		loc++;
+		while (*loc != '\0' || (!quoted && std::isspace((uchar8)*loc))) {
+			char c = *loc++;
+
+			if (c == '\\') {
+				if (*loc == '\"' && *loc == '\\') {
+					c = *loc++;
+					//buffer[length++] = c; // Literal escape
+					//continue; // continue here for null terminator checks
+				}
+				// Otherwise not escape, continue loop normally
+			}
+			else if (c == '\"') {
+				quoted = !quoted;
+			}
+			//else if (!quoted && std::isspace((uchar8)c))
+			
+
+			buffer[length++] = c;
+
+			if (escape) {
+				if (c != '\"' && c != '\\') {
+					buffer[length++] = c;
+					c = *loc++;
+				}
+				else {
+					buffer[length++] = '\\';
+				}
+				escape = false;
+			if (c == '\"' && !escape) quoted = !quoted;
+
+			if (c == '\\' && !escape) {
+				escape = true;
+			}
+			else if (!quoted && std::isspace((uchar8)c)) {
+
+			}
+			else if (!quoted && std::isspace((uchar8)c))
+				break;
+			if (*loc != '\"') break; // we need to consume ending quote
+			buffer[length++] = *loc++;
+		}
+		if (escape)
+			buffer[length++] = '\\'; // last slash not consumed
+	}
+	else {
+		while (*loc != '\0' && !std::isspace((uchar8)*loc)) {
+			buffer[length++] = *loc++;
+		}
+	}
+
+	while (*loc != '\0') {
+		char c = *loc++;
+		if (quoted) {
+			if (c == '\"') break; // end of quoted argument
+		}
+		else {
+			if (std::isspace((uchar8)c))
+				break; // end of unquoted argument
+		buffer[length++] = c;
+	}
+	buffer[length] = '\0'; // null-terminate
+	return loc;*/
+}
 
 // <LegoRR.exe @00477eb0>
 void __cdecl Gods98::Main_ParseCommandLine(const char* lpCmdLine, OUT bool32* nosound, OUT bool32* insistOnCD)
@@ -568,6 +705,93 @@ void __cdecl Gods98::Main_ParseCommandLine(const char* lpCmdLine, OUT bool32* no
 
 	// Set this to cause reinitialisation of the save games.
 	if (Util_StrIStr(lpCmdLine, "-cleansaves")) mainGlobs.flags |= MainFlags::MAIN_FLAG_CLEANSAVES;
+
+
+	/// LRRCE: Custom commandline options used by Community Edition.
+	// Note that some of these are implemented, but not properly supported.
+	if (loc = Util_StrIStr(lpCmdLine, "-res")) {
+		char resBuff[1024] = { 0 };
+		std::strcpy(resBuff, &loc[std::strlen("-res ")]); // require space after option
+
+		char* resParts[100]; // Arbitrarily high number until we have a safe variant.
+		::_strlwr(resBuff); // lower for case-insensitive str split with "x"
+		uint32 numResParts = Util_Tokenise(resBuff, resParts, "x");
+		if (numResParts >= 2) {
+			mainGlobs2.cmdResWidth = std::atoi(resParts[0]);
+			mainGlobs2.cmdResHeight = std::atoi(resParts[1]);
+			if (!mainGlobs2.cmdResWidth || !mainGlobs2.cmdResHeight) {
+				mainGlobs2.cmdResWidth  = 0; // non-zero values are treated as disabled
+				mainGlobs2.cmdResHeight = 0;
+			}
+		}
+	}
+
+	if (loc = Util_StrIStr(lpCmdLine, "-bpp")) {
+		mainGlobs2.cmdBitDepth = std::atoi(&loc[std::strlen("-bpp ")]); // require space after option
+
+		if (mainGlobs2.cmdBitDepth != 8 && mainGlobs2.cmdBitDepth != 16 &&
+			mainGlobs2.cmdBitDepth != 24 && mainGlobs2.cmdBitDepth != 32)
+		{
+			mainGlobs2.cmdBitDepth  = 0; // Invalid bit depths are disabled
+		}
+	}
+
+	if (loc = Util_StrIStr(lpCmdLine, "-datadir")) {
+		// Perform some really lazy '"' quote unescape checks.
+		Main_NextCommandLineArg(mainGlobs2.cmdDataDir, &loc[std::strlen("-datadir ")]); // require space after option
+		uint32 i = 0;
+		char* s;
+		// Convert forward slashes to backslashes
+		for (s = mainGlobs2.cmdDataDir; *s != '\0'; s++, i++) {
+			if (*s == '/') *s = '\\';
+		}
+
+		/*if (i != 0 && s[-1] != '\\') { // check last char
+			std::strcat(s, "\\"); // ensure we end with an slash (s is the end of input buffer)
+		}*/
+		if (i != 0 && s[-1] == '\\') { // check last char
+			s[-1] = '\0'; // don't support trailing slashes (this also prevents using the root folder without a drive)
+		}
+	}
+	if (loc = Util_StrIStr(lpCmdLine, "-waddir")) {
+		// Perform some really lazy '"' quote unescape checks.
+		Main_NextCommandLineArg(mainGlobs2.cmdWadDir, &loc[std::strlen("-waddir ")]); // require space after option
+		uint32 i = 0;
+		char* s;
+		// Convert forward slashes to backslashes
+		for (s = mainGlobs2.cmdWadDir; *s != '\0'; s++, i++) {
+			if (*s == '/') *s = '\\';
+		}
+
+		/*if (i != 0 && s[-1] != '\\') { // check last char
+			std::strcat(s, "\\"); // ensure we end with an slash (s is the end of input buffer)
+		}*/
+		if (i != 0 && s[-1] == '\\') { // check last char
+			s[-1] = '\0'; // don't support trailing slashes (this also prevents using the root folder without a drive)
+		}
+	}
+
+	if (loc = Util_StrIStr(lpCmdLine, "-wadname")) {
+		// Perform some really lazy '"' quote unescape checks.
+		Main_NextCommandLineArg(mainGlobs2.cmdWadName, &loc[std::strlen("-wadname ")]); // require space after option
+	}
+	if (loc = Util_StrIStr(lpCmdLine, "-gamename")) {
+		// Perform some really lazy '"' quote unescape checks.
+		Main_NextCommandLineArg(mainGlobs2.cmdGameName, &loc[std::strlen("-gamename ")]); // require space after option
+	}
+
+	if (Util_StrIStr(lpCmdLine, "-log")) mainGlobs2.cmdLog = true;
+	if (Util_StrIStr(lpCmdLine, "-nolog")) mainGlobs2.cmdLog = false;
+
+	if (Util_StrIStr(lpCmdLine, "-menu")) mainGlobs2.cmdMenu = true;
+	if (Util_StrIStr(lpCmdLine, "-nomenu")) mainGlobs2.cmdMenu = false;
+
+	if (Util_StrIStr(lpCmdLine, "-nointro")) mainGlobs2.cmdNoIntro = true;
+
+	if (Util_StrIStr(lpCmdLine, "-exactname")) mainGlobs2.cmdExactName = true;
+
+	// Has no purpose to parse this now (parsed and handled before calling this function).
+	//if (Util_StrIStr(lpCmdLine, "-noclgen")) mainGlobs2.cmdNoCLGen = true;
 
 	// Save this so we can choose when to modify commandline options.
 	mainGlobs2.cmdlineParsed = true;
@@ -1220,7 +1444,10 @@ LRESULT __stdcall Gods98::Main_WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 			}
 
 			// Show the cursor as normal
-			return ::DefWindowProcA(hWnd, message, wParam, lParam);
+			if (Main_FullScreen())
+				return 0;
+			else
+				return ::DefWindowProcA(hWnd, message, wParam, lParam);
 		}
     }
 

@@ -95,6 +95,12 @@ LegoRR::Lego_Globs & LegoRR::legoGlobs = *(LegoRR::Lego_Globs*)0x005570c0;
 
 #pragma endregion
 
+/**********************************************************************************
+ ******** Functions
+ **********************************************************************************/
+
+#pragma region Functions
+
 
 
 // <LegoRR.exe @0042c260>
@@ -155,4 +161,6 @@ bool32 __cdecl LegoRR::Level_HandleEmergeTriggers(Lego_Level* level, const Point
 
     #endif
 }
+
+#pragma endregion
 

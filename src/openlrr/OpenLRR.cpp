@@ -9,6 +9,7 @@
 #include "interop.h"
 #include "dllmain.h"
 
+#include "engine/core/Utils.h"
 #include "engine/Graphics.h"
 #include "engine/Main.h"
 #include "game/Game.h"
@@ -122,6 +123,7 @@ void __cdecl OpenLRR_UpdateMenuItems(void)
     Menu_CheckButton(IDM_TOGGLEMENU, (Gods98::Main_GetMenu() != nullptr));
     // disable until we add the WinConsole module
     Menu_EnableButton(IDM_TOGGLECONSOLE, false);
+	Menu_CheckButton(IDM_TOGGLECONSOLE, (openlrrGlobs.conout != nullptr));
 
 
     ////// &Options //////
@@ -446,7 +448,7 @@ void __cdecl Gods98::Gods_Go(const char* programName)
 {
 	log_firstcall();
 
-	// The program name MUST start with Lego* if we want all cfg,ae,ptl,ol assets to function.
+	/*// The program name MUST start with Lego* if we want all cfg,ae,ptl,ol assets to function.
 	// NOTE: This does not change WAD filename access, that has to be handled in Main_WinMain.
 	if (::_stricmp(programName, "OpenLRR") == 0 ||
 		::_stricmp(programName, "OpenLRR-d") == 0)
@@ -454,7 +456,7 @@ void __cdecl Gods98::Gods_Go(const char* programName)
 		// Forcefully default to the standard "LegoRR" name. This is a terrible solution...
 		std::strcpy(openlrrGlobs.legoProgramName, "LegoRR");
 	}
-	else if (::_strnicmp(programName, "Lego", 4) != 0) {
+	else*/ if (::_strnicmp(programName, "Lego", 4) != 0) {
 		// Maybe add an option if the user REALLY wants to redefine everything under something other
 		// than Lego*, but for now, this is just 
 		std::sprintf(openlrrGlobs.legoProgramName, "%s%s", "Lego", programName);
@@ -468,7 +470,8 @@ void __cdecl Gods98::Gods_Go(const char* programName)
 	/// FLUFF OPENLRR: Wrap the program name in parenthesis and start with "OpenLRR"
 	char buff[1024];
 	if (::_stricmp(programName, "OpenLRR") == 0 ||
-		::_stricmp(programName, "OpenLRR-d") == 0)
+		::_stricmp(programName, "OpenLRR-d") == 0 ||
+		::_stricmp(programName, "LegoRR") == 0)
 	{
 		#ifdef NDEBUG
 		std::sprintf(buff, "%s", "OpenLRR"); // Release build
@@ -499,7 +502,17 @@ void __cdecl Gods98::Gods_Go(const char* programName)
 sint32 __stdcall LaunchOpenLRR(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, sint32 nCmdShow)
 {
     openlrrGlobs.hInstMain = hInstance;
-    openlrrGlobs.conout = MakeConsole();
+
+	Gods98::mainGlobs2.cmdLog = false;
+	Gods98::mainGlobs2.cmdMenu = true;
+
+	if (Gods98::Util_StrIStr(lpCmdLine, "-log")) Gods98::mainGlobs2.cmdLog = true;
+	if (Gods98::Util_StrIStr(lpCmdLine, "-nolog")) Gods98::mainGlobs2.cmdLog = false;
+
+	if (Gods98::Util_StrIStr(lpCmdLine, "-menu")) Gods98::mainGlobs2.cmdMenu = true;
+	if (Gods98::Util_StrIStr(lpCmdLine, "-nomenu")) Gods98::mainGlobs2.cmdMenu = false;
+
+    openlrrGlobs.conout = (Gods98::mainGlobs2.cmdLog ? MakeConsole() : nullptr);
 
     const char* methodName;
     switch (openlrrGlobs.method) {
@@ -536,7 +549,9 @@ sint32 __stdcall LaunchOpenLRR(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPS
         Gods98::Main_SetIcon(openlrrGlobs.iconList[(uint32)OpenLRRIcon::Native], false);
 
     Gods98::Main_SetAccel(openlrrGlobs.accels, false);
-    Gods98::Main_SetMenu(openlrrGlobs.menu, false);
+	if (Gods98::mainGlobs2.cmdMenu)
+		Gods98::Main_SetMenu(openlrrGlobs.menu, false);
+
     Gods98::Main_SetWindowCallback(OpenLRR_WindowCallback);
 
     Gods98::Main_SetCursorVisibility(Gods98::CursorVisibility::TitleBar);

@@ -88,9 +88,9 @@ const char* LegoRR::Debug_GetObjectIDName(LegoObject_Type objType, uint32 objID)
 
 	case LegoObject_Type::LegoObject_Ore:
 		switch (objID) {
-		case LegoObject_ID::LegoObject_ID_Ore:
+		case LegoObject_IDs::LegoObject_ID_Ore:
 			return legoGlobs.langOre_name;
-		case LegoObject_ID::LegoObject_ID_ProcessedOre:
+		case LegoObject_IDs::LegoObject_ID_ProcessedOre:
 			return legoGlobs.langProcessedOre_name;
 		}
 		break;

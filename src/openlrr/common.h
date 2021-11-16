@@ -26,6 +26,7 @@
 #include <cassert>
 #include <ctime>
 #include <cstdint>
+#include <cstddef>
 
 // C++ STL Header Files
 #include <string>
@@ -34,6 +35,7 @@
 #include <map>
 #include <functional>
 #include <type_traits>
+#include <iterator>
 //#include <typeinfo>
 
 // Windows C RunTime Header Files

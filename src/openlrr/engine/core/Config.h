@@ -13,6 +13,8 @@
 //#include "../colour.h"
 //#include "../input/Keys.h"
 
+#include "ListSet.hpp"
+
 
 namespace Gods98
 {; // !<---
@@ -107,6 +109,9 @@ struct Config_Globs
 };
 assert_sizeof(Config_Globs, 0x48c);
 
+
+using Config_ListSet = ListSet::Collection<Config_Globs>;
+
 #pragma endregion
 
 /**********************************************************************************
@@ -117,6 +122,8 @@ assert_sizeof(Config_Globs, 0x48c);
 
 // <LegoRR.exe @00507098>
 extern Config_Globs & configGlobs;
+
+extern Config_ListSet configListSet;
 
 #pragma endregion
 

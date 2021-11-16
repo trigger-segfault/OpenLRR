@@ -54,10 +54,27 @@ struct RoutingBlock;
 struct SelectPlace;
 struct TeleporterService;
 
-struct CreatureData;
-struct BuildingData;
-struct VehicleData;
-struct UpgradeData;
+struct CreatureModel;
+struct BuildingModel;
+struct VehicleModel;
+struct Upgrade_PartInfo;
+struct Upgrade_PartModel;
+struct UpgradesModel;
+struct WeaponsModel;
+
+typedef real32 (__cdecl* GetWorldZCallback)(real32 xPos, real32 yPos, Map3D* map);
+
+#pragma endregion
+
+/**********************************************************************************
+ ******** Typedefs
+ **********************************************************************************/
+
+#pragma region Typedefs
+
+// Dummy type for any form of object container:
+//  Container, CreatureModel, BuildingModel, Upgrade_PartModel, VehicleModel.
+typedef void ObjectModel;
 
 #pragma endregion
 
@@ -114,6 +131,8 @@ struct UpgradeData;
 #define LEGO_MAXMULTISELECT		100
 #define LEGO_MAXBLOCKPOINTERS	56
 //#define MAX_SMOKE_TYPES			4
+
+#define BLOCK_MAXRUBBLELAYERS		4
 
 #pragma endregion
 
@@ -701,6 +720,9 @@ enum PanelButton_Type : sint32
 
 	PanelButton_Encyclopedia_Close = 0,
 	PanelButton_Encyclopedia_Count,
+
+	// Maximum number of buttons for any panel
+	PanelButton_Type_Count = 24,
 };
 assert_sizeof(PanelButton_Type, 0x4);
 
@@ -881,6 +903,7 @@ enum Lego_SurfaceType : sint32
 };
 assert_sizeof(Lego_SurfaceType, 0x4);
 
+typedef uint8 Lego_SurfaceType8; // byte-sized
 
 enum LegoObject_ToolType : sint32
 {
@@ -892,6 +915,11 @@ enum LegoObject_ToolType : sint32
 	LegoObject_ToolType_PusherGun   = 5,
 	LegoObject_ToolType_BirdScarer  = 6,
 	LegoObject_ToolType_FreezerGun  = 7,
+
+	// Special tool types that are carried but not equipped
+	LegoObject_ToolType_Barrier     = 8,
+	LegoObject_ToolType_Dynamite    = 9,
+	LegoObject_ToolType_CryOre      = 10, // PowerCrystals and Ore
 	//LegoObject_ToolType_unused_8    = 8,
 	//LegoObject_ToolType_unused_9    = 9,
 	//LegoObject_ToolType_unused_10   = 10,
@@ -913,6 +941,22 @@ enum LegoObject_AbilityType : sint32
 	LegoObject_AbilityType_Count,
 };
 assert_sizeof(LegoObject_AbilityType, 0x4);
+
+
+enum LegoObject_AbilityFlags : uint32 // [LegoRR/LegoObject.c|flags:0x4|type:uint] These flags contain LiveObject abilities, and are the one of the fields stored/restored with ObjectRecall.
+{
+	// Alternate names, when not used for LiveObjects
+	ABILITY_FLAG_NONE     = 0,
+	ABILITY_FLAG_PILOT    = (1 << LegoObject_AbilityType_Pilot),    // 0x1,
+	ABILITY_FLAG_SAILOR   = (1 << LegoObject_AbilityType_Sailor),   // 0x2,
+	ABILITY_FLAG_DRIVER   = (1 << LegoObject_AbilityType_Driver),   // 0x4,
+	ABILITY_FLAG_DYNAMITE = (1 << LegoObject_AbilityType_Dynamite), // 0x8,
+	ABILITY_FLAG_REPAIR   = (1 << LegoObject_AbilityType_Repair),   // 0x10,
+	ABILITY_FLAG_SCANNER  = (1 << LegoObject_AbilityType_Scanner),  // 0x20,
+
+	ABILITY_FLAGS_ALL     = ((1 << LegoObject_AbilityType_Count) - 1), // 0x3f,
+};
+flags_end(LegoObject_AbilityFlags, 0x4);
 
 
 enum LegoObject_Type : sint32 // [LegoRR/LegoObject.c|enum:0x4|type:int]
@@ -947,7 +991,7 @@ assert_sizeof(LegoObject_Type, 0x4);
 
 
 // Hardcoded so many places in the game
-enum LegoObject_ID : sint32
+enum LegoObject_IDs : sint32
 {
 	LegoObject_ID_Ore          = 0,
 	LegoObject_ID_ProcessedOre = 1,
@@ -956,65 +1000,102 @@ enum LegoObject_ID : sint32
 
 	LegoObject_ID_Count = 15,
 };
-assert_sizeof(LegoObject_ID, 0x4);
+assert_sizeof(LegoObject_IDs, 0x4);
 
+typedef sint32 LegoObject_ID;
+
+
+// Upgrade types for vehicles. MSB [Carry][Scan][Speed][Drill] LSB.
+enum LegoObject_UpgradeType : uint32 // [LegoRR/LegoObject.c|enum:0x4|type:uint]
+{
+	LegoObject_UpgradeType_Drill = 0,
+	LegoObject_UpgradeType_Speed = 1,
+	LegoObject_UpgradeType_Scan  = 2,
+	LegoObject_UpgradeType_Carry = 3,
+
+	LegoObject_UpgradeType_Count,
+};
+assert_sizeof(LegoObject_UpgradeType, 0x4);
+
+// Upgrade flags for vehicles. MSB [Carry][Scan][Speed][Drill] LSB.
+// Compared as a mask against the vehicle level.
+enum LegoObject_UpgradeFlags : uint32 // [LegoRR/LegoObject.c|flags:0x4|type:uint]
+{
+	UPGRADE_FLAG_NONE  = 0,
+	UPGRADE_FLAG_DRILL = (1 << LegoObject_UpgradeType_Drill), // 0x1,
+	UPGRADE_FLAG_SPEED = (1 << LegoObject_UpgradeType_Speed), // 0x2,
+	UPGRADE_FLAG_SCAN  = (1 << LegoObject_UpgradeType_Scan),  // 0x4,
+	UPGRADE_FLAG_CARRY = (1 << LegoObject_UpgradeType_Carry), // 0x8,
+
+	UPGRADE_FLAGS_ALL  = ((1 << LegoObject_UpgradeType_Count) - 1), // 0xf,
+};
+flags_end(LegoObject_UpgradeFlags, 0x4);
 
 enum SurfaceTexture : uint8 // [LegoRR/Lego.c|enum:0x1|type:byte|tags:MAPFILE,COORDNIBBLE]
 {
-	TEXTURE_GROUND              = 0,
-	TEXTURE_WALL_F_SOIL         = 1,
-	TEXTURE_WALL_F_LOOSE        = 2,
-	TEXTURE_WALL_F_MEDIUM       = 3,
-	TEXTURE_WALL_F_HARD         = 4,
-	TEXTURE_WALL_F_IMMOVABLE    = 5,
-	TEXTURE_ERODE_LOW           = 6,
-	TEXTURE_07                  = 7,
-	TEXTURE_RUBBLE_FULL         = 16,
-	TEXTURE_RUBBLE_HIGH         = 17,
-	TEXTURE_RUBBLE_MEDIUM       = 18,
-	TEXTURE_RUBBLE_LOW          = 19,
-	TEXTURE_ERODE_MEDIUM        = 22,
-	TEXTURE_WALL_F_CRYSTALSEAM  = 32,
-	TEXTURE_WALL_R_SOIL         = 33,
-	TEXTURE_WALL_R_LOOSE        = 34,
-	TEXTURE_WALL_R_MEDIUM       = 35,
-	TEXTURE_WALL_R_HARD         = 36,
-	TEXTURE_WALL_R_IMMOVABLE    = 37,
-	TEXTURE_ERODE_HIGH          = 38,
-	TEXTURE_SLUGHOLE            = 48,
-	TEXTURE_WALL_C_SOIL         = 49,
-	TEXTURE_WALL_C_LOOSE        = 50,
-	TEXTURE_WALL_C_MEDIUM       = 51,
-	TEXTURE_WALL_C_HARD         = 52,
-	TEXTURE_WALL_C_IMMOVABLE    = 53,
-	TEXTURE_ERODE_FULL          = 54,
-	TEXTURE_WALL_F_ORESEAM      = 64,
-	TEXTURE_WATER               = 69,
-	TEXTURE_LAVA                = 70,
-	TEXTURE_LAVA_NOTHOT         = 71,
-	TEXTURE_WALL_O_SOIL         = 81,
-	TEXTURE_WALL_O_LOOSE        = 82,
-	TEXTURE_WALL_O_MEDIUM       = 83,
-	TEXTURE_WALL_O_HARD         = 84,
-	TEXTURE_WALL_O_IMMOVABLE    = 85,
-	TEXTURE_PATH_4              = 96,
-	TEXTURE_PATH_BUILD          = 97,
-	TEXTURE_PATH_2              = 98,
-	TEXTURE_PATH_C              = 99,
-	TEXTURE_PATH_3              = 100,
-	TEXTURE_PATH_1              = 101,
-	TEXTURE_FOUNDATION_POWERED  = 102,
-	TEXTURE_WALL_F_RECHARGESEAM = 103,
-	TEXTURE_TUNNEL              = 112,
-	TEXTURE_PATH_4_POWERED      = 113,
-	TEXTURE_PATH_2_POWERED      = 114,
-	TEXTURE_PATH_C_POWERED      = 115,
-	TEXTURE_PATH_3_POWERED      = 116,
-	TEXTURE_PATH_1_POWERED      = 117,
-	TEXTURE_FOUNDATION          = 118,
-	TEXTURE_WALL_GAP            = 119,
+	TEXTURE_GROUND              = 0x00, // LEGO_TEXTURE_FLOOR_STD, LEGO_TEXTURE_FLOOR_STD2, LEGO_TEXTURE_FLOOR_STD3, LEGO_TEXTURE_FLOOR_REIN, LEGO_TEXTURE_FLOOR_DOZED
+	TEXTURE_WALL_F_SOIL         = 0x01, // LEGO_TEXTURE_WALL_SOIL,  LEGO_TEXTURE_WALL_SOIL2
+	TEXTURE_WALL_F_LOOSE        = 0x02, // LEGO_TEXTURE_WALL_LOOSE, LEGO_TEXTURE_WALL_LOOSE2
+	TEXTURE_WALL_F_MEDIUM       = 0x03, // LEGO_TEXTURE_WALL_MED,   LEGO_TEXTURE_WALL_MED2
+	TEXTURE_WALL_F_HARD         = 0x04, // LEGO_TEXTURE_WALL_HARD,  LEGO_TEXTURE_WALL_HARD2
+	TEXTURE_WALL_F_IMMOVABLE    = 0x05, // LEGO_TEXTURE_WALL_IMM,   LEGO_TEXTURE_WALL_IMM2
+	TEXTURE_ERODE_LOW           = 0x06,
+	TEXTURE_07                  = 0x07,
 
-	TEXTURE__INVALID            = 255,
+	TEXTURE_RUBBLE_FULL         = 0x10,
+	TEXTURE_RUBBLE_HIGH         = 0x11,
+	TEXTURE_RUBBLE_MEDIUM       = 0x12,
+	TEXTURE_RUBBLE_LOW          = 0x13,
+
+	TEXTURE_ERODE_MEDIUM        = 0x16,
+
+	TEXTURE_WALL_F_CRYSTALSEAM  = 0x20,
+	TEXTURE_WALL_R_SOIL         = 0x21, // LEGO_TEXTURE_REINWALL_SOIL
+	TEXTURE_WALL_R_LOOSE        = 0x22, // LEGO_TEXTURE_REINWALL_LOOSE
+	TEXTURE_WALL_R_MEDIUM       = 0x23, // LEGO_TEXTURE_REINWALL_MED
+	TEXTURE_WALL_R_HARD         = 0x24, // LEGO_TEXTURE_REINWALL_HARD
+	TEXTURE_WALL_R_IMMOVABLE    = 0x25, // LEGO_TEXTURE_REINWALL_IMM
+	TEXTURE_ERODE_HIGH          = 0x26,
+
+	TEXTURE_SLUGHOLE            = 0x30,
+	TEXTURE_WALL_C_SOIL         = 0x31, // LEGO_TEXTURE_INCORNER_SOIL,  LEGO_TEXTURE_REININCORNER_SOIL
+	TEXTURE_WALL_C_LOOSE        = 0x32, // LEGO_TEXTURE_INCORNER_LOOSE, LEGO_TEXTURE_REININCORNER_LOOSE
+	TEXTURE_WALL_C_MEDIUM       = 0x33, // LEGO_TEXTURE_INCORNER_MED,   LEGO_TEXTURE_REININCORNER_MED
+	TEXTURE_WALL_C_HARD         = 0x34, // LEGO_TEXTURE_INCORNER_HARD,  LEGO_TEXTURE_REININCORNER_HARD
+	TEXTURE_WALL_C_IMMOVABLE    = 0x35, // LEGO_TEXTURE_INCORNER_IMM,   LEGO_TEXTURE_REININCORNER_IMM
+	TEXTURE_ERODE_FULL          = 0x36,
+
+	TEXTURE_WALL_F_ORESEAM      = 0x40,
+
+	TEXTURE_WATER               = 0x45,
+	TEXTURE_LAVA                = 0x46,
+	TEXTURE_LAVA_NOTHOT         = 0x47,
+
+	TEXTURE_WALL_O_SOIL         = 0x51, // LEGO_TEXTURE_OUTCORNER_SOIL,  LEGO_TEXTURE_REINOUTCORNER_SOIL
+	TEXTURE_WALL_O_LOOSE        = 0x52, // LEGO_TEXTURE_OUTCORNER_LOOSE, LEGO_TEXTURE_REINOUTCORNER_LOOSE
+	TEXTURE_WALL_O_MEDIUM       = 0x53, // LEGO_TEXTURE_OUTCORNER_MED,   LEGO_TEXTURE_REINOUTCORNER_MED
+	TEXTURE_WALL_O_HARD         = 0x54, // LEGO_TEXTURE_OUTCORNER_HARD,  LEGO_TEXTURE_REINOUTCORNER_HARD
+	TEXTURE_WALL_O_IMMOVABLE    = 0x55, // LEGO_TEXTURE_OUTCORNER_IMM,   LEGO_TEXTURE_REINOUTCORNER_IMM
+
+	TEXTURE_PATH_4              = 0x60,
+	TEXTURE_PATH_BUILD          = 0x61,
+	TEXTURE_PATH_2              = 0x62,
+	TEXTURE_PATH_C              = 0x63,
+	TEXTURE_PATH_3              = 0x64,
+	TEXTURE_PATH_1              = 0x65,
+	TEXTURE_FOUNDATION_POWERED  = 0x66,
+	TEXTURE_WALL_F_RECHARGESEAM = 0x67,
+
+	TEXTURE_TUNNEL              = 0x70,
+	TEXTURE_PATH_4_POWERED      = 0x71,
+	TEXTURE_PATH_2_POWERED      = 0x72,
+	TEXTURE_PATH_C_POWERED      = 0x73,
+	TEXTURE_PATH_3_POWERED      = 0x74,
+	TEXTURE_PATH_1_POWERED      = 0x75,
+	TEXTURE_FOUNDATION          = 0x76,
+	TEXTURE_WALL_GAP            = 0x77,
+
+	TEXTURE__INVALID            = 0xff,
 };
 assert_sizeof(SurfaceTexture, 0x1);
 
@@ -1135,6 +1216,33 @@ enum LOD_PolyLevel : sint32
  **********************************************************************************/
 
 #pragma region Globals
+
+#pragma endregion
+
+/**********************************************************************************
+ ******** Macros
+ **********************************************************************************/
+
+#pragma region Macro Functions
+
+// Not supported by Building_*.
+// <LegoRR.exe @00406bc0>
+#define Object_Hide static_assert(false, "Use type-separate function: Creature_*, Upgrade_*")
+
+// <LegoRR.exe @00406d60>
+#define Object_GetActivityContainer static_assert(false, "Use type-separate function: Creature_*, Building_*, Upgrade_*")
+
+// Not used by Upgrade_*, but should be supported.
+// <LegoRR.exe @00406e80>
+#define Object_SearchForPartName static_assert(false, "Use type-separate function: Creature_*, Building_*, Upgrade_*")
+
+// Not used by Upgrade_*, but should be supported.
+// <LegoRR.exe @004082b0>
+#define Object_SetOwnerObject static_assert(false, "Use separated function name: Creature_*, Building_*, Upgrade_*")
+
+// <LegoRR.exe @004085d0>
+#define Object_IsHidden static_assert(false, "Use separated function name: Creature_*, Building_*, Upgrade_*")
+
 
 #pragma endregion
 

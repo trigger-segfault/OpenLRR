@@ -252,6 +252,22 @@ struct Main_Globs2
 
 	/// CONTROL:
 	sint32				advanceFrames;	// Number of frames to advance when in the Main_IsPaused state
+
+	/// EXTRA COMMAND LINE:
+	uint32				cmdResWidth;	// -res <W>x<H> : Overrides the display resolution. (Not supported by engine)
+	uint32				cmdResHeight;	// -res <W>x<H>
+	uint32				cmdBitDepth;	// -bpp <BPP> : Overrides the display bit depth. (Not supported by engine)
+	bool32				cmdNoIntro;		// -nointro : Disables splash screens.
+	bool32				cmdLog;			// -log : Opens console logging window.
+
+	// Not present in LRR:CE (exclusive to OpenLRR)
+	char				cmdDataDir[1024];	// -datadir <folder\path> : Overrides the default Data directory.
+	char				cmdWadDir[1024];	// -waddir <folder\path> : Overrides the directory where WAD files are looked for.
+	char				cmdWadName[256];	// -wadname <filename> : Overrides the name used for WAD file lookup. (No extension)
+	char				cmdGameName[256];	// -gamename <filename> : Overrides the name used for root CFG property lookup. (No extension)
+	bool32				cmdExactName;		// -exactname : Disables automatic OpenLRR program name modifications.
+	bool32				cmdNoCLGen;			// -noclgen : Disables StandardParameters options assigned by CLGen.
+	bool32				cmdMenu;			// -menu / -nomenu : Enable/disable the system menu on startup.
 };
 
 #pragma endregion

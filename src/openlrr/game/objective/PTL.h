@@ -5,6 +5,8 @@
 
 #include "../../common.h"
 
+#include "../GameCommon.h"
+
 #include "../interface/Messages.h"
 
 

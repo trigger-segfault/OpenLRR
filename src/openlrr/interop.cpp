@@ -207,7 +207,7 @@ bool interop_hook_Gods98_AnimClone(void)
 	//  type:Flic (Flic_GetWidth)  -> FUN_004120e0  <@004120f7>
 	//                                      Panel_FUN_0045a9f0  <@0045ab17>
 	//                                      Pointer_DrawPointer  <@0045cfc8>
-	//  type:FlocksData (Flocks_???)     -> LiveObject_Flocks_FUN_0044bef0  <@0044bfc3>
+	//  type:FlocksData (Flocks_???)     -> LegoObject_Flocks_FUN_0044bef0  <@0044bfc3>
 	//  type:AnimClone (AnimClone_IsLws) -> Container_FormatPartName  <@00473f60>
 	// <called @00473f60>
 	result &= hook_write_jmpret(0x00473f60, Gods98::AnimClone_IsLws);
@@ -280,14 +280,14 @@ bool interop_hook_Gods98_Containers(void)
 	result &= hook_write_jmpret(0x00472ac0, Gods98::Container_Shutdown);
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x00472b80, Gods98::Container_SetSharedTextureDirectory);
-	// used by: LiveObject_Create
+	// used by: LegoObject_Create
 	result &= hook_write_jmpret(0x00472ba0, Gods98::Container_EnableSoundTriggers);
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x00472bc0, Gods98::Container_SetTriggerFrameCallback);
 	// used by: SFX_InitHashNames
 	result &= hook_write_jmpret(0x00472be0, Gods98::Container_SetSoundTriggerCallback);
 	// used by: Mesh_CreateOnFrame, Lego_LoadLighting,
-	//           LiveObject_Flocks_Initialise, Smoke_CreateSmokeArea
+	//           LegoObject_Flocks_Initialise, Smoke_CreateSmokeArea
 	result &= hook_write_jmpret(0x00472c00, Gods98::Container_GetRoot);
 
 	result &= hook_write_jmpret(0x00472c10, Gods98::Container_Create);
@@ -298,7 +298,7 @@ bool interop_hook_Gods98_Containers(void)
 
 	result &= hook_write_jmpret(0x00472f90, Gods98::Container_Load);
 
-	// used by: Vehicle_SetActivity_AndRemoveCarryCameraFrames
+	// used by: Vehicle_SetActivity
 	result &= hook_write_jmpret(0x00473600, Gods98::Container_IsCurrentActivity);
 
 	result &= hook_write_jmpret(0x00473630, Gods98::Container_SetActivity);
@@ -323,19 +323,19 @@ bool interop_hook_Gods98_Containers(void)
 
 	result &= hook_write_jmpret(0x00473950, Gods98::Container_Clone);
 
-	// used by: LiveObject_Hide2
+	// used by: LegoObject_Hide2
 	result &= hook_write_jmpret(0x00473de0, Gods98::Container_Hide2);
 
 	result &= hook_write_jmpret(0x00473e00, Gods98::Container_Hide);
 
-	// used by: Object_IsHidden, LiveObject_IsHidden,
-	//           LiveObject_Flocks_FUN_0044bef0
+	// used by: Object_IsHidden, LegoObject_IsHidden,
+	//           LegoObject_Flocks_FUN_0044bef0
 	result &= hook_write_jmpret(0x00473e60, Gods98::Container_IsHidden);
 
 	result &= hook_write_jmpret(0x00473e80, Gods98::Container_SearchTree);
 	result &= hook_write_jmpret(0x00473f20, Gods98::Container_FormatPartName);
 
-	// used by: Object_SetOwnerObject, LiveObject_Create, Vehicle_SetOwnerObject
+	// used by: Object_SetOwnerObject, LegoObject_Create, Vehicle_SetOwnerObject
 	result &= hook_write_jmpret(0x00474060, Gods98::Container_SetUserData);
 	// used by: Game_Container_TriggerFrameCallback
 	result &= hook_write_jmpret(0x00474070, Gods98::Container_GetUserData);
@@ -371,7 +371,7 @@ bool interop_hook_Gods98_Containers(void)
 
 	result &= hook_write_jmpret(0x00474ce0, Gods98::Container_Mesh_GetGroupCount);
 
-	// used by: Map3D_LoadSurfaceMap, SelectPlace_Create, Vehicle_LoadActivityFile
+	// used by: Map3D_LoadSurfaceMap, SelectPlace_Create, Vehicle_Load
 	result &= hook_write_jmpret(0x00474d20, Gods98::Container_Mesh_SetQuality);
 	// used by: Map3D_IsBlockMeshHidden
 	result &= hook_write_jmpret(0x00474da0, Gods98::Container_Mesh_IsGroupHidden);
@@ -393,7 +393,7 @@ bool interop_hook_Gods98_Containers(void)
 	result &= hook_write_jmpret(0x004750f0, Gods98::Container_Mesh_SetPerspectiveCorrection);
 	// used by: DynamicPM_LoadPromesh_AB
 	result &= hook_write_jmpret(0x00475150, Gods98::Container_Mesh_Scale);
-	// used by: Vehicle_LoadActivityFile
+	// used by: Vehicle_Load
 	result &= hook_write_jmpret(0x004751d0, Gods98::Container_Mesh_GetBox);
 
 	// used by: LiveObject_SetCrystalPoweredColor, Map3D_Coords_SetEmissive,
@@ -421,7 +421,7 @@ bool interop_hook_Gods98_Containers(void)
 	result &= hook_write_jmpret(0x004757c0, Gods98::Container_GetOrientation);
 	result &= hook_write_jmpret(0x00475840, Gods98::Container_AddRotation);
 
-	// used by: DynamicPM_Sub1_FUN_0040b930, LiveObject_TeleportUp
+	// used by: DynamicPM_Sub1_FUN_0040b930, LegoObject_TeleportUp
 	result &= hook_write_jmpret(0x00475870, Gods98::Container_AddScale);
 
 	result &= hook_write_jmpret(0x004758a0, Gods98::Container_AddTranslation);
@@ -731,7 +731,7 @@ bool interop_hook_Gods98_Flic(void)
 	//  type:Flic (Flic_GetWidth)  -> FUN_004120e0  <@004120f7>
 	//                                      Panel_FUN_0045a9f0  <@0045ab17>
 	//                                      Pointer_DrawPointer  <@0045cfc8>
-	//  type:FlocksData (Flocks_???)     -> LiveObject_Flocks_FUN_0044bef0  <@0044bfc3>
+	//  type:FlocksData (Flocks_???)     -> LegoObject_Flocks_FUN_0044bef0  <@0044bfc3>
 	//  type:AnimClone (AnimClone_IsLws) -> Container_FormatPartName  <@00473f60>
 	// <called @004120f7, 0045ab17, 0045cfc8>
 	result &= hook_write_call(0x004120f7, Gods98::Flic_GetWidth);
@@ -839,7 +839,7 @@ bool interop_hook_Gods98_Images(void)
 
 bool interop_hook_Gods98_Input(void)
 {   bool result = true;
-	// used by: LiveObject_FUN_00471fe0
+	// used by: Weapon_LegoObject_FUN_00471fe0
 	result &= hook_write_jmpret(0x00410a60, Gods98::noinline(msx));
 	result &= hook_write_jmpret(0x00410a70, Gods98::noinline(msy));
 	result &= hook_write_jmpret(0x00410a80, Gods98::noinline(mslb));
@@ -1065,12 +1065,12 @@ bool interop_hook_Gods98_Maths(void)
 	//result &= hook_write_jmpret(0x00479cf0, Gods98::Maths_RayPlaneDistance);
 	//result &= hook_write_jmpret(0x00479d70, Gods98::Maths_RayEndPoint);
 
-	// used by: Map3D_FUN_0044fe50, LiveObject_CollisionBox_FUN_00470570
+	// used by: Map3D_FUN_0044fe50, Weapon_LegoObject_CollisionBox_FUN_00470570
 	result &= hook_write_jmpret(0x00479db0, Gods98::Maths_Vector2DIntersection);
 
 	result &= hook_write_jmpret(0x00479e40, Gods98::Maths_PointInsidePoly);
 
-	// used by: LiveObject_Callback_FUN_0043b670
+	// used by: LegoObject_Callback_FUN_0043b670
 	result &= hook_write_jmpret(0x00479ed0, Gods98::Maths_RaySphereIntersection);
 
 	// used by: Flocks.c
@@ -1149,7 +1149,7 @@ bool interop_hook_Gods98_Mesh(void)
 	result &= hook_write_jmpret(0x004824d0, Gods98::Mesh_GetGroupCount);
 
 	// used by: Container_Mesh_AddGroup, DamageFont.c, Smoke.c
-	//           Struct34_FUN_00470a20
+	//           Weapon_Struct34_FUN_00470a20
 	result &= hook_write_jmpret(0x004824e0, Gods98::Mesh_AddGroup);
 
 	// internal, no need to hook these
@@ -1164,7 +1164,7 @@ bool interop_hook_Gods98_Mesh(void)
 
 	// used by: DamageFont.c, Smoke.c
 	result &= hook_write_jmpret(0x004827c0, Gods98::Mesh_SetVertices_PointNormalAt);
-	// used by: Struct34_FUN_00470a20
+	// used by: Weapon_Struct34_FUN_00470a20
 	result &= hook_write_jmpret(0x004828e0, Gods98::Mesh_SetVertices_SameNormal);
 
 	// internal, no need to hook these
@@ -1205,14 +1205,14 @@ bool interop_hook_Gods98_Mesh(void)
 	//result &= hook_write_jmpret(0x00483500, Gods98::Mesh_SetGroupMaterial);
 
 	// used by: Container_Mesh_SetEmissive, Container_Mesh_SetColourAlpha
-	//           DamageFont.c, Smoke.c, Struct34_FUN_00470a20
+	//           DamageFont.c, Smoke.c, Weapon_Struct34_FUN_00470a20
 	result &= hook_write_jmpret(0x00483530, Gods98::Mesh_SetGroupColour);
 
 	// internal, no need to hook these
 	//result &= hook_write_jmpret(0x004836c0, Gods98::Mesh_GetGroupMaterial);
 
 	// used by: Container_Mesh_SetColourAlpha, Lws_SetDissolveLevel
-	//           DamageFont.c, Smoke.c, Struct34_FUN_00470a20
+	//           DamageFont.c, Smoke.c, Weapon_Struct34_FUN_00470a20
 	result &= hook_write_jmpret(0x004836e0, Gods98::Mesh_SetGroupMaterialValues);
 
 	// internal, no need to hook these
@@ -1380,7 +1380,7 @@ bool interop_hook_Gods98_Viewports(void)
 	result &= hook_write_jmpret(0x00477550, Gods98::Viewport_InverseTransform);
 
 	// used by: DynamicPM_FUN_0040b3a0, Lego_MainLoop
-	//           LiveObject_CallbackDoSelection, Map3D_GetIntersections
+	//           LegoObject_CallbackDoSelection, Map3D_GetIntersections
 	result &= hook_write_jmpret(0x00477570, Gods98::Viewport_Transform);
 
 	result &= hook_write_jmpret(0x00477590, Gods98::Viewport_WorldToScreen);
@@ -1476,6 +1476,7 @@ bool interop_hook_LegoRR_FrontEnd(void)
 {   bool result = true;
 
 	// QoL apply for always-skippable splash screens and movies
+	result &= hook_write_jmpret(0x00414c10, LegoRR::Front_IsIntrosEnabled);
 	result &= hook_write_jmpret(0x00415630, LegoRR::Front_PlayMovie);
 	result &= hook_write_jmpret(0x004156f0, LegoRR::Front_ShowIntroSplash);
 	result &= hook_write_jmpret(0x00415840, LegoRR::Front_ShowIntroMovie);
@@ -1739,6 +1740,7 @@ bool interop_hook_all(void)
 	result &= interop_hook_LegoRR_SFX();
 
 	//result &= hook_write_jmpret(0x0042c260, LegoRR::Level_HandleEmergeTriggers);
+	result &= hook_write_jmpret(0x00437a90, LegoRR::LegoObject_RunThroughLists);
 
 	return_interop(result);
 }

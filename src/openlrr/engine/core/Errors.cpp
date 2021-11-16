@@ -304,4 +304,19 @@ void __cdecl Gods98::Error_Log(File* logFile, bool32 log, const char* lpOutputSt
 	}
 }
 
+
+/// CUSTOM: An alternative to __FILE__ macro that cuts off filepaths at the "\src"
+const char* Gods98::Error_RelativeFile(const char* fname)
+{
+	const char* loc = std::strstr(fname, "\\openlrr");
+	if (loc == nullptr)
+		loc = std::strstr(fname, "/openlrr");
+
+	if (loc == nullptr)
+		loc = fname;
+	else
+		loc++;
+	return loc;
+}
+
 #pragma endregion

@@ -20,6 +20,8 @@
 // <LegoRR.exe @00507098>
 Gods98::Config_Globs & Gods98::configGlobs = *(Gods98::Config_Globs*)0x00507098; // = { nullptr };
 
+Gods98::Config_ListSet Gods98::configListSet = Gods98::Config_ListSet(Gods98::configGlobs);
+
 #pragma endregion
 
 /**********************************************************************************
@@ -33,12 +35,13 @@ void __cdecl Gods98::Config_Initialise(void)
 {
 	log_firstcall();
 
-	for (uint32 loop = 0; loop < CONFIG_MAXLISTS; loop++) {
+	configListSet.Initialise();
+	/*for (uint32 loop = 0; loop < CONFIG_MAXLISTS; loop++) {
 		configGlobs.listSet[loop] = nullptr;
 	}
 
 	configGlobs.freeList = nullptr;
-	configGlobs.listCount = 0;
+	configGlobs.listCount = 0;*/
 	configGlobs.flags = Config_GlobFlags::CONFIG_GLOB_FLAG_INITIALISED;
 }
 
@@ -47,11 +50,12 @@ void __cdecl Gods98::Config_Shutdown(void)
 {
 	log_firstcall();
 
-	for (uint32 loop = 0; loop < CONFIG_MAXLISTS; loop++) {
+	configListSet.Shutdown();
+	/*for (uint32 loop = 0; loop < CONFIG_MAXLISTS; loop++) {
 		if (configGlobs.listSet[loop]) Mem_Free(configGlobs.listSet[loop]);
 	}
 
-	configGlobs.freeList = nullptr;
+	configGlobs.freeList = nullptr;*/
 	configGlobs.flags = Config_GlobFlags::CONFIG_GLOB_FLAG_NONE;
 }
 
@@ -364,11 +368,12 @@ Gods98::Config* __cdecl Gods98::Config_Create(Config* prev)
 
 	Config_CheckInit();
 
-	if (configGlobs.freeList == nullptr) Config_AddList();
+	Config* newConfig = configListSet.Add(false); // No need to memzero, all fields are assigned.
+	/*if (configGlobs.freeList == nullptr) Config_AddList();
 
 	Config* newConfig = configGlobs.freeList;
 	configGlobs.freeList = newConfig->nextFree;
-	newConfig->nextFree = newConfig;
+	newConfig->nextFree = newConfig;*/
 
 	newConfig->itemName = nullptr;
 	newConfig->dataString = nullptr;
@@ -378,7 +383,7 @@ Gods98::Config* __cdecl Gods98::Config_Create(Config* prev)
 		prev->linkNext = newConfig;
 		newConfig->linkPrev = prev;
 		newConfig->depth = prev->depth;
-		//		newConfig->fileData = prev->fileData;
+//		newConfig->fileData = prev->fileData;
 		newConfig->fileData = nullptr;
 	}
 	else {
@@ -405,8 +410,9 @@ void __cdecl Gods98::Config_Remove(Config* dead)
 //	if (configGlobs.debugLastFind == dead) configGlobs.debugLastFind = NULL;
 //#endif // _DEBUG_2
 
-	dead->nextFree = configGlobs.freeList;
-	configGlobs.freeList = dead;
+	configListSet.Remove(dead);
+	/*dead->nextFree = configGlobs.freeList;
+	configGlobs.freeList = dead;*/
 }
 
 // <LegoRR.exe @004795a0>
@@ -498,11 +504,13 @@ const Gods98::Config* __cdecl Gods98::Config_FindItem(const Config* conf, const 
 // <LegoRR.exe @00479750>
 void __cdecl Gods98::Config_AddList(void)
 {
+	// NOTE: This function is no longer called, configListSet.Add already does so.
 	log_firstcall();
 
 	Config_CheckInit();
 
-	Error_Fatal(configGlobs.listCount + 1 >= CONFIG_MAXLISTS, "Run out of lists");
+	configListSet.AddList();
+	/*Error_Fatal(configGlobs.listCount + 1 >= CONFIG_MAXLISTS, "Run out of lists");
 
 	uint32 count = 0x00000001 << configGlobs.listCount;
 
@@ -519,7 +527,7 @@ void __cdecl Gods98::Config_AddList(void)
 		configGlobs.freeList = list;
 
 	}
-	else Error_Fatal(true, Error_Format("Unable to allocate %d bytes of memory for new list.\n", sizeof(Config) * count));
+	else Error_Fatal(true, Error_Format("Unable to allocate %d bytes of memory for new list.\n", sizeof(Config) * count));*/
 }
 
 //void __cdecl Gods98::Config_RunThroughLists(void);

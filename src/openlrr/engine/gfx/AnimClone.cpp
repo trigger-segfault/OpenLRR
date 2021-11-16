@@ -24,6 +24,7 @@ Gods98::AnimClone* __cdecl Gods98::AnimClone_Register(IDirect3DRMAnimationSet2* 
 {
 	AnimClone data;
 	AnimClone* orig = (AnimClone *)Mem_Alloc(sizeof(AnimClone));
+	HRESULT debugr;
 
 	orig->clonedFrom = nullptr;
 	orig->animSet = animSet;
@@ -31,7 +32,8 @@ Gods98::AnimClone* __cdecl Gods98::AnimClone_Register(IDirect3DRMAnimationSet2* 
 	orig->lws = false;
 
 	orig->root = root;
-	orig->root->AddRef();
+	debugr = orig->root->AddRef();
+	Container_NoteAddRef(orig->root, debugr);
 	orig->partCount = 0;
 	orig->frameCount = frameCount;
 	
@@ -50,6 +52,7 @@ Gods98::AnimClone* __cdecl Gods98::AnimClone_RegisterLws(Lws_Info* scene, IDirec
 {
 	AnimClone data;
 	AnimClone* orig = (AnimClone*)Mem_Alloc(sizeof(AnimClone));
+	HRESULT debugr;
 
 	orig->clonedFrom = nullptr;
 	orig->animSet = nullptr;
@@ -57,7 +60,8 @@ Gods98::AnimClone* __cdecl Gods98::AnimClone_RegisterLws(Lws_Info* scene, IDirec
 	orig->lws = true;
 
 	orig->root = root;
-	orig->root->AddRef();
+	debugr = orig->root->AddRef();
+	Container_NoteAddRef(orig->root, debugr);
 	orig->partCount = 0;
 	orig->frameCount = frameCount;
 	
@@ -113,19 +117,24 @@ Gods98::AnimClone* __cdecl Gods98::AnimClone_Make(AnimClone* orig, IDirect3DRMFr
 // <LegoRR.exe @00489a10>
 void __cdecl Gods98::AnimClone_Remove(AnimClone* dead)
 {
+	HRESULT debugr;
 	if (dead) {
 		if (NULL == dead->clonedFrom) {
 			if (dead->lws) {
 				Lws_Free(dead->scene);
-			} else {
-				dead->animSet->Release();
-				dead->root->Release();
+			}
+			else {
+				debugr = dead->animSet->Release();
+				Container_NoteRelease(dead->animSet, debugr);
+				debugr = dead->root->Release();
+				Container_NoteRelease(dead->root, debugr);
 			}
 		}
 
 		if (!dead->lws) {
-			for (uint32 loop=0 ; loop<dead->partCount ; loop++) {
-				dead->partArray[loop]->Release();
+			for (uint32 loop = 0; loop < dead->partCount; loop++) {
+				debugr = dead->partArray[loop]->Release();
+				Container_NoteRelease(dead->partArray[loop], debugr);
 			}
 			Mem_Free(dead->partArray);
 		}
@@ -146,7 +155,7 @@ void __cdecl Gods98::AnimClone_Remove(AnimClone* dead)
 //  type:Flic (Flic_GetWidth)  -> FUN_004120e0  <@004120f7>
 //                                      Panel_FUN_0045a9f0  <@0045ab17>
 //                                      Pointer_DrawPointer  <@0045cfc8>
-//  type:FlocksData (Flocks_GetNumSubdata) -> LiveObject_Flocks_FUN_0044bef0  <@0044bfc3>
+//  type:FlocksData (Flocks_GetNumSubdata) -> LegoObject_Flocks_FUN_0044bef0  <@0044bfc3>
 //  type:AnimClone (AnimClone_IsLws) -> Container_FormatPartName  <@00473f60>
 // 
 // Only called by Container_FormatPartName
@@ -162,8 +171,8 @@ bool32 __cdecl Gods98::AnimClone_IsLws(AnimClone* clone)
 void __cdecl Gods98::AnimClone_SetTime(AnimClone* clone, real32 time, OUT real32* oldTime)
 {
 	AnimClone* orig = clone->clonedFrom;
-
-	if (orig){
+	HRESULT debugr;
+	if (orig) {
 
 		IDirect3DRMFrame3* parent;
 		D3DRMMATRIX4D mat; // same structure as Matrix4F
@@ -172,10 +181,12 @@ void __cdecl Gods98::AnimClone_SetTime(AnimClone* clone, real32 time, OUT real32
 		if (orig->lws) Lws_SetTime(orig->scene, time);
 		else orig->animSet->SetTime(time);
 
-		for (uint32 loop=0 ; loop<clone->partCount ; loop++){
+		for (uint32 loop = 0; loop < clone->partCount; loop++) {
 			orig->partArray[loop]->GetParent(&parent);
+			Container_NoteAddRef(parent);
 			orig->partArray[loop]->GetTransform(parent, mat);
-			parent->Release();
+			debugr = parent->Release();
+			Container_NoteRelease(parent, debugr);
 			clone->partArray[loop]->AddTransform(D3DRMCOMBINE_REPLACE, mat);
 		}
 
@@ -185,7 +196,8 @@ void __cdecl Gods98::AnimClone_SetTime(AnimClone* clone, real32 time, OUT real32
 			else orig->animSet->SetTime(*oldTime);
 		}
 
-	} else {
+	}
+	else {
 
 		// 'clone' is actually the original...
 		if (clone->lws) Lws_SetTime(clone->scene, time);
@@ -228,16 +240,19 @@ bool32 __cdecl Gods98::AnimClone_WalkTree(IDirect3DRMFrame3* frame, uint32 level
 
 	if (frame->GetChildren(&children) == D3DRM_OK){
 		uint32 count = children->GetSize();
-		for (uint32 loop=0 ; loop<count ; loop++){
+		for (uint32 loop = 0; loop < count; loop++){
 			children->GetElement(loop, &child1);
 			child1->QueryInterface(Idl::IID_IDirect3DRMFrame3, (void**)&child);
+			Container_NoteAddRef(child);
 			child1->Release();
 			if (AnimClone_WalkTree(child, level+1, Callback, data)) {
 				finished = true;
 				r = child->Release();
+				Container_NoteRelease(child, r);
 				break;
 			}
 			r = child->Release();
+			Container_NoteRelease(child, r);
 		}
 		r = children->Release();
 	}
@@ -253,6 +268,7 @@ void __cdecl Gods98::AnimClone_CreateCopy(IDirect3DRMFrame3* orig, IDirect3DRMFr
 	char* name;
 	DWORD length;
 	Matrix4F mat;
+	HRESULT debugr;
 
 	// Link in the visuals...
 	if (lws) AnimClone_CloneLwsMesh(orig, clone);
@@ -269,14 +285,16 @@ void __cdecl Gods98::AnimClone_CreateCopy(IDirect3DRMFrame3* orig, IDirect3DRMFr
 
 	// Copy the transformation...
 	orig->GetParent(&parent);
+	Container_NoteAddRef(parent);
 	orig->GetTransform(parent, mat);
-	parent->Release();
+	debugr = parent->Release();
+	Container_NoteRelease(parent, debugr);
 	clone->AddTransform(D3DRMCOMBINE_REPLACE, mat);
 
 	// Do exactly the same for each child of the frame...
 	if (orig->GetChildren(&children) == D3DRM_OK){
 		uint32 count = children->GetSize();
-		for (uint32 loop=0; loop<count; loop++) {
+		for (uint32 loop = 0; loop < count; loop++) {
 
 			IDirect3DRMFrame3* newFrame;
 			IDirect3DRMFrame3* childFrame;
@@ -284,6 +302,7 @@ void __cdecl Gods98::AnimClone_CreateCopy(IDirect3DRMFrame3* orig, IDirect3DRMFr
 
 			children->GetElement(loop, &child1);
 			child1->QueryInterface(Idl::IID_IDirect3DRMFrame3, (void**)&childFrame);
+			Container_NoteAddRef(childFrame);
 			child1->Release();
 
 			// All 'childFrame' are children of 'orig' thus all 'newFrame' should be chilren of 'clone'
@@ -292,8 +311,10 @@ void __cdecl Gods98::AnimClone_CreateCopy(IDirect3DRMFrame3* orig, IDirect3DRMFr
 
 			AnimClone_CreateCopy(childFrame, newFrame, lws);
 
-			newFrame->Release();
-			childFrame->Release();
+			debugr = newFrame->Release();
+			Container_NoteRelease(newFrame, debugr);
+			debugr = childFrame->Release();
+			Container_NoteRelease(childFrame, debugr);
 		}
 		children->Release();
 	}
@@ -337,7 +358,7 @@ void __cdecl Gods98::AnimClone_ReferenceVisuals(IDirect3DRMFrame3* orig, IDirect
 //		visuals = (IDirect3DRMVisual**)Mem_Alloc(sizeof(LPDIRECT3DRMVISUAL) * count);
 		orig->GetVisuals(&count, (IUnknown**)visuals);
 
-		for (uint32 loop=0; loop<count; loop++) {
+		for (uint32 loop = 0; loop < count; loop++) {
 
 			visual = visuals[loop];
 			clone->AddVisual((IUnknown*) visual);

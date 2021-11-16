@@ -6,16 +6,19 @@
 #include "../../engine/core/Utils.h"
 
 #include "../object/Object.h"
+#include "../world/Construction.h"
 #include "../Game.h"
 
 #include "Messages.h"
 
 
+#if 0
 // <LegoRR.exe @00408bb0>
 //uint32 __cdecl Construction_GetBuildingBase(const char* name);
 #define Construction_GetBuildingBase ((uint32(__cdecl*)(const char*))0x00408bb0)
 
-#define LiveObject_UpdatePowerConsumption ((void(__cdecl*)(LegoObject*))0x0043c830)
+#define LegoObject_UpdatePowerConsumption ((void(__cdecl*)(LegoObject*))0x0043c830)
+#endif
 
 
 /**********************************************************************************

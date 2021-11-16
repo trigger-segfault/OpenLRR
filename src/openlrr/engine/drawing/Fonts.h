@@ -10,6 +10,8 @@
 #include "../../common.h"
 #include "../geometry.h"
 
+#include "../core/ListSet.hpp"
+
 
 namespace Gods98
 {; // !<---
@@ -107,6 +109,9 @@ struct Font_Globs
 };
 assert_sizeof(Font_Globs, 0x8c);
 
+
+using Font_ListSet = ListSet::Collection<Gods98::Font_Globs>;
+
 #pragma endregion
 
 /**********************************************************************************
@@ -117,6 +122,8 @@ assert_sizeof(Font_Globs, 0x8c);
 
 // <LegoRR.exe @00507528>
 extern Font_Globs & fontGlobs;
+
+extern Font_ListSet fontListSet;
 
 #pragma endregion
 
@@ -186,6 +193,9 @@ Font* __cdecl Font_Create(Image* image);
 // <LegoRR.exe @0047a880>
 void __cdecl Font_AddList(void);
 
+/// CUSTOM:
+void __cdecl Font_RemoveAll(void);
+
 
 // <missing>
 void __cdecl Font_GetBackgroundColour(Font* font, OUT real32* r, OUT real32* g, OUT real32* b);
@@ -197,7 +207,7 @@ void __cdecl Font_SetTabWidth(Font* font, uint32 width, bool32 spaces);
 void __cdecl Font_RemoveCallback(Font* font, void* data);
 
 // <missing>
-void __cdecl Font_RunThroughLists(FontRunThroughListsCallback Callback, void* data);
+void __cdecl Font_RunThroughLists(FontRunThroughListsCallback callback, void* data);
 
 // (inline form for OpenLRR usage)
 __inline uint32 Font_GetStringWidth(Font* font, const char* msg, ...) {

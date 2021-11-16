@@ -7,6 +7,8 @@
 
 #include "../../common.h"
 
+#include "../core/Errors.h"
+
 
 namespace Gods98
 {; // !<---
@@ -70,7 +72,7 @@ extern Dxbug_Globs & dxbugGlobs;
 #pragma region Macros
 
 // Set a directX error value
-#define SET_DXERROR(hres, module) Gods98::Error_SetDXError(hres, module, __FILE__, __LINE__)
+#define SET_DXERROR(hres, module) Gods98::Error_SetDXError(hres, module, Error__FILE__, __LINE__)
 
 // Set a DX erro valuer for a supported module 
 // (ie. R.etained M.ode / D.irect D.raw / D.irect I.nput / I.U.nknown)

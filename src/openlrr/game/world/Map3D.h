@@ -103,9 +103,9 @@ struct Map3D // [LegoRR/Map3D.c|struct:0x73d4]
 	/*0004,4*/		uint32 blockHeight; // gridHeight - 1
 	/*0008,8*/		uint32 gridWidth; // full map width
 	/*000c,4*/		uint32 gridHeight; // full map height
-	/*0010,4*/		real32 BlockSize; // (cfg: BlockSize)
+	/*0010,4*/		real32 blockSize; // (cfg: blockSize)
 	/*0014,4*/		real32 RoughLevel; // (cfg: RoughLevel)
-	/*0018,8*/		Size2F worldDimensions_fnegx; // (-width, +height) * BlockSize / 2.0f  (smallDimensions)
+	/*0018,8*/		Size2F worldDimensions_fnegx; // (-width, +height) * blockSize / 2.0f  (smallDimensions)
 	/*0020,4*/		real32 float_20; // (some sort of maximum)
 	/*0024,4*/		Gods98::Container* mesh; // Mesh for Map3D_Blocks
 	/*0028,4*/		Map3D_Block* blocks3D; // [*:dimensions]
@@ -142,6 +142,19 @@ assert_sizeof(Map3D, 0x73d4);
 
 #pragma region Functions
 
+#if 0
+// <LegoRR.exe @0044f900>
+#define Map3D_BlockToWorldPos ((bool32(__cdecl *)(LegoRR::Map3D* map,uint32 bx,uint32 by,OUT real32* xPos,OUT real32* yPos))0x0044f900)
+/*bool32 __cdecl LegoRR::Map3D_BlockToWorldPos(Map3D* map, uint32 bx, uint32 by, OUT real32* xPos, OUT real32* yPos)
+{
+	if (bx < map->blockWidth && by < map->blockHeight) {
+		*xPos = map->worldDimensions_fnegx.width  + (map->blockSize * 0.5f + (real32)bx * map->blockSize);
+		*yPos = map->worldDimensions_fnegx.height - (map->blockSize * 0.5f + (real32)by * map->blockSize);
+		return true;
+	}
+	return false;
+}*/
+
 // <LegoRR.exe @0044f990>
 #define Map3D_WorldToBlockPos_NoZ ((bool32(__cdecl *)(LegoRR::Map3D* map,real32 xPos,real32 yPos,OUT sint32* bx,OUT sint32* by))0x0044f990)
 
@@ -150,6 +163,189 @@ assert_sizeof(Map3D, 0x73d4);
 
 // <LegoRR.exe @00450130>
 #define Map3D_UnkCameraXYFunc_RetZunk ((real32(__cdecl *)(LegoRR::Map3D* map,real32 xPos,real32 yPos))0x00450130)
+
+// <LegoRR.exe @00450390>
+#define Map3D_GetBlockVertexPositions ((bool32(__cdecl *)(LegoRR::Map3D* map,uint32 bx,uint32 by,OUT Vector3F* vertPoses))0x00450390)
+//bool32 __cdecl Map3D_GetBlockVertexPositions(Map3D* map, uint32 bx, uint32 by, OUT Vector3F* vertPoses);
+
+// <LegoRR.exe @00450580>
+#define Map3D_IsInsideDimensions ((bool32(__cdecl *)(LegoRR::Map3D* map,uint32 bx,uint32 by))0x00450580)
+/*bool32 __cdecl LegoRR::Map3D_IsInsideDimensions(Map3D* map, uint32 bx, uint32 by)
+{
+	return (bx < map->blockWidth && by < map->blockHeight);
+}*/
+#endif
+
+
+
+
+// <LegoRR.exe @0044e380>
+#define Map3D_Create ((Map3D* (__cdecl* )(Gods98::Container* root, char* filename, real32 blockSize, real32 roughLevel))0x0044e380)
+
+// <LegoRR.exe @0044e790>
+#define Map3D_InitRoughness ((void (__cdecl* )(Map3D* map))0x0044e790)
+
+// <LegoRR.exe @0044e930>
+#define Map3D_Remove ((void (__cdecl* )(Map3D* map))0x0044e930)
+
+// <LegoRR.exe @0044e970>
+#define Map3D_SetTextureNoFade ((void (__cdecl* )(Map3D* map, SurfaceTexture texture))0x0044e970)
+
+// <LegoRR.exe @0044e990>
+#define Map3D_SetBlockFadeInTexture ((void (__cdecl* )(Map3D* map, sint32 bx, sint32 by, SurfaceTexture newTexture, uint8 direction))0x0044e990)
+
+// <LegoRR.exe @0044eb20>
+#define Map3D_IsBlockMeshHidden ((bool32 (__cdecl* )(Map3D* map, sint32 bx, sint32 by))0x0044eb20)
+
+// <LegoRR.exe @0044eb40>
+#define Map3D_UpdateAllBlockNormals ((void (__cdecl* )(Map3D* map))0x0044eb40)
+
+// <LegoRR.exe @0044eb80>
+#define Map3D_CheckBuildingTolerance ((bool32 (__cdecl* )(Map3D* map, Point2I* shapePoints, uint32 shapeCount, real32 buildTolerance, real32 buildMaxVariation))0x0044eb80)
+
+// <LegoRR.exe @0044ed90>
+#define Map3D_FlattenShapeVertices ((void (__cdecl* )(Map3D* map, Point2I* shapePoints, uint32 shapeCount, real32 mult_4_0))0x0044ed90)
+
+// <LegoRR.exe @0044f0b0>
+#define Map3D_SetBlockRotated ((void (__cdecl* )(Map3D* map, uint32 bx, uint32 by, bool32 on))0x0044f0b0)
+
+// <LegoRR.exe @0044f270>
+#define Map3D_SetBlockVertexModified ((void (__cdecl* )(Map3D* map, uint32 vx, uint32 vy))0x0044f270)
+
+// <LegoRR.exe @0044f2b0>
+#define Map3D_Update ((void (__cdecl* )(Map3D* map, real32 elapsedGame))0x0044f2b0)
+
+// <LegoRR.exe @0044f350>
+#define Map3D_UpdateFadeInTransitions ((void (__cdecl* )(Map3D* map, real32 elapsedGame))0x0044f350)
+
+// <LegoRR.exe @0044f460>
+#define Map3D_AddTextureCoordMapping ((void (__cdecl* )(Map3D* map, SurfaceTexture texA, SurfaceTexture texB))0x0044f460)
+
+// <LegoRR.exe @0044f4e0>
+#define Map3D_SetTextureSet ((void (__cdecl* )(Map3D* map, Detail_TextureSet* tset))0x0044f4e0)
+
+// <LegoRR.exe @0044f4f0>
+#define Map3D_SetBlockTexture ((void (__cdecl* )(Map3D* map, uint32 bx, uint32 by, SurfaceTexture newTexture, uint8 direction))0x0044f4f0)
+
+// <LegoRR.exe @0044f640>
+#define Map3D_MoveBlockVertices ((void (__cdecl* )(Map3D* map, uint32 bx, uint32 by, real32 zDist))0x0044f640)
+
+// <LegoRR.exe @0044f750>
+#define Map3D_SetPerspectiveCorrectionAll ((void (__cdecl* )(Map3D* map, bool32 on))0x0044f750)
+
+// <LegoRR.exe @0044f7a0>
+#define Map3D_SetBlockHighlight ((WallHighlightType (__cdecl* )(Map3D* map, sint32 bx, sint32 by, WallHighlightType highlightType))0x0044f7a0)
+
+// <LegoRR.exe @0044f800>
+#define Map3D_GetBlockHighlight ((WallHighlightType (__cdecl* )(Map3D* map, sint32 bx, sint32 by))0x0044f800)
+
+// <LegoRR.exe @0044f830>
+#define Map3D_ClearBlockHighlight ((void (__cdecl* )(Map3D* map, sint32 bx, sint32 by))0x0044f830)
+
+// <LegoRR.exe @0044f880>
+#define Map3D_Block_SetColour ((void (__cdecl* )(Map3D* map, sint32 bx, sint32 by, bool32 setColour, real32 r, real32 g, real32 b))0x0044f880)
+
+// <LegoRR.exe @0044f900>
+#define Map3D_BlockToWorldPos ((bool32 (__cdecl* )(Map3D* map, uint32 bx, uint32 by, OUT real32* xPos, OUT real32* yPos))0x0044f900)
+
+// <LegoRR.exe @0044f990>
+#define Map3D_WorldToBlockPos_NoZ ((bool32 (__cdecl* )(Map3D* map, real32 xPos, real32 yPos, OUT sint32* bx, OUT sint32* by))0x0044f990)
+
+// <LegoRR.exe @0044f9c0>
+#define Map3D_WorldToBlockPos ((bool32 (__cdecl* )(Map3D* map, real32 xPos, real32 yPos, sint32* bx, sint32* by, OUT real32* unk_zPos))0x0044f9c0)
+
+// <LegoRR.exe @0044fad0>
+#define Map3D_FUN_0044fad0 ((void (__cdecl* )(Map3D* map, real32 xPos, real32 yPos, sint32* bx, sint32* by))0x0044fad0)
+
+// <LegoRR.exe @0044fb30>
+#define Map3D_FUN_0044fb30 ((bool32 (__cdecl* )(Map3D* map, Point2F* param_2, Point2F* param_3, Point2F* param_4))0x0044fb30)
+
+// <LegoRR.exe @0044fc00>
+#define Map3D_GetWorldZ ((real32 (__cdecl* )(Map3D* map, real32 xPos, real32 yPos))0x0044fc00)
+
+// <LegoRR.exe @0044fd70>
+#define Map3D_FUN_0044fd70 ((void (__cdecl* )(Map3D* map, real32 in_x, real32 in_y, Vector3F* out_vector))0x0044fd70)
+
+// <LegoRR.exe @0044fe50>
+#define Map3D_FUN_0044fe50 ((bool32 (__cdecl* )(Map3D* map, real32 in_x, real32 in_y, bool32 gap, real32 unkMultiplier, real32* out_x, real32* out_y))0x0044fe50)
+
+// <LegoRR.exe @00450130>
+#define Map3D_UnkCameraXYFunc_RetZunk ((real32 (__cdecl* )(Map3D* map, real32 xPos, real32 yPos))0x00450130)
+
+// <LegoRR.exe @00450320>
+#define Map3D_GetBlockFirstVertexPosition ((void (__cdecl* )(Map3D* map, sint32 vx, sint32 vy, Vector3F* out_vector))0x00450320)
+
+// <LegoRR.exe @00450390>
+#define Map3D_GetBlockVertexPositions ((bool32 (__cdecl* )(Map3D* map, uint32 bx, uint32 by, OUT Vector3F* vertPoses))0x00450390)
+
+// <LegoRR.exe @004504e0>
+#define Map3D_GetBlockVertexPositions_NoRot ((void (__cdecl* )(Map3D* map, uint32 bx, uint32 by, Vector3F* out_vertPoses))0x004504e0)
+
+// <LegoRR.exe @00450580>
+#define Map3D_IsInsideDimensions ((bool32 (__cdecl* )(Map3D* map, uint32 bx, uint32 by))0x00450580)
+
+// <LegoRR.exe @004505a0>
+#define Map3D_GetIntersections ((bool32 (__cdecl* )(Map3D* map, Gods98::Viewport* view, uint32 mouseX, uint32 mouseY, OUT uint32* bx, OUT uint32* by, OUT Vector3F* vector))0x004505a0)
+
+// <LegoRR.exe @00450820>
+#define Map3D_Intersections_Sub1_FUN_00450820 ((bool32 (__cdecl* )(Map3D* map, const Vector3F* rayOrigin, const Vector3F* ray, OUT Vector3F* endPoint, OUT Point2I* blockPos, sint32 unkCount))0x00450820)
+
+// <LegoRR.exe @004508c0>
+#define Map3D_AddVisibleBlocksInRadius_AndDoCallbacks ((void (__cdecl* )(Map3D* map, sint32 bx, sint32 by, sint32 radius, XYCallback opt_callback))0x004508c0)
+
+// <LegoRR.exe @004509c0>
+#define Map3D_HideBlock ((void (__cdecl* )(Map3D* map, sint32 bx, sint32 by, bool32 hide))0x004509c0)
+
+// <LegoRR.exe @004509f0>
+#define Map3D_AddVisibleBlock ((void (__cdecl* )(Map3D* map, sint32 bx, sint32 by))0x004509f0)
+
+// <LegoRR.exe @00450a40>
+#define Map3D_HideVisibleBlocksList ((void (__cdecl* )(Map3D* map))0x00450a40)
+
+// <LegoRR.exe @00450a90>
+#define Map3D_BlockVertexToWorldPos ((void (__cdecl* )(Map3D* map, uint32 bx, uint32 by, OUT real32* xPos, OUT real32* yPos, OUT real32* zPos))0x00450a90)
+
+// <LegoRR.exe @00450b50>
+#define Map3D_BlockSize ((real32 (__cdecl* )(Map3D* map))0x00450b50)
+
+// <LegoRR.exe @00450b60>
+#define Map3D_CheckRoutingComparison_FUN_00450b60 ((sint32 (__cdecl* )(sint32 param_1, sint32 param_2, sint32 param_3, sint32 param_4))0x00450b60)
+
+// <LegoRR.exe @00450c20>
+#define Map3D_SetBlockUVWobbles ((void (__cdecl* )(Map3D* map, uint32 bx, uint32 by, bool32 on))0x00450c20)
+
+// <LegoRR.exe @00450d40>
+#define Map3D_SetEmissive ((void (__cdecl* )(Map3D* map, bool32 on))0x00450d40)
+
+// <LegoRR.exe @00450e20>
+#define Map3D_UpdateTextureUVs ((void (__cdecl* )(Map3D* map, real32 elapsedGame))0x00450e20)
+
+// <LegoRR.exe @004511f0>
+#define Map3D_UpdateBlockNormals ((void (__cdecl* )(Map3D* map, uint32 bx, uint32 by))0x004511f0)
+
+// <LegoRR.exe @00451440>
+#define Map3D_BlockPairHasTextureMatch ((bool32 (__cdecl* )(Map3D* map, uint32 bx1, uint32 by1, uint32 bx2, uint32 by2))0x00451440)
+
+// <LegoRR.exe @004514f0>
+#define Map3D_SetBlockDirectionNormal ((void (__cdecl* )(Map3D* map, uint32 bx, uint32 by, Direction direction, Vector3F* normal))0x004514f0)
+
+// <LegoRR.exe @00451590>
+#define Map3D_GetBlockDirectionNormal ((bool32 (__cdecl* )(Map3D* map, uint32 bx, uint32 by, Direction direction, Vector3F* out_normal))0x00451590)
+
+// <LegoRR.exe @00451710>
+#define Map3D_MoveBlockDirectionVertex ((void (__cdecl* )(Map3D* map, uint32 bx, uint32 by, Direction direction, Vector3F* vertDist))0x00451710)
+
+// <LegoRR.exe @004517b0>
+#define Map3D_GenerateBlockPlaneNormals ((void (__cdecl* )(Map3D* map, uint32 bx, uint32 by))0x004517b0)
+
+// <LegoRR.exe @00451860>
+#define Map3D_MapFileGetSpecs ((void (__cdecl* )(MapFileInfo* mapFileInfo, uint32* out_width, uint32* out_height))0x00451860)
+
+// <LegoRR.exe @00451880>
+#define Map3D_MapFileBlockValue ((uint16 (__cdecl* )(MapFileInfo* mapFile, uint32 bx, uint32 by, uint32 gridWidth))0x00451880)
+
+// <LegoRR.exe @004518a0>
+#define Map3D_Intersections_Sub2_FUN_004518a0 ((bool32 (__cdecl* )(Map3D* map, uint32 bx, uint32 by, Vector3F* param_4, Vector3F* param_5, OUT Vector3F* vector))0x004518a0)
 
 #pragma endregion
 

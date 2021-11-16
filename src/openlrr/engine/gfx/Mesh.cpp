@@ -28,6 +28,8 @@
 // <LegoRR.exe @005353c0>
 Gods98::Mesh_Globs & Gods98::meshGlobs = *(Gods98::Mesh_Globs*)0x005353c0; // = { nullptr };
 
+Gods98::Mesh_ListSet Gods98::meshListSet = Gods98::Mesh_ListSet(Gods98::meshGlobs);
+
 #pragma endregion
 
 /**********************************************************************************
@@ -43,7 +45,7 @@ bool32 __cdecl Gods98::Mesh_Initialise(const char* sharedTextureDir)
 
 	Mesh_ClearPostRenderList();
 	
-	if (sharedTextureDir){
+	if (sharedTextureDir) {
 		uint32 len = std::strlen(sharedTextureDir);
 		if (sharedTextureDir[len-1] != '\\') len++;
 		meshGlobs.sharedTextureDir = (char*)Mem_Alloc(len+1);
@@ -52,12 +54,13 @@ bool32 __cdecl Gods98::Mesh_Initialise(const char* sharedTextureDir)
 		meshGlobs.sharedTextureDir[len] = '\0';
 	}
 
-	for (uint32 loop=0 ; loop<MESH_MAXLISTS ; loop++){
+	meshListSet.Initialise();
+	/*for (uint32 loop = 0; loop < MESH_MAXLISTS; loop++) {
 		meshGlobs.listSet[loop] = nullptr;
 	}
 
 	meshGlobs.freeList = nullptr;
-	meshGlobs.listCount = 0;
+	meshGlobs.listCount = 0;*/
 
 	Mesh_CreateGlobalMaterial();
 
@@ -68,8 +71,7 @@ bool32 __cdecl Gods98::Mesh_Initialise(const char* sharedTextureDir)
 bool32 __cdecl Gods98::Mesh_CreateGlobalMaterial(void)
 {
 	LPDIRECT3D3 imd3d;
-	D3DMATERIAL material =
-	{
+	D3DMATERIAL material = {
 		sizeof(D3DMATERIAL),
 		{ 1.0f, 1.0f, 1.0f, 1.0f },
 		/// OLD GODS98: Ambient set to 0.0f for RGBA
@@ -85,28 +87,26 @@ bool32 __cdecl Gods98::Mesh_CreateGlobalMaterial(void)
 
 	Mesh_Debug_CheckIMDevice_Int();
 	
-	lpIMDevice()->GetDirect3D( &imd3d );
+	lpIMDevice()->GetDirect3D(&imd3d);
 	
-	if( imd3d->CreateMaterial( &meshGlobs.imMat, nullptr ) != D3D_OK )
-	{	
-		Error_Warn( true, "Cannot 'CreateMaterial'." );
-		RELEASE( imd3d );
+	if (imd3d->CreateMaterial(&meshGlobs.imMat, nullptr) != D3D_OK ) {	
+		Error_Warn(true, "Cannot 'CreateMaterial'.");
+		RELEASE(imd3d);
 
 		return false;
 	}
 
-	if( meshGlobs.imMat->GetHandle(lpIMDevice(), &meshGlobs.matHandle) != D3D_OK )
-	{	
-		Error_Warn(true, "Cannot 'GetHandle' for material." );
-		RELEASE( imd3d );
+	if (meshGlobs.imMat->GetHandle(lpIMDevice(), &meshGlobs.matHandle) != D3D_OK) {	
+		Error_Warn(true, "Cannot 'GetHandle' for material.");
+		RELEASE(imd3d);
 
 		return false;
 	}
 
 	//SET UP ANY MATERIAL AS DEFAULT
-	Mesh_SetMaterial( &material );
+	Mesh_SetMaterial(&material);
 
-	RELEASE( imd3d );
+	RELEASE(imd3d);
 
 	return true;
 }
@@ -116,9 +116,8 @@ bool32 __cdecl Gods98::Mesh_SetMaterial(D3DMATERIAL* newMaterial)
 {
 	Mesh_Debug_CheckIMDevice_Int();
 
-	if( meshGlobs.imMat->SetMaterial(newMaterial) != D3D_OK )
-	{	
-		Error_Warn( true, "Cannot 'SetMaterial'." );
+	if (meshGlobs.imMat->SetMaterial(newMaterial) != D3D_OK) {	
+		Error_Warn(true, "Cannot 'SetMaterial'.");
 
 		return false;
 	}
@@ -129,12 +128,13 @@ bool32 __cdecl Gods98::Mesh_SetMaterial(D3DMATERIAL* newMaterial)
 // <LegoRR.exe @00480a60>
 Gods98::Mesh* __cdecl Gods98::Mesh_ObtainFromList(void)
 {
-	if (meshGlobs.freeList == nullptr) Mesh_AddList();
+	Mesh* newMesh = meshListSet.Add(true); // Memzero before returning.
+	/*if (meshGlobs.freeList == nullptr) Mesh_AddList();
 
 	Mesh* newMesh = meshGlobs.freeList;
 	meshGlobs.freeList = newMesh->nextFree;
 	std::memset(newMesh, 0, sizeof(Mesh));
-	newMesh->nextFree = newMesh;
+	newMesh->nextFree = newMesh;*/
 
 	// Initialise any elements of your structure here...
 
@@ -144,60 +144,64 @@ Gods98::Mesh* __cdecl Gods98::Mesh_ObtainFromList(void)
 // <LegoRR.exe @00480a90>
 void __cdecl Gods98::Mesh_ReturnToList(Mesh* dead)
 {
-	Error_Fatal(!dead, "NULL passed to Mesh_Remove()");
+	Error_Fatal(!dead, "NULL passed to Mesh_ReturnToList()");
 
-	dead->nextFree = meshGlobs.freeList;
-	meshGlobs.freeList = dead;
+	meshListSet.Remove(dead);
+	/*dead->nextFree = meshGlobs.freeList;
+	meshGlobs.freeList = dead;*/
 }
 
 // <LegoRR.exe @00480ab0>
 void __cdecl Gods98::Mesh_AddList(void)
 {
-	Error_Fatal(meshGlobs.listCount+1 >= MESH_MAXLISTS, "Run out of lists");
+	// NOTE: This function is no longer called, meshListSet.Add already does so.
+	meshListSet.AddList();
+	/*Error_Fatal(meshGlobs.listCount+1 >= MESH_MAXLISTS, "Run out of lists");
 
 	uint32 count = 0x00000001 << meshGlobs.listCount;
 
 	Mesh* list;
-	if (list = meshGlobs.listSet[meshGlobs.listCount] = (Mesh*)Mem_Alloc(sizeof(Mesh) * count)){
+	if (list = meshGlobs.listSet[meshGlobs.listCount] = (Mesh*)Mem_Alloc(sizeof(Mesh) * count)) {
 
 		meshGlobs.listCount++;
 
-		for (uint32 loop=1 ; loop<count ; loop++){
+		for (uint32 loop = 1; loop < count; loop++) {
 
 			list[loop-1].nextFree = &list[loop];
 		}
 		list[count-1].nextFree = meshGlobs.freeList;
 		meshGlobs.freeList = list;
 
-	} else Error_Fatal(true, Error_Format("Unable to allocate %d bytes of memory for new list.\n", sizeof(Mesh) * count));
+	}
+	else Error_Fatal(true, Error_Format("Unable to allocate %d bytes of memory for new list.\n", sizeof(Mesh) * count));*/
 }
 
 // <LegoRR.exe @00480b30>
 Gods98::Mesh* __cdecl Gods98::Mesh_CreateOnFrame(IDirect3DRMFrame3* frame, MeshRenderCallback renderFunc,
 	Mesh_RenderFlags renderFlags, void* data, Mesh_Type type)
 {
-//	Mesh* mesh = Mem_Alloc( sizeof(Mesh) );
+//	Mesh* mesh = Mem_Alloc(sizeof(Mesh));
 	Mesh* mesh = Mesh_ObtainFromList();
 	Container* rootCont = Container_GetRoot();
 
 
 	Mesh_Debug_CheckIMDevice_Ptr(Mesh*);
 
-//	std::memset( mesh, 0, sizeof(Mesh) );
+//	std::memset(mesh, 0, sizeof(Mesh));
 
-	lpD3DRM()->CreateUserVisual( Mesh_RenderCallback, mesh, &mesh->uv );
-	Container_NoteCreation( mesh->uv );
-	frame->AddVisual( (IUnknown*) mesh->uv );
-	mesh->uv->SetAppData( (DWORD) mesh );
+	lpD3DRM()->CreateUserVisual(Mesh_RenderCallback, mesh, &mesh->uv);
+	Container_NoteCreation(mesh->uv);
+	frame->AddVisual((IUnknown*) mesh->uv);
+	mesh->uv->SetAppData((DWORD) mesh);
 	mesh->frameCreatedOn = frame;
 
 	mesh->renderDesc.renderCallback = renderFunc;
 	mesh->renderDesc.renderCallbackData = data;
 	mesh->renderDesc.renderFlags = renderFlags;
 
-	if( type == Mesh_Type::PostEffect )
+	if (type == Mesh_Type::PostEffect)
 		mesh->flags |= MeshFlags::MESH_FLAG_POSTEFFECT;
-	else if( type == Mesh_Type::LightWaveObject )
+	else if (type == Mesh_Type::LightWaveObject)
 		mesh->flags |= MeshFlags::MESH_FLAG_LWO;
 
 	mesh->numOfRefs = 1;
@@ -213,23 +217,26 @@ Gods98::Mesh* __cdecl Gods98::Mesh_Clone(Gods98::Mesh* mesh, IDirect3DRMFrame3* 
 {
 //	Mesh* newMesh = Mem_Alloc(sizeof(Mesh));
 	Mesh* newMesh = Mesh_ObtainFromList();
-	HRESULT r;
 
 	if (mesh->clonedFrom) mesh = mesh->clonedFrom;
 
+	/// FIXME: Handle this properly.
+	//meshListSet.Clone(newMesh, mesh);
 	*newMesh = *mesh;
+	newMesh->nextFree = newMesh;
+
 	newMesh->clonedFrom = mesh;
 
 	newMesh->listSize = newMesh->groupCount;
 	newMesh->groupList = (Mesh_Group*)Mem_Alloc(sizeof(Mesh_Group) * newMesh->groupCount);
 	std::memcpy(newMesh->groupList, mesh->groupList, sizeof(Mesh_Group) * newMesh->groupCount);
 
-	for (uint32 loop=0 ; loop<newMesh->groupCount ; loop++) {
+	for (uint32 loop = 0; loop<newMesh->groupCount; loop++) {
 		Mesh_CreateGroupMaterial(newMesh, loop);
 		Mesh_SetGroupMaterial(newMesh, loop, &mesh->groupList[loop].material);
 	}
 
-	r = lpD3DRM()->CreateUserVisual(Mesh_RenderCallback, newMesh, &newMesh->uv);
+	HRESULT r = lpD3DRM()->CreateUserVisual(Mesh_RenderCallback, newMesh, &newMesh->uv);
 	Container_NoteCreation(newMesh->uv);
 	frame->AddVisual((IUnknown*) newMesh->uv);
 	newMesh->uv->SetAppData((DWORD) newMesh);
@@ -246,27 +253,22 @@ Gods98::Mesh* __cdecl Gods98::Mesh_Clone(Gods98::Mesh* mesh, IDirect3DRMFrame3* 
 // <LegoRR.exe @00480ca0>
 Gods98::Mesh* __cdecl Gods98::Mesh_Load(const char* fname, IDirect3DRMFrame3* frame, bool32 noTextures)
 {
-	APPOBJ* lightWaveObject;
-	Mesh* mesh;
 	char path[FILE_MAXPATH];
-	char* s;
+
+	std::strcpy(path, fname);
+
 	char* t;
-
-
-	std::strcpy( path, fname );
-	for( s = t = path; *s != '\0'; s++ )
-	{
-		if( *s == '\\')
+	for (char* s = t = path; *s != '\0'; s++) {
+		if (*s == '\\')
 			t = s;
 	}
-	*( t + (t != path ? 1 : 0) ) = '\0';
+	t[ (t!=path ? 1 : 0) ] = '\0'; // Remove final backslash to get directory name.
 
-//	if( LoadAppObj(fname, &lightWaveObject, true) )
-	if( LoadAppObj(fname, &lightWaveObject, false) )
-	{
-		mesh = Mesh_CreateOnFrame( frame, nullptr, Mesh_RenderFlags::MESH_RENDERFLAGS_LWOALPHA, nullptr, Mesh_Type::LightWaveObject );
-		Mesh_ParseLWO( path, mesh, lightWaveObject, noTextures );
-		FreeLWOB( lightWaveObject );
+	APPOBJ* lightWaveObject;
+	if (LoadAppObj(fname, &lightWaveObject, false)) {
+		Mesh* mesh = Mesh_CreateOnFrame(frame, nullptr, Mesh_RenderFlags::MESH_RENDERFLAGS_LWOALPHA, nullptr, Mesh_Type::LightWaveObject);
+		Mesh_ParseLWO(path, mesh, lightWaveObject, noTextures);
+		FreeLWOB(lightWaveObject);
 
 		return mesh;
 	} 
@@ -292,46 +294,48 @@ bool32 __cdecl Gods98::Mesh_ParseLWO(const char* basePath, Mesh* mesh, APPOBJ* l
 	Vector3F* vertexNorm;
 	Point2F* vertexUVs = nullptr;
 	Point2F* surfTextCoords;
-	uint32 size = lightWaveObject->aoSize.lwVertCount*2;
-	uint32 fDSize = lightWaveObject->aoSize.lwPolyCount*6;
+	uint32 size = (lightWaveObject->aoSize.lwVertCount * 2);
+	uint32 fDSize = (lightWaveObject->aoSize.lwPolyCount * 6);
 //	bool32 first = true;
-	uint32 vertexIndex, surfArraySize, surfFDArraySize;
+	uint32 surfArraySize, surfFDArraySize;
+	//uint32 vertexIndex;
 
 
-	Error_Fatal( !lightWaveObject->aoSize.lwSurfaceCount, "LightWave object must contain at least one surface." );
+	Error_Fatal(!lightWaveObject->aoSize.lwSurfaceCount, "LightWave object must contain at least one surface.");
 
 #define MESH_MAXPOLYSPERVETEX		20
 
 	//GET TEXTURE AND TEXTURE COORDINATES FOR VERTICES IF UVIEW FILE EXISTS
 	//NEED TO CALL THIS FIRST BECAUSE THE LIGHTWAVE STRUCTURE MAY BE ALTERED
-	if( lightWaveObject->aoFileUV )
-	{	vertexUVs = (Point2F*)Mem_Alloc( sizeof(Point2F) * size * MESH_MAXPOLYSPERVETEX);
-		Mesh_UViewMesh( lightWaveObject, vertexUVs );
+	if (lightWaveObject->aoFileUV) {
+		vertexUVs = (Point2F*)Mem_Alloc(sizeof(Point2F) * size * MESH_MAXPOLYSPERVETEX);
+
+		Mesh_UViewMesh(lightWaveObject, vertexUVs);
 		Error_Fatal(size * MESH_MAXPOLYSPERVETEX < lightWaveObject->aoSize.lwVertCount, "MESH_MAXPOLYSPERVETEX too small");
 
-		size = lightWaveObject->aoSize.lwVertCount*2;
-		surfTextCoords = (Point2F*)Mem_Alloc( sizeof(Point2F) * lightWaveObject->aoSize.lwSurfaceCount * size );
+		size = (lightWaveObject->aoSize.lwVertCount * 2);
+		surfTextCoords = (Point2F*)Mem_Alloc(sizeof(Point2F) * lightWaveObject->aoSize.lwSurfaceCount * size);
 	}
-	else
-		surfTextCoords = (Point2F*)Mem_Alloc( sizeof(Point2F) * size );
-
+	else {
+		surfTextCoords = (Point2F*)Mem_Alloc(sizeof(Point2F) * size);
+	}
 
 	//ALLOCATE MEMORY FOR OBJECT
-	surfArraySize = lightWaveObject->aoSize.lwSurfaceCount*size;
+	surfArraySize = (lightWaveObject->aoSize.lwSurfaceCount * size);
 
-	surfVertices = (Vector3F*)Mem_Alloc( sizeof(Vector3F) * surfArraySize );
-	surfVerticesNorm = (Vector3F**)Mem_Alloc( sizeof(Vector3F*) * surfArraySize ); // yes, sizeof(void*), not sizeof(Vector3F)
-	surfVertexCount = (uint32*)Mem_Alloc( sizeof(uint32) * lightWaveObject->aoSize.lwSurfaceCount );
-	surfVertexRef = (uint32*)Mem_Alloc( sizeof(uint32) * surfArraySize );
-	surfFaceData = (uint32*)Mem_Alloc( sizeof(uint32) * (lightWaveObject->aoSize.lwSurfaceCount*fDSize) );
-	surfFaceDataCount = (uint32*)Mem_Alloc( sizeof(uint32) * lightWaveObject->aoSize.lwSurfaceCount );
-	faceNorm = (Vector3F*)Mem_Alloc( sizeof(Vector3F) * lightWaveObject->aoSize.lwPolyCount );
-	vertexNorm = (Vector3F*)Mem_Alloc( sizeof(Vector3F) * size );
+	surfVertices     =  (Vector3F*)Mem_Alloc(sizeof(Vector3F) * surfArraySize);
+	surfVerticesNorm = (Vector3F**)Mem_Alloc(sizeof(Vector3F*) * surfArraySize); // yes, sizeof(void*), not sizeof(Vector3F)
+	surfVertexCount  =    (uint32*)Mem_Alloc(sizeof(uint32) * lightWaveObject->aoSize.lwSurfaceCount);
+	surfVertexRef    =    (uint32*)Mem_Alloc(sizeof(uint32) * surfArraySize );
+	surfFaceData     =    (uint32*)Mem_Alloc(sizeof(uint32) * (lightWaveObject->aoSize.lwSurfaceCount*fDSize));
+	surfFaceDataCount =   (uint32*)Mem_Alloc(sizeof(uint32) * lightWaveObject->aoSize.lwSurfaceCount);
+	faceNorm         =  (Vector3F*)Mem_Alloc(sizeof(Vector3F) * lightWaveObject->aoSize.lwPolyCount);
+	vertexNorm       =  (Vector3F*)Mem_Alloc(sizeof(Vector3F) * size);
 	
-	std::memset( surfVertexCount, 0, sizeof(uint32) * lightWaveObject->aoSize.lwSurfaceCount );
-	std::memset( surfVertexRef, -1, sizeof(uint32) * surfArraySize );
-	std::memset( surfFaceDataCount, 0, sizeof(uint32) * lightWaveObject->aoSize.lwSurfaceCount );
-	std::memset( vertexNorm, 0, sizeof(Vector3F) * size );
+	std::memset(surfVertexCount,   0, sizeof(uint32) * lightWaveObject->aoSize.lwSurfaceCount);
+	std::memset(surfVertexRef,    -1, sizeof(uint32) * surfArraySize);
+	std::memset(surfFaceDataCount, 0, sizeof(uint32) * lightWaveObject->aoSize.lwSurfaceCount);
+	std::memset(vertexNorm,        0, sizeof(Vector3F) * size);
 	
 
 	mesh->lightWaveSurf = (Mesh_LightWave_Surface*)Mem_Alloc( sizeof( Mesh_LightWave_Surface ) * lightWaveObject->aoSize.lwSurfaceCount );
@@ -339,12 +343,10 @@ bool32 __cdecl Gods98::Mesh_ParseLWO(const char* basePath, Mesh* mesh, APPOBJ* l
 
 
 	//STORE FACE NORMALS FOR GOURAUD SHADING - ASSUMES ALL POLYS ARE PLANAR
-	for(uint32 face = 0; face < lightWaveObject->aoSize.lwPolyCount; face++ )
-	{
+	for (uint32 face = 0; face < lightWaveObject->aoSize.lwPolyCount; face++) {
 		Vector3F pos[3];
-		for(uint32 vertex = 0; vertex < 3; vertex++ )
-		{	
-			vertexIndex = lightWaveObject->aoPoly[face].plyData[vertex] * 3;
+		for (uint32 vertex = 0; vertex < 3; vertex++) {	
+			uint32 vertexIndex = lightWaveObject->aoPoly[face].plyData[vertex] * 3;
 			
 			pos[vertex].x = lightWaveObject->aoVerts[ vertexIndex ];
 			pos[vertex].y = lightWaveObject->aoVerts[ vertexIndex + 1 ];
@@ -352,40 +354,35 @@ bool32 __cdecl Gods98::Mesh_ParseLWO(const char* basePath, Mesh* mesh, APPOBJ* l
 
 		}
 			
-		Maths_PlaneNormal( &faceNorm[face], &pos[0], &pos[1], &pos[2] );
-
+		Maths_PlaneNormal(&faceNorm[face], &pos[0], &pos[1], &pos[2]);
 	}
 
 
 //	//GET TEXTURE AND TEXTURE COORDINATES FOR VERTICES IF UVIEW FILE EXISTS
-//	if( lightWaveObject->aoFileUV )
-//	{	vertexUVs = Mem_Alloc( sizeof(VECTOR2D) * size );
-//		surfTextCoords = Mem_Alloc( sizeof(VECTOR2D) * (lightWaveObject->aoSize.lwSurfaceCount*size) );
+//	if (lightWaveObject->aoFileUV) {
+//		vertexUVs = (Point2F*)Mem_Alloc(sizeof(Point2F) * size);
+//		surfTextCoords = (Point2F*)Mem_Alloc(sizeof(Point2F) * (lightWaveObject->aoSize.lwSurfaceCount*size));
 //
-//		Mesh_UViewMesh( lightWaveObject, vertexUVs );
+//		Mesh_UViewMesh(lightWaveObject, vertexUVs);
 //	}
 //	else
-//		surfTextCoords = Mem_Alloc( sizeof(VECTOR2D) * size );
+//		surfTextCoords = (Point2F*)Mem_Alloc(sizeof(Point2F) * size);
 
 
 	//READ SURFACE INFORMATION
-	Mesh_GetSurfInfo( basePath, lightWaveObject, mesh->lightWaveSurf, noTextures);
+	Mesh_GetSurfInfo(basePath, lightWaveObject, mesh->lightWaveSurf, noTextures);
 
 
 	//READ VERTEX INFORMATION
-	for(uint32 face = 0; face < lightWaveObject->aoSize.lwPolyCount; face++ )
-	{
+	for (uint32 face = 0; face < lightWaveObject->aoSize.lwPolyCount; face++) {
 		surfArraySize = lightWaveObject->aoPoly[face].plySurface * size;
 		surfFDArraySize = lightWaveObject->aoPoly[face].plySurface * fDSize;
 
-		if( lightWaveObject->aoPoly[face].plyCount == 3 )
-		{
-			for(uint32 vertex = 0; vertex < 3; vertex++ )
-			{	
-				vertexIndex = lightWaveObject->aoPoly[face].plyData[vertex] * 3;
+		if (lightWaveObject->aoPoly[face].plyCount == 3) {
+			for (uint32 vertex = 0; vertex < 3; vertex++) {	
+				uint32 vertexIndex = lightWaveObject->aoPoly[face].plyData[vertex] * 3;
 
-				if( surfVertexRef[ surfArraySize + lightWaveObject->aoPoly[face].plyData[vertex] ] == -1 )
-				{	
+				if (surfVertexRef[ surfArraySize + lightWaveObject->aoPoly[face].plyData[vertex] ] == -1) {	
 					//STORE NEW VERTEX IN SURFACE LIST
 					surfVertices[ surfArraySize + surfVertexCount[lightWaveObject->aoPoly[face].plySurface] ].x
 						= lightWaveObject->aoVerts[ vertexIndex ];
@@ -394,11 +391,11 @@ bool32 __cdecl Gods98::Mesh_ParseLWO(const char* basePath, Mesh* mesh, APPOBJ* l
 					surfVertices[ surfArraySize + surfVertexCount[lightWaveObject->aoPoly[face].plySurface] ].z
 						= lightWaveObject->aoVerts[ vertexIndex + 2 ];
 
-					if( lightWaveObject->aoFileUV )
+					if (lightWaveObject->aoFileUV)
 						surfTextCoords[ surfArraySize + surfVertexCount[lightWaveObject->aoPoly[face].plySurface] ] = vertexUVs[ lightWaveObject->aoPoly[face].plyData[vertex] ];
 					
-//					if(	first )
-//					{	mesh->boundingBox.min = surfVertices[ (surfArraySize) + surfVertexCount[lightWaveObject->aoPoly[face].plySurface] ];
+//					if (first) {
+//						mesh->boundingBox.min = surfVertices[ (surfArraySize) + surfVertexCount[lightWaveObject->aoPoly[face].plySurface] ];
 //						mesh->boundingBox.max = surfVertices[ (surfArraySize) + surfVertexCount[lightWaveObject->aoPoly[face].plySurface] ];
 //						first = false;
 //					}
@@ -406,10 +403,10 @@ bool32 __cdecl Gods98::Mesh_ParseLWO(const char* basePath, Mesh* mesh, APPOBJ* l
 //						Mesh_UpdateBoundingBox( &mesh->boundingBox, &surfVertices[ (surfArraySize) + surfVertexCount[lightWaveObject->aoPoly[face].plySurface] ] );
 					
 					//ADD VERTEX FACE NORMAL TO CURRENT VERTEX NORMAL
-					Maths_Vector3DAdd( &vertexNorm[ lightWaveObject->aoPoly[face].plyData[vertex] ],
+					Maths_Vector3DAdd(&vertexNorm[ lightWaveObject->aoPoly[face].plyData[vertex] ],
 						&vertexNorm[ lightWaveObject->aoPoly[face].plyData[vertex] ],
-						&faceNorm[ face ] );
-					Maths_Vector3DNormalise( &vertexNorm[ lightWaveObject->aoPoly[face].plyData[vertex] ] );
+						&faceNorm[ face ]);
+					Maths_Vector3DNormalise(&vertexNorm[ lightWaveObject->aoPoly[face].plyData[vertex] ]);
 					surfVerticesNorm[ surfArraySize + surfVertexCount[lightWaveObject->aoPoly[face].plySurface] ] 
 						= &vertexNorm[ lightWaveObject->aoPoly[face].plyData[vertex] ];
 
@@ -422,13 +419,12 @@ bool32 __cdecl Gods98::Mesh_ParseLWO(const char* basePath, Mesh* mesh, APPOBJ* l
 						= surfVertexCount[lightWaveObject->aoPoly[face].plySurface]++;
 
 				}
-				else
-				{
+				else {
 					//ADD VERTEX FACE NORMAL TO CURRENT VERTEX NORMAL
-					Maths_Vector3DAdd( &vertexNorm[ lightWaveObject->aoPoly[face].plyData[vertex] ],
+					Maths_Vector3DAdd(&vertexNorm[ lightWaveObject->aoPoly[face].plyData[vertex] ],
 						&vertexNorm[ lightWaveObject->aoPoly[face].plyData[vertex] ],
-						&faceNorm[ face ] );
-					Maths_Vector3DNormalise( &vertexNorm[ lightWaveObject->aoPoly[face].plyData[vertex] ] );
+						&faceNorm[ face ]);
+					Maths_Vector3DNormalise(&vertexNorm[ lightWaveObject->aoPoly[face].plyData[vertex] ]);
 					
 					//GET VERTEX REFERENCE AND COPY TO FACE DATA
 					surfFaceData[ surfFDArraySize + surfFaceDataCount[lightWaveObject->aoPoly[face].plySurface]++ ] 
@@ -439,19 +435,16 @@ bool32 __cdecl Gods98::Mesh_ParseLWO(const char* basePath, Mesh* mesh, APPOBJ* l
 			}
 
 		}
-//		else if( lightWaveObject->aoPoly[face].plyCount == 4 )
-		else
-		{
-			Error_Warn( ( (lightWaveObject->aoPoly[face].plyCount != 4) && (lightWaveObject->aoPoly[face].plyCount != 3) ),
-				"Mesh contains polys which are not triples or quads." );
+//		else if (lightWaveObject->aoPoly[face].plyCount == 4)
+		else {
+			Error_Warn(((lightWaveObject->aoPoly[face].plyCount != 4) && (lightWaveObject->aoPoly[face].plyCount != 3)),
+				"Mesh contains polys which are not triples or quads.");
 
 			surfArraySize = lightWaveObject->aoPoly[face].plySurface * size;
 
-			for(uint32 vertex = 0; vertex < 6; vertex++ )
-			{
-				if( surfVertexRef[ surfArraySize + lightWaveObject->aoPoly[face].plyData[ faceDataQuad[vertex] ] ] == -1 )
-				{	
-					vertexIndex = lightWaveObject->aoPoly[face].plyData[ faceDataQuad[vertex] ] * 3;
+			for (uint32 vertex = 0; vertex < 6; vertex++) {
+				if (surfVertexRef[ surfArraySize + lightWaveObject->aoPoly[face].plyData[ faceDataQuad[vertex] ] ] == -1) {	
+					uint32 vertexIndex = lightWaveObject->aoPoly[face].plyData[ faceDataQuad[vertex] ] * 3;
 
 					//STORE NEW VERTEX IN SURFACE LIST
 					surfVertices[ surfArraySize + surfVertexCount[lightWaveObject->aoPoly[face].plySurface] ].x
@@ -461,22 +454,22 @@ bool32 __cdecl Gods98::Mesh_ParseLWO(const char* basePath, Mesh* mesh, APPOBJ* l
 					surfVertices[ surfArraySize + surfVertexCount[lightWaveObject->aoPoly[face].plySurface] ].z
 						= lightWaveObject->aoVerts[ vertexIndex + 2 ];
 
-					if( lightWaveObject->aoFileUV )
+					if (lightWaveObject->aoFileUV)
 						surfTextCoords[ surfArraySize + surfVertexCount[lightWaveObject->aoPoly[face].plySurface] ] = vertexUVs[ lightWaveObject->aoPoly[face].plyData[ faceDataQuad[vertex] ] ];
 
-//					if(	first )
-//					{	mesh->boundingBox.min = surfVertices[ (surfArraySize) + surfVertexCount[lightWaveObject->aoPoly[face].plySurface] ];
+//					if (first) {
+//						mesh->boundingBox.min = surfVertices[ (surfArraySize) + surfVertexCount[lightWaveObject->aoPoly[face].plySurface] ];
 //						mesh->boundingBox.max = surfVertices[ (surfArraySize) + surfVertexCount[lightWaveObject->aoPoly[face].plySurface] ];
 //						first = false;
 //					}
 //					else
-//						Mesh_UpdateBoundingBox( &mesh->boundingBox, &surfVertices[ (surfArraySize) + surfVertexCount[lightWaveObject->aoPoly[face].plySurface] ] );
+//						Mesh_UpdateBoundingBox(&mesh->boundingBox, &surfVertices[ (surfArraySize) + surfVertexCount[lightWaveObject->aoPoly[face].plySurface] ]);
 				
 					//ADD VERTEX FACE NORMAL TO CURRENT VERTEX NORMAL
-					Maths_Vector3DAdd( &vertexNorm[ lightWaveObject->aoPoly[face].plyData[ faceDataQuad[vertex] ] ],
+					Maths_Vector3DAdd(&vertexNorm[ lightWaveObject->aoPoly[face].plyData[ faceDataQuad[vertex] ] ],
 						&vertexNorm[ lightWaveObject->aoPoly[face].plyData[ faceDataQuad[vertex] ] ],
-						&faceNorm[ face ] );
-					Maths_Vector3DNormalise( &vertexNorm[ lightWaveObject->aoPoly[face].plyData[ faceDataQuad[vertex] ] ] );
+						&faceNorm[ face ]);
+					Maths_Vector3DNormalise(&vertexNorm[ lightWaveObject->aoPoly[face].plyData[ faceDataQuad[vertex] ] ]);
 					surfVerticesNorm[ surfArraySize + surfVertexCount[lightWaveObject->aoPoly[face].plySurface] ]
 						= &vertexNorm[ lightWaveObject->aoPoly[face].plyData[ faceDataQuad[vertex] ] ];
 
@@ -489,13 +482,12 @@ bool32 __cdecl Gods98::Mesh_ParseLWO(const char* basePath, Mesh* mesh, APPOBJ* l
 						= surfVertexCount[lightWaveObject->aoPoly[face].plySurface]++;
 
 				}
-				else
-				{
+				else {
 					//ADD VERTEX FACE NORMAL TO CURRENT VERTEX NORMAL
-					Maths_Vector3DAdd( &vertexNorm[ lightWaveObject->aoPoly[face].plyData[ faceDataQuad[vertex] ] ],
+					Maths_Vector3DAdd(&vertexNorm[ lightWaveObject->aoPoly[face].plyData[ faceDataQuad[vertex] ] ],
 						&vertexNorm[ lightWaveObject->aoPoly[face].plyData[ faceDataQuad[vertex] ] ],
-						&faceNorm[ face ] );
-					Maths_Vector3DNormalise( &vertexNorm[ lightWaveObject->aoPoly[face].plyData[ faceDataQuad[vertex] ] ] );
+						&faceNorm[ face ]);
+					Maths_Vector3DNormalise(&vertexNorm[ lightWaveObject->aoPoly[face].plyData[ faceDataQuad[vertex] ] ]);
 					
 					//GET VERTEX REFERENCE AND COPY TO FACE DATA
 					surfFaceData[ surfFDArraySize + surfFaceDataCount[lightWaveObject->aoPoly[face].plySurface]++ ] 
@@ -506,44 +498,43 @@ bool32 __cdecl Gods98::Mesh_ParseLWO(const char* basePath, Mesh* mesh, APPOBJ* l
 			}
 			
 		} 
-//		else Error_Fatal( true, "LightWave object contains corrupt data. Use only triples or quads." );
+//		else Error_Fatal(true, "LightWave object contains corrupt data. Use only triples or quads.");
 
 	}
 
 
 	//ADD A GROUP FOR EACH SURFACE IN OBJECT
-	for(uint32 loop = 0; loop < lightWaveObject->aoSize.lwSurfaceCount; loop++ )
-	{	
+	for (uint32 loop = 0; loop < lightWaveObject->aoSize.lwSurfaceCount; loop++) {	
 		surfArraySize = loop * size;
 		surfFDArraySize = loop * fDSize;
 
 		uint32 group = Mesh_AddGroup( mesh, surfFaceDataCount[loop], surfFaceDataCount[loop]/3, 3, &surfFaceData[surfFDArraySize] );
 
 		//SET NORMALS
-		if( !lightWaveObject->aoFileUV )
-		{	Mesh_GetTextureUVsWrap( surfVertexCount[loop], &surfVertices[surfArraySize], surfTextCoords,
+		if (!lightWaveObject->aoFileUV) {
+			Mesh_GetTextureUVsWrap(surfVertexCount[loop], &surfVertices[surfArraySize], surfTextCoords,
 				lightWaveObject->aoSurface[loop].srfTexSize.tdX, lightWaveObject->aoSurface[loop].srfTexSize.tdY, lightWaveObject->aoSurface[loop].srfTexSize.tdZ,
 				lightWaveObject->aoSurface[loop].srfTexCentre.tdX, lightWaveObject->aoSurface[loop].srfTexCentre.tdY, lightWaveObject->aoSurface[loop].srfTexCentre.tdZ,
-				lightWaveObject->aoSurface[loop].srfTexFlags );
+				lightWaveObject->aoSurface[loop].srfTexFlags);
 			
-			Mesh_SetVertices_VNT( mesh, group, 0, surfVertexCount[loop], &surfVertices[surfArraySize], &surfVerticesNorm[surfArraySize], surfTextCoords );
+			Mesh_SetVertices_VNT(mesh, group, 0, surfVertexCount[loop], &surfVertices[surfArraySize], &surfVerticesNorm[surfArraySize], surfTextCoords);
 		}
 		else
-			Mesh_SetVertices_VNT( mesh, group, 0, surfVertexCount[loop], &surfVertices[surfArraySize], &surfVerticesNorm[surfArraySize], &surfTextCoords[surfArraySize] );
+			Mesh_SetVertices_VNT(mesh, group, 0, surfVertexCount[loop], &surfVertices[surfArraySize], &surfVerticesNorm[surfArraySize], &surfTextCoords[surfArraySize]);
 
 		//ONLY ALTER RENDERING FLAGS FOR GROUP IF NEEDED
 		newFlags = Mesh_RenderFlags::MESH_RENDERFLAGS_LWONORM;
 
-		if( mesh->lightWaveSurf[loop].flags & LightWave_SurfFlags::SFM_ADDITIVE )
-		{	newFlags |= Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHASA1;
-			Mesh_AlterGroupRenderFlags( mesh, group, newFlags );
+		if (mesh->lightWaveSurf[loop].flags & LightWave_SurfFlags::SFM_ADDITIVE) {
+			newFlags |= Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHASA1;
+			Mesh_AlterGroupRenderFlags(mesh, group, newFlags);
 		}
 		else
 			newFlags |= Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHATRANS;
 
 		if (mesh->lightWaveSurf[loop].flags & LightWave_SurfFlags::SFM_DOUBLESIDED) {
 			newFlags |= Mesh_RenderFlags::MESH_RENDER_FLAG_DOUBLESIDED;
-			Mesh_AlterGroupRenderFlags( mesh, group, newFlags );
+			Mesh_AlterGroupRenderFlags(mesh, group, newFlags);
 		}
 
 		/// OLD GODS98: This check (and applying of newFlags was commented out in Gods98 source,
@@ -559,35 +550,38 @@ bool32 __cdecl Gods98::Mesh_ParseLWO(const char* basePath, Mesh* mesh, APPOBJ* l
 		//	Mesh_AlterGroupRenderFlags(mesh, group, newFlags);
 
 		//SET TEXTURE
-		if( (lightWaveObject->aoSurface[loop].srfTexFlags & LightWave_TexFlags::TFM_SEQUENCE) )
-		{	if( mesh->lightWaveSurf[loop].textureSeq )
-				Mesh_SetGroupTexture( mesh, group, mesh->lightWaveSurf[loop].textureSeq[0] );
+		if (lightWaveObject->aoSurface[loop].srfTexFlags & LightWave_TexFlags::TFM_SEQUENCE) {
+			if (mesh->lightWaveSurf[loop].textureSeq)
+				Mesh_SetGroupTexture(mesh, group, mesh->lightWaveSurf[loop].textureSeq[0]);
 		}
-		else
-			if( mesh->lightWaveSurf[loop].texture )
-				Mesh_SetGroupTexture( mesh, group, mesh->lightWaveSurf[loop].texture );
+		else {
+			if (mesh->lightWaveSurf[loop].texture)
+				Mesh_SetGroupTexture(mesh, group, mesh->lightWaveSurf[loop].texture);
+		}
 
 		//SET COLOUR
-		Mesh_SetGroupDiffuse( mesh, group,
+		Mesh_SetGroupDiffuse(mesh, group,
 			mesh->lightWaveSurf[loop].colour.red   * mesh->lightWaveSurf[loop].diffuse,
 			mesh->lightWaveSurf[loop].colour.green * mesh->lightWaveSurf[loop].diffuse,
-			mesh->lightWaveSurf[loop].colour.blue  * mesh->lightWaveSurf[loop].diffuse );
-		Mesh_SetGroupEmissive( mesh, group,
+			mesh->lightWaveSurf[loop].colour.blue  * mesh->lightWaveSurf[loop].diffuse);
+		Mesh_SetGroupEmissive(mesh, group,
 			mesh->lightWaveSurf[loop].colour.red   * mesh->lightWaveSurf[loop].emissive,
 			mesh->lightWaveSurf[loop].colour.green * mesh->lightWaveSurf[loop].emissive,
-			mesh->lightWaveSurf[loop].colour.blue  * mesh->lightWaveSurf[loop].emissive );
-		if( mesh->lightWaveSurf[loop].flags & LightWave_SurfFlags::SFM_COLORHIGHLIGHTS )
-			Mesh_SetGroupSpecular( mesh, group,
-				mesh->lightWaveSurf[loop].colour.red   * mesh->lightWaveSurf[loop].specular,
-				mesh->lightWaveSurf[loop].colour.green * mesh->lightWaveSurf[loop].specular,
-				mesh->lightWaveSurf[loop].colour.blue  * mesh->lightWaveSurf[loop].specular );
-		else
-			Mesh_SetGroupSpecular( mesh, group,
-				mesh->lightWaveSurf[loop].specular,
-				mesh->lightWaveSurf[loop].specular,
-				mesh->lightWaveSurf[loop].specular );
-		Mesh_SetGroupPower( mesh, group, mesh->lightWaveSurf[loop].power * 10.0f );
-		Mesh_SetGroupAlpha( mesh, group, 1.0f - mesh->lightWaveSurf[loop].transparency );
+			mesh->lightWaveSurf[loop].colour.blue  * mesh->lightWaveSurf[loop].emissive);
+		if (mesh->lightWaveSurf[loop].flags & LightWave_SurfFlags::SFM_COLORHIGHLIGHTS) {
+			Mesh_SetGroupSpecular(mesh, group,
+								  mesh->lightWaveSurf[loop].colour.red   * mesh->lightWaveSurf[loop].specular,
+								  mesh->lightWaveSurf[loop].colour.green * mesh->lightWaveSurf[loop].specular,
+								  mesh->lightWaveSurf[loop].colour.blue  * mesh->lightWaveSurf[loop].specular);
+		}
+		else {
+			Mesh_SetGroupSpecular(mesh, group,
+								  mesh->lightWaveSurf[loop].specular,
+								  mesh->lightWaveSurf[loop].specular,
+								  mesh->lightWaveSurf[loop].specular);
+		}
+		Mesh_SetGroupPower(mesh, group, mesh->lightWaveSurf[loop].power * 10.0f);
+		Mesh_SetGroupAlpha(mesh, group, 1.0f - mesh->lightWaveSurf[loop].transparency);
 
 		//STORE SURFACE INFORMATION FOR GROUP
 		mesh->groupList[group].lightWaveSurfaceInfo = &mesh->lightWaveSurf[loop];
@@ -612,58 +606,53 @@ bool32 __cdecl Gods98::Mesh_ParseLWO(const char* basePath, Mesh* mesh, APPOBJ* l
 // <LegoRR.exe @00481ae0>
 void __cdecl Gods98::Mesh_GetSurfInfo(const char* basePath, APPOBJ* lightWaveObject, Mesh_LightWave_Surface* lightWaveSurf/*[]*/, bool32 noTextures)
 {
-	uint32 loopSurf;
 	char drive[_MAX_DRIVE];
 	char dir[_MAX_DIR];
 	char fname[_MAX_FNAME];
 	char ext[_MAX_EXT];
 	char path[_MAX_PATH];
-	//uint32 frame;
-	uint32 tempNum;
 
 
-	for( loopSurf = 0; loopSurf < lightWaveObject->aoSize.lwSurfaceCount; loopSurf++ )
-	{	
-		if( lightWaveObject->aoSurface[loopSurf].srfPath && !noTextures )
-		{				
-			::_splitpath( lightWaveObject->aoSurface[loopSurf].srfPath, drive, dir, fname, ext );
+	for (uint32 loopSurf = 0; loopSurf < lightWaveObject->aoSize.lwSurfaceCount; loopSurf++) {
+		if (lightWaveObject->aoSurface[loopSurf].srfPath && !noTextures) {
 
-			if( lightWaveObject->aoSurface[loopSurf].srfTexFlags & LightWave_TexFlags::TFM_SEQUENCE )
-			{	
+			::_splitpath(lightWaveObject->aoSurface[loopSurf].srfPath, drive, dir, fname, ext);
+
+			if (lightWaveObject->aoSurface[loopSurf].srfTexFlags & LightWave_TexFlags::TFM_SEQUENCE) {
+
 				char baseName[_MAX_FNAME], textName[_MAX_FNAME];
 				uint32 textNum, numOfDigits, numInTexSeq = 0;
 			
 
 				//FIND NUM OF TEXTURES IN SEQUENCE
-				if( Mesh_GetTextureSeqInfo(fname, baseName, &textNum, &numOfDigits) )
-				{
-					tempNum = textNum;
+				if (Mesh_GetTextureSeqInfo(fname, baseName, &textNum, &numOfDigits)) {
+					uint32 tempNum = textNum;
 						
-					/*do
-					{	Mesh_GetNextInSequence( baseName, textName, &textNum, numOfDigits );
-						std::sprintf( path, "%s%s%s", basePath, textName, ext );
+					/*do {
+						Mesh_GetNextInSequence( baseName, textName, &textNum, numOfDigits);
+						std::sprintf(path, "%s%s%s", basePath, textName, ext);
 
 						numInTexSeq++;
-					} while( File_Exists(path) );
+					} while (File_Exists(path));
 					
-					if( --numInTexSeq )
-					{
+					if (--numInTexSeq) {
 						//LOAD TEXTURE SEQUENCE
-						lightWaveSurf[loopSurf].textureSeq = Mem_Alloc( sizeof(lpMesh_Texture) * (numInTexSeq) );
+						lightWaveSurf[loopSurf].textureSeq = Mem_Alloc(sizeof(lpMesh_Texture) * (numInTexSeq));
 					
-						for( frame = 0; frame < numInTexSeq; frame++ )
-						{	Mesh_GetNextInSequence( baseName, textName, &tempNum, numOfDigits );
-							std::sprintf( path, "%s%s", textName, ext );
-							lightWaveSurf[loopSurf].textureSeq[frame] = Mesh_LoadTexture(basePath, path, nullptr, nullptr );
+						for (uint32 frame = 0; frame < numInTexSeq; frame++) {
+							Mesh_GetNextInSequence(baseName, textName, &tempNum, numOfDigits);
+							std::sprintf(path, "%s%s", textName, ext);
+							lightWaveSurf[loopSurf].textureSeq[frame] = Mesh_LoadTexture(basePath, path, nullptr, nullptr);
 						}
 
-					} else {
+					}
+					else {
 						lightWaveSurf[loopSurf].textureSeq = nullptr;
 						Error_Fatal(true, Error_Format("No textures found in sequence (%s)", path));
 					}*/
 
 					lightWaveSurf[loopSurf].textureSeq = (Mesh_Texture**)Mem_Alloc(sizeof(Mesh_Texture*) * MESH_MAXTEXTURESEQENCE);
-					for (numInTexSeq=0 ; numInTexSeq<MESH_MAXTEXTURESEQENCE ; numInTexSeq++) {
+					for (numInTexSeq = 0; numInTexSeq < MESH_MAXTEXTURESEQENCE; numInTexSeq++) {
 
 						Mesh_GetNextInSequence(baseName, textName, &textNum, numOfDigits);
 						std::sprintf(path, "%s%s", textName, ext);
@@ -677,38 +666,35 @@ void __cdecl Gods98::Mesh_GetSurfInfo(const char* basePath, APPOBJ* lightWaveObj
 					lightWaveSurf[loopSurf].textureSeq = (Mesh_Texture**)Mem_ReAlloc(lightWaveSurf[loopSurf].textureSeq, sizeof(Mesh_Texture*) * numInTexSeq);
 				}
 				else
-					Error_Fatal( true, Error_Format("Error loading texture sequence \"%s\".", fname) );
+					Error_Fatal(true, Error_Format("Error loading texture sequence \"%s\".", fname));
 			}
-			else
-			{
+			else {
 				//LOAD SINGLE TEXTURE
-				std::sprintf( path, "%s%s",  fname, ext );
+				std::sprintf(path, "%s%s",  fname, ext);
 
-				lightWaveSurf[loopSurf].texture = Mesh_LoadTexture( basePath, path, nullptr, nullptr);
+				lightWaveSurf[loopSurf].texture = Mesh_LoadTexture(basePath, path, nullptr, nullptr);
 			}
 
-			if( lightWaveObject->aoSurface[loopSurf].srfFlags & LightWave_SurfFlags::SFM_SHARPTERMINATOR )
-			{
+			if (lightWaveObject->aoSurface[loopSurf].srfFlags & LightWave_SurfFlags::SFM_SHARPTERMINATOR) {
+
 				//IF SHARP TERMINATOR FLAG IS SET THEN MIX TEXTURE COLOUR WITH DIFFUSE
-				lightWaveSurf[loopSurf].colour.red   = lightWaveObject->aoSurface[loopSurf].srfCol.colRed / 256.0f;
+				lightWaveSurf[loopSurf].colour.red   = lightWaveObject->aoSurface[loopSurf].srfCol.colRed   / 256.0f;
 				lightWaveSurf[loopSurf].colour.green = lightWaveObject->aoSurface[loopSurf].srfCol.colGreen / 256.0f;
-				lightWaveSurf[loopSurf].colour.blue  = lightWaveObject->aoSurface[loopSurf].srfCol.colBlue / 256.0f;
-				//lightWaveSurf[loopSurf].color.alpha = lightWaveObject->aoSurface[loopSurf].srfCol.colAlpha / 256.0f;
+				lightWaveSurf[loopSurf].colour.blue  = lightWaveObject->aoSurface[loopSurf].srfCol.colBlue  / 256.0f;
+				//lightWaveSurf[loopSurf].colour.alpha = lightWaveObject->aoSurface[loopSurf].srfCol.colAlpha / 256.0f;
 			}
-			else
-			{
+			else {
 				lightWaveSurf[loopSurf].colour.red   = 1.0f;
 				lightWaveSurf[loopSurf].colour.green = 1.0f;
 				lightWaveSurf[loopSurf].colour.blue  = 1.0f;
 				//lightWaveSurf[loopSurf].colour.alpha = 1.0f;
 			}
 		}
-		else
-		{
-			lightWaveSurf[loopSurf].colour.red   = lightWaveObject->aoSurface[loopSurf].srfCol.colRed / 256.0f;
+		else {
+			lightWaveSurf[loopSurf].colour.red   = lightWaveObject->aoSurface[loopSurf].srfCol.colRed   / 256.0f;
 			lightWaveSurf[loopSurf].colour.green = lightWaveObject->aoSurface[loopSurf].srfCol.colGreen / 256.0f;
-			lightWaveSurf[loopSurf].colour.blue  = lightWaveObject->aoSurface[loopSurf].srfCol.colBlue / 256.0f;
-			//lightWaveSurf[loopSurf].color.alpha = lightWaveObject->aoSurface[loopSurf].srfCol.colAlpha / 256.0f;
+			lightWaveSurf[loopSurf].colour.blue  = lightWaveObject->aoSurface[loopSurf].srfCol.colBlue  / 256.0f;
+			//lightWaveSurf[loopSurf].colour.alpha = lightWaveObject->aoSurface[loopSurf].srfCol.colAlpha / 256.0f;
 		}
 
 		lightWaveSurf[loopSurf].emissive = lightWaveObject->aoSurface[loopSurf].srfLuminous;
@@ -729,26 +715,26 @@ bool32 __cdecl Gods98::Mesh_GetTextureSeqInfo(const char* tname, OUT char* tfnam
 
 
 	len = std::strlen(tname);
-	c = tname[len-1];
-	if( (c < '0') || (c > '9') )
+	c = tname[len - 1];
+	if (c < '0' || c > '9')
 		return false;
 
-	for( n = len-1; n > 0; n-- )
+	for (n = len - 1; n > 0; n--)
 	{
 		c = tname[n];
-		if( (c < '0') || (c > '9') )
+		if (c < '0' || c > '9')
 			break;
 		else
-			val += (c-'0') * indx;
+			val += (c - '0') * indx;
 		
 		indx *= 10;
 	}
 
-	if( n == 0 )
+	if (n == 0)
 		return false;
 
-	std::strcpy( tfname,tname );
-	tfname[n+1] = '\0';
+	std::strcpy(tfname, tname);
+	tfname[n + 1] = '\0';
 	*tnumlen = len - n - 1;
 	*tstart = val;
 	return true;
@@ -759,18 +745,18 @@ void __cdecl Gods98::Mesh_GetNextInSequence(const char* baseName, OUT char* next
 {
 	char numBuff[16];
 
-	std::strcpy( nextTextName, baseName );
+	std::strcpy(nextTextName, baseName);
 
-	std::sprintf( numBuff, "%d", (*texNum) );
+	std::sprintf(numBuff, "%d", (*texNum));
 	uint32 k = tnumlen - strlen(numBuff);
-	while( k>=1 )
-	{	std::strcat( nextTextName,"0" );
+	while (k >= 1) {
+		std::strcat(nextTextName, "0");
 		k--;
 	}
 
 	(*texNum)++;
 
-	std::strcat( nextTextName, numBuff );
+	std::strcat(nextTextName, numBuff);
 }
 
 // <LegoRR.exe @00481f10>
@@ -803,33 +789,32 @@ void __cdecl Gods98::Mesh_UViewMesh(APPOBJ* lightWaveObject, OUT Point2F* textCo
 		}
 	}*/
 
-	uvSet = (uint32*)Mem_Alloc( sizeof(uint32) * lightWaveObject->aoSize.lwVertCount * 2 );
-	std::memset( uvSet, 0, sizeof(uint32)  * lightWaveObject->aoSize.lwVertCount * 2 );
+	uvSet = (uint32*)Mem_Alloc(sizeof(uint32) * lightWaveObject->aoSize.lwVertCount * 2);
+	std::memset(uvSet, 0, sizeof(uint32) * lightWaveObject->aoSize.lwVertCount * 2);
 
-	while( File_GetLine(line, sizeof(line), fileUV) )
-	{
-		std::strcpy( lineSplit, line );
+	while (File_GetLine(line, sizeof(line), fileUV)) {
 
-		if( argc = Util_WSTokenise(lineSplit, argv) )
-		{
+		std::strcpy(lineSplit, line);
+
+		if (argc = Util_WSTokenise(lineSplit, argv)) {
 			//MAYBE CHECK VERSION NUMBER ON FIRST LINE - SHOULD BE 2
 
 			//CHECK SURFACE COUNT IS SAME AS OBJECT
-			Error_Fatal( (lineNum == 1) && (lightWaveObject->aoSize.lwSurfaceCount != (uint32)std::atoi( argv[0] )), "UView file corrupt." );
+			Error_Fatal((lineNum == 1) && (lightWaveObject->aoSize.lwSurfaceCount != (uint32)std::atoi(argv[0])), "UView file corrupt.");
 
-			if( lineNum == 2 )
+			if (lineNum == 2)
 				surfRead = 0;
 
 			//READ SURFACE INFORMATION
-			if( surfRead != -1 )
-			{	
-				if( surfRead >= (sint32)(lightWaveObject->aoSize.lwSurfaceCount*2) )
-				{	polyRead = -1;
+			if (surfRead != -1) {
+
+				if (surfRead >= (sint32)(lightWaveObject->aoSize.lwSurfaceCount*2)) {
+					polyRead = -1;
 					surfRead = -1;
 				}
-				else if( surfRead >= (sint32)lightWaveObject->aoSize.lwSurfaceCount )
-				{	//OVERWRITE EXISTING IMAGE FILE NAME ON SURFACE
-					lightWaveObject->aoSurface[ surfRead - lightWaveObject->aoSize.lwSurfaceCount ].srfPath = Util_StrCpy( argv[0] );
+				else if (surfRead >= (sint32)lightWaveObject->aoSize.lwSurfaceCount) {
+					//OVERWRITE EXISTING IMAGE FILE NAME ON SURFACE
+					lightWaveObject->aoSurface[ surfRead - lightWaveObject->aoSize.lwSurfaceCount ].srfPath = Util_StrCpy(argv[0]);
 
 					surfRead++;
 				}
@@ -839,43 +824,42 @@ void __cdecl Gods98::Mesh_UViewMesh(APPOBJ* lightWaveObject, OUT Point2F* textCo
 			}
 
 			//RUN THROUGH POLYGONS
-			if( polyRead != -2 )
-			{				
-				if( polyRead == -1 )
-				{	//CHECK POLY COUNT IS THE SAME AS OBJECT
+			if (polyRead != -2) {
+
+				if (polyRead == -1) {
+					//CHECK POLY COUNT IS THE SAME AS OBJECT
 					Error_Fatal( (lightWaveObject->aoSize.lwPolyCount != (uint32)std::atoi( argv[0] )), "UView file corrupt." );
 					polyRead = 0;
 				}
-				else if( polyRead < (sint32)lightWaveObject->aoSize.lwPolyCount )
-				{
-					if( (vertexRead != -1) && (vertexRead < (sint32)lightWaveObject->aoPoly[groupID].plyCount) )
-					{	
+				else if (polyRead < (sint32)lightWaveObject->aoSize.lwPolyCount) {
+
+					if ((vertexRead != -1) && (vertexRead < (sint32)lightWaveObject->aoPoly[groupID].plyCount)) {
 						notSame = false;
 
 						//READ UV INFORMATION FOR EACH VERTEX
-						uvX = (real32) std::atof( argv[0] );
-						uvY = -(real32) std::atof( argv[1] );
+						uvX = (real32) std::atof(argv[0]);
+						uvY = -(real32) std::atof(argv[1]);
 
-						if( (textCoords[ lightWaveObject->aoPoly[groupID].plyData[vertexRead] ].x != uvX) ||
-							(textCoords[ lightWaveObject->aoPoly[groupID].plyData[vertexRead] ].y != uvY) )
+						if ((textCoords[ lightWaveObject->aoPoly[groupID].plyData[vertexRead] ].x != uvX) ||
+							(textCoords[ lightWaveObject->aoPoly[groupID].plyData[vertexRead] ].y != uvY))
 							notSame = true;
 
-						if( 0 == uvSet[ lightWaveObject->aoPoly[groupID].plyData[vertexRead] ] )
-						{	textCoords[ lightWaveObject->aoPoly[groupID].plyData[vertexRead] ].x = uvX;
+						if (uvSet[ lightWaveObject->aoPoly[groupID].plyData[vertexRead] ] == 0) {
+							textCoords[ lightWaveObject->aoPoly[groupID].plyData[vertexRead] ].x = uvX;
 							textCoords[ lightWaveObject->aoPoly[groupID].plyData[vertexRead] ].y = uvY;
 
 							uvSet[ lightWaveObject->aoPoly[groupID].plyData[vertexRead] ] = 1;
 						}
-						else if( notSame )
-						{	//THE SHARED VERTEX HAS MORE THEN ONE TEXTURE COORDINATE
+						else if (notSame) {
+							//THE SHARED VERTEX HAS MORE THEN ONE TEXTURE COORDINATE
 							//COPY THE VERTEX AND ALTER THE FACE DATA FOR THE GROUP
 							//ADD THE NEW UV INFORMATION TO THE NEW VERTEX
 							
 							//THIS ALTERS THE STRUCTURE OF 'lightWaveObject'
 							//REFERENCES BEFORE THIS FUNCTION WILL BE DIFFERENT TO THOSE AFTER
 
-							if( addedCount == 0 )
-								lightWaveObject->aoVerts = (real32*)Mem_ReAlloc( lightWaveObject->aoVerts, (sizeof(real32) * (lightWaveObject->aoSize.lwVertCount + MESH_UVREALLOCSIZE + 1) * 3));
+							if (addedCount == 0)
+								lightWaveObject->aoVerts = (real32*)Mem_ReAlloc(lightWaveObject->aoVerts, (sizeof(real32) * (lightWaveObject->aoSize.lwVertCount + MESH_UVREALLOCSIZE + 1) * 3));
 
 							vertexIndex = lightWaveObject->aoPoly[groupID].plyData[vertexRead] * 3;
 							newIndex = lightWaveObject->aoSize.lwVertCount * 3;
@@ -894,26 +878,26 @@ void __cdecl Gods98::Mesh_UViewMesh(APPOBJ* lightWaveObject, OUT Point2F* textCo
 
 							lightWaveObject->aoSize.lwVertCount++;
 
-							if( ++addedCount >= MESH_UVREALLOCSIZE )
+							if (++addedCount >= MESH_UVREALLOCSIZE)
 								addedCount = 0;
 						}
 
 						vertexRead++;
 					}
-					else if( polyRead < (sint32)lightWaveObject->aoSize.lwPolyCount - 1 )
-					{	//CHECK POLY VERTEX COUNT IS SAME AS OBJECT
-						groupID = std::atoi( argv[0] );
-						Error_Fatal( (lightWaveObject->aoPoly[groupID].plyCount != (uint32)std::atoi( argv[1] )), "UView file corrupt." );
+					else if (polyRead < (sint32)lightWaveObject->aoSize.lwPolyCount - 1) {
+						//CHECK POLY VERTEX COUNT IS SAME AS OBJECT
+						groupID = std::atoi(argv[0]);
+						Error_Fatal((lightWaveObject->aoPoly[groupID].plyCount != (uint32)std::atoi(argv[1])), "UView file corrupt.");
 					
-						if( -1 != vertexRead )
+						if (vertexRead != -1)
 							polyRead++;
 
 						vertexRead = 0;
 					}
 
 				}
-				else 
-				{	polyRead = -2;
+				else {
+					polyRead = -2;
 
 					//RETURN HERE BECAUSE REST OF FILE IS UNUSED
 					return;
@@ -927,7 +911,7 @@ void __cdecl Gods98::Mesh_UViewMesh(APPOBJ* lightWaveObject, OUT Point2F* textCo
 
 	}
 
-	Mem_Free( uvSet );
+	Mem_Free(uvSet);
 }
 
 // flags = lwt.h srfTexFlags bit enumeration `TFM_*`
@@ -935,14 +919,14 @@ void __cdecl Gods98::Mesh_UViewMesh(APPOBJ* lightWaveObject, OUT Point2F* textCo
 void __cdecl Gods98::Mesh_GetTextureUVsWrap(uint32 vertexCount, OUT Vector3F* vertices, OUT Point2F* coords,
 	real32 sx, real32 sy, real32 sz, real32 px, real32 py, real32 pz, LightWave_TexFlags flags)
 {
-	for(uint32 vertex = 0; vertex < vertexCount; vertex++ )
-	{
+	for (uint32 vertex = 0; vertex < vertexCount; vertex++) {
+
 		real32 x = vertices[vertex].x - px;
 		real32 y = vertices[vertex].y - py;
 		real32 z = vertices[vertex].z - pz;
 
-		coords[vertex].x = ( flags & LightWave_TexFlags::TFM_AXIS_X ) ? (z/sz) + 0.5f : (x/sx) + 0.5f;
-		coords[vertex].y = ( flags & LightWave_TexFlags::TFM_AXIS_Y ) ? (z/sz) + 0.5f : (y/sy) + 0.5f;
+		coords[vertex].x = ((flags & LightWave_TexFlags::TFM_AXIS_X) ? (z/sz) : (x/sx)) + 0.5f;
+		coords[vertex].y = ((flags & LightWave_TexFlags::TFM_AXIS_Y) ? (z/sz) : (y/sy)) + 0.5f;
 
 	}
 }
@@ -968,19 +952,18 @@ bool32 __cdecl Gods98::Mesh_SetTextureTime2(Mesh* mesh, real32 frame)
 	uint32 texNum = (uint32)(frame - (real32)std::fmod(frame, 1.0f));
 	//uint32 texNum = (uint32)(frame - (real32)std::fmod(frame, 1));
 
-	if( mesh->flags & MeshFlags::MESH_FLAG_LWO )
-	{	
-		for(uint32 groupNum = 0; groupNum < mesh->groupCount; groupNum++ )
-		{
+	if (mesh->flags & MeshFlags::MESH_FLAG_LWO) {
+
+		for (uint32 groupNum = 0; groupNum < mesh->groupCount; groupNum++) {
+
 			Mesh_Group* group = &mesh->groupList[groupNum];
 		
-			if( (group->lightWaveSurfaceInfo->texFlags & LightWave_TexFlags::TFM_SEQUENCE) && (group->lightWaveSurfaceInfo->numInTexSeq) )
-			{	sint32 groupTexNum = (group->lightWaveSurfaceInfo->texSeqOffset + (sint32)texNum) % (sint32)group->lightWaveSurfaceInfo->numInTexSeq;
+			if ((group->lightWaveSurfaceInfo->texFlags & LightWave_TexFlags::TFM_SEQUENCE) && (group->lightWaveSurfaceInfo->numInTexSeq)) {
+				sint32 groupTexNum = (group->lightWaveSurfaceInfo->texSeqOffset + (sint32)texNum) % (sint32)group->lightWaveSurfaceInfo->numInTexSeq;
 	
-				if( groupTexNum < 0 )
-					groupTexNum = 0;
+				if (groupTexNum < 0) groupTexNum = 0;
 
-				Mesh_SetGroupTexture( mesh, groupNum, group->lightWaveSurfaceInfo->textureSeq[groupTexNum] );
+				Mesh_SetGroupTexture(mesh, groupNum, group->lightWaveSurfaceInfo->textureSeq[groupTexNum]);
 			}
 
 		}
@@ -999,14 +982,14 @@ void __cdecl Gods98::Mesh_Remove(Mesh* mesh, IDirect3DRMFrame3* frame)
 {
 	Mesh_Debug_CheckIMDevice_Void();
 	
-	frame->DeleteVisual((IUnknown*) mesh->uv);
+	frame->DeleteVisual((IUnknown*)mesh->uv);
 	
 	if (mesh->clonedFrom) {
 
 		Mesh* clonedFrom = mesh->clonedFrom;
 
 		RELEASE(mesh->uv);
-		for (uint32 loop=0 ; loop<mesh->groupCount ; loop++) {
+		for (uint32 loop = 0; loop < mesh->groupCount; loop++) {
 			Mesh_Group* group = &mesh->groupList[loop];
 			//if (group->imMat) RELEASE(group->imMat);
 		}
@@ -1020,23 +1003,19 @@ void __cdecl Gods98::Mesh_Remove(Mesh* mesh, IDirect3DRMFrame3* frame)
 
 	mesh->numOfRefs--;
 
-	if (mesh->numOfRefs == 0)
-	{
+	if (mesh->numOfRefs == 0) {
 		RELEASE(mesh->uv);
 		
-		for( uint32 loop = 0; loop < mesh->groupCount; loop++ )
-		{
+		for (uint32 loop = 0; loop < mesh->groupCount; loop++) {
+
 			Mesh_Group* group = &mesh->groupList[loop];
 			
-//			if( group->imMat )
-//				RELEASE(group->imMat);
-//			if( group->imText )
-//				RELEASE(group->imText);
+//			if (group->imMat)  RELEASE(group->imMat);
+//			if (group->imText) RELEASE(group->imText);
 			Mesh_RemoveGroupTexture(mesh, loop);
 			Mem_Free(group->faceData);
 			Mem_Free(group->vertices);
 //			Mem_Free(group);
-			
 		}
 		
 		if (mesh->lightWaveSurf) Mem_Free(mesh->lightWaveSurf);
@@ -1059,7 +1038,7 @@ void __cdecl Gods98::Mesh_GetGroup(Mesh* mesh, uint32 groupID, OUT uint32* verte
 		if (vPerFace) *vPerFace = 3;
 		if (faceDataSize) *faceDataSize = group->faceDataSize;
 		if (faceData) {
-			for (uint32 loop=0 ; loop<group->faceDataSize ; loop++) {
+			for (uint32 loop = 0; loop < group->faceDataSize; loop++) {
 				faceData[loop] = group->faceData[loop];
 			}
 		}
@@ -1077,7 +1056,7 @@ sint32 __cdecl Gods98::Mesh_AddGroup(Mesh* mesh, uint32 vertexCount, uint32 face
 						uint32 vPerFace, const uint32* faceData)
 {
 	Mesh_Debug_CheckIMDevice_Int();
-	Error_Fatal( (vPerFace != 3), "Only triangles supported so far." );
+	Error_Fatal((vPerFace != 3), "Only triangles supported so far.");
 	Error_Fatal((mesh->clonedFrom!=nullptr)||(mesh->flags&MeshFlags::MESH_FLAG_HASBEENCLONED), "Cannot AddGroup() to a cloned mesh");
 	
 
@@ -1121,19 +1100,19 @@ sint32 __cdecl Gods98::Mesh_AddGroup(Mesh* mesh, uint32 vertexCount, uint32 face
 	uint32 size = sizeof(uint16) * faceCount * vPerFace;
 	group->faceData = (uint16*)Mem_Alloc(size);
 	group->faceDataSize = faceCount * vPerFace;
-	for(uint32 loop = 0; loop < group->faceDataSize; loop++ )
+	for (uint32 loop = 0; loop < group->faceDataSize; loop++)
 		group->faceData[loop] = (uint16) faceData[loop];
 	
 	size = sizeof(Mesh_Vertex) * vertexCount;
 	group->vertices = (Mesh_Vertex*)Mem_Alloc(size);
-	std::memset( group->vertices, 0, size );
+	std::memset(group->vertices, 0, size);
 	
 	group->vertexCount = vertexCount;
 	group->flags = MeshFlags::MESH_FLAG_NONE;// 0x00000000;
 	
 //	mesh->groupList[mesh->groupCount-1] = group;
 	
-	Mesh_CreateGroupMaterial( mesh, (mesh->groupCount-1) );
+	Mesh_CreateGroupMaterial(mesh, (mesh->groupCount - 1));
 	
 	
 	return mesh->groupCount-1;
@@ -1153,16 +1132,14 @@ void __cdecl Gods98::Mesh_Scale(Mesh* mesh, real32 x, real32 y, real32 z)
 {
 	Mesh_Debug_CheckIMDevice_Void();
 
-	for( uint32 loop = 0; loop < mesh->groupCount; loop++ )
-	{
+	for (uint32 loop = 0; loop < mesh->groupCount; loop++) {
 		Mesh_Group* group = &mesh->groupList[loop];
 		
-		for( uint32 sub = 0; sub < group->vertexCount; sub++ )
-		{
+		for (uint32 sub = 0; sub < group->vertexCount; sub++) {
+
 			group->vertices[sub].position.x *= x;
 			group->vertices[sub].position.y *= y;
 			group->vertices[sub].position.z *= z;
-
 		}
 	}
 }
@@ -1176,15 +1153,14 @@ void __cdecl Gods98::Mesh_SetVertices(Mesh* mesh, uint32 groupID, uint32 index,
 		Mesh_Debug_CheckIMDevice_Void();
 		Mesh_Group* group = &mesh->groupList[groupID];
 
-		for( uint32 loop = 0; loop < count; loop++ )
-		{
+		for (uint32 loop = 0; loop < count; loop++) {
+
 			group->vertices[loop+index].position = vertices[loop].position;
 			group->vertices[loop+index].normal = vertices[loop].normal;
 			group->vertices[loop+index].tu = vertices[loop].tu;
 			group->vertices[loop+index].tv = vertices[loop].tv;
 	//		group->vertices[loop+index].colour = vertices[loop].colour;
 	//		group->vertices[loop+index].specular = 0;
-
 		}
 	}
 }
@@ -1198,13 +1174,12 @@ void __cdecl Gods98::Mesh_GetVertices(Mesh* mesh, uint32 groupID, uint32 index,
 		Mesh_Debug_CheckIMDevice_Void();
 		Mesh_Group* group = &mesh->groupList[groupID];
 
-		for( uint32 loop = 0; loop < count; loop++ )
-		{
+		for (uint32 loop = 0; loop < count; loop++) {
+
 			vertices[loop].position = group->vertices[loop+index].position;
 			vertices[loop].normal = group->vertices[loop+index].normal;
 			vertices[loop].tu = group->vertices[loop+index].tu;
 			vertices[loop].tv = group->vertices[loop+index].tv;
-
 		}
 	}
 }
@@ -1218,8 +1193,8 @@ void __cdecl Gods98::Mesh_SetVertices_PointNormalAt(Mesh* mesh, uint32 groupID, 
 		Mesh_Debug_CheckIMDevice_Void();
 		Mesh_Group* group = &mesh->groupList[groupID];
 
-		for( uint32 loop = 0; loop < count; loop++ )
-		{
+		for (uint32 loop = 0; loop < count; loop++) {
+
 			group->vertices[loop+index].position.x = vertices[loop].x;
 			group->vertices[loop+index].position.y = vertices[loop].y;
 			group->vertices[loop+index].position.z = vertices[loop].z;
@@ -1227,7 +1202,6 @@ void __cdecl Gods98::Mesh_SetVertices_PointNormalAt(Mesh* mesh, uint32 groupID, 
 			Maths_Vector3DNormalise(&group->vertices[loop+index].normal);
 			group->vertices[loop+index].tu = textCoords[loop][0];
 			group->vertices[loop+index].tv = textCoords[loop][1];
-
 		}
 	}
 }
@@ -1242,15 +1216,14 @@ void __cdecl Gods98::Mesh_SetVertices_SameNormal(Mesh* mesh, uint32 groupID, uin
 
 		Mesh_Group* group = &mesh->groupList[groupID];
 
-		for( uint32 loop = 0; loop < count; loop++ )
-		{
+		for (uint32 loop = 0; loop < count; loop++) {
+
 			group->vertices[loop+index].position.x = vertices[loop].x;
 			group->vertices[loop+index].position.y = vertices[loop].y;
 			group->vertices[loop+index].position.z = vertices[loop].z;
 			group->vertices[loop+index].normal = (*normal);
 			group->vertices[loop+index].tu = textCoords[loop][0];
 			group->vertices[loop+index].tv = textCoords[loop][1];
-
 		}
 	}
 }
@@ -1265,8 +1238,8 @@ void __cdecl Gods98::Mesh_SetVertices_VNT(Mesh* mesh, uint32 groupID, uint32 ind
 
 		Mesh_Group* group = &mesh->groupList[groupID];
 
-		for( uint32 loop = 0; loop < count; loop++ )
-		{
+		for (uint32 loop = 0; loop < count; loop++) {
+
 			group->vertices[loop+index].position.x = vertices[loop].x;
 			group->vertices[loop+index].position.y = vertices[loop].y;
 			group->vertices[loop+index].position.z = vertices[loop].z;
@@ -1275,7 +1248,6 @@ void __cdecl Gods98::Mesh_SetVertices_VNT(Mesh* mesh, uint32 groupID, uint32 ind
 			group->vertices[loop+index].normal.z = normal[loop]->z;
 			group->vertices[loop+index].tu = textCoords[loop].x;
 			group->vertices[loop+index].tv = textCoords[loop].y;
-
 		}
 	}
 }
@@ -1305,7 +1277,7 @@ void __cdecl Gods98::Mesh_HideGroup(Mesh* mesh, uint32 groupID, bool32 hide)
 		Mesh_Group* group = &mesh->groupList[groupID];
 
 		if (hide) group->flags |= MeshFlags::MESH_FLAG_HIDDEN;
-		else group->flags &= ~MeshFlags::MESH_FLAG_HIDDEN;
+		else      group->flags &= ~MeshFlags::MESH_FLAG_HIDDEN;
 	}
 }
 
@@ -1315,7 +1287,7 @@ void __cdecl Gods98::Mesh_Hide(Mesh* mesh, bool32 hide)
 	Mesh_Debug_CheckIMDevice_Void();
 
 	if (hide) mesh->flags |= MeshFlags::MESH_FLAG_HIDDEN;
-	else mesh->flags &= ~MeshFlags::MESH_FLAG_HIDDEN;
+	else      mesh->flags &= ~MeshFlags::MESH_FLAG_HIDDEN;
 }
 
 // <LegoRR.exe @00482ab0>
@@ -1327,33 +1299,37 @@ BOOL __cdecl Gods98::Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOI
 	if (lpD3DRMUVreason == D3DRMUSERVISUAL_CANSEE) {
 
 		if (lpIMDevice()) {
-			if (mesh->flags & MeshFlags::MESH_FLAG_HIDDEN) return false;
+
+			if (mesh->flags & MeshFlags::MESH_FLAG_HIDDEN)
+				return false;
 
 
-			{
+			//{
 				Container* cont;
 				if (cont = Container_SearchOwner(mesh->frameCreatedOn)) {
 					if (cont->flags & ContainerFlags::CONTAINER_FLAG_HIDDEN2) return false;
 				}
-			}
+			//}
 
 			if ((mesh->flags & MeshFlags::MESH_FLAG_FACECAMERA) && !(mesh->flags & MeshFlags::MESH_FLAG_FACECAMERADONE)) {
 				IDirect3DRMFrame3* camera;
 				IDirect3DRMFrame3* scene;
-				Viewport* vp = (Viewport*) lpD3DRMview->GetAppData();
+				Viewport* vp = (Viewport*)lpD3DRMview->GetAppData();
 				if (vp->rendering) {
 					mesh->frameCreatedOn->GetScene(&scene);
-					vp->lpVP->GetCamera( &camera);
-					mesh->frameCreatedOn->LookAt( camera, scene, D3DRMFRAMECONSTRAINT::D3DRMCONSTRAIN_Z /*0*/);
-//					mesh->frameCreatedOn->SetOrientation( camera, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f);
+					vp->lpVP->GetCamera(&camera);
+					mesh->frameCreatedOn->LookAt(camera, scene, D3DRMFRAMECONSTRAINT::D3DRMCONSTRAIN_Z /*0*/);
+//					mesh->frameCreatedOn->SetOrientation(camera, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f);
 					mesh->flags |= MeshFlags::MESH_FLAG_FACECAMERADONE;
 				}
 			}
 
 			return true;
-		} else return false;
+		}
+		else return false;
 
-	} else if (lpD3DRMUVreason == D3DRMUSERVISUAL_RENDER) {
+	}
+	else if (lpD3DRMUVreason == D3DRMUSERVISUAL_RENDER) {
 
 		if (lpIMDevice()) {
 
@@ -1367,96 +1343,82 @@ BOOL __cdecl Gods98::Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOI
 			mesh->flags &= ~MeshFlags::MESH_FLAG_FACECAMERADONE;
 
 			//GET THE CURRENT RM WORLD MATRIX FOR POST RENDER
-			lpIMDevice()->GetTransform( D3DTRANSFORMSTATE_WORLD, &matWorld );
+			lpIMDevice()->GetTransform(D3DTRANSFORMSTATE_WORLD, &matWorld);
 
-			Mesh_SetCurrentViewport( lpD3DRMview );
-			lpD3DRMview->QueryInterface( Idl::IID_IDirect3DRMViewport2, (void**)&view );
+			Mesh_SetCurrentViewport(lpD3DRMview );
+			lpD3DRMview->QueryInterface(Idl::IID_IDirect3DRMViewport2, (void**)&view);
 			
 			Viewport* vp = (Viewport*)view->GetAppData();
 	
-			if( mesh->flags & MeshFlags::MESH_FLAG_POSTEFFECT )
-			{	
+			if (mesh->flags & MeshFlags::MESH_FLAG_POSTEFFECT) {
 				//POST RENDER MESH
-				Mesh_AddToPostRenderList( mesh, &matWorld );
+				Mesh_AddToPostRenderList(mesh, &matWorld);
 			} 
-			else if( mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA )
-			{
+			else if (mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA) {
 				//RENDER ALL GROUPS WITHOUT FLAGS CHANGED FISRT
-				for(uint32 loop = 0; loop < mesh->groupCount; loop++ )
-				{
+				for (uint32 loop = 0; loop < mesh->groupCount; loop++) {
 					group = &mesh->groupList[loop];
 
-					if( Mesh_CanRenderGroup(group) )
-					{	
-						if( group->flags & MeshFlags::MESH_FLAG_ALPHAENABLE )
-						{	
+					if (Mesh_CanRenderGroup(group)) {
+						if (group->flags & MeshFlags::MESH_FLAG_ALPHAENABLE) {
 							//POST RENDER MESH
 							//DO NOT RENDER GROUP NOW
 							postRender = true;
 							continue;
 						}
 
-						if( 0 == group->renderFlags )
-						{
+						if (group->renderFlags == Mesh_RenderFlags::MESH_RENDER_FLAG_NONE) {
 							//GROUP OPAQUE SO RENDER NOW
-							if( !renderStateSet )
-							{	
+							if (!renderStateSet) {
 								Mesh_StoreTextureAndMat();
-								Mesh_SetMeshRenderDesc( mesh, vp, &matWorld, false);
+								Mesh_SetMeshRenderDesc(mesh, vp, &matWorld, false);
 								renderStateSet = true;
 							}
 
-							Mesh_RenderGroup( mesh, group, &matWorld, false);
+							Mesh_RenderGroup(mesh, group, &matWorld, false);
 						}
 					}
 				}
 
 				//RENDER ALL GROUPS WITH FLAGS CHANGED FISRT
-				for(uint32 loop = 0; loop < mesh->groupCount; loop++ )
-				{
+				for (uint32 loop = 0; loop < mesh->groupCount; loop++) {
 					group = &mesh->groupList[loop];
 
-					if( Mesh_CanRenderGroup(group) )
-					{	
-						if( group->flags & MeshFlags::MESH_FLAG_ALPHAENABLE )
-						{	
+					if (Mesh_CanRenderGroup(group)) {
+						if (group->flags & MeshFlags::MESH_FLAG_ALPHAENABLE) {
 							//POST RENDER MESH
 							//DO NOT RENDER GROUP NOW
 							postRender = true;
 							continue;
 						}
 
-						if( group->renderFlags )
-						{
+						if (group->renderFlags) {
 							//GROUP OPAQUE SO RENDER NOW
-							if( !renderStateSet )
-							{	
+							if (!renderStateSet) {
 								Mesh_StoreTextureAndMat();
-								Mesh_SetMeshRenderDesc( mesh, vp, &matWorld, false);
+								Mesh_SetMeshRenderDesc(mesh, vp, &matWorld, false);
 								renderStateSet = true;
 							}
 
-							Mesh_RenderGroup( mesh, group, &matWorld, false);
+							Mesh_RenderGroup(mesh, group, &matWorld, false);
 						}
 					}
 				}
 
-				if( postRender )
-					Mesh_AddToPostRenderList( mesh, &matWorld );
+				if (postRender)
+					Mesh_AddToPostRenderList(mesh, &matWorld);
 			}
-			else
-			{	
+			else {
 				//NOTE IS SOME OF THE GROUPS IN THIS MESH USE ALPHA BLENDING THEY WILL NOT APPEAR
 				//IF YOU SUSPECT THAT ONE OR MORE GROUPS WILL USE ALPHA BLENDING SET 'MESH_RENDER_FLAG_ALPHATRANS' ON THE MESH RENDER DESC.
 				Mesh_StoreTextureAndMat();
-				Mesh_SetMeshRenderDesc( mesh, vp, &matWorld, false);
+				Mesh_SetMeshRenderDesc(mesh, vp, &matWorld, false);
 				renderStateSet = true;
 
-				Mesh_RenderMesh( mesh, &matWorld, false);
+				Mesh_RenderMesh(mesh, &matWorld, false);
 			}
 
-			if( renderStateSet )
-			{	
+			if (renderStateSet) {
 				//RESTORE STATES
 				/// UNKNOWN: this is false, which would cause the function to do nothing
 				///           in new Gods98 engine source. (in LegoRR it's no argument)
@@ -1465,7 +1427,7 @@ BOOL __cdecl Gods98::Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOI
 				Mesh_RestoreTextureAndMat();
 			}
 			
-			RELEASE( view );
+			RELEASE(view);
 		}
 
 		return true;
@@ -1478,8 +1440,8 @@ BOOL __cdecl Gods98::Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOI
 void __cdecl Gods98::Mesh_SetMeshRenderDesc(Mesh* mesh, Viewport* vp, const D3DMATRIX* matWorld, bool32 alphaBlend)
 {
 	//CALL MESH SPECIFIC RENDER FUNCTION
-	if( mesh->renderDesc.renderCallback )
-		mesh->renderDesc.renderCallback( mesh, mesh->renderDesc.renderCallbackData, vp );
+	if (mesh->renderDesc.renderCallback)
+		mesh->renderDesc.renderCallback(mesh, mesh->renderDesc.renderCallbackData, vp);
 
 	//ADD DEFAULT STATES HERE
 	Graphics_ChangeRenderState(D3DRENDERSTATE_SPECULARENABLE, false);
@@ -1521,15 +1483,15 @@ void __cdecl Gods98::Mesh_SetMeshRenderDesc(Mesh* mesh, Viewport* vp, const D3DM
 	//Graphics_ChangeRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_GOURAUD);
 	//Graphics_ChangeRenderState(D3DRENDERSTATE_DITHERENABLE, true);
 	
-	if( !(mainGlobs.flags & MainFlags::MAIN_FLAG_DONTMANAGETEXTURES) )
-	{
-		Mesh_ChangeTextureStageState( D3DTSS_COLORARG1,	D3DTA_TEXTURE );
-		Mesh_ChangeTextureStageState( D3DTSS_COLORARG2,	D3DTA_DIFFUSE );
-		Mesh_ChangeTextureStageState( D3DTSS_ALPHAARG1,	D3DTA_TEXTURE );
-		Mesh_ChangeTextureStageState( D3DTSS_ALPHAARG2,	D3DTA_DIFFUSE );
+	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_DONTMANAGETEXTURES)) {
+
+		Mesh_ChangeTextureStageState(D3DTSS_COLORARG1,	D3DTA_TEXTURE);
+		Mesh_ChangeTextureStageState(D3DTSS_COLORARG2,	D3DTA_DIFFUSE);
+		Mesh_ChangeTextureStageState(D3DTSS_ALPHAARG1,	D3DTA_TEXTURE);
+		Mesh_ChangeTextureStageState(D3DTSS_ALPHAARG2,	D3DTA_DIFFUSE);
 	}
 
-	Mesh_SetRenderDesc( mesh->renderDesc.renderFlags, matWorld, alphaBlend );
+	Mesh_SetRenderDesc(mesh->renderDesc.renderFlags, matWorld, alphaBlend);
 }
 
 // <LegoRR.exe @00482e10>
@@ -1539,73 +1501,71 @@ void __cdecl Gods98::Mesh_SetRenderDesc(Mesh_RenderFlags flags, const D3DMATRIX*
 
 
 	//CHECK MESH IS ALPHA BLENDED
-	if( (flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA) && alphaBlend )
-		Graphics_ChangeRenderState( D3DRENDERSTATE_FOGENABLE,	false );	// Don't fog alpha efects...
+	if ((flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA) && alphaBlend) {
+		Graphics_ChangeRenderState(D3DRENDERSTATE_FOGENABLE, false); // Don't fog alpha efects...
+	}
 	/*else {
-		Graphics_ChangeRenderState( D3DRENDERSTATE_FOGENABLE,	true );
+		Graphics_ChangeRenderState(D3DRENDERSTATE_FOGENABLE, true);
 		Container_EnableFog(true);
 		Container_SetFogMode(D3DFOG_LINEAR);
 		Container_SetFogParams(100, 1000, 0.5f);
 	}*/
 
 	//ALPHA STATES
-	if( (flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA) && !alphaBlend )
-		Graphics_ChangeRenderState( D3DRENDERSTATE_ALPHABLENDENABLE, false );
-	else if( flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHA11 )
-		Mesh_SetAlphaRender( D3DBLEND_ONE, D3DBLEND_ONE );
-	else if( flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHASA1 )
-		Mesh_SetAlphaRender( D3DBLEND_SRCALPHA, D3DBLEND_ONE );
-	else if( flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHATRANS )
-		Mesh_SetAlphaRender( D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA );
-	else if( flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHASA0 )
-		Mesh_SetAlphaRender( D3DBLEND_ZERO, D3DBLEND_INVSRCCOLOR);
+	if ((flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA) && !alphaBlend)
+		Graphics_ChangeRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, false);
+	else if (flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHA11)
+		Mesh_SetAlphaRender(D3DBLEND_ONE, D3DBLEND_ONE);
+	else if (flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHASA1)
+		Mesh_SetAlphaRender(D3DBLEND_SRCALPHA, D3DBLEND_ONE);
+	else if (flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHATRANS)
+		Mesh_SetAlphaRender(D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
+	else if (flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHASA0)
+		Mesh_SetAlphaRender(D3DBLEND_ZERO, D3DBLEND_INVSRCCOLOR);
 	else
-		Graphics_ChangeRenderState( D3DRENDERSTATE_ALPHABLENDENABLE, false );
+		Graphics_ChangeRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, false);
 
 	if (flags & Mesh_RenderFlags::MESH_RENDER_FLAG_DOUBLESIDED) Graphics_ChangeRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_NONE);
 	else Graphics_ChangeRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
 
-	if( !(mainGlobs.flags & MainFlags::MAIN_FLAG_DONTMANAGETEXTURES) )
-	{
+	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_DONTMANAGETEXTURES)) {
 		//ALPHA CHANNEL
-		if( flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHATEX )
-			Mesh_ChangeTextureStageState( D3DTSS_ALPHAOP, D3DTOP_SELECTARG1 );
-		else if( flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHADIFFUSE )
-			Mesh_ChangeTextureStageState( D3DTSS_ALPHAOP, D3DTOP_SELECTARG2 );
+		if (flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHATEX)
+			Mesh_ChangeTextureStageState(D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
+		else if (flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHADIFFUSE)
+			Mesh_ChangeTextureStageState(D3DTSS_ALPHAOP, D3DTOP_SELECTARG2);
 		else
-			Mesh_ChangeTextureStageState( D3DTSS_ALPHAOP, D3DTOP_MODULATE );
+			Mesh_ChangeTextureStageState(D3DTSS_ALPHAOP, D3DTOP_MODULATE);
 	}
 	
 	//Z BUFFER CHECK
-	Graphics_ChangeRenderState( D3DRENDERSTATE_ZENABLE, true );
+	Graphics_ChangeRenderState(D3DRENDERSTATE_ZENABLE, true);
 
 	//Z BUFFER WRITE
-	if( (flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA) && alphaBlend )
-		Graphics_ChangeRenderState( D3DRENDERSTATE_ZWRITEENABLE, false );
+	if ((flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA) && alphaBlend)
+		Graphics_ChangeRenderState(D3DRENDERSTATE_ZWRITEENABLE, false);
 	else
-		Graphics_ChangeRenderState( D3DRENDERSTATE_ZWRITEENABLE, true );
+		Graphics_ChangeRenderState(D3DRENDERSTATE_ZWRITEENABLE, true);
 
 //	if (flags & Mesh_RenderFlags::MESH_RENDER_FLAG_HIGHZBIAS) Graphics_ChangeRenderState(D3DRENDERSTATE_ZBIAS, 1);
 //	else Graphics_ChangeRenderState(D3DRENDERSTATE_ZBIAS, 0);
 
 	//WORLD TRANSORMATION
-	if( flags & Mesh_RenderFlags::MESH_TRANSFORM_FLAG_PARENTPOS )
-		Mesh_SetTransform( D3DTRANSFORMSTATE_WORLD, (Matrix4F*)matWorld );
-	else if( flags & Mesh_RenderFlags::MESH_TRANSFORM_FLAG_IDENTITY )
-	{	
-		Mesh_SetIdentityMatrix( temp );
-		Mesh_SetTransform( D3DTRANSFORMSTATE_WORLD, &temp );
+	if (flags & Mesh_RenderFlags::MESH_TRANSFORM_FLAG_PARENTPOS) {
+		Mesh_SetTransform(D3DTRANSFORMSTATE_WORLD, (Matrix4F*)matWorld);
+	}
+	else if (flags & Mesh_RenderFlags::MESH_TRANSFORM_FLAG_IDENTITY) {
 
+		Mesh_SetIdentityMatrix(temp);
+		Mesh_SetTransform(D3DTRANSFORMSTATE_WORLD, &temp);
 	}
 
-	if( flags & Mesh_RenderFlags::MESH_RENDER_FLAG_FILTERNEAREST )
-	{	
-		Graphics_ChangeRenderState( D3DRENDERSTATE_TEXTUREMAG, D3DFILTER_NEAREST );
-		Graphics_ChangeRenderState( D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_NEAREST );
+	if (flags & Mesh_RenderFlags::MESH_RENDER_FLAG_FILTERNEAREST) {	
+		Graphics_ChangeRenderState(D3DRENDERSTATE_TEXTUREMAG, D3DFILTER_NEAREST);
+		Graphics_ChangeRenderState(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_NEAREST);
 	}
-	else
-	{	
-		Graphics_ChangeRenderState( D3DRENDERSTATE_TEXTUREMAG, D3DFILTER_LINEAR );
+	else {	
+		Graphics_ChangeRenderState( D3DRENDERSTATE_TEXTUREMAG, D3DFILTER_LINEAR);
 
 		/// CUSTOM: Add control over rendering filtering using settings passed to Main_Setup3D
 		if (graphicsGlobs.mipMap) {
@@ -1625,27 +1585,27 @@ void __cdecl Gods98::Mesh_SetRenderDesc(Mesh_RenderFlags flags, const D3DMATRIX*
 			Graphics_ChangeRenderState(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_LINEAR);
 		}
 		/// OLD GODS98: MIPLINEAR used by LegoRR but LINEAR used by newer Gods98 source.
-		//Graphics_ChangeRenderState( D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_MIPLINEAR );
-		//Graphics_ChangeRenderState( D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_LINEAR );
+		//Graphics_ChangeRenderState(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_MIPLINEAR);
+		//Graphics_ChangeRenderState(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_LINEAR);
 	}
 }
 
 // <LegoRR.exe @00482f70>
 void __cdecl Gods98::Mesh_SetAlphaRender(D3DBLEND src, D3DBLEND dest)
 {
-	Graphics_ChangeRenderState( D3DRENDERSTATE_ALPHABLENDENABLE,	true );
-	Graphics_ChangeRenderState( D3DRENDERSTATE_SRCBLEND,			src );
-	Graphics_ChangeRenderState( D3DRENDERSTATE_DESTBLEND,			dest );
+	Graphics_ChangeRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, true);
+	Graphics_ChangeRenderState(D3DRENDERSTATE_SRCBLEND,         src);
+	Graphics_ChangeRenderState(D3DRENDERSTATE_DESTBLEND,        dest);
 }
 
 // <LegoRR.exe @00482fa0>
 void __cdecl Gods98::Mesh_AddToPostRenderList(Mesh* mesh, const D3DMATRIX* matWorld)
 {
-	Mesh_PostRenderInfo* info = (Mesh_PostRenderInfo*)Mem_Alloc( sizeof(Mesh_PostRenderInfo) );
-	std::memset( info, 0, sizeof(Mesh_PostRenderInfo) );
+	Mesh_PostRenderInfo* info = (Mesh_PostRenderInfo*)Mem_Alloc(sizeof(Mesh_PostRenderInfo));
+	std::memset(info, 0, sizeof(Mesh_PostRenderInfo));
 
 	info->mesh = mesh;
-	if( matWorld )
+	if (matWorld)
 		info->matWorld = (*matWorld);
 
 	//ADD TO LINKED LIST
@@ -1658,11 +1618,10 @@ void __cdecl Gods98::Mesh_ClearPostRenderList(void)
 {
 	Mesh_PostRenderInfo* info = meshGlobs.postRenderMeshList;
 
-	while( info )
-	{
+	while (info) {
 		Mesh_PostRenderInfo* infoNext = info->next;
 
-		Mem_Free( info );
+		Mem_Free(info);
 
 		info = infoNext;
 	}
@@ -1677,50 +1636,45 @@ void __cdecl Gods98::Mesh_PostRenderAll(Viewport* vp)
 
 	Mesh_Debug_CheckIMDevice_Void();
 
-	if( info )
-	{	
+	if (info) {	
 		Mesh_SetCurrentGODSViewport( vp );
 
 		Mesh_StoreTextureAndMat();
 
-		while( info )
-		{
-			if( !(info->mesh->flags & MeshFlags::MESH_FLAG_HIDDEN) )
-			{	
-				Mesh_SetMeshRenderDesc( info->mesh, vp, &info->matWorld, true );
+		while (info) {
 
-				if( info->mesh->flags & MeshFlags::MESH_FLAG_POSTEFFECT )
-					Mesh_RenderMesh( info->mesh, &info->matWorld, true );
-				else
-				{
+			if (!(info->mesh->flags & MeshFlags::MESH_FLAG_HIDDEN)) {
+
+				Mesh_SetMeshRenderDesc(info->mesh, vp, &info->matWorld, true);
+
+				if (info->mesh->flags & MeshFlags::MESH_FLAG_POSTEFFECT) {
+					Mesh_RenderMesh(info->mesh, &info->matWorld, true);
+				}
+				else {
 					//RUN THROUGH GROUPS AND ONLY RENDER TRANSPARENT GROUPS
 					
 					//RENDER ALL GROUPS WITHOUT FLAGS CHANGED FISRT
-					for( uint32 loop = 0; loop < info->mesh->groupCount; loop++ )
-					{
+					for (uint32 loop = 0; loop < info->mesh->groupCount; loop++) {
 						Mesh_Group* group = &info->mesh->groupList[loop];
 
-						if( Mesh_CanRenderGroup(group) )
-						{
-							if( group->flags & MeshFlags::MESH_FLAG_ALPHAENABLE )
-							{
-								if( 0 == group->renderFlags )
-									Mesh_RenderGroup( info->mesh, group, &info->matWorld, true);
+						if (Mesh_CanRenderGroup(group)) {
+
+							if (group->flags & MeshFlags::MESH_FLAG_ALPHAENABLE) {
+
+								if (group->renderFlags == Mesh_RenderFlags::MESH_RENDER_FLAG_NONE)
+									Mesh_RenderGroup(info->mesh, group, &info->matWorld, true);
 							}
 						}
 					}
 
 					//RENDER ALL GROUPS WITH FLAGS CHANGED
-					for( uint32 loop = 0; loop < info->mesh->groupCount; loop++ )
-					{
+					for (uint32 loop = 0; loop < info->mesh->groupCount; loop++) {
 						Mesh_Group* group = &info->mesh->groupList[loop];
 
-						if( Mesh_CanRenderGroup(group) )
-						{
-							if( group->flags & MeshFlags::MESH_FLAG_ALPHAENABLE )
-							{
-								if( group->renderFlags )
-									Mesh_RenderGroup( info->mesh, group, &info->matWorld, true);
+						if (Mesh_CanRenderGroup(group)) {
+							if (group->flags & MeshFlags::MESH_FLAG_ALPHAENABLE) {
+								if (group->renderFlags)
+									Mesh_RenderGroup(info->mesh, group, &info->matWorld, true);
 							}
 						}
 					}
@@ -1745,7 +1699,7 @@ void __cdecl Gods98::Mesh_PostRenderAll(Viewport* vp)
 Gods98::Mesh_Texture* __cdecl Gods98::Mesh_LoadTexture(const char* baseDir, const char* name, OUT uint32* width, OUT uint32* height)
 {
 	char path[FILE_MAXPATH];
-	Mesh_Texture* texture = (Mesh_Texture * )Mem_Alloc(sizeof(Container_Texture));
+	Mesh_Texture* texture = (Mesh_Texture*)Mem_Alloc(sizeof(Container_Texture));
 	IDirectDrawSurface4* surface = nullptr;
 	Mesh_TextureReference* ref;
 	bool32 trans;
@@ -1756,23 +1710,26 @@ Gods98::Mesh_Texture* __cdecl Gods98::Mesh_LoadTexture(const char* baseDir, cons
 	else std::strcpy(path, name);
 
 	if (ref = Mesh_SearchTexturePathList(meshGlobs.textureList, meshGlobs.textureCount, path)) {
-		if( surface = ref->surface )
+		if (surface = ref->surface)
 			surface->AddRef();
 		trans = ref->trans;
 
-	} else if (surface = Container_LoadTextureSurface(path, true, width, height, &trans)) {
+	}
+	else if (surface = Container_LoadTextureSurface(path, true, width, height, &trans)) {
 		Mesh_AddTexturePathEntry(meshGlobs.textureList, &meshGlobs.textureCount, path, surface, trans);
 
-	} else if (meshGlobs.sharedTextureDir) {
+	}
+	else if (meshGlobs.sharedTextureDir) {
 
 		std::sprintf(path, "%s%s", meshGlobs.sharedTextureDir, name);
 
 		if (ref = Mesh_SearchTexturePathList(meshGlobs.textureListShared, meshGlobs.textureCountShared, path)) {
-			if( surface = ref->surface )
+			if (surface = ref->surface)
 				surface->AddRef();
 			trans = ref->trans;
 
-		} else if (surface = Container_LoadTextureSurface(path, true, width, height, &trans)) {
+		}
+		else if (surface = Container_LoadTextureSurface(path, true, width, height, &trans)) {
 			Mesh_AddTexturePathEntry(meshGlobs.textureListShared, &meshGlobs.textureCountShared, path, surface, trans);
 		}
 	}
@@ -1781,7 +1738,8 @@ Gods98::Mesh_Texture* __cdecl Gods98::Mesh_LoadTexture(const char* baseDir, cons
 		texture->texture = nullptr;
 		texture->surface = surface;
 		texture->colourKey = trans;
-	} else {
+	}
+	else {
 		Mem_Free(texture);
 		texture = nullptr;
 //		Error_Fatal(true, Error_Format("Cannot find or load texture >(%s\\)%s<", baseDir, name));
@@ -1793,7 +1751,7 @@ Gods98::Mesh_Texture* __cdecl Gods98::Mesh_LoadTexture(const char* baseDir, cons
 // <LegoRR.exe @004832f0>
 Gods98::Mesh_TextureReference* __cdecl Gods98::Mesh_SearchTexturePathList(Mesh_TextureReference* list, uint32 count, const char* path)
 {
-	for (uint32 loop=0 ; loop<count ; loop++) {
+	for (uint32 loop = 0; loop < count; loop++) {
 		if (::_stricmp(path, list[loop].path) == 0) return &list[loop];
 	}
 
@@ -1840,9 +1798,8 @@ void __cdecl Gods98::Mesh_RemoveGroupTexture(Mesh* mesh, uint32 groupID)
 
 		Mesh_Debug_CheckIMDevice_Void();
 
-		if( group->imText )
-		{
-			RELEASE( group->imText )
+		if (group->imText) {
+			RELEASE(group->imText)
 		
 			group->imText = nullptr;
 		}
@@ -1855,8 +1812,7 @@ bool32 __cdecl Gods98::Mesh_CreateGroupMaterial(Mesh* mesh, uint32 groupID)
 	/// NEW GODS98: Safety check is not present in LegoRR
 	if (groupID < mesh->groupCount) {
 		Mesh_Group* group = &mesh->groupList[groupID];
-		D3DMATERIAL material =
-		{
+		D3DMATERIAL material = {
 			sizeof(D3DMATERIAL),
 			{ 1.0f, 1.0f, 1.0f, 1.0f },
 			/// OLD GODS98: Ambient set to 0.0f for RGBA
@@ -1899,28 +1855,20 @@ bool32 __cdecl Gods98::Mesh_SetGroupColour(Mesh* mesh, uint32 groupID, real32 r,
 	/// NEW GODS98: Safety check is not present in LegoRR
 	if (groupID < mesh->groupCount) {
 		Mesh_Group* group = &mesh->groupList[groupID];
-		D3DMATERIAL* material;
 
 
 		Mesh_Debug_CheckIMDevice_Int();
 
-		material = Mesh_GetGroupMaterial(mesh, groupID);
+		D3DMATERIAL* material = Mesh_GetGroupMaterial(mesh, groupID);
 
-		if (r < 0.0f)
-			r = 0.0f;
-		if (g < 0.0f)
-			g = 0.0f;
-		if (b < 0.0f)
-			b = 0.0f;
-		if (r > 1.0f)
-			r = 1.0f;
-		if (g > 1.0f)
-			g = 1.0f;
-		if (b > 1.0f)
-			b = 1.0f;
+		if (r < 0.0f) r = 0.0f;
+		if (g < 0.0f) g = 0.0f;
+		if (b < 0.0f) b = 0.0f;
+		if (r > 1.0f) r = 1.0f;
+		if (g > 1.0f) g = 1.0f;
+		if (b > 1.0f) b = 1.0f;
 
-		if (type == Mesh_Colour::Diffuse)
-		{
+		if (type == Mesh_Colour::Diffuse) {
 			material->diffuse.r = r;
 			material->diffuse.g = g;
 			material->diffuse.b = b;
@@ -1931,31 +1879,28 @@ bool32 __cdecl Gods98::Mesh_SetGroupColour(Mesh* mesh, uint32 groupID, real32 r,
 				group->flags &= ~MeshFlags::MESH_FLAG_TEXTURECOLOURONLY;
 
 			//Mesh_HideGroup( mesh, groupID, false );
-			//if( (r == 0.0f) && (g == 0.0f) && (b == 0.0f) )
-			//{	
-			//	if( group->renderFlags )
-			//	{
-			//		if( group->renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA );
+			//if ((r == 0.0f) && (g == 0.0f) && (b == 0.0f)) {
+			//	
+			//	if (group->renderFlags) {
+			//
+			//		if (group->renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA);
 			//			Mesh_HideGroup( mesh, groupID, true );
 			//	}
-			//	else if( mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA )
-			//		Mesh_HideGroup( mesh, groupID, true );
+			//	else if (mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA)
+			//		Mesh_HideGroup(mesh, groupID, true);
 			//}
 		}
-		else if (type == Mesh_Colour::Ambient)
-		{
+		else if (type == Mesh_Colour::Ambient) {
 			material->ambient.r = r;
 			material->ambient.g = g;
 			material->ambient.b = b;
 		}
-		else if (type == Mesh_Colour::Emissive)
-		{
+		else if (type == Mesh_Colour::Emissive) {
 			material->emissive.r = r;
 			material->emissive.g = g;
 			material->emissive.b = b;
 		}
-		else if (type == Mesh_Colour::Specular)
-		{
+		else if (type == Mesh_Colour::Specular) {
 			material->specular.r = r;
 			material->specular.g = g;
 			material->specular.b = b;
@@ -1990,45 +1935,40 @@ bool32 __cdecl Gods98::Mesh_SetGroupMaterialValues(Mesh* mesh, uint32 groupID, r
 
 		Mesh_Debug_CheckIMDevice_Int();
 
-		D3DMATERIAL* material = Mesh_GetGroupMaterial( mesh, groupID );
+		D3DMATERIAL* material = Mesh_GetGroupMaterial(mesh, groupID);
 
-		if( value < 0.0f )
-			value = 0.0f;
-		if( value > 1.0f )
-			value = 1.0f;
+		if (value < 0.0f) value = 0.0f;
+		if (value > 1.0f) value = 1.0f;
 
-		if( type == Mesh_Colour::Alpha )
-		{	
+		if (type == Mesh_Colour::Alpha) {	
 			group->flags &= ~MeshFlags::MESH_FLAG_ALPHAHIDDEN;
 			group->flags &= ~MeshFlags::MESH_FLAG_ALPHAENABLE;
 
-			if( value == 0.0f )
-			{
-				if( group->renderFlags )
-				{	
+			if (value == 0.0f) {
+
+				if (group->renderFlags) {	
 					/// FIX APPLY: Semicolon after if statement, but before condition block
-					if( group->renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA )
+					if (group->renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA)
 						group->flags |= MeshFlags::MESH_FLAG_ALPHAHIDDEN;
 				}
-				else if( mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA )
+				else if (mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA)
 					group->flags |= MeshFlags::MESH_FLAG_ALPHAHIDDEN;
 			}
-			else if( value != 1.0f)
-			{
-				if( group->renderFlags )
-				{	
+			else if (value != 1.0f) {
+
+				if (group->renderFlags) {	
 					/// FIX APPLY: Semicolon after if statement, but before condition block
-					if( group->renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA )
+					if (group->renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA)
 						group->flags |= MeshFlags::MESH_FLAG_ALPHAENABLE;
 				}
-				else if( mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA )
+				else if (mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA)
 					group->flags |= MeshFlags::MESH_FLAG_ALPHAENABLE;
 			}
 
 			//COLOUR ADDITION CAN OCCUR EVEN IF ALPHA VALUE IS 1.0f
-			if( group->renderFlags )
-			{
-				if( (group->renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHA11) ||
+			if (group->renderFlags) {
+
+				if ((group->renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHA11) ||
 					(group->renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHASA1) ||
 					(group->renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHASA0))
 				{
@@ -2036,9 +1976,9 @@ bool32 __cdecl Gods98::Mesh_SetGroupMaterialValues(Mesh* mesh, uint32 groupID, r
 					group->flags |= MeshFlags::MESH_FLAG_ALPHAENABLE;
 				}
 			}
-			else if( (mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHA11) ||
+			else if ((mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHA11) ||
 				(mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHASA1) ||
-				(mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHASA0) )
+				(mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHASA0))
 			{
 				//group->flags &= ~MeshFlags::MESH_FLAG_ALPHAHIDDEN;
 				group->flags |= MeshFlags::MESH_FLAG_ALPHAENABLE;
@@ -2046,7 +1986,7 @@ bool32 __cdecl Gods98::Mesh_SetGroupMaterialValues(Mesh* mesh, uint32 groupID, r
 
 			material->diffuse.a = value;
 		}
-		else if( type == Mesh_Colour::Power )
+		else if (type == Mesh_Colour::Power)
 			material->power = value;
 
 		return true;
@@ -2067,32 +2007,27 @@ void __cdecl Gods98::Mesh_SetIdentityMatrix(OUT Matrix4F m)
 bool32 __cdecl Gods98::Mesh_SetCurrentViewport(IDirect3DRMViewport* view)
 {
 	IDirect3DViewport* imview1;
+	if (view->GetDirect3DViewport(&imview1) != D3DRM_OK) {
+		Error_Warn(true, "Cannot 'GetDirect3DViewport'.");
+		return false;
+	}
+
 	IDirect3DViewport3* imview;
-
-
-	if( view->GetDirect3DViewport(&imview1) != D3DRM_OK )
-	{
-		Error_Warn(true, "Cannot 'GetDirect3DViewport'." );
+	if (imview1->QueryInterface(IID_IDirect3DViewport3, (void**)&imview) != D3DRM_OK) {	
+		Error_Warn(true, "Cannot 'QueryInterface' 'IID_IDirect3DViewport3'.");
+		RELEASE(imview1);		
 		return false;
 	}
 
-	if( imview1->QueryInterface(IID_IDirect3DViewport3, (void**)&imview) != D3DRM_OK )
-	{	
-		Error_Warn(true, "Cannot 'QueryInterface' 'IID_IDirect3DViewport3'." );
-		RELEASE( imview1 );		
+	RELEASE(imview1);
+
+	if (lpIMDevice()->SetCurrentViewport(imview) != D3D_OK) {	
+		Error_Warn(true, "Cannot 'SetCurrentViewport'.");
+		RELEASE(imview);
 		return false;
 	}
 
-	RELEASE( imview1 );
-
-	if( lpIMDevice()->SetCurrentViewport(imview) != D3D_OK )
-	{	
-		Error_Warn(true, "Cannot 'SetCurrentViewport'." );
-		RELEASE( imview );
-		return false;
-	}
-
-	RELEASE( imview );
+	RELEASE(imview);
 
 	return true;
 }
@@ -2104,29 +2039,26 @@ bool32 __cdecl Gods98::Mesh_SetCurrentGODSViewport(Viewport* vp)
 	IDirect3DViewport3* imview;
 
 
-	if( vp->lpVP->GetDirect3DViewport(&imview1) != D3DRM_OK )
-	{	
-		Error_Warn( true, "Cannot 'GetDirect3DViewport'." );
+	if (vp->lpVP->GetDirect3DViewport(&imview1) != D3DRM_OK) {	
+		Error_Warn( true, "Cannot 'GetDirect3DViewport'.");
 		return false;
 	}
 
-	if( imview1->QueryInterface(IID_IDirect3DViewport3, (void**)&imview) != D3DRM_OK )
-	{	
-		Error_Warn( true, "Cannot 'QueryInterface' 'IID_IDirect3DViewport3'." );
-		RELEASE( imview1 );		
+	if (imview1->QueryInterface(IID_IDirect3DViewport3, (void**)&imview) != D3DRM_OK) {	
+		Error_Warn(true, "Cannot 'QueryInterface' 'IID_IDirect3DViewport3'.");
+		RELEASE(imview1);		
 		return false;
 	}
 
-	RELEASE( imview1 );
+	RELEASE(imview1);
 
-	if( lpIMDevice()->SetCurrentViewport(imview) != D3D_OK )
-	{	
-		Error_Warn( true, "Cannot 'SetCurrentViewport'." );
-		RELEASE( imview );
+	if (lpIMDevice()->SetCurrentViewport(imview) != D3D_OK) {	
+		Error_Warn(true, "Cannot 'SetCurrentViewport'.");
+		RELEASE(imview);
 		return false;
 	}
 
-	RELEASE( imview );
+	RELEASE(imview);
 
 	return true;
 }
@@ -2141,18 +2073,17 @@ bool32 __cdecl Gods98::Mesh_SetTransform(D3DTRANSFORMSTATETYPE state, const Matr
 
 
 	//DIRECTX DOCUMENTATION STATES CALLS TO 'SetTransform' SHOULD BE MINIMISED
-	if( lpIMDevice()->GetTransform(state, &oldMatrix) != D3D_OK )
-		Error_Warn( true, "Cannot 'GetTransform'." );
+	if (lpIMDevice()->GetTransform(state, &oldMatrix) != D3D_OK)
+		Error_Warn(true, "Cannot 'GetTransform'.");
 
 	//MAYBE PUT != COMPARISON AS A GLOBAL FUNCTION?
-	if( (oldMatrix._11 != newMatrix._11) || (oldMatrix._12 != newMatrix._12) || (oldMatrix._13 != newMatrix._13) || (oldMatrix._14 != newMatrix._14) ||
+	if ((oldMatrix._11 != newMatrix._11) || (oldMatrix._12 != newMatrix._12) || (oldMatrix._13 != newMatrix._13) || (oldMatrix._14 != newMatrix._14) ||
 		(oldMatrix._21 != newMatrix._21) || (oldMatrix._22 != newMatrix._22) || (oldMatrix._23 != newMatrix._23) || (oldMatrix._24 != newMatrix._24) ||
 		(oldMatrix._31 != newMatrix._31) || (oldMatrix._32 != newMatrix._32) || (oldMatrix._33 != newMatrix._33) || (oldMatrix._34 != newMatrix._34) ||
-		(oldMatrix._41 != newMatrix._41) || (oldMatrix._42 != newMatrix._42) || (oldMatrix._43 != newMatrix._43) || (oldMatrix._44 != newMatrix._44) )
+		(oldMatrix._41 != newMatrix._41) || (oldMatrix._42 != newMatrix._42) || (oldMatrix._43 != newMatrix._43) || (oldMatrix._44 != newMatrix._44))
 	{	
-		if( lpIMDevice()->SetTransform(state, (LPD3DMATRIX)matrix) != D3D_OK )
-		{	
-			Error_Warn( true, "Cannot 'SetTransform'." );
+		if (lpIMDevice()->SetTransform(state, (LPD3DMATRIX)matrix) != D3D_OK) {	
+			Error_Warn(true, "Cannot 'SetTransform'.");
 
 			return false;
 		}
@@ -2170,24 +2101,25 @@ bool32 __cdecl Gods98::Mesh_ChangeTextureStageState(D3DTEXTURESTAGESTATETYPE dwR
 	Error_Fatal(dwRenderStateType>=MESH_MAXTEXTURESTAGESTATES, "TextureStageState type is out of range");
 
 	data = &meshGlobs.stateData[dwRenderStateType];
-	if( lpIMDevice()->GetTextureStageState(0, dwRenderStateType, &currValue) != D3D_OK )
-	{	Error_Warn( true, "Cannot 'GetTextureStageState'." );
+	if (lpIMDevice()->GetTextureStageState(0, dwRenderStateType, &currValue) != D3D_OK) {
+		Error_Warn(true, "Cannot 'GetTextureStageState'.");
 
 		currValue = -1;
 		//return false;
 	}
 
-	if (currValue != dwRenderState){
+	if (currValue != dwRenderState) {
 
-		if( lpIMDevice()->SetTextureStageState( 0, dwRenderStateType, dwRenderState ) != D3D_OK )
-		{	Error_Warn( true, "Cannot 'SetTextureStageState'." );
+		if (lpIMDevice()->SetTextureStageState(0, dwRenderStateType, dwRenderState) != D3D_OK) {
+			Error_Warn(true, "Cannot 'SetTextureStageState'.");
 
 			return false;
 		}
-		else
-		{	if (data->changed) {
+		else {
+			if (data->changed) {
 				if (data->origValue == currValue) data->changed = false;
-			} else {	
+			}
+			else {	
 				data->origValue = currValue;
 				data->changed = true;
 			}
@@ -2205,8 +2137,8 @@ void __cdecl Gods98::Mesh_StoreTextureAndMat(void)
 
 
 	//GET OLD MATERIAL
-	if( lpIMDevice()->GetLightState( D3DLIGHTSTATE_MATERIAL, &meshGlobs.oldMatIM ) != D3D_OK )
-	{	Error_Warn( true, "Cannot 'GetLightState' for current D3DIM material." );
+	if (lpIMDevice()->GetLightState(D3DLIGHTSTATE_MATERIAL, &meshGlobs.oldMatIM) != D3D_OK) {
+		Error_Warn( true, "Cannot 'GetLightState' for current D3DIM material.");
 
 		ok = false;
 	}
@@ -2215,21 +2147,22 @@ void __cdecl Gods98::Mesh_StoreTextureAndMat(void)
 //#ifndef  _GODS98_VIDEOMEMTEXTURES
 	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_DONTMANAGETEXTURES)) {
 	//GET OLD TEXTURE
-	if( D3D_OK != lpIMDevice()->GetTexture( 0, &meshGlobs.oldTextureIM ) )
-	{	Error_Warn( true, "Cannot 'GetTexture' for current D3DIM texture." );
+	if (lpIMDevice()->GetTexture(0, &meshGlobs.oldTextureIM) != D3D_OK) {
+		Error_Warn(true, "Cannot 'GetTexture' for current D3DIM texture.");
 
 		ok = false;
 	}
 	meshGlobs.currTextureIM = meshGlobs.oldTextureIM;
 
 	//GET OLD RM TEXTURE
-	lpIMDevice()->GetRenderState( D3DRENDERSTATE_TEXTUREHANDLE, &meshGlobs.oldTextureRM );
+	lpIMDevice()->GetRenderState(D3DRENDERSTATE_TEXTUREHANDLE, &meshGlobs.oldTextureRM);
 	//CLEAR RETAINED MODE TEXTURE HANDLE
-	if( 0 != meshGlobs.oldTextureRM )
-		lpIMDevice()->SetRenderState( D3DRENDERSTATE_TEXTUREHANDLE, 0 );
-	} else {
+	if (meshGlobs.oldTextureRM != 0)
+		lpIMDevice()->SetRenderState(D3DRENDERSTATE_TEXTUREHANDLE, 0);
+	}
+	else {
 //#else //_GODS98_VIDEOMEMTEXTURES
-		lpIMDevice()->GetRenderState( D3DRENDERSTATE_TEXTUREHANDLE, &meshGlobs.oldTextureRM );
+		lpIMDevice()->GetRenderState(D3DRENDERSTATE_TEXTUREHANDLE, &meshGlobs.oldTextureRM);
 		meshGlobs.currTextureRM = meshGlobs.oldTextureRM;
 	}
 //#endif //_GODS98_VIDEOMEMTEXTURES
@@ -2245,23 +2178,23 @@ void __cdecl Gods98::Mesh_RestoreTextureAndMat(void)
 	
 
 /*	//GET OLD MATERIAL
-	if( lpIMDevice()->lpVtbl->GetLightState( D3DLIGHTSTATE_MATERIAL, &oldMatHandle ) != D3D_OK )
-	{	Error_Warn( true, "Cannot 'GetLightState' for current D3DIM material." );
+	if (lpIMDevice()->lpVtbl->GetLightState(D3DLIGHTSTATE_MATERIAL, &oldMatHandle) != D3D_OK) {
+		Error_Warn(true, "Cannot 'GetLightState' for current D3DIM material.");
 
 		ok = false;
 	}
 	//GET OLD TEXTURE
-	if( lpIMDevice()->GetTexture( 0, &oldTexture ) != D3D_OK )
-	{	Error_Warn( true, "Cannot 'GetTexture' for current D3DIM texture." );
+	if (lpIMDevice()->GetTexture(0, &oldTexture) != D3D_OK) {
+		Error_Warn(true, "Cannot 'GetTexture' for current D3DIM texture.");
 
 		ok = false;
 	}
 */
 
-	if( meshGlobs.currMatIM != meshGlobs.oldMatIM )
+	if (meshGlobs.currMatIM != meshGlobs.oldMatIM)
 		//SET OLD MATERIAL
-		if( lpIMDevice()->SetLightState( D3DLIGHTSTATE_MATERIAL, meshGlobs.oldMatIM ) != D3D_OK )
-		{	Error_Warn( true, "Cannot 'SetLightState' for old D3DIM material." );
+		if (lpIMDevice()->SetLightState(D3DLIGHTSTATE_MATERIAL, meshGlobs.oldMatIM) != D3D_OK) {
+			Error_Warn(true, "Cannot 'SetLightState' for old D3DIM material.");
 
 			ok = false;
 		}
@@ -2269,20 +2202,21 @@ void __cdecl Gods98::Mesh_RestoreTextureAndMat(void)
 	//#ifndef _GODS98_VIDEOMEMTEXTURES
 	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_DONTMANAGETEXTURES)) {
 
-		if( meshGlobs.currTextureIM != meshGlobs.oldTextureIM )
+		if (meshGlobs.currTextureIM != meshGlobs.oldTextureIM)
 			//SET OLD TEXTURE
-			if( lpIMDevice()->SetTexture( 0, meshGlobs.oldTextureIM ) != D3D_OK )
-			{	Error_Warn( true, "Cannot 'SetTexture' for old D3DIM texture." );
+			if (lpIMDevice()->SetTexture(0, meshGlobs.oldTextureIM) != D3D_OK) {
+				Error_Warn(true, "Cannot 'SetTexture' for old D3DIM texture.");
 
 				ok = false;
 			}
 
 		//SET OLD RETAINED MODE TEXTURE
-		if( 0 != meshGlobs.oldTextureRM )
-			lpIMDevice()->SetRenderState( D3DRENDERSTATE_TEXTUREHANDLE, meshGlobs.oldTextureRM );
-	} else {
+		if (meshGlobs.oldTextureRM != 0)
+			lpIMDevice()->SetRenderState(D3DRENDERSTATE_TEXTUREHANDLE, meshGlobs.oldTextureRM);
+	}
+	else {
 	//#else //_GODS98_VIDEOMEMTEXTURES
-		lpIMDevice()->SetRenderState( D3DRENDERSTATE_TEXTUREHANDLE, meshGlobs.oldTextureRM );
+		lpIMDevice()->SetRenderState(D3DRENDERSTATE_TEXTUREHANDLE, meshGlobs.oldTextureRM);
 	//#endif //_GODS98_VIDEOMEMTEXTURES
 	}
 
@@ -2295,30 +2229,24 @@ bool32 __cdecl Gods98::Mesh_RenderMesh(Mesh* mesh, const D3DMATRIX* matWorld, bo
 	bool32 ok = true;
 
 	//RENDER ALL GROUPS WITHOUT FLAGS CHANGED FISRT
-	for( uint32 loop = 0; loop < mesh->groupCount; loop++ )
-	{
+	for (uint32 loop = 0; loop < mesh->groupCount; loop++) {
 		Mesh_Group* group = &mesh->groupList[loop];
 
-		if( Mesh_CanRenderGroup(group) )
-		{
-			if( group->renderFlags == Mesh_RenderFlags::MESH_RENDER_FLAG_NONE )
-			{
-				if( !Mesh_RenderGroup(mesh, group, matWorld, alphaBlend) )
+		if (Mesh_CanRenderGroup(group)) {
+			if (group->renderFlags == Mesh_RenderFlags::MESH_RENDER_FLAG_NONE) {
+				if (!Mesh_RenderGroup(mesh, group, matWorld, alphaBlend))
 					ok = false;
 			}
 		}
 	}
 
 	//RENDER ALL GROUPS WITH FLAGS CHANGED
-	for( uint32 loop = 0; loop < mesh->groupCount; loop++ )
-	{
+	for (uint32 loop = 0; loop < mesh->groupCount; loop++) {
 		Mesh_Group* group = &mesh->groupList[loop];
 
-		if( Mesh_CanRenderGroup(group) )
-		{
-			if( group->renderFlags )
-			{
-				if( !Mesh_RenderGroup(mesh, group, matWorld, alphaBlend) )
+		if (Mesh_CanRenderGroup(group)) {
+			if (group->renderFlags) {
+				if (!Mesh_RenderGroup(mesh, group, matWorld, alphaBlend))
 					ok = false;
 			}
 		}
@@ -2341,16 +2269,18 @@ bool32 __cdecl Gods98::Mesh_RenderGroup(Mesh* mesh, Mesh_Group* group, const D3D
 	//COULD RUN THROUGH ALL GROUPS WITHOUT INDIVIDUAL RENDERING FLAGS
 	//THEN RENDER GROUPS WITH RENDERING FLAGS ALTERED
 
-	//bool32 flagsChanged = Mesh_SetGroupRenderDesc( mesh, group, matWorld, alphaBlend );
+	//bool32 flagsChanged = Mesh_SetGroupRenderDesc(mesh, group, matWorld, alphaBlend);
 
-	Mesh_SetGroupRenderDesc( mesh, group, matWorld, alphaBlend );
+	Mesh_SetGroupRenderDesc(mesh, group, matWorld, alphaBlend);
 
-	//if( !Mesh_RenderTriangleList(group->matHandle, group->imText, MESH_RENDERFLAGS_DEFAULT, 
-	//	group->vertices, group->vertexCount, group->faceData, group->faceDataSize) )
+	//if (!Mesh_RenderTriangleList(group->matHandle, group->imText, MESH_RENDERFLAGS_DEFAULT, 
+	//	group->vertices, group->vertexCount, group->faceData, group->faceDataSize))
+	//{
 	//	ok = false;
+	//}
 
 	//SET THE MATERIAL FOR RENDER - SEE END OF FILE
-	if( !Mesh_SetMaterial(&group->material) )
+	if (!Mesh_SetMaterial(&group->material))
 		ok = false;
 
 
@@ -2358,18 +2288,19 @@ bool32 __cdecl Gods98::Mesh_RenderGroup(Mesh* mesh, Mesh_Group* group, const D3D
 	/*if (mesh->textureRenderCallback) 
 	{
 		sint32 frame = (mesh->textureRenderCallback(mesh->textureRenderCallbackData));
-		if (frame != -1) Mesh_SetTextureTime2( mesh, (float)frame);
+		if (frame != -1) Mesh_SetTextureTime2(mesh, (float)frame);
 
 	}*/
 
 
-	if( !Mesh_RenderTriangleList(meshGlobs.matHandle, group->imText, Mesh_RenderFlags::MESH_RENDERFLAGS_DEFAULT,
-		group->vertices, group->vertexCount, group->faceData, group->faceDataSize) )
+	if (!Mesh_RenderTriangleList(meshGlobs.matHandle, group->imText, Mesh_RenderFlags::MESH_RENDERFLAGS_DEFAULT,
+		group->vertices, group->vertexCount, group->faceData, group->faceDataSize))
+	{
 		ok = false;
+	}
 
-	//if( flagsChanged )
-	//	//RESTORE PARENT MESH STATES
-	//	Mesh_SetRenderDesc( mesh->renderDesc.renderFlags, matWorld, alphaBlend );
+	//if (flagsChanged) //RESTORE PARENT MESH STATES
+	//	Mesh_SetRenderDesc(mesh->renderDesc.renderFlags, matWorld, alphaBlend);
 
 	return ok;
 }
@@ -2377,22 +2308,21 @@ bool32 __cdecl Gods98::Mesh_RenderGroup(Mesh* mesh, Mesh_Group* group, const D3D
 // <LegoRR.exe @00483dc0>
 bool32 __cdecl Gods98::Mesh_SetGroupRenderDesc(Mesh* mesh, Mesh_Group* group, const D3DMATRIX* matWorld, bool32 alphaBlend)
 {
-	if( !(mainGlobs.flags & MainFlags::MAIN_FLAG_DONTMANAGETEXTURES) )
-	{
-		if( (group->flags & MeshFlags::MESH_FLAG_TEXTURECOLOURONLY) && group->imText )
-			Mesh_ChangeTextureStageState( D3DTSS_COLOROP, D3DTOP_SELECTARG1 );
+	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_DONTMANAGETEXTURES)) {
+
+		if ((group->flags & MeshFlags::MESH_FLAG_TEXTURECOLOURONLY) && group->imText)
+			Mesh_ChangeTextureStageState(D3DTSS_COLOROP, D3DTOP_SELECTARG1);
 		else
-			Mesh_ChangeTextureStageState( D3DTSS_COLOROP, D3DTOP_MODULATE );
+			Mesh_ChangeTextureStageState(D3DTSS_COLOROP, D3DTOP_MODULATE);
 	}
 
-	if( group->flags & MeshFlags::MESH_FLAG_TRANSTEXTURE )
-		Graphics_ChangeRenderState( D3DRENDERSTATE_COLORKEYENABLE, true );
+	if (group->flags & MeshFlags::MESH_FLAG_TRANSTEXTURE)
+		Graphics_ChangeRenderState(D3DRENDERSTATE_COLORKEYENABLE, true);
 	else
-		Graphics_ChangeRenderState( D3DRENDERSTATE_COLORKEYENABLE, false);
+		Graphics_ChangeRenderState(D3DRENDERSTATE_COLORKEYENABLE, false);
 
-	if( group->renderFlags )
-	{	
-		Mesh_SetRenderDesc( group->renderFlags, matWorld, alphaBlend );
+	if (group->renderFlags) {	
+		Mesh_SetRenderDesc(group->renderFlags, matWorld, alphaBlend);
 
 		return true;
 	}

@@ -11,9 +11,9 @@
 #include "../../engine/gfx/Containers.h"
 #include "../../engine/drawing/Images.h"
 
-#include "../object/Object.h"
-
 #include "../GameCommon.h"
+
+#include "../object/Object.h"
 
 
 namespace LegoRR

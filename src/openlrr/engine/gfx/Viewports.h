@@ -10,6 +10,8 @@
 #include "../../common.h"
 #include "../geometry.h"
 
+#include "../core/ListSet.hpp"
+
 
 /**********************************************************************************
  ******** Forward Global Namespace Declarations
@@ -112,6 +114,9 @@ struct Viewport_Globs
 };
 assert_sizeof(Viewport_Globs, 0x8c);
 
+
+using Viewport_ListSet = ListSet::Collection<Gods98::Viewport_Globs>;
+
 #pragma endregion
 
 /**********************************************************************************
@@ -122,6 +127,8 @@ assert_sizeof(Viewport_Globs, 0x8c);
 
 // <LegoRR.exe @0076bce0>
 extern Viewport_Globs & viewportGlobs;
+
+extern Viewport_ListSet viewportListSet;
 
 #pragma endregion
 

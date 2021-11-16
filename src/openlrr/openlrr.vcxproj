@@ -165,6 +165,7 @@
     <ClInclude Include="engine\core\Config.h" />
     <ClInclude Include="engine\core\Errors.h" />
     <ClInclude Include="engine\core\Files.h" />
+    <ClInclude Include="engine\core\ListSet.hpp" />
     <ClInclude Include="engine\core\Maths.h" />
     <ClInclude Include="engine\core\Memory.h" />
     <ClInclude Include="engine\core\Utils.h" />
@@ -229,6 +230,7 @@
     <ClInclude Include="game\object\AITask.h" />
     <ClInclude Include="game\object\BezierCurve.h" />
     <ClInclude Include="game\object\Building.h" />
+    <ClInclude Include="game\object\Collision.h" />
     <ClInclude Include="game\object\Creature.h" />
     <ClInclude Include="game\object\Dependencies.h" />
     <ClInclude Include="game\object\Flocks.h" />
@@ -327,6 +329,7 @@
     <ClCompile Include="game\front\FrontEnd.cpp" />
     <ClCompile Include="game\front\Loader.cpp" />
     <ClInclude Include="game\front\Reward.cpp" />
+    <ClCompile Include="game\front\RewardScroll.cpp" />
     <ClCompile Include="game\Game.cpp" />
     <ClCompile Include="game\interface\Advisor.cpp" />
     <ClCompile Include="game\interface\Encyclopedia.cpp" />
@@ -343,12 +346,16 @@
     <ClCompile Include="game\interface\ScrollInfo.cpp" />
     <ClCompile Include="game\interface\TextMessages.cpp" />
     <ClCompile Include="game\interface\ToolTip.cpp" />
+    <ClCompile Include="game\objective\Quota.cpp" />
+    <ClCompile Include="game\object\AITask.cpp" />
     <ClCompile Include="game\object\BezierCurve.cpp" />
     <ClCompile Include="game\object\Building.cpp" />
+    <ClCompile Include="game\object\Collision.cpp" />
     <ClCompile Include="game\object\Creature.cpp" />
     <ClCompile Include="game\object\Dependencies.cpp" />
     <ClCompile Include="game\object\Flocks.cpp" />
     <ClCompile Include="game\object\Object.cpp" />
+    <ClCompile Include="game\object\ObjectRecall.cpp" />
     <ClCompile Include="game\object\Stats.cpp" />
     <ClCompile Include="game\object\Upgrade.cpp" />
     <ClCompile Include="game\object\Vehicle.cpp" />
@@ -360,10 +367,12 @@
     <ClCompile Include="game\objective\PTL.cpp" />
     <ClCompile Include="game\world\Camera.cpp" />
     <ClCompile Include="game\world\Construction.cpp" />
+    <ClCompile Include="game\world\Detail.cpp" />
     <ClCompile Include="game\world\ElectricFence.cpp" />
     <ClCompile Include="game\world\Erode.cpp" />
     <ClCompile Include="game\world\Fallin.cpp" />
     <ClCompile Include="game\world\Map3D.cpp" />
+    <ClCompile Include="game\world\MeshLOD.cpp" />
     <ClCompile Include="game\world\Roof.cpp" />
     <ClCompile Include="game\world\SelectPlace.cpp" />
     <ClCompile Include="game\world\SpiderWeb.cpp" />

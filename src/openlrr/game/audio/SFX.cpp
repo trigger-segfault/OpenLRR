@@ -110,9 +110,9 @@ void __cdecl LegoRR::SFX_Container_SoundTriggerCallback(const char* sampleName, 
 void __cdecl LegoRR::SFX_SetSamplePopulateMode(bool32 populate)
 {
     if (populate)
-        sfxGlobs.audioFlags |= SFX_GlobFlags::SFX_GLOB_FLAG_POPULATEMODE;
+        sfxGlobs.flags |= SFX_GlobFlags::SFX_GLOB_FLAG_POPULATEMODE;
     else
-        sfxGlobs.audioFlags &= ~SFX_GlobFlags::SFX_GLOB_FLAG_POPULATEMODE;
+        sfxGlobs.flags &= ~SFX_GlobFlags::SFX_GLOB_FLAG_POPULATEMODE;
 }
 
 // <LegoRR.exe @00464f30>
@@ -130,7 +130,7 @@ bool32 __cdecl LegoRR::SFX_GetType(OPTIONAL const char* sfxName, OUT SFX_Type* s
         }
 
         // This flag presumably states the SFX table is still being built
-        if (sfxGlobs.audioFlags & SFX_GlobFlags::SFX_GLOB_FLAG_POPULATEMODE) {
+        if (sfxGlobs.flags & SFX_GlobFlags::SFX_GLOB_FLAG_POPULATEMODE) {
             *sfxType = (SFX_Type)totalCount;
             // Removed duplicate call to Util_HashString, present in LegoRR
             sfxGlobs.hashNameList[totalCount] = hashValue;

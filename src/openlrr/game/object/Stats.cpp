@@ -5,17 +5,19 @@
 #include "../../engine/core/Memory.h"
 #include "../../engine/core/Utils.h"
 
+#include "../world/Construction.h"
 #include "../Game.h"
 
 #include "Stats.h"
 
 
+#if 0
 // <LegoRR.exe @00408bb0>
 //uint32 __cdecl Construction_GetBuildingBase(const char* name);
 #define Construction_GetBuildingBase ((uint32(__cdecl*)(const char*))0x00408bb0)
 
-#define LiveObject_UpdatePowerConsumption ((void(__cdecl*)(LegoObject*))0x0043c830)
-
+#define LegoObject_UpdatePowerConsumption ((void(__cdecl*)(LegoObject*))0x0043c830)
+#endif
 
 /**********************************************************************************
  ******** Globals
@@ -52,7 +54,7 @@ bool32 __cdecl LegoRR::Stats_Initialise(const Gods98::Config* config, const char
     for (prop = Config_FindArray(config, arrayID); prop != nullptr; prop = Config_GetNextItem(prop)) {
 
         LegoObject_Type type = LegoObject_None;
-        sint32 id = 0;
+        LegoObject_ID id = 0;
         if (!Object_GetObjectByName(Config_GetItemName(prop), &type, &id, nullptr)) {
             Error_Warn(true, "Object name in Stats not found");
             continue;
@@ -1160,7 +1162,7 @@ void __cdecl LegoRR::StatsObject_Debug_ToggleObjectPower(LegoRR::LegoObject* liv
 	else
 		liveObj->stats->flags2 &= ~STATS2_SELFPOWERED;
 
-	LiveObject_UpdatePowerConsumption(liveObj);
+	LegoObject_UpdatePowerConsumption(liveObj);
 }
 
 

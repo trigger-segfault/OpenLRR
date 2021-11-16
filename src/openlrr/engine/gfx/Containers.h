@@ -13,6 +13,8 @@
 #include "../../common.h"
 #include "../geometry.h"
 
+#include "../core/ListSet.hpp"
+
 
 /**********************************************************************************
  ******** Forward Global Namespace Declarations
@@ -237,7 +239,10 @@ assert_sizeof(Container_SearchMode, 0x4);
 #define Container_Mesh_DebugCheckOK(c,g)
 
 
-#define Container_NoteCreation(o)
+//#define Container_NoteCreation(o)
+#define Container_NoteCreation(f, ...)						Container_Frame_TrackCreation(f, __VA_ARGS__)
+#define Container_NoteAddRef(f, ...)						Container_Frame_TrackAddRef(f, __VA_ARGS__)
+#define Container_NoteRelease(f, c)							Container_Frame_TrackRelease(f, (sint32)c)
 
 
 #define CDF(f)	Container_Frame_CastDown(f)
@@ -447,6 +452,9 @@ struct Container_Globs
 };
 assert_sizeof(Container_Globs, 0x2018);
 
+
+using Container_ListSet = ListSet::Collection<Container_Globs>;
+
 #pragma endregion
 
 /**********************************************************************************
@@ -461,6 +469,8 @@ extern char (& s_FormatPartName_name)[1024];
 // <LegoRR.exe @0076bd80>
 extern Container_Globs & containerGlobs;
 
+extern Container_ListSet containerListSet;
+
 #pragma endregion
 
 /**********************************************************************************
@@ -468,6 +478,15 @@ extern Container_Globs & containerGlobs;
  **********************************************************************************/
 
 #pragma region Functions
+
+
+void __cdecl Container_Frame_TrackCreation(void* frame, sint32 initialRefs = INT_MIN);
+void __cdecl Container_Frame_TrackAddRef(void* frame, sint32 curRefs = INT_MIN);
+void __cdecl Container_Frame_TrackRelease(void* frame, sint32 curRefs = INT_MIN);
+sint32 __cdecl Container_Frame_TrackRefCount(void* frame);
+bool32 __cdecl Container_Frame_TrackIsReleased(void* frame);
+bool32 __cdecl Container_Frame_TrackIsTracked(void* frame);
+
 
 // <inlined>
 /*__inline*/ uint32 __cdecl Container_GetRGBAColour(real32 r, real32 g, real32 b, real32 a);

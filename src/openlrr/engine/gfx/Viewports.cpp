@@ -24,6 +24,8 @@
 // <LegoRR.exe @0076bce0>
 Gods98::Viewport_Globs & Gods98::viewportGlobs = *(Gods98::Viewport_Globs*)0x0076bce0; // (no init)
 
+Gods98::Viewport_ListSet Gods98::viewportListSet = Gods98::Viewport_ListSet(Gods98::viewportGlobs);
+
 #pragma endregion
 
 /**********************************************************************************
@@ -37,12 +39,13 @@ void __cdecl Gods98::Viewport_Initialise(void)
 {
 	log_firstcall();
 
-	for (uint32 loop=0 ; loop<VIEWPORT_MAXLISTS ; loop++){
+	viewportListSet.Initialise();
+	/*for (uint32 loop=0 ; loop<VIEWPORT_MAXLISTS ; loop++){
 		viewportGlobs.listSet[loop] = nullptr;
 	}
 
 	viewportGlobs.freeList = nullptr;
-	viewportGlobs.listCount = 0;
+	viewportGlobs.listCount = 0;*/
 	viewportGlobs.flags = Viewport_GlobFlags::VIEWPORT_GLOB_FLAG_INITIALISED;
 }
 
@@ -53,11 +56,12 @@ void __cdecl Gods98::Viewport_Shutdown(void)
 
 	Viewport_RemoveAll();
 
-	for (uint32 loop=0 ; loop<VIEWPORT_MAXLISTS ; loop++){
+	viewportListSet.Shutdown();
+	/*for (uint32 loop=0 ; loop<VIEWPORT_MAXLISTS ; loop++){
 		if (viewportGlobs.listSet[loop]) Mem_Free(viewportGlobs.listSet[loop]);
 	}
 
-	viewportGlobs.freeList = nullptr;
+	viewportGlobs.freeList = nullptr;*/
 	viewportGlobs.flags = Viewport_GlobFlags::VIEWPORT_GLOB_FLAG_NONE;
 }
 
@@ -85,7 +89,6 @@ Gods98::Viewport* __cdecl Gods98::Viewport_CreatePixel(sint32 xPos, sint32 yPos,
 {
 	log_firstcall();
 
-	Viewport* newViewport;
 	uint32 devWidth = lpDevice()->GetWidth();
 	uint32 devHeight = lpDevice()->GetHeight();
 
@@ -99,13 +102,15 @@ Gods98::Viewport* __cdecl Gods98::Viewport_CreatePixel(sint32 xPos, sint32 yPos,
 		return nullptr;
 	}
 
-	if (viewportGlobs.freeList == nullptr) Viewport_AddList();
+	Viewport* newViewport = viewportListSet.Add(true); // Memzero added because most fields aren't assigned.
+	/*if (viewportGlobs.freeList == nullptr) Viewport_AddList();
 	
-	newViewport = viewportGlobs.freeList;
+	Viewport* newViewport = viewportGlobs.freeList;
 	viewportGlobs.freeList = newViewport->nextFree;
-	newViewport->nextFree = nullptr;
+	newViewport->nextFree = nullptr;*/
 
-	if (lpD3DRM()->CreateViewport(lpDevice(), camera->masterFrame, xPos, yPos, width, height, &newViewport->lpVP) == D3DRM_OK){
+	if (lpD3DRM()->CreateViewport(lpDevice(), camera->masterFrame, xPos, yPos, width, height, &newViewport->lpVP) == D3DRM_OK) {
+		Container_NoteCreation(newViewport->lpVP);
 
 		/// X86: 32-bit pointer
 		newViewport->lpVP->SetAppData((DWORD) newViewport);
@@ -114,6 +119,9 @@ Gods98::Viewport* __cdecl Gods98::Viewport_CreatePixel(sint32 xPos, sint32 yPos,
 		return newViewport;
 
 	} else Error_Warn(true, "CreateViewport() call failed");
+
+	/// CUSTOM: Proper cleanup on failure. Don't need to call Viewport_Remove since there's no lpVP to release.
+	viewportListSet.Remove(newViewport);
 
 	return nullptr;
 }
@@ -142,9 +150,10 @@ void __cdecl Gods98::Viewport_SetCamera(Viewport* vp, Container* cont)
 
 	// Does it matter that a non-camera container can be used as a camera????
 
-	if (vp->lpVP->SetCamera(cont->masterFrame) == D3DRM_OK){
+	if (vp->lpVP->SetCamera(cont->masterFrame) == D3DRM_OK) {
 
-	} else Error_Warn(true, "Cannot set container as camera");
+	}
+	else Error_Warn(true, "Cannot set container as camera");
 }
 
 // <LegoRR.exe @00477230>
@@ -154,6 +163,7 @@ Gods98::Container* __cdecl Gods98::Viewport_GetCamera(Viewport* vp)
 
 	IDirect3DRMFrame3* frame;
 	Container* camera = nullptr;
+	HRESULT debugr;
 
 	Viewport_CheckInit();
 
@@ -161,10 +171,12 @@ Gods98::Container* __cdecl Gods98::Viewport_GetCamera(Viewport* vp)
 
 	// Does it matter that a non-camera container can be used as a camera????
 
-	if (vp->lpVP->GetCamera(&frame) == D3DRM_OK){
-		Container_AppData* appData = (Container_AppData*) frame->GetAppData();
+	if (vp->lpVP->GetCamera(&frame) == D3DRM_OK) {
+		Container_NoteAddRef(frame);
+		Container_AppData* appData = (Container_AppData*)frame->GetAppData();
 		if (appData) camera = appData->ownerContainer;
-		frame->Release();
+		debugr = frame->Release();
+		Container_NoteRelease(frame, debugr);
 	} else Error_Warn(true, "Cannot set container as camera");
 
 	return camera;
@@ -291,11 +303,13 @@ void __cdecl Gods98::Viewport_Remove(Viewport* dead)
 	Viewport_CheckInit();
 	Error_Fatal(!dead, "NULL passed to Viewport_Remove()");
 
-	dead->nextFree = viewportGlobs.freeList;
-	viewportGlobs.freeList = dead;
-
 	/// WARN: HRESULT r is unused
 	HRESULT r = dead->lpVP->Release();
+	Container_NoteRelease(dead->lpVP, r);
+
+	viewportListSet.Remove(dead);
+	/*dead->nextFree = viewportGlobs.freeList;
+	viewportGlobs.freeList = dead;*/
 }
 
 // (Field of View, FOV)
@@ -374,12 +388,17 @@ IDirect3DRMFrame3* __cdecl Gods98::Viewport_GetScene(Viewport* vp)
 
 	IDirect3DRMFrame3* camera = nullptr;
 	IDirect3DRMFrame3* scene = nullptr;
+	HRESULT debugr;
 
 	vp->lpVP->GetCamera(&camera);
+	Container_NoteAddRef(camera);
 	if (camera) {
-		camera->Release();
 		camera->GetScene(&scene);
-		scene->Release();
+		Container_NoteAddRef(scene);
+		debugr = camera->Release();
+		Container_NoteRelease(camera, debugr);
+		debugr = scene->Release(); // Get scene without adding new reference?
+		Container_NoteRelease(scene, debugr);
 	}
 
 	return scene;
@@ -388,11 +407,13 @@ IDirect3DRMFrame3* __cdecl Gods98::Viewport_GetScene(Viewport* vp)
 // <LegoRR.exe @00477630>
 void __cdecl Gods98::Viewport_AddList(void)
 {
+	// NOTE: This function is no longer called, viewportListSet.Add already does so.
 	log_firstcall();
 
 	Viewport_CheckInit();
 
-	Error_Fatal(viewportGlobs.listCount+1 >= VIEWPORT_MAXLISTS, "Run out of lists");
+	viewportListSet.AddList();
+	/*Error_Fatal(viewportGlobs.listCount+1 >= VIEWPORT_MAXLISTS, "Run out of lists");
 
 	uint32 count = 0x00000001 << viewportGlobs.listCount;
 
@@ -408,7 +429,7 @@ void __cdecl Gods98::Viewport_AddList(void)
 		list[count-1].nextFree = viewportGlobs.freeList;
 		viewportGlobs.freeList = list;
 
-	} else Error_Fatal(true, Error_Format("Unable to allocate %d bytes of memory for new list.\n", sizeof(Viewport) * count));
+	} else Error_Fatal(true, Error_Format("Unable to allocate %d bytes of memory for new list.\n", sizeof(Viewport) * count));*/
 }
 
 // <LegoRR.exe @004776a0>
@@ -416,7 +437,10 @@ void __cdecl Gods98::Viewport_RemoveAll(void)
 {
 	log_firstcall();
 
-	for (uint32 list=0 ; list<viewportGlobs.listCount ; list++){
+	for (Viewport* viewport : viewportListSet.EnumerateAlive()) {
+		Viewport_Remove(viewport);
+	}
+	/*for (uint32 list=0 ; list<viewportGlobs.listCount ; list++){
 		if (viewportGlobs.listSet[list]){
 			uint32 count = 0x00000001 << list;
 			for (uint32 loop=0 ; loop<count ; loop++){
@@ -430,7 +454,7 @@ void __cdecl Gods98::Viewport_RemoveAll(void)
 				}
 			}
 		}
-	}
+	}*/
 }
 
 #pragma endregion

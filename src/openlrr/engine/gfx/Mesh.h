@@ -16,6 +16,8 @@
 #include "../geometry.h"
 #include "../colour.h"
 
+#include "../core/ListSet.hpp"
+
 
 /**********************************************************************************
  ******** Forward Global Namespace Declarations
@@ -354,6 +356,9 @@ struct Mesh_Globs
 };
 assert_sizeof(Mesh_Globs, 0xc21c);
 
+
+using Mesh_ListSet = ListSet::Collection<Gods98::Mesh_Globs>;
+
 #pragma endregion
 
 /**********************************************************************************
@@ -364,6 +369,8 @@ assert_sizeof(Mesh_Globs, 0xc21c);
 
 // <LegoRR.exe @005353c0>
 extern Mesh_Globs & meshGlobs;
+
+extern Mesh_ListSet meshListSet;
 
 #pragma endregion
 

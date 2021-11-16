@@ -143,7 +143,7 @@ struct SFX_Globs // [LegoRR/SFX.c|struct:0x1770|tags:GLOBS]
 	/*15b8,4*/      uint32* hashNameList;
 	/*15bc,4*/      uint32 hashNameCount; // excludes SFX_Preload_Count (45) pre-loaded names
 	/*15c0,4*/      uint32 sampleGroupCount;
-	/*15c4,4*/      SFX_GlobFlags audioFlags;
+	/*15c4,4*/      SFX_GlobFlags flags;
 	/*15c8,f0*/     SFX_Instance sfxInstanceTable[10];
 	/*16b8,4*/      uint32 sfxInstanceCount;
 	/*16bc,4*/      real32 globalSampleDuration; // Duration is multiplied by 25.0

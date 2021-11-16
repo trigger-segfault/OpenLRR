@@ -92,14 +92,17 @@ extern Error_Globs & errorGlobs;
 
 //#ifndef _RELEASE
 
+#define Error__FILE__						Gods98::Error_RelativeFile(__FILE__)
+
+
 #define Error_Debug(s)
 
-#define Error_Warn(b,s)						{ if (b) { Gods98::Error_Out(false, "%s(%i): Warning: %s\n", __FILE__, __LINE__, (s)); Gods98::Error_SetWarn(); } }
-#define Error_Fatal(b,s)					{ if (b) { Gods98::Error_Out(true, "%s(%i): Fatal: %s\n", __FILE__, __LINE__, (s)); } }
+#define Error_Warn(b,s)						{ if (b) { Gods98::Error_Out(false, "%s(%i): Warning: %s\n", Error__FILE__, __LINE__, (s)); Gods98::Error_SetWarn(); } }
+#define Error_Fatal(b,s)					{ if (b) { Gods98::Error_Out(true, "%s(%i): Fatal: %s\n", Error__FILE__, __LINE__, (s)); } }
 //#define Error_Debug(s)						Gods98::Error_Out(false, "%s", (s))
-#define Error_LogLoad(b,s)					{ Gods98::Error_Log( errorGlobs.loadLogFile, (b), "%s\n", (s) ); }
-#define Error_LogLoadError(b,s)				{ Gods98::Error_Log( errorGlobs.loadErrorLogFile, (b), "%s\n", (s) ); }
-#define Error_LogRedundantFile(b,s)			{ Gods98::Error_Log( errorGlobs.redundantLogFile, (b), "%s\n", (s) ); }
+#define Error_LogLoad(b,s)					{ Gods98::Error_Log( Gods98::errorGlobs.loadLogFile, (b), "%s\n", (s) ); }
+#define Error_LogLoadError(b,s)				{ Gods98::Error_Log( Gods98::errorGlobs.loadErrorLogFile, (b), "%s\n", (s) ); }
+#define Error_LogRedundantFile(b,s)			{ Gods98::Error_Log( Gods98::errorGlobs.redundantLogFile, (b), "%s\n", (s) ); }
 
 /*#else
 
@@ -148,6 +151,10 @@ void __cdecl Error_Log(File* logFile, bool32 log, const char* lpOutputString, ..
 
 __inline void Error_SetWarn(void) { errorGlobs.warnCalled = true; }
 __inline void Error_CheckWarn(bool32 check) { if (!check) errorGlobs.warnCalled = false; else if (errorGlobs.warnCalled) Error_TerminateProgram("Check warning message log"); }
+
+
+/// CUSTOM: An alternative to __FILE__ macro that cuts off filepaths at the "\src"
+const char* Error_RelativeFile(const char* fname);
 
 #pragma endregion
 
