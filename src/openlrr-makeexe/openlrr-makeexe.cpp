@@ -12,18 +12,26 @@
 #define OUTEXE_NAME_RELEASE		_T("OpenLRR.exe")
 #define OUTEXE_NAME_DEBUG		_T("OpenLRR-d.exe")
 
+// Section where import descriptors are redefined with more room.
 #define NEW_SECTION_NAME		".idata2"
 
+// Import DLL containing thunk functions:
 #define DLL_NAME_RELEASE		"openlrr.dll"
 #define DLL_NAME_DEBUG			"openlrr-d.dll"
 
+// Old LRR:CE import method (kept for backwards compatibility):
+#define DUMMY_THUNK_NAME		"Dummy"
+#define DUMMY_THUNK_HINT		((uint16_t)0)
+
+// New OpenLRR import method:
 #define START_THUNK_NAME		"StartOpenLRR"
 #define START_THUNK_HINT		((uint16_t)0)
 
+// Resource IDs to replace:
 #define REPLACE_ICON_NAME		((uint16_t)1)
 #define REPLACE_ICON_LANG		((uint16_t)2057)
 
-// WinMain for LegoRR.exe (masterpiece)
+// WinMain address for LegoRR.exe (masterpiece)
 #define PROCESS_WINMAIN			0x477a60
 
 
@@ -410,23 +418,31 @@ static PE::PESectionSPtr AddNewImportsSection(PE::PEFile& pefile, PE::PESectionS
 // Patch in call to StartOpenLRR from WinMain
 static void PatchWinMain(PE::PEFile& pefile, PE::PESectionSPtr text, rva32_t thunkAddr)
 {
-	uint8_t ASM_PUSHARG[] = { 0xff, 0x74, 0x24, 0x10 };
-	uint8_t ASM_CALL[] = { 0xff, 0x15 };// , 0x00, 0x00, 0x00, 0x00 };
-	uint32_t callAddr = (uint32_t)pefile.RVA2Address(thunkAddr);
-	uint8_t ASM_ADDESP10[] = { 0x83, 0xc4, 0x10 };
-	uint8_t ASM_RET10[] = { 0xc2, 0x10, 0x00 };
+	uint8_t ASM_PUSHEBP[]  = { 0x55 };                                // PUSH EBP
+	uint8_t ASM_MOVEBP[]   = { 0x8b,0xec };                           // MOV  EBP,ESP
+	uint8_t ASM_PUSHARG[]  = { 0xff,0x74,0x24,0x14 };                 // PUSH dword ptr[ESP+0x14]
+	uint8_t ASM_CALL[]     = { 0xff,0x15/*,0x00,0x00,0x00,0x00*/ };   // CALL dword ptr[indirectAddr]
+	uint32_t indirectAddr  = (uint32_t)pefile.RVA2Address(thunkAddr); // (Address of function pointer)
+	uint8_t ASM_ADDESP10[] = { 0x83,0xc4,0x10 };                      // ADD  ESP,0x10
+	uint8_t ASM_POPEBP[]   = { 0x5d };                                // POP  EBP
+	uint8_t ASM_RET10[]    = { 0xc2,0x10,0x00 };                      // RET  0x10
 
 
 	PE::PESectionStream textStream = PE::PESectionStream(text, false);
-
 	textStream.SeekRVA(pefile.Address2RVA(PROCESS_WINMAIN));
+
+
+	textStream.Write(ASM_PUSHEBP,   sizeof(ASM_PUSHEBP));  // Preserve base stack pointer for parent function.
+	textStream.Write(ASM_MOVEBP,    sizeof(ASM_MOVEBP));   // This is a critical step that causes some nasty
+	                                                       //  unwanted side effects if skipped (see: Issue #27).
 	for (uint32_t i = 0; i < 4; i++) {
-		textStream.Write(ASM_PUSHARG, sizeof(ASM_PUSHARG));
+		textStream.Write(ASM_PUSHARG, sizeof(ASM_PUSHARG));// Push the last 4 arguments onto the stack again.
 	}
-	textStream.Write(ASM_CALL, sizeof(ASM_CALL));
-	textStream.Write(&callAddr, sizeof(callAddr)); // call an absolute address
-	textStream.Write(ASM_ADDESP10, sizeof(ASM_ADDESP10)); // restore stack position after __cdecl function
-	textStream.Write(ASM_RET10, sizeof(ASM_RET10)); // restore stack position for this WinMain __stdcall function
+	textStream.Write(ASM_CALL,      sizeof(ASM_CALL));     // Call an indirect absolute address.
+	textStream.Write(&indirectAddr, sizeof(indirectAddr)); // Address of CALL instruction.
+	textStream.Write(ASM_ADDESP10,  sizeof(ASM_ADDESP10)); // Restore stack position for called __cdecl function.
+	textStream.Write(ASM_POPEBP,    sizeof(ASM_POPEBP));   // Restore base stack pointer for parent function.
+	textStream.Write(ASM_RET10,     sizeof(ASM_RET10));    // Restore stack position for this __stdcall function.
 
 	_tprintf(_T("WinMain patched @ 0x%08x\n"), pefile.Address2RVA(PROCESS_WINMAIN));
 }
@@ -440,30 +456,47 @@ static void PatchWinMain(PE::PEFile& pefile, PE::PESectionSPtr text, rva32_t thu
 int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 {
 	tstring inFilename, outFilename;
-	bool useDebug = false, replaceIcon = false;
+	bool showHelp = false, useDebug = false, replaceIcon = false;
 	IconRes newIcon;
 	PE::PEFile pefile;
 
 	int argOff = 1;
 
-	// Parse: [-d|--debug] "Debug exe build"
-	if (argOff < argc && (tstring(argv[argOff]) == _T("-d") || tstring(argv[argOff]) == _T("--debug"))) {
+	// Parse: [-h|--help] "Show help" (check all arguments, unlike other ordered arguments)
+	for (int i = argOff; i < argc; i++) {
+		if (tstring(argv[i]) == _T("-h") || tstring(argv[i]) == _T("--help")) {
+			showHelp = true;
+			break;
+		}
+	}
+
+	// Parse: [-d|--debug] "Debug exe build" (consume before we check for enough arguments)
+	if (!showHelp && argOff < argc && (tstring(argv[argOff]) == _T("-d") || tstring(argv[argOff]) == _T("--debug"))) {
 		useDebug = true;
 		argOff++;
 	}
 
-	// Parse: [-h|--help] "Show help"
-	if (argOff < argc && (tstring(argv[argOff]) == _T("-h") || tstring(argv[argOff]) == _T("--help"))) {
-		argOff = argc; // forcefully show of usage
-	}
-
 	// Do we have enough arguments? If not, show usage.
-	if (argc <= argOff) {
+	if (showHelp || argc <= argOff) {
 		_tprintf(_T("Create an OpenLRR executable from a LegoRR masterpiece executable.\n"));
-		_tprintf(_T("\n"));
-		_tprintf(_T("usage: OpenLRR-MakeExe [-d] <LEGORREXE> [ICOFILE]\n"));
+		_tprintf(_T("usage: OpenLRR-MakeExe [-h] [-d] <LEGORREXE> [ICOFILE]\n"));
+		if (showHelp) {
+			_tprintf(_T("\n"));
+			_tprintf(_T("arguments:\n"));
+			_tprintf(_T("  -h,--help   Show this help message\n"));
+			_tprintf(_T("  -d,--debug  Output a debug executable that imports a debug build of OpenLRR\n"));
+			_tprintf(_T("              \"OpenLRR-d.exe\" and \"openlrr-d.dll\"\n"));
+			_tprintf(_T("  LEGORREXE   Filepath to LegoRR masterpiece executable\n"));
+			_tprintf(_T("  ICOFILE     Optional filepath to replacement icon\n"));
+			_tprintf(_T("              Currently only supports same dimensions/bit-depth\n"));
+
+			_tprintf(_T("\n"));
+			_tprintf(_T("\n"));
+			_tprintf(_T("Output file is written to working directory as \"OpenLRR.exe\" or \"OpenLRR-d.exe\".\n"));
+		}
 		return 1;
 	}
+
 
 	// Parse: <LEGORREXE> "Input Masterpiece LegoRR.exe file"
 	inFilename = argv[argOff++];
@@ -472,16 +505,17 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	// Output executable in current working directory.
 	outFilename = (useDebug ? OUTEXE_NAME_DEBUG : OUTEXE_NAME_RELEASE); // "OpenLRR(-d).exe"
 
-	/*// Replace input name with "OpenLRR.exe" or "OpenLRR-d.exe" while maintaining directory
-	{
-		size_t nameIndex = inFilename.rfind(_T('/'));
-		if (nameIndex != std::string::npos)
-			outFilename = inFilename.substr(0, nameIndex + 1); // start after slash
-		else
-			outFilename = _T("");
-		
-		outFilename += (useDebug ? OUTEXE_NAME_DEBUG : OUTEXE_NAME_RELEASE); // "OpenLRR(-d).exe"
-	}*/
+	// Optional: Get working directory for clarity on where file is being written to.
+	TCHAR cwdBuff[MAX_PATH];
+	if (_tgetcwd(cwdBuff, _countof(cwdBuff))) {
+		size_t cwdLen = _tcsclen(cwdBuff);
+		if (cwdLen && (cwdBuff[cwdLen - 1] == _T('\\') || cwdBuff[cwdLen - 1] == _T('/')))
+			cwdBuff[cwdLen - 1] = _T('\0');
+
+		outFilename = tstring(cwdBuff) + _T("/") + outFilename;
+		std::replace(outFilename.begin(), outFilename.end(), _T('\\'), _T('/'));
+	}
+
 
 	// Parse: [ICOFILE] "Input Icon resource to replace (very finicky)"
 	if (argOff < argc) {
@@ -513,20 +547,23 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	// Our list of new import dlls and function thunks to add (just 1)
 	const std::string dllName = (useDebug ? DLL_NAME_DEBUG : DLL_NAME_RELEASE); // "openlrr(-d).dll"
 
-	_tprintf(_T("Using %s import %hs\n"), (useDebug ? _T("debug") : _T("release")), dllName.c_str());
+	_tprintf(_T("Using %s import %hs\n"), (useDebug ? _T("Debug") : _T("Release")), dllName.c_str());
 
 	std::vector<ImportDll> addImportsList {
 		ImportDll(dllName, { // "openlrr.dll" (or "openlrr-d.dll" for DEBUG mode)
 			ImportThunk(START_THUNK_HINT, START_THUNK_NAME), // "StartOpenLRR"
 		}),
 	};
+	ImportDll& startDll = addImportsList[0];
+	size_t startThunkIndex = 0;
+
 
 	// Build a new section for imports, and insert it before ".rsrc".
 	PE::PESectionSPtr newIdata = AddNewImportsSection(pefile, rsrc, addImportsList);
 
 
 	// Get the address assigned for our "StartOpenLRR" thunk, so we can patch it into WinMain.
-	rva32_t startThunkAddr = addImportsList[0].Desc.FirstThunk + (0 * sizeof(rva32_t)); // dll 0, thunk index 0
+	rva32_t startThunkAddr = startDll.Desc.FirstThunk + (startThunkIndex * sizeof(rva32_t)); // thunk addr table[thunk index]
 
 	// Patch WinMain function to call our "openlrr.dll" function "StartOpenLRR".
 	PatchWinMain(pefile, text, startThunkAddr);
