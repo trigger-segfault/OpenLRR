@@ -165,6 +165,7 @@
     <ClInclude Include="engine\core\Config.h" />
     <ClInclude Include="engine\core\Errors.h" />
     <ClInclude Include="engine\core\Files.h" />
+    <ClInclude Include="engine\core\ListSet.hpp" />
     <ClInclude Include="engine\core\Maths.h" />
     <ClInclude Include="engine\core\Memory.h" />
     <ClInclude Include="engine\core\Utils.h" />
