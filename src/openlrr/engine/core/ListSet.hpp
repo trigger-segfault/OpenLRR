@@ -38,10 +38,10 @@ template <class TCont>
 using container_value_t = typename std::remove_pointer_t<std::remove_extent_t<decltype(TCont::listSet)>>;
 
 /**
- * @brief Template filter function typedef that obtains its value_type from the listSet container type.
+ * @brief Template filter function typedef for an item value_type.
  */
-template <class TCont>
-using predicate_f = bool (const container_value_t<TCont>*);
+template <class TItem>
+using predicate_f = bool (const TItem*);
 
 #pragma endregion
 
@@ -119,6 +119,52 @@ constexpr const size_t IndexOfInListSet(size_t listIndex, const TItem* list, con
 #pragma endregion
 
 
+#pragma region ListSet Assign
+
+/**
+ * @brief Calls `std::memset(item, 0, sizeof(TItem))`, while preserving the nextFree field.
+ * @param TItem The value_type of a listSet container.
+ * @param item The listSet item to assign the memory of.
+ */
+template <typename TItem>
+void MemZero(TItem* item)
+{
+	TItem* tmpNextFree = item->nextFree;
+	std::memset(item, 0, sizeof(TItem));
+	item->nextFree = tmpNextFree;
+}
+
+/**
+ * @brief Calls `std::memcpy(dest, src, sizeof(TItem))`, while preserving the nextFree field of dest.
+ * @param TItem The value_type of a listSet container.
+ * @param dest The listSet item to assign the memory of.
+ * @param src The listSet item to copy the memory of.
+ */
+template <typename TItem>
+void MemCopy(TItem* dest, const TItem* src)
+{
+	TItem* tmpNextFree = dest->nextFree;
+	std::memcpy(dest, src, sizeof(TItem));
+	dest->nextFree = tmpNextFree;
+}
+
+/**
+ * @brief Calls the assignment operator `*dest = *src`, while preserving the nextFree field of dest.
+ * @param TItem The value_type of a listSet container.
+ * @param dest The listSet item on the left-hand side of the assignment operator.
+ * @param src The listSet item on the right-hand side of the assignment operator.
+ */
+template <typename TItem>
+void Assign(TItem* dest, const TItem* src)
+{
+	TItem* tmpNextFree = dest->nextFree;
+	*dest = *src; // Use assignment operator in case TItem wants to overload this in the future.
+	dest->nextFree = tmpNextFree;
+}
+
+#pragma endregion
+
+
 #pragma region ListSet Item State
 
 /**
@@ -157,43 +203,6 @@ bool IsNullOrDead(const TItem* item)
 	return (!item || item->nextFree != item);
 }
 
-
-#if 0
-enum class ItemState : uint32
-{
-	None  = 0,
-	Dead  = 0x1,
-	Alive = 0x2,
-	Any   = Dead | Alive,
-};
-
-template <typename TItem>
-bool CheckItemState(const TItem* item, ItemState state)
-{
-#pragma region Bit fiddling truth table
-	// Truth table for bit fiddling operation:
-	// ((ItemState::None) 0x0 & (IsDead)(1 << false)0x1) -> 0x0 (false)
-	// ((ItemState::None) 0x0 & (IsAlive)(1 << true)0x2) -> 0x0 (false)
-	// ((ItemState::Dead) 0x1 & (IsDead)(1 << false)0x1) -> 0x1 (true)
-	// ((ItemState::Dead) 0x1 & (IsAlive)(1 << true)0x2) -> 0x0 (false)
-	// ((ItemState::Alive)0x2 & (IsDead)(1 << false)0x1) -> 0x0 (false)
-	// ((ItemState::Alive)0x2 & (IsAlive)(1 << true)0x2) -> 0x2 (true)
-	// ((ItemState::Any)  0x3 & (IsDead)(1 << false)0x1) -> 0x1 (true)
-	// ((ItemState::Any)  0x3 & (IsAlive)(1 << true)0x2) -> 0x2 (true)
-#pragma endregion
-
-	// Bit fiddling solution:
-	return ((uint32)state & (1 << (uint32)ListSet::IsAlive(item)));
-
-	// Identical to the following logic (assuming ItemState is a valid enum value):
-	/*
-	if (state == ItemState::Any)  return true;
-	if (state == ItemState::None) return false;
-	return (state == ItemState::Alive) == ListSet::IsAlive(item);
-	*/
-}
-
-#endif
 #pragma endregion
 
 
@@ -202,6 +211,8 @@ bool CheckItemState(const TItem* item, ItemState state)
 /**
  * @brief A listSet filter function to return all items, alive or dead.
  * @param TItem The value_type of a listSet container.
+ * @param item An item enumerated over in the listSet.
+ * @return True.
  */
 template <typename TItem>
 bool NoFilter(const TItem* item) { return true; }
@@ -209,6 +220,8 @@ bool NoFilter(const TItem* item) { return true; }
 /**
  * @brief A listSet filter function to only return items that are alive, and managed by the user.
  * @param TItem The value_type of a listSet container.
+ * @param item An item enumerated over in the listSet.
+ * @return True if the item is alive in the listSet, otherwise false.
  */
 template <typename TItem>
 bool AliveFilter(const TItem* item) { return ListSet::IsAlive(item); }
@@ -216,6 +229,8 @@ bool AliveFilter(const TItem* item) { return ListSet::IsAlive(item); }
 /**
  * @brief A listSet filter function to only return items that are dead, and managed by the listSet.
  * @param TItem The value_type of a listSet container.
+ * @param item An item enumerated over in the listSet.
+ * @return False if the item is alive in the listSet, otherwise true.
  */
 template <typename TItem>
 bool DeadFilter(const TItem* item) { return !ListSet::IsAlive(item); }
@@ -232,7 +247,7 @@ bool DeadFilter(const TItem* item) { return !ListSet::IsAlive(item); }
  * @param Reverse Only use in combination with std::reverse_iterator<>.
  *        Changes the search direction for the first valid item during the constructor.
  */
-template <typename TCont, const predicate_f<TCont> FPredicate, const bool Reverse>
+template <typename TCont, const predicate_f<container_value_t<TCont>> FPredicate, const bool Reverse>
 class BaseIterator
 {
 public:
@@ -441,7 +456,7 @@ protected:
  * @param TCont The container type holding a listSet.
  * @param FPredicate A filter function to skip past items where false is returned.
  */
-template <typename TCont, const predicate_f<TCont> FPredicate>
+template <typename TCont, const predicate_f<container_value_t<TCont>> FPredicate>
 using Iterator = BaseIterator<TCont, FPredicate, false>;
 
 /**
@@ -449,7 +464,7 @@ using Iterator = BaseIterator<TCont, FPredicate, false>;
  * @param TCont The container type holding a listSet.
  * @param FPredicate A filter function to skip past items where false is returned.
  */
-template <typename TCont, const predicate_f<TCont> FPredicate>
+template <typename TCont, const predicate_f<container_value_t<TCont>> FPredicate>
 using ReverseIterator = std::reverse_iterator<BaseIterator<TCont, FPredicate, true>>;
 
 #pragma endregion
@@ -462,7 +477,7 @@ using ReverseIterator = std::reverse_iterator<BaseIterator<TCont, FPredicate, tr
  * @param TCont The container type holding a listSet.
  * @param FPredicate A filter function to skip past items where false is returned.
  */
-template <typename TCont, const predicate_f<TCont> FPredicate>
+template <typename TCont, const predicate_f<container_value_t<TCont>> FPredicate>
 class Enumerable
 {
 public:
@@ -538,20 +553,20 @@ using DefaultEnumerable = Enumerable<TCont, NoFilter<container_value_t<TCont>>>;
 #pragma endregion
 
 
-#pragma region ListSet Collection
+#pragma region ListSet WrapperCollection
 
 /**
- * @brief Template class for managing a listSet collection.
+ * @brief Template class for managing the listSet collection of a wrapped structure.
  * @param TCont The container type holding a listSet.
  */
 template <typename TCont>
-class Collection : public DefaultEnumerable<TCont>
+class WrapperCollection : public DefaultEnumerable<TCont>
 {
 public:
 	using container         = TCont;
 	using value_type        = container_value_t<container>;
 
-	template <const predicate_f<container> FPredicate>
+	template <const predicate_f<value_type> FPredicate>
 	using enumerable        = Enumerable<container, FPredicate>;
 
 
@@ -563,37 +578,16 @@ public:
 	 * @brief Constructs a listSet collection manager wrapped around an existing listSet struct.
 	 * @param cont The listSet container (i.e. Config_Globs configGlobs).
 	 */
-	Collection(container& cont)
+	WrapperCollection(container& cont)
 		: DefaultEnumerable<TCont>(cont), m_aliveCount(0)
 	{
 	}
 
 
 	/**
-	 * @brief Tests if a listSet item is alive.
-	 * @param item An item created by the listSet.
-	 * @return True if the item is alive, and managed by the user.
-	 */
-	bool IsAlive(const value_type* item) { return ListSet::IsAlive(item); }
-
-	/**
-	 * @brief Tests if a listSet item is dead.
-	 * @param item An item created by the listSet.
-	 * @return True if the item is dead, and managed by the listSet.
-	 */
-	bool IsDead(const value_type* item) { return !ListSet::IsAlive(item); }
-
-	/**
-	 * @brief Tests if a listSet item is null or dead (shorthand for !item && IsDead(item)).
-	 * @param item An item created by the listSet.
-	 * @return True if the item is null, or is dead, and managed by the listSet.
-	 */
-	bool IsNullOrDead(const value_type* item) { return !item || !ListSet::IsAlive(item); }
-
-	/**
-	 * @brief Returns the absolute index of the item in the listSet.
+	 * @brief Returns the index of the list containing this item in the listSet.
 	 * @param item The item to find the list of in the listSet.
-	 * @return The list containing this item in the listSet, or npos if not found.
+	 * @return The list index containing this item in the listSet, or npos if not found.
 	 */
 	size_t ListIndexOf(const value_type* item)
 	{
@@ -626,7 +620,7 @@ public:
 	 * @brief Returns an enumerable for iterating over filtered items in the listSet.
 	 * @param FPredicate A filter function to skip past items where false is returned.
 	 */
-	template <const predicate_f<container> FPredicate>
+	template <const predicate_f<value_type> FPredicate>
 	enumerable<FPredicate> EnumerateWhere() { return enumerable<FPredicate>(m_cont); }
 
 	/**
@@ -837,7 +831,6 @@ public:
 
 
 protected:
-//	container& m_cont;
 	size_t m_aliveCount; // Fast tracking for number of items loaned out, without having to recount.
 };
 
