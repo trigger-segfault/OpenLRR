@@ -678,10 +678,9 @@ public:
 
 	/**
 	 * @brief Reserves and returns a new item in the listSet.
-	 * @param memzero If true, the item's memory will be zeroed out before being returned.
 	 * @return A new living item in the listSet.
 	 */
-	value_type* Add(bool memzero)
+	value_type* Add()
 	{
 		// Add a new list to the listSet if we've run out of free items.
 		if (m_cont.freeList == nullptr) this->AddList();
@@ -694,12 +693,11 @@ public:
 		// Splice our item out of the linked list of free items.
 		m_cont.freeList = newItem->nextFree;
 
-		if (memzero) std::memset(newItem, 0, sizeof(value_type));
+		// Mark our item as alive by assigning its linked list next free pointer to itself.
+		newItem->nextFree = newItem;
 
 		m_aliveCount++;
 
-		// Mark our item as alive by assigning its linked list next free pointer to itself.
-		newItem->nextFree = newItem;
 		return newItem;
 	}
 
