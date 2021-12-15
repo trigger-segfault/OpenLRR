@@ -10,6 +10,7 @@
 
 #include "../../common.h"
 #include "../geometry.h"
+#include "../core/ListSet.hpp"
 
 
 /**********************************************************************************
@@ -149,6 +150,9 @@ struct Image_Globs
 };
 assert_sizeof(Image_Globs, 0x8c);
 
+
+using Image_ListSet = ListSet::WrapperCollection<Gods98::Image_Globs>;
+
 #pragma endregion
 
 /**********************************************************************************
@@ -160,6 +164,8 @@ assert_sizeof(Image_Globs, 0x8c);
 // <LegoRR.exe @00534908>
 extern Image_Globs & imageGlobs;
 
+extern Image_ListSet imageListSet;
+
 #pragma endregion
 
 /**********************************************************************************
@@ -167,10 +173,6 @@ extern Image_Globs & imageGlobs;
  **********************************************************************************/
 
 #pragma region Functions
-
-/*long __cdecl Image_GetWidth(const Image* p);
-long __cdecl Image_GetHeight(const Image* p);*/
-
 
 // <LegoRR.exe @0047d6d0>
 void __cdecl Image_Initialise(void);
@@ -242,7 +244,7 @@ void __cdecl Image_RemoveAll(void);
 uint32 __cdecl Image_DDColorMatch(IDirectDrawSurface4* pdds, uint32 rgb);
 
 // <LegoRR.exe @0047e590>
-void __cdecl Image_CR2RGB(COLORREF cr, OUT uint8* r, OUT uint8* g, OUT uint8* b);
+void __cdecl Image_CR2RGB(COLORREF cr, OPTIONAL OUT uint8* r, OPTIONAL OUT uint8* g, OPTIONAL OUT uint8* b);
 
 // <LegoRR.exe @0047e5c0>
 void __cdecl Image_GetScreenshot(OUT Image* image, uint32 xsize, uint32 ysize);
@@ -257,7 +259,7 @@ bool32 __cdecl Image_SaveBMP(Image* image, const char* fname);
 
 
 // <missing>
-void __cdecl Image_GetPenZero(const Image* image, OUT real32* r, OUT real32* g, OUT real32* b);
+void __cdecl Image_GetPenZero(const Image* image, OPTIONAL OUT real32* r, OPTIONAL OUT real32* g, OPTIONAL OUT real32* b);
 
 /*Image* __cdecl Image_LoadBMPTexture(const char* filename);
 void __cdecl Image_SetMainViewport(Viewport* vp);
