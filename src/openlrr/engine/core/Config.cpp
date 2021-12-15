@@ -20,6 +20,8 @@
 // <LegoRR.exe @00507098>
 Gods98::Config_Globs & Gods98::configGlobs = *(Gods98::Config_Globs*)0x00507098; // = { nullptr };
 
+Gods98::Config_ListSet Gods98::configListSet = Gods98::Config_ListSet(Gods98::configGlobs);
+
 #pragma endregion
 
 /**********************************************************************************
@@ -33,12 +35,7 @@ void __cdecl Gods98::Config_Initialise(void)
 {
 	log_firstcall();
 
-	for (uint32 loop = 0; loop < CONFIG_MAXLISTS; loop++) {
-		configGlobs.listSet[loop] = nullptr;
-	}
-
-	configGlobs.freeList = nullptr;
-	configGlobs.listCount = 0;
+	configListSet.Initialise();
 	configGlobs.flags = Config_GlobFlags::CONFIG_GLOB_FLAG_INITIALISED;
 }
 
@@ -47,33 +44,27 @@ void __cdecl Gods98::Config_Shutdown(void)
 {
 	log_firstcall();
 
-	for (uint32 loop = 0; loop < CONFIG_MAXLISTS; loop++) {
-		if (configGlobs.listSet[loop]) Mem_Free(configGlobs.listSet[loop]);
-	}
-
-	configGlobs.freeList = nullptr;
+	configListSet.Shutdown();
 	configGlobs.flags = Config_GlobFlags::CONFIG_GLOB_FLAG_NONE;
 }
 
-/*void Config_SetCharacterTable(const char* fname);
-void Config_SetCharacterConvertFile(const char* fname);
-void Config_ReadCharacterTable(const char* fname);
-char __cdecl Config_ConvertCharacter(char c);
-void __cdecl Config_SetLanguageDatabase(const char* langFile);
-void __cdecl Config_ReadLanguageDatabase(const char* langFile);
-char* __cdecl Config_ConvertString(const char* s, const char* sectionName, uint32* size, sint32 spaceToUnderscore);
-void __cdecl Config_DumpUnknownPhrases(const char* fname);
-void* __cdecl Config_LoadConvertedText(const char* fname, uint32* fileSize);*/
+/*void __cdecl Gods98::Config_SetCharacterTable(const char* fname);
+void __cdecl Gods98::Config_SetCharacterConvertFile(const char* fname);
+void __cdecl Gods98::Config_ReadCharacterTable(const char* fname);
+char __cdecl Gods98::Config_ConvertCharacter(char c);
+void __cdecl Gods98::Config_SetLanguageDatabase(const char* langFile);
+void __cdecl Gods98::Config_ReadLanguageDatabase(const char* langFile);
+char* __cdecl Gods98::Config_ConvertString(const char* s, const char* sectionName, uint32* size, sint32 spaceToUnderscore);
+void __cdecl Gods98::Config_DumpUnknownPhrases(const char* fname);
+void* __cdecl Gods98::Config_LoadConvertedText(const char* fname, uint32* fileSize);*/
 
-
-//#define _ISSPACE(c) (('\t' == (c)) || ('\n' == (c)) || ('\r' == (c)) || (' ' == (c)))
 
 // <LegoRR.exe @00479120>
 Gods98::Config* __cdecl Gods98::Config_Load(const char* filename)
 {
 	log_firstcall();
 
-	Config *conf, *rootConf = nullptr;
+	Config* rootConf = nullptr;
 	uint32 fileSize, loop;
 	char* s;
 	char* fdata;
@@ -81,34 +72,36 @@ Gods98::Config* __cdecl Gods98::Config_Load(const char* filename)
 	configGlobs.flags |= Config_GlobFlags::CONFIG_GLOB_FLAG_LOADINGCONFIG;
 
 	/// FIXME: Load into buffer with one extra byte for null-termination
-	if (fdata = (char*)File_LoadBinary(filename, &fileSize)){
+	if (fdata = (char*)File_LoadBinary(filename, &fileSize)) {
 
-		conf = rootConf = Config_Create(nullptr);
+		rootConf = Config_Create(nullptr);
 		rootConf->fileData = fdata;
 
 		// Change any return/tab/blah/blah characters to zero...
 		// Clear anything after a semi-colon until the next return character.
 
 		bool32 commentMode = false;
-		for (s=rootConf->fileData,loop=0 ; loop<fileSize ; loop++){
+		for (s = rootConf->fileData, loop = 0; loop < fileSize; loop++) {
 
 			if (*s == ';') commentMode = true;
 			else if (*s == '\n') commentMode = false;
 
-			//if (commentMode || _ISSPACE(*s)) *s = '\0';
 			if (commentMode || (*s == '\t' || *s == '\n' || *s == '\r' || *s == ' ')) *s = '\0';
 
 			s++;
 		}
 
 		// Replace the semi-colons that were removed by the language converter...
-		//for (loop=0 ; loop<fileSize ; loop++) if (FONT_LASTCHARACTER + 1 == rootConf->fileData[loop]) rootConf->fileData[loop] = ';';
+		//for (loop = 0; loop < fileSize; loop++) if (FONT_LASTCHARACTER + 1 == rootConf->fileData[loop]) rootConf->fileData[loop] = ';';
 
 		// Run through the file data and point in the config structures
 
-		for (s=rootConf->fileData, loop=0 ; loop<fileSize ; loop++){
-			if (*s != '\0'){
-				if (*s == '}' && *(s+1) == '\0') conf->depth--;
+		Config* conf = rootConf;
+		for (s = rootConf->fileData, loop = 0; loop < fileSize; loop++) {
+			if (*s != '\0') {
+				if (*s == '}' && s[1] == '\0') {
+					conf->depth--;
+				}
 				else if (conf->itemName == nullptr) {
 					Error_Fatal((*s == '{'), "Config");
 					conf->itemName = s;
@@ -116,11 +109,13 @@ Gods98::Config* __cdecl Gods98::Config_Load(const char* filename)
 				else {
 					conf->dataString = s;
 					conf = Config_Create(conf);
-					if (*s == '{' && *(s+1) == '\0') conf->depth++;
+					if (*s == '{' && s[1] == '\0') conf->depth++;
 				}
 
-				for ( ; loop<fileSize ; loop++) if (*(s++) == '\0') break;
-			} else s++;
+				for ( ; loop < fileSize; loop++) if (*(s++) == '\0') break;
+
+			}
+			else s++;
 		}
 
 	}
@@ -136,10 +131,9 @@ const char* __cdecl Gods98::Config_BuildStringID(const char* s, ...)
 	log_firstcall();
 
 	std::va_list args;
-	//static char str[1024];
-	//configGlobs.s_JoinPath_string
 	const char* curr;
 
+	//static char s_JoinPath_string[1024];
 	std::strcpy(configGlobs.s_JoinPath_string, s);
 
 	va_start(args, s);
@@ -171,11 +165,12 @@ const Gods98::Config* __cdecl Gods98::Config_FindArray(const Config* root, const
 {
 	log_firstcall();
 
-	log_firstcall();
-
 	const Config* conf;
 	if (conf = Config_FindItem(root, name)) {
-		if (conf->depth < conf->linkNext->depth) return conf->linkNext;
+		/// FIX LEGORR: Ensure next linked item is not null before accessing.
+		if (conf->linkNext && conf->depth < conf->linkNext->depth) {
+			return conf->linkNext;
+		}
 	}
 	return nullptr;
 }
@@ -188,15 +183,12 @@ const Gods98::Config* __cdecl Gods98::Config_GetNextItem(const Config* start)
 	uint32 level = start->depth;
 	const Config* conf = start;
 
-	while (conf) {
+	while (conf = conf->linkNext) {
 		if (conf->depth < level) return nullptr;
-		conf = conf->linkNext;
 		if (conf->depth == level) return conf;
 	}
 	return nullptr;
 }
-
-//char* __cdecl Config_GetStringValue(const Config* root, const char* stringID, unsigned long line, const char* file);
 
 // <LegoRR.exe @00479310>
 char* Gods98::Config_GetStringValue(const Config* root, const char* stringID)
@@ -206,12 +198,9 @@ char* Gods98::Config_GetStringValue(const Config* root, const char* stringID)
 	const Config* conf;
 	if (conf = Config_FindItem(root, stringID)) {
 		if (conf->dataString) {
-			char* str = (char*)Mem_Alloc(std::strlen(conf->dataString) + 1);
-			std::strcpy(str, conf->dataString);
-			return str;
+			return Util_StrCpy(conf->dataString);
 		}
 	}
-
 	return nullptr;
 }
 
@@ -232,23 +221,13 @@ BoolTri __cdecl Gods98::Config_GetBoolValue(const Config* root, const char* stri
 {
 	log_firstcall();
 
-	BoolTri res = BoolTri::BOOL3_ERROR;
-
 	/// FIX LEGORR: Don't bother allocating a new string,
 	///              Util_GetBoolFromString won't modify it.
 	const char* str;
 	if (str = Config_GetTempStringValue(root, stringID)) {
-		res = Util_GetBoolFromString(str);
+		return Util_GetBoolFromString(str);
 	}
-
-	/*char* str;
-	if (str = Config_GetStringValue(root, stringID)) {
-
-		res = Util_GetBoolFromString(str);
-		Mem_Free(str);
-	}*/
-
-	return res;
+	return BoolTri::BOOL3_ERROR;
 }
 
 // <LegoRR.exe @004793d0>
@@ -257,11 +236,9 @@ real32 __cdecl Gods98::Config_GetAngle(const Config* root, const char* stringID)
 	log_firstcall();
 
 	real32 degrees;
-
 	if (degrees = Config_GetRealValue(root, stringID)) {
-		return (degrees / 360.0f) * (2.0f * M_PI);
+		return (degrees / 360.0f) * (2.0f * M_PI); // degrees to radians
 	}
-
 	return 0.0f;
 }
 
@@ -273,15 +250,14 @@ bool32 __cdecl Gods98::Config_GetRGBValue(const Config* root, const char* string
 	char* argv[100];
 	bool32 res = false;
 
-	char *str;
+	char* str;
 	if (str = Config_GetStringValue(root, stringID)) {
 		if (Util_Tokenise(str, argv, ":") == 3) {
-			*r = atoi(argv[0]) / 255.0f;
-			*g = atoi(argv[1]) / 255.0f;
-			*b = atoi(argv[2]) / 255.0f;
+			*r = std::atoi(argv[0]) / 255.0f;
+			*g = std::atoi(argv[1]) / 255.0f;
+			*b = std::atoi(argv[2]) / 255.0f;
 
 			res = true;
-
 		}
 		else Error_Warn(true, Error_Format("Invalid RBG entry '%s'", Config_GetTempStringValue(root, stringID)));
 
@@ -293,28 +269,38 @@ bool32 __cdecl Gods98::Config_GetRGBValue(const Config* root, const char* string
 
 
 // <missing>
-bool32 __cdecl Gods98::Config_GetCoord(const Config* root, const char* stringID, OUT real32* x, OUT real32* y, OUT real32* z)
+bool32 __cdecl Gods98::Config_GetCoord(const Config* root, const char* stringID, OUT real32* x, OUT real32* y, OPTIONAL OUT real32* z)
 {
-	char* argv[100];
-	char *str;
-	bool32 res = false;
-
 	Error_Fatal(!x || !y, "Null passed as x or y");
 
+	char* argv[100];
+	bool32 res = false;
+
+	char* str;
 	if (str = Config_GetStringValue(root, stringID)) {
-		if (z == nullptr) {
-			if (Util_Tokenise(str, argv, ",") != 2) Error_Warn(TRUE, Error_Format("Invalid 2D Coordinate entry '%s'", str));
+		uint32 argc = Util_Tokenise(str, argv, ",");
+
+		if (z == nullptr) { // FORMAT: x,y
+			if (argc == 2) {
+				*x = (real32)std::atof(argv[0]);
+				*y = (real32)std::atof(argv[1]);
+
+				res = true;
+			}
+			else Error_Warn(true, Error_Format("Invalid 2D Coordinate entry '%s'", str));
 		}
-		else if (Util_Tokenise(str, argv, ",") == 3) *z = (real32)std::atof(argv[2]);
-		else {
-			Error_Warn(true, Error_Format("Invalid 3D Coordinate entry '%s'", str));
-			res = false;
+		else { // FORMAT: x,y,z
+			if (argc == 3) {
+				*x = (real32)std::atof(argv[0]);
+				*y = (real32)std::atof(argv[1]);
+				*z = (real32)std::atof(argv[2]);
+
+				res = true;
+			}
+			else Error_Warn(true, Error_Format("Invalid 3D Coordinate entry '%s'", str));
 		}
-		*x = (real32)std::atof(argv[0]);
-		*y = (real32)std::atof(argv[1]);
 
 		Mem_Free(str);
-		res = true;
 	}
 
 	return res;
@@ -325,20 +311,12 @@ bool32 __cdecl Gods98::Config_GetCoord(const Config* root, const char* stringID,
 bool32 __cdecl Gods98::Config_GetKey(const Config* root, const char* stringID, OUT Keys* key)
 {
 	const char* str;
-
 	if (str = Config_GetTempStringValue(root, stringID)) {
 		return Key_Find(str, key);
 	}
-
 	return false;
 }
 
-
-// <debug>
-const char* __cdecl Gods98::Config_Debug_GetLastFind(void)
-{
-	return "<not implemented>";
-}
 
 // <LegoRR.exe @00479500>
 void __cdecl Gods98::Config_Free(Config* root)
@@ -355,7 +333,14 @@ void __cdecl Gods98::Config_Free(Config* root)
 	}
 }
 
-//const char* __cdecl Config_Debug_GetLastFind(void);
+
+// Used by Error_TerminateProgram
+// <debug>
+const char* __cdecl Gods98::Config_Debug_GetLastFind(void)
+{
+	return "<not implemented>";
+}
+
 
 // <LegoRR.exe @00479530>
 Gods98::Config* __cdecl Gods98::Config_Create(Config* prev)
@@ -364,26 +349,22 @@ Gods98::Config* __cdecl Gods98::Config_Create(Config* prev)
 
 	Config_CheckInit();
 
-	if (configGlobs.freeList == nullptr) Config_AddList();
+	Config* newConfig = configListSet.Add();
 
-	Config* newConfig = configGlobs.freeList;
-	configGlobs.freeList = newConfig->nextFree;
-	newConfig->nextFree = newConfig;
-
+	newConfig->fileData = nullptr;
 	newConfig->itemName = nullptr;
 	newConfig->dataString = nullptr;
+	//newConfig->itemHashCode = 0; // unused field
 	newConfig->linkNext = nullptr;
 
-	if (prev != nullptr) {
+	if (prev != nullptr) { // Non-root config node
 		prev->linkNext = newConfig;
 		newConfig->linkPrev = prev;
 		newConfig->depth = prev->depth;
-		//		newConfig->fileData = prev->fileData;
-		newConfig->fileData = nullptr;
 	}
-	else {
-		newConfig->depth = 0;
+	else { // Root config node
 		newConfig->linkPrev = nullptr;
+		newConfig->depth = 0;
 	}
 
 //#ifdef _DEBUG_2
@@ -399,14 +380,13 @@ void __cdecl Gods98::Config_Remove(Config* dead)
 	log_firstcall();
 
 	Config_CheckInit();
-	Error_Fatal(!dead, "NULL passed to Config_Remove()");
 
 //#ifdef _DEBUG_2
+//	Error_Fatal(!dead, "NULL passed to Config_Remove()");
 //	if (configGlobs.debugLastFind == dead) configGlobs.debugLastFind = NULL;
 //#endif // _DEBUG_2
 
-	dead->nextFree = configGlobs.freeList;
-	configGlobs.freeList = dead;
+	configListSet.Remove(dead);
 }
 
 // <LegoRR.exe @004795a0>
@@ -416,16 +396,11 @@ const Gods98::Config* __cdecl Gods98::Config_FindItem(const Config* conf, const 
 
 	// Search the list for the given item.
 
-	char * argv[CONFIG_MAXDEPTH];
-	uint32 count, currDepth;
-	const Config* backConf;
 	const Config* foundConf = nullptr;
-	char* tempstring = (char*)Mem_Alloc(std::strlen(stringID) + 1);
-	bool32 wildcard;
 
-	std::strcpy(tempstring, stringID);
-
-	count = Util_Tokenise(tempstring, argv, "::");
+	char* argv[CONFIG_MAXDEPTH];
+	char* tempstring = Util_StrCpy(stringID);
+	uint32 count = Util_Tokenise(tempstring, argv, "::");
 
 	// First find anything that matches the depth of the request
 	// then see if the hierarchy matches the request.
@@ -433,12 +408,15 @@ const Gods98::Config* __cdecl Gods98::Config_FindItem(const Config* conf, const 
 	while (conf) {
 		if (conf->depth == count - 1) {
 
-			wildcard = false;
+			bool32 wildcard = false;
 
 			if (count == 1) {
 				const char* s;
 				uint32 index = 0;
-				for (s = conf->itemName; *s != '\0'; s++) { if (*s == '*') break; index++; }
+				for (s = conf->itemName; *s != '\0'; s++) {
+					if (*s == '*') break;
+					index++;
+				}
 				if (*s == '*') {
 					wildcard = (::_strnicmp(argv[count - 1], conf->itemName, index) == 0);
 				}
@@ -449,16 +427,19 @@ const Gods98::Config* __cdecl Gods98::Config_FindItem(const Config* conf, const 
 				wildcard = false;
 
 				// Look backwards down the list to check the hierarchy.
-				currDepth = count - 1;
-				backConf = conf;
+				uint32 currDepth = count - 1;
+				const Config* backConf = conf;
 				while (backConf) {
 					if (backConf->depth == currDepth - 1) {
 						if (currDepth == 1) {
 							const char* s;
 							uint32 index = 0;
-							for (s = backConf->itemName; *s != '\0'; s++) { if (*s == '*') break; index++; }
+							for (s = backConf->itemName; *s != '\0'; s++) {
+								if (*s == '*') break;
+								index++;
+							}
 							if (*s == '*') {
-								wildcard = !::_strnicmp(argv[currDepth - 1], backConf->itemName, index);
+								wildcard = (::_strnicmp(argv[currDepth - 1], backConf->itemName, index) == 0);
 							}
 						}
 
@@ -493,40 +474,11 @@ const Gods98::Config* __cdecl Gods98::Config_FindItem(const Config* conf, const 
 	return foundConf;
 }
 
-//void __cdecl Gods98::Config_DumpStructure(const Config* conf);
-
 // <LegoRR.exe @00479750>
 void __cdecl Gods98::Config_AddList(void)
 {
-	log_firstcall();
-
-	Config_CheckInit();
-
-	Error_Fatal(configGlobs.listCount + 1 >= CONFIG_MAXLISTS, "Run out of lists");
-
-	uint32 count = 0x00000001 << configGlobs.listCount;
-
-	Config* list;
-	if (list = configGlobs.listSet[configGlobs.listCount] = (Config*)Mem_Alloc(sizeof(Config) * count)) {
-
-		configGlobs.listCount++;
-
-		for (uint32 loop = 1; loop < count; loop++) {
-
-			list[loop - 1].nextFree = &list[loop];
-		}
-		list[count - 1].nextFree = configGlobs.freeList;
-		configGlobs.freeList = list;
-
-	}
-	else Error_Fatal(true, Error_Format("Unable to allocate %d bytes of memory for new list.\n", sizeof(Config) * count));
+	// NOTE: This function is no longer called, configListSet.Add already handles this.
+	configListSet.AddList();
 }
-
-//void __cdecl Gods98::Config_RunThroughLists(void);
-
-//__inline const char* Gods98::Config_GetItemName(const Config* conf) { return conf->itemName; }
-//__inline const char* Gods98::Config_GetDataString(const Config* conf) { return conf->dataString; }
-
-
 
 #pragma endregion

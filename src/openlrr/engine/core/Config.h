@@ -9,9 +9,8 @@
 #pragma once
 
 #include "../../common.h"
-//#include "../geometry.h"
-//#include "../colour.h"
 //#include "../input/Keys.h"
+#include "ListSet.hpp"
 
 
 namespace Gods98
@@ -33,7 +32,6 @@ enum Keys : uint8;
 
 #pragma region Constants
 
-//#define CONFIG_MAXCONFIG			100
 #define CONFIG_MAXDEPTH				100
 #define CONFIG_BINARYFILEID			"GBCF"
 
@@ -63,12 +61,12 @@ flags_end(Config_GlobFlags, 0x4);
 
 enum class Config_ReadStage : sint32
 {
-	Config_ReadStage_PreName = 0,
-	Config_ReadStage_Name,
-	Config_ReadStage_PreData,
-	Config_ReadStage_Data,
+	PreName = 0,
+	Name,
+	PreData,
+	Data,
 
-	Config_ReadStage_End,
+	End,
 };
 assert_sizeof(Config_ReadStage, 0x4);
 
@@ -98,7 +96,7 @@ assert_sizeof(Config, 0x20);
 
 struct Config_Globs
 {
-	/*000,400*/ char s_JoinPath_string[1024]; // (not part of Manager, static array in JoinPath func)
+	/*000,400*/ char s_JoinPath_string[1024]; // (not part of Globs, static array in BuildStringID func)
 	/*400,80*/ Config* listSet[CONFIG_MAXLISTS];
 	/*480,4*/ Config* freeList;
 	/*484,4*/ uint32 listCount;
@@ -106,6 +104,9 @@ struct Config_Globs
 	/*48c*/
 };
 assert_sizeof(Config_Globs, 0x48c);
+
+
+using Config_ListSet = ListSet::WrapperCollection<Config_Globs>;
 
 #pragma endregion
 
@@ -117,6 +118,8 @@ assert_sizeof(Config_Globs, 0x48c);
 
 // <LegoRR.exe @00507098>
 extern Config_Globs & configGlobs;
+
+extern Config_ListSet configListSet;
 
 #pragma endregion
 
@@ -165,7 +168,6 @@ const Config* __cdecl Config_FindArray(const Config* root, const char* name);
 
 // <LegoRR.exe @004792e0>
 const Config* __cdecl Config_GetNextItem(const Config* start);
-//char* __cdecl Config_GetStringValue(const Config* root, const char* stringID, unsigned long line, const char* file);
 
 // <LegoRR.exe @00479310>
 char* Config_GetStringValue(const Config* root, const char* stringID);
@@ -183,7 +185,7 @@ real32 __cdecl Config_GetAngle(const Config* root, const char* stringID);
 bool32 __cdecl Config_GetRGBValue(const Config* root, const char* stringID, OUT real32* r, OUT real32* g, OUT real32* b);
 
 // <missing>
-bool32 __cdecl Config_GetCoord(const Config* root, const char* stringID, OUT real32* x, OUT real32* y, OUT real32* z);
+bool32 __cdecl Config_GetCoord(const Config* root, const char* stringID, OUT real32* x, OUT real32* y, OPTIONAL OUT real32* z);
 
 // <missing>
 bool32 __cdecl Config_GetKey(const Config* root, const char* stringID, OUT Keys* key);
@@ -192,6 +194,7 @@ bool32 __cdecl Config_GetKey(const Config* root, const char* stringID, OUT Keys*
 void __cdecl Config_Free(Config* root);
 
 
+// Used by Error_TerminateProgram
 // <debug>
 const char* __cdecl Config_Debug_GetLastFind(void);
 
@@ -205,15 +208,8 @@ void __cdecl Config_Remove(Config* dead);
 // <LegoRR.exe @004795a0>
 const Config* __cdecl Config_FindItem(const Config* conf, const char* stringID);
 
-//void __cdecl Config_DumpStructure(const Config* conf);
-
 // <LegoRR.exe @00479750>
 void __cdecl Config_AddList(void);
-
-//void __cdecl Config_RunThroughLists(void);
-
-//__inline const char* Config_GetItemName(const Config* conf) { return conf->itemName; }
-//__inline const char* Config_GetDataString(const Config* conf) { return conf->dataString; }
 
 
 
@@ -224,7 +220,7 @@ void __cdecl Config_AddList(void);
 
 // Returns true only if the value is found, and is a valid TRUE constant.
 #define Config_GetBoolOrFalse(c,s)	(Gods98::Config_GetBoolValue((c),(s)) == BoolTri::BOOL3_TRUE)
-// Returns true only if the value is found, and IS NOT a valid FALSE constant.
+// Returns false only if the value is found, and IS a valid FALSE constant.
 #define Config_GetBoolOrTrue(c,s)	(Gods98::Config_GetBoolValue((c),(s)) != BoolTri::BOOL3_FALSE)
 
 /// CUSTOM:
