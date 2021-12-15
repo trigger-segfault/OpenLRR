@@ -45,7 +45,7 @@ LegoRR::LegoCamera* __cdecl LegoRR::Camera_Create(Gods98::Container* contRoot, L
 		cam->rotation = 0.0f;
 		cam->tilt = 0.0f;
 		cam->zoom = 200.0f;
-		cam->trackFPCameraFrame = 0.0f;
+		cam->trackFPCameraFrame = 0;
 		cam->moveVector.x = 0.0f;
 		cam->moveVector.y = 0.0f;
 		cam->moveVector.z = 0.0f;
