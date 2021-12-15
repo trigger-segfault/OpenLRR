@@ -18,6 +18,41 @@ enum Direction : sint32
 };
 assert_sizeof(Direction, 0x4);
 
+
+enum DirectionFlags : uint32 // [LegoRR/Lego.c|flags:0x4|type:uint]
+{
+	DIRECTION_FLAG_NONE = 0,
+	DIRECTION_FLAG_N    = 0x1,
+	DIRECTION_FLAG_E    = 0x2,
+	DIRECTION_FLAG_NE   = 0x3,
+	DIRECTION_FLAG_S    = 0x4,
+	DIRECTION_FLAG_NS   = 0x5,
+	DIRECTION_FLAG_SE   = 0x6,
+	DIRECTION_FLAG_NSE  = 0x7,
+	DIRECTION_FLAG_W    = 0x8,
+	DIRECTION_FLAG_NW   = 0x9,
+	DIRECTION_FLAG_EW   = 0xa,
+	DIRECTION_FLAG_NEW  = 0xb,
+	DIRECTION_FLAG_SW   = 0xc,
+	DIRECTION_FLAG_NSW  = 0xd,
+	DIRECTION_FLAG_SEW  = 0xe,
+	DIRECTION_FLAG_NSEW = 0xf,
+};
+flags_end(DirectionFlags, 0x4);
+
+
+#define DirectionWrap(d)			((Direction)((uint32)(d) & 0x3))
+
+#define DirectionRotateCW(d, n)		DirectionWrap((sint32)(d) + (sint32)(n))
+#define DirectionRotateCCW(d, n)	DirectionWrap((sint32)(d) - (sint32)(n))
+
+#define DirectionCW(d)				DirectionRotateCW(d, 1)
+#define DirectionFlip(d)			DirectionRotateCW(d, 2)
+#define DirectionCCW(d)				DirectionRotateCW(d, 3)
+
+#define DirectionToFlag(d)			((DirectionFlags)(1 << (uint32)(d)))
+#define DirectionTestFlag(f, d)		((DirectionFlags)(f) & DirectionToFlag(d))
+
 #pragma endregion
 
 
@@ -33,6 +68,17 @@ assert_sizeof(Matrix4F, 0x40);
 
 
 #pragma region Geometry structs
+
+#pragma pack(push, 1)
+
+struct Coord2B {
+	/*0,1*/ uint8 x;
+	/*1,1*/ uint8 y;
+	/*2*/
+}; assert_sizeof(Coord2B, 0x2);
+
+#pragma pack(pop)
+
 
 // COORD
 struct Coord2I {
