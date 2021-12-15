@@ -9,6 +9,7 @@
 
 #include "../../common.h"
 #include "../geometry.h"
+#include "../core/ListSet.hpp"
 
 
 namespace Gods98
@@ -31,7 +32,7 @@ struct Image;
 
 #pragma region Function Typedefs
 
-typedef void (__cdecl* FontRunThroughListsCallback)(Font* font, void* data);
+typedef void (__cdecl* Font_RunThroughListsCallback)(Font* font, void* data);
 
 #pragma endregion
 	
@@ -107,6 +108,9 @@ struct Font_Globs
 };
 assert_sizeof(Font_Globs, 0x8c);
 
+
+using Font_ListSet = ListSet::WrapperCollection<Gods98::Font_Globs>;
+
 #pragma endregion
 
 /**********************************************************************************
@@ -117,6 +121,8 @@ assert_sizeof(Font_Globs, 0x8c);
 
 // <LegoRR.exe @00507528>
 extern Font_Globs & fontGlobs;
+
+extern Font_ListSet fontListSet;
 
 #pragma endregion
 
@@ -136,7 +142,7 @@ extern Font_Globs & fontGlobs;
 
 #pragma region Functions
 
- // <missing>
+// <missing>
 void __cdecl Font_Initialise(void);
 
 // <missing>
@@ -144,10 +150,10 @@ void __cdecl Font_Shutdown(void);
 
 
 // <LegoRR.exe @00401b90>
-uint32 __cdecl noinline(Font_GetStringWidth)(Font* font, const char* msg, ...);
+uint32 __cdecl noinline(Font_GetStringWidth)(const Font* font, const char* msg, ...);
 
 // <LegoRR.exe @00401bc0>
-void __cdecl noinline(Font_GetStringInfo)(Font* font, OPTIONAL OUT uint32* width,
+void __cdecl noinline(Font_GetStringInfo)(const Font* font, OPTIONAL OUT uint32* width,
 								OPTIONAL OUT uint32* lineCount, const char* msg, ...);
 
 // <LegoRR.exe @0047a1a0>
@@ -186,32 +192,31 @@ Font* __cdecl Font_Create(Image* image);
 // <LegoRR.exe @0047a880>
 void __cdecl Font_AddList(void);
 
+/// CUSTOM:
+void __cdecl Font_RemoveAll(void);
 
 // <missing>
-void __cdecl Font_GetBackgroundColour(Font* font, OUT real32* r, OUT real32* g, OUT real32* b);
+void __cdecl Font_GetBackgroundColour(const Font* font, OUT real32* r, OUT real32* g, OUT real32* b);
 
 // <missing>
 void __cdecl Font_SetTabWidth(Font* font, uint32 width, bool32 spaces);
 
 // <missing>
-void __cdecl Font_RemoveCallback(Font* font, void* data);
-
-// <missing>
-void __cdecl Font_RunThroughLists(FontRunThroughListsCallback Callback, void* data);
+void __cdecl Font_RunThroughLists(Font_RunThroughListsCallback callback, void* data);
 
 // (inline form for OpenLRR usage)
-__inline uint32 Font_GetStringWidth(Font* font, const char* msg, ...) {
+__inline uint32 Font_GetStringWidth(const Font* font, const char* msg, ...) {
 	uint32 width;
 	std::va_list args;
 	va_start(args, msg);
-	Font_VGetStringInfo(font, &width, NULL, msg, args);
+	Font_VGetStringInfo(font, &width, nullptr, msg, args);
 	va_end(args);
 	return width;
 }
 
 
 // <missing or inlined>
-__inline uint32 Font_GetLineCount(Font* font, const char* msg, ...) {
+__inline uint32 Font_GetLineCount(const Font* font, const char* msg, ...) {
 	uint32 lineCount;
 	std::va_list args;
 	va_start(args, msg);
@@ -221,20 +226,13 @@ __inline uint32 Font_GetLineCount(Font* font, const char* msg, ...) {
 }
 
 // (inline form for OpenLRR usage)
-__inline void Font_GetStringInfo(Font* font, OPTIONAL OUT uint32* width,
+__inline void Font_GetStringInfo(const Font* font, OPTIONAL OUT uint32* width,
 	OPTIONAL OUT uint32* lineCount, const char* msg, ...) {
 	std::va_list args;
 	va_start(args, msg);
 	Font_VGetStringInfo(font, width, lineCount, msg, args);
 	va_end(args);
 }
-
-/*uint32 __cdecl Font_GetLineCount(Font* font, const char* msg, ...);
-void __cdecl Font_SetTabWidth(Font* font, uint32 width, bool32 spaces);
-
-void __cdecl Font_GetBackgroundColour(Font* font, OUT real32* r, OUT real32* g, OUT real32* b);
-void __cdecl Font_RemoveCallback(Font* font, void* data);
-void __cdecl Font_RunThroughLists(FontRunThroughListsCallback Callback, void* data);*/
 
 #pragma endregion
 
