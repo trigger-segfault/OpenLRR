@@ -41,7 +41,7 @@ struct Lws_Info;
 
 #pragma region Function Typedefs
 
-typedef bool32 (__cdecl* AnimCloneWalkTreeCallback)(IDirect3DRMFrame3* frame, void* data);
+typedef bool32 (__cdecl* AnimClone_WalkTreeCallback)(IDirect3DRMFrame3* frame, void* data);
 
 #pragma endregion
 
@@ -113,7 +113,7 @@ void __cdecl AnimClone_Remove(AnimClone* dead);
 // Only called by Container_FormatPartName
 // <called @00473f60>
 // <LegoRR.exe @00489a90>
-bool32 __cdecl AnimClone_IsLws(AnimClone* clone);
+bool32 __cdecl AnimClone_IsLws(const AnimClone* clone);
 
 
 // <LegoRR.exe @00489aa0>
@@ -127,7 +127,7 @@ bool32 __cdecl AnimClone_SetupFrameArrayCallback(IDirect3DRMFrame3* frame, void*
 
 // <LegoRR.exe @00489bd0>
 bool32 __cdecl AnimClone_WalkTree(IDirect3DRMFrame3* frame, uint32 level,
-								AnimCloneWalkTreeCallback Callback, void* data);
+								AnimClone_WalkTreeCallback callback, void* data);
 
 // <LegoRR.exe @00489cb0>
 void __cdecl AnimClone_CreateCopy(IDirect3DRMFrame3* orig, IDirect3DRMFrame3* clone, bool32 lws);

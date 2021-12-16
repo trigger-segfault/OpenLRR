@@ -22,8 +22,7 @@
 // <LegoRR.exe @004897e0>
 Gods98::AnimClone* __cdecl Gods98::AnimClone_Register(IDirect3DRMAnimationSet2* animSet, IDirect3DRMFrame3* root, uint32 frameCount)
 {
-	AnimClone data;
-	AnimClone* orig = (AnimClone *)Mem_Alloc(sizeof(AnimClone));
+	AnimClone* orig = (AnimClone*)Mem_Alloc(sizeof(AnimClone));
 
 	orig->clonedFrom = nullptr;
 	orig->animSet = animSet;
@@ -34,10 +33,11 @@ Gods98::AnimClone* __cdecl Gods98::AnimClone_Register(IDirect3DRMAnimationSet2* 
 	orig->root->AddRef();
 	orig->partCount = 0;
 	orig->frameCount = frameCount;
-	
+
 	AnimClone_WalkTree(root, 0, AnimClone_FrameCountCallback, &orig->partCount);
 	orig->partArray = (IDirect3DRMFrame3**)Mem_Alloc(sizeof(IDirect3DRMFrame3*) * orig->partCount);
 
+	AnimClone data;
 	data.partArray = orig->partArray;
 	data.partCount = 0;
 	AnimClone_WalkTree(root, 0, AnimClone_SetupFrameArrayCallback, &data);
@@ -48,7 +48,6 @@ Gods98::AnimClone* __cdecl Gods98::AnimClone_Register(IDirect3DRMAnimationSet2* 
 // <LegoRR.exe @00489880>
 Gods98::AnimClone* __cdecl Gods98::AnimClone_RegisterLws(Lws_Info* scene, IDirect3DRMFrame3* root, uint32 frameCount)
 {
-	AnimClone data;
 	AnimClone* orig = (AnimClone*)Mem_Alloc(sizeof(AnimClone));
 
 	orig->clonedFrom = nullptr;
@@ -60,10 +59,11 @@ Gods98::AnimClone* __cdecl Gods98::AnimClone_RegisterLws(Lws_Info* scene, IDirec
 	orig->root->AddRef();
 	orig->partCount = 0;
 	orig->frameCount = frameCount;
-	
+
 	AnimClone_WalkTree(root, 0, AnimClone_FrameCountCallback, &orig->partCount);
 	orig->partArray = (IDirect3DRMFrame3**)Mem_Alloc(sizeof(IDirect3DRMFrame3*) * orig->partCount);
 
+	AnimClone data;
 	data.partArray = orig->partArray;
 	data.partCount = 0;
 	AnimClone_WalkTree(root, 0, AnimClone_SetupFrameArrayCallback, &data);
@@ -75,19 +75,17 @@ Gods98::AnimClone* __cdecl Gods98::AnimClone_RegisterLws(Lws_Info* scene, IDirec
 Gods98::AnimClone* __cdecl Gods98::AnimClone_Make(AnimClone* orig, IDirect3DRMFrame3* parent, OUT uint32* frameCount)
 {
 	AnimClone* clone = (AnimClone*)Mem_Alloc(sizeof(AnimClone));
-	AnimClone data;
 
 	// Setup from the first frame...
-	if (orig->lws){
-
+	if (orig->lws) {
 //		Lws_SetTime(orig->scene, 0.0f);
 		*clone = *orig;
 		clone->scene = Lws_Clone(orig->scene, parent);
 		clone->clonedFrom = nullptr;
 		if (frameCount) *frameCount = orig->frameCount;
 
-	} else {
-		
+	}
+	else {
 		std::memset(clone, 0, sizeof(AnimClone));
 		orig->animSet->SetTime(0.0f);
 		clone->animSet = nullptr;
@@ -95,12 +93,13 @@ Gods98::AnimClone* __cdecl Gods98::AnimClone_Make(AnimClone* orig, IDirect3DRMFr
 		clone->clonedFrom = orig;
 		lpD3DRM()->CreateFrame(parent, &clone->root);
 		Container_NoteCreation(clone->root);
-		clone->partArray = (IDirect3DRMFrame3**)Mem_Alloc(sizeof(LPDIRECT3DRMFRAME3) * orig->partCount);
+		clone->partArray = (IDirect3DRMFrame3**)Mem_Alloc(sizeof(IDirect3DRMFrame3*) * orig->partCount);
 
 		AnimClone_CreateCopy(orig->root, clone->root, orig->lws);
 		clone->partCount = orig->partCount;
 		if (frameCount) *frameCount = orig->frameCount;
 
+		AnimClone data;
 		data.partArray = clone->partArray;
 		data.partCount = 0;
 		AnimClone_WalkTree(clone->root, 0, AnimClone_SetupFrameArrayCallback, &data);
@@ -114,17 +113,18 @@ Gods98::AnimClone* __cdecl Gods98::AnimClone_Make(AnimClone* orig, IDirect3DRMFr
 void __cdecl Gods98::AnimClone_Remove(AnimClone* dead)
 {
 	if (dead) {
-		if (NULL == dead->clonedFrom) {
+		if (dead->clonedFrom == nullptr) {
 			if (dead->lws) {
 				Lws_Free(dead->scene);
-			} else {
+			}
+			else {
 				dead->animSet->Release();
 				dead->root->Release();
 			}
 		}
 
 		if (!dead->lws) {
-			for (uint32 loop=0 ; loop<dead->partCount ; loop++) {
+			for (uint32 loop = 0; loop < dead->partCount; loop++) {
 				dead->partArray[loop]->Release();
 			}
 			Mem_Free(dead->partArray);
@@ -152,7 +152,7 @@ void __cdecl Gods98::AnimClone_Remove(AnimClone* dead)
 // Only called by Container_FormatPartName
 // <called @00473f60>
 // <LegoRR.exe @00489a90>
-bool32 __cdecl Gods98::AnimClone_IsLws(AnimClone* clone)
+bool32 __cdecl Gods98::AnimClone_IsLws(const AnimClone* clone)
 {
 	return clone->lws;
 }
@@ -163,16 +163,16 @@ void __cdecl Gods98::AnimClone_SetTime(AnimClone* clone, real32 time, OUT real32
 {
 	AnimClone* orig = clone->clonedFrom;
 
-	if (orig){
-
-		IDirect3DRMFrame3* parent;
-		D3DRMMATRIX4D mat; // same structure as Matrix4F
-
+	if (orig) {
 		// Set time on the original animation then copy the all of the transformations to the clone...
 		if (orig->lws) Lws_SetTime(orig->scene, time);
 		else orig->animSet->SetTime(time);
 
-		for (uint32 loop=0 ; loop<clone->partCount ; loop++){
+		for (uint32 loop = 0; loop < clone->partCount; loop++) {
+
+			IDirect3DRMFrame3* parent;
+			D3DRMMATRIX4D mat; // same structure as Matrix4F
+
 			orig->partArray[loop]->GetParent(&parent);
 			orig->partArray[loop]->GetTransform(parent, mat);
 			parent->Release();
@@ -185,8 +185,8 @@ void __cdecl Gods98::AnimClone_SetTime(AnimClone* clone, real32 time, OUT real32
 			else orig->animSet->SetTime(*oldTime);
 		}
 
-	} else {
-
+	}
+	else {
 		// 'clone' is actually the original...
 		if (clone->lws) Lws_SetTime(clone->scene, time);
 		else clone->animSet->SetTime(time);
@@ -216,27 +216,32 @@ bool32 __cdecl Gods98::AnimClone_SetupFrameArrayCallback(IDirect3DRMFrame3* fram
 
 // <LegoRR.exe @00489bd0>
 bool32 __cdecl Gods98::AnimClone_WalkTree(IDirect3DRMFrame3* frame, uint32 level,
-								AnimCloneWalkTreeCallback Callback, void* data)
+										  AnimClone_WalkTreeCallback callback, void* data)
 {
-	LPDIRECT3DRMFRAMEARRAY children;
-	LPDIRECT3DRMFRAME3 child;
-	LPDIRECT3DRMFRAME child1;
 	bool32 finished = false;
 	HRESULT r;
 
-	if (Callback(frame, data)) return true;
+	if (callback(frame, data)) return true;
 
-	if (frame->GetChildren(&children) == D3DRM_OK){
+	IDirect3DRMFrameArray* children;
+	if (frame->GetChildren(&children) == D3DRM_OK) {
+
 		uint32 count = children->GetSize();
-		for (uint32 loop=0 ; loop<count ; loop++){
+		for (uint32 loop = 0; loop < count; loop++) {
+
+			IDirect3DRMFrame3* child;
+			IDirect3DRMFrame* child1;
+
 			children->GetElement(loop, &child1);
 			child1->QueryInterface(Idl::IID_IDirect3DRMFrame3, (void**)&child);
 			child1->Release();
-			if (AnimClone_WalkTree(child, level+1, Callback, data)) {
+
+			if (AnimClone_WalkTree(child, level + 1, callback, data)) {
 				finished = true;
 				r = child->Release();
 				break;
 			}
+
 			r = child->Release();
 		}
 		r = children->Release();
@@ -248,24 +253,22 @@ bool32 __cdecl Gods98::AnimClone_WalkTree(IDirect3DRMFrame3* frame, uint32 level
 // <LegoRR.exe @00489cb0>
 void __cdecl Gods98::AnimClone_CreateCopy(IDirect3DRMFrame3* orig, IDirect3DRMFrame3* clone, bool32 lws)
 {
-	IDirect3DRMFrameArray* children;
-	IDirect3DRMFrame3* parent;
-	char* name;
-	DWORD length;
-	Matrix4F mat;
-
 	// Link in the visuals...
 	if (lws) AnimClone_CloneLwsMesh(orig, clone);
 	else AnimClone_ReferenceVisuals(orig, clone);
 
 	// Copy the frame name...
+	DWORD length;
 	orig->GetName(&length, nullptr);
 	if (length) {
-		name = (char*)Mem_Alloc(length);
+		char* name = (char*)Mem_Alloc(length);
 		orig->GetName(&length, name);
 		clone->SetName(name);
 		Mem_Free(name);
 	}
+
+	IDirect3DRMFrame3* parent;
+	Matrix4F mat;
 
 	// Copy the transformation...
 	orig->GetParent(&parent);
@@ -274,9 +277,11 @@ void __cdecl Gods98::AnimClone_CreateCopy(IDirect3DRMFrame3* orig, IDirect3DRMFr
 	clone->AddTransform(D3DRMCOMBINE_REPLACE, mat);
 
 	// Do exactly the same for each child of the frame...
-	if (orig->GetChildren(&children) == D3DRM_OK){
+	IDirect3DRMFrameArray* children;
+	if (orig->GetChildren(&children) == D3DRM_OK) {
+
 		uint32 count = children->GetSize();
-		for (uint32 loop=0; loop<count; loop++) {
+		for (uint32 loop = 0; loop < count; loop++) {
 
 			IDirect3DRMFrame3* newFrame;
 			IDirect3DRMFrame3* childFrame;
@@ -303,17 +308,19 @@ void __cdecl Gods98::AnimClone_CreateCopy(IDirect3DRMFrame3* orig, IDirect3DRMFr
 void __cdecl Gods98::AnimClone_CloneLwsMesh(IDirect3DRMFrame3* orig, IDirect3DRMFrame3* clone)
 {
 	IUnknown* iunknown[ANIMCLONE_MAXVISUALS];
-	IDirect3DRMUserVisual* uv;
-	Mesh* mesh;
-	DWORD count;
 
+	DWORD count;
 	orig->GetVisuals(&count, nullptr);
 	if (count) {
 		Error_Fatal(count>=ANIMCLONE_MAXVISUALS, "ANIMCLONE_MAXVISUALS too small");
+
 		orig->GetVisuals(&count, iunknown);
-		for (uint32 loop=0 ; loop<count ; loop++) {
+
+		for (uint32 loop = 0; loop < count; loop++) {
+
+			IDirect3DRMUserVisual* uv;
 			if (iunknown[loop]->QueryInterface(Idl::IID_IDirect3DRMUserVisual, (void**)&uv) == D3DRM_OK) {
-				mesh = (Mesh*) uv->GetAppData();
+				Mesh* mesh = (Mesh*)uv->GetAppData();
 				Error_Fatal(mesh == nullptr, "Cannot get mesh");
 				Mesh_Clone(mesh, clone);
 			}
@@ -324,23 +331,20 @@ void __cdecl Gods98::AnimClone_CloneLwsMesh(IDirect3DRMFrame3* orig, IDirect3DRM
 // <LegoRR.exe @00489e80>
 void __cdecl Gods98::AnimClone_ReferenceVisuals(IDirect3DRMFrame3* orig, IDirect3DRMFrame3* clone)
 {
-//	IDirect3DRMVisual* *visuals;
-	IDirect3DRMVisual* visual;
-	DWORD count;
-
-	// Cut down on the Mem_Alloc()s...
 	IDirect3DRMVisual* visuals[ANIMCLONE_MAXVISUALS];
 
+	DWORD count;
 	orig->GetVisuals(&count, nullptr);
 	if (count) {
 		Error_Fatal(count>=ANIMCLONE_MAXVISUALS, "ANIMCLONE_MAXVISUALS too small");
-//		visuals = (IDirect3DRMVisual**)Mem_Alloc(sizeof(LPDIRECT3DRMVISUAL) * count);
+//		visuals = (IDirect3DRMVisual**)Mem_Alloc(sizeof(IDirect3DRMVisual*) * count);
+
 		orig->GetVisuals(&count, (IUnknown**)visuals);
 
-		for (uint32 loop=0; loop<count; loop++) {
+		for (uint32 loop = 0; loop < count; loop++) {
 
-			visual = visuals[loop];
-			clone->AddVisual((IUnknown*) visual);
+			IDirect3DRMVisual* visual = visuals[loop];
+			clone->AddVisual((IUnknown*)visual);
 		}
 	}
 }
