@@ -15,6 +15,7 @@
 #include "../../common.h"
 #include "../geometry.h"
 #include "../colour.h"
+#include "../core/ListSet.hpp"
 
 
 /**********************************************************************************
@@ -121,7 +122,7 @@ flags_scoped(MeshFlags) : uint32
 
 	MESH_FLAG_FACECAMERA           = 0x1000000,  // Mesh
 	MESH_FLAG_FACECAMERADONE       = 0x2000000,  // Mesh
-	
+
 	MESH_FLAG_ALPHAHIDDEN          = 0x10000000, // Group
 };
 flags_scoped_end(MeshFlags, 0x4);
@@ -204,8 +205,8 @@ assert_sizeof(Mesh_WrapType, 0x4);
 
 #pragma region Typedefs
 
- //struct Container_Texture;
- //typedef struct Container_Texture *lpMesh_Texture;
+//struct Container_Texture;
+//typedef struct Container_Texture *lpMesh_Texture;
 
 typedef struct Container_Texture Mesh_Texture;
 
@@ -354,6 +355,9 @@ struct Mesh_Globs
 };
 assert_sizeof(Mesh_Globs, 0xc21c);
 
+
+using Mesh_ListSet = ListSet::WrapperCollection<Gods98::Mesh_Globs>;
+
 #pragma endregion
 
 /**********************************************************************************
@@ -363,7 +367,9 @@ assert_sizeof(Mesh_Globs, 0xc21c);
 #pragma region Globals
 
 // <LegoRR.exe @005353c0>
-extern Mesh_Globs & meshGlobs;
+extern Mesh_Globs& meshGlobs;
+
+extern Mesh_ListSet meshListSet;
 
 #pragma endregion
 
@@ -441,7 +447,7 @@ void __cdecl Mesh_AddList(void);
 
 // <LegoRR.exe @00480b30>
 Mesh* __cdecl Mesh_CreateOnFrame(IDirect3DRMFrame3* frame, MeshRenderCallback renderFunc,
-								Mesh_RenderFlags renderFlags, void* data, Mesh_Type type);
+								 Mesh_RenderFlags renderFlags, void* data, Mesh_Type type);
 
 // <LegoRR.exe @00480bc0>
 Mesh* __cdecl Mesh_Clone(Mesh* mesh, IDirect3DRMFrame3* frame);
@@ -467,7 +473,7 @@ void __cdecl Mesh_UViewMesh(APPOBJ* lightWaveObject, OUT Point2F* textCoords);
 // flags = lwt.h srfTexFlags bit enumeration `TFM_*`
 // <LegoRR.exe @00482260>
 void __cdecl Mesh_GetTextureUVsWrap(uint32 vertexCount, OUT Vector3F* vertices, OUT Point2F* coords,
-	real32 sx, real32 sy, real32 sz, real32 px, real32 py, real32 pz, LightWave_TexFlags flags);
+									real32 sx, real32 sy, real32 sz, real32 px, real32 py, real32 pz, LightWave_TexFlags flags);
 
 
 /// NEW GODS98: API that includes mesh->textureRenderCallback
@@ -485,16 +491,16 @@ bool32 __cdecl Mesh_SetTextureTime2(Mesh* mesh, real32 frame);
 void __cdecl Mesh_Remove(Mesh* mesh, IDirect3DRMFrame3* frame);
 
 // <LegoRR.exe @00482460>
-void __cdecl Mesh_GetGroup(Mesh* mesh, uint32 groupID, OUT uint32* vertexCount,
-								OUT uint32* faceCount, OUT uint32* vPerFace,
-								OUT uint32* faceDataSize, OUT uint32* faceData);
+void __cdecl Mesh_GetGroup(const Mesh* mesh, uint32 groupID, OUT uint32* vertexCount,
+						   OUT uint32* faceCount, OUT uint32* vPerFace,
+						   OUT uint32* faceDataSize, OUT uint32* faceData);
 
 // <LegoRR.exe @004824d0>
-uint32 __cdecl Mesh_GetGroupCount(Mesh* mesh);
+uint32 __cdecl Mesh_GetGroupCount(const Mesh* mesh);
 
 // <LegoRR.exe @004824e0>
 sint32 __cdecl Mesh_AddGroup(Mesh* mesh, uint32 vertexCount, uint32 faceCount,
-						uint32 vPerFace, const uint32* faceData);
+							 uint32 vPerFace, const uint32* faceData);
 
 // <LegoRR.exe @00482610>
 void __cdecl Mesh_AlterGroupRenderFlags(Mesh* mesh, uint32 groupID, Mesh_RenderFlags newFlags);
@@ -504,26 +510,26 @@ void __cdecl Mesh_Scale(Mesh* mesh, real32 x, real32 y, real32 z);
 
 // <LegoRR.exe @004826a0>
 void __cdecl Mesh_SetVertices(Mesh* mesh, uint32 groupID, uint32 index,
-							uint32 count, const Vertex* vertices);
+							  uint32 count, const Vertex* vertices);
 
 // <LegoRR.exe @00482730>
-void __cdecl Mesh_GetVertices(Mesh* mesh, uint32 groupID, uint32 index,
-							uint32 count, OUT Vertex* vertices);
+void __cdecl Mesh_GetVertices(const Mesh* mesh, uint32 groupID, uint32 index,
+							  uint32 count, OUT Vertex* vertices);
 
 // <LegoRR.exe @004827c0>
 void __cdecl Mesh_SetVertices_PointNormalAt(Mesh* mesh, uint32 groupID, uint32 index,
-							uint32 count, const Vector3F* vertices, const Vector3F* position, real32 (*textCoords)[2]);
+											uint32 count, const Vector3F* vertices, const Vector3F* position, real32(*textCoords)[2]);
 
 // <LegoRR.exe @004828e0>
 void __cdecl Mesh_SetVertices_SameNormal(Mesh* mesh, uint32 groupID, uint32 index,
-							uint32 count, const Vector3F* vertices, const Vector3F* normal, real32 (*textCoords)[2]);
+										 uint32 count, const Vector3F* vertices, const Vector3F* normal, real32(*textCoords)[2]);
 
 // <LegoRR.exe @00482980>
 void __cdecl Mesh_SetVertices_VNT(Mesh* mesh, uint32 groupID, uint32 index, uint32 count,
-							const Vector3F* vertices, const Vector3F*const* normal, const Point2F* textCoords);
+								  const Vector3F* vertices, const Vector3F* const* normal, const Point2F* textCoords);
 
 // <LegoRR.exe @00482a40>
-bool32 __cdecl Mesh_IsGroupHidden(Mesh* mesh, uint32 groupID);
+bool32 __cdecl Mesh_IsGroupHidden(const Mesh* mesh, uint32 groupID);
 
 // <LegoRR.exe @00482a60>
 void __cdecl Mesh_HideGroup(Mesh* mesh, uint32 groupID, bool32 hide);
@@ -544,7 +550,7 @@ void __cdecl Mesh_SetRenderDesc(Mesh_RenderFlags flags, const D3DMATRIX* matWorl
 void __cdecl Mesh_SetAlphaRender(D3DBLEND src, D3DBLEND dest);
 
 // <LegoRR.exe @00482fa0>
-void __cdecl Mesh_AddToPostRenderList(Mesh* mesh, const D3DMATRIX* matWorld);
+void __cdecl Mesh_AddToPostRenderList(Mesh* mesh, OPTIONAL const D3DMATRIX* matWorld);
 
 // <LegoRR.exe @00482ff0>
 void __cdecl Mesh_ClearPostRenderList(void);
@@ -609,7 +615,7 @@ void __cdecl Mesh_RestoreTextureAndMat(void);
 bool32 __cdecl Mesh_RenderMesh(Mesh* mesh, const D3DMATRIX* matWorld, bool32 alphaBlend);
 
 // <LegoRR.exe @00483d30>
-bool32 __cdecl Mesh_CanRenderGroup(Mesh_Group* group);
+bool32 __cdecl Mesh_CanRenderGroup(const Mesh_Group* group);
 
 // <LegoRR.exe @00483d50>
 bool32 __cdecl Mesh_RenderGroup(Mesh* mesh, Mesh_Group* group, const D3DMATRIX* matWorld, bool32 alphaBlend);
@@ -619,7 +625,7 @@ bool32 __cdecl Mesh_SetGroupRenderDesc(Mesh* mesh, Mesh_Group* group, const D3DM
 
 // <LegoRR.exe @00483e30>
 bool32 __cdecl Mesh_RenderTriangleList(D3DMATERIALHANDLE matHandle, IDirect3DTexture2* texture, Mesh_RenderFlags renderFlags,
-	Mesh_Vertex* vertices, uint32 vertexCount, uint16* faceData, uint32 indexCount);
+									   Mesh_Vertex* vertices, uint32 vertexCount, uint16* faceData, uint32 indexCount);
 
 
 /*
