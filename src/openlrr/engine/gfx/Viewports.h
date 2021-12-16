@@ -9,6 +9,7 @@
 
 #include "../../common.h"
 #include "../geometry.h"
+#include "../core/ListSet.hpp"
 
 
 /**********************************************************************************
@@ -112,6 +113,9 @@ struct Viewport_Globs
 };
 assert_sizeof(Viewport_Globs, 0x8c);
 
+
+using Viewport_ListSet = ListSet::WrapperCollection<Gods98::Viewport_Globs>;
+
 #pragma endregion
 
 /**********************************************************************************
@@ -122,6 +126,8 @@ assert_sizeof(Viewport_Globs, 0x8c);
 
 // <LegoRR.exe @0076bce0>
 extern Viewport_Globs & viewportGlobs;
+
+extern Viewport_ListSet viewportListSet;
 
 #pragma endregion
 
@@ -161,7 +167,7 @@ Viewport* __cdecl Viewport_CreatePixel(sint32 xPos, sint32 yPos, uint32 width, u
 
 /// APIS: IDirect3DRMViewport2
 // <LegoRR.exe @004771d0>
-void __cdecl Viewport_GetSize(Viewport* vp, OUT uint32* width, OUT uint32* height);
+void __cdecl Viewport_GetSize(Viewport* vp, OPTIONAL OUT uint32* width, OPTIONAL OUT uint32* height);
 
 /// APIS: IDirect3DRMFrame3, IDirect3DRMViewport2
 // <LegoRR.exe @00477210>

@@ -24,6 +24,8 @@
 // <LegoRR.exe @0076bce0>
 Gods98::Viewport_Globs & Gods98::viewportGlobs = *(Gods98::Viewport_Globs*)0x0076bce0; // (no init)
 
+Gods98::Viewport_ListSet Gods98::viewportListSet = Gods98::Viewport_ListSet(Gods98::viewportGlobs);
+
 #pragma endregion
 
 /**********************************************************************************
@@ -37,12 +39,7 @@ void __cdecl Gods98::Viewport_Initialise(void)
 {
 	log_firstcall();
 
-	for (uint32 loop=0 ; loop<VIEWPORT_MAXLISTS ; loop++){
-		viewportGlobs.listSet[loop] = nullptr;
-	}
-
-	viewportGlobs.freeList = nullptr;
-	viewportGlobs.listCount = 0;
+	viewportListSet.Initialise();
 	viewportGlobs.flags = Viewport_GlobFlags::VIEWPORT_GLOB_FLAG_INITIALISED;
 }
 
@@ -53,11 +50,7 @@ void __cdecl Gods98::Viewport_Shutdown(void)
 
 	Viewport_RemoveAll();
 
-	for (uint32 loop=0 ; loop<VIEWPORT_MAXLISTS ; loop++){
-		if (viewportGlobs.listSet[loop]) Mem_Free(viewportGlobs.listSet[loop]);
-	}
-
-	viewportGlobs.freeList = nullptr;
+	viewportListSet.Shutdown();
 	viewportGlobs.flags = Viewport_GlobFlags::VIEWPORT_GLOB_FLAG_NONE;
 }
 
@@ -66,16 +59,14 @@ Gods98::Viewport* __cdecl Gods98::Viewport_Create(real32 xPos, real32 yPos, real
 {
 	log_firstcall();
 
-	//uint32 actWidth, actHeight, actXPos, actYPos;
-	//uint32 devWidth, devHeight;
-
-	uint32 devWidth = lpDevice()->GetWidth();
+	uint32 devWidth  = lpDevice()->GetWidth();
 	uint32 devHeight = lpDevice()->GetHeight();
 	
-	uint32 actXPos = (uint32) (xPos * devWidth);
-	uint32 actYPos = (uint32) (yPos * devHeight);
-	uint32 actWidth = (uint32) (width * devWidth);
-	uint32 actHeight = (uint32) (height * devHeight);
+	/// SANITY: Cast to sint32 for xPos,yPos
+	sint32 actXPos = (sint32)(xPos * devWidth);
+	sint32 actYPos = (sint32)(yPos * devHeight);
+	uint32 actWidth  = (uint32)(width  * devWidth);
+	uint32 actHeight = (uint32)(height * devHeight);
 
 	return Viewport_CreatePixel(actXPos, actYPos, actWidth, actHeight, camera);
 }
@@ -85,41 +76,43 @@ Gods98::Viewport* __cdecl Gods98::Viewport_CreatePixel(sint32 xPos, sint32 yPos,
 {
 	log_firstcall();
 
-	Viewport* newViewport;
-	uint32 devWidth = lpDevice()->GetWidth();
-	uint32 devHeight = lpDevice()->GetHeight();
-
 	Viewport_CheckInit();
 
-	if (xPos < 0) xPos = devWidth + xPos;
-	if (yPos < 0) yPos = devHeight + yPos;
+	uint32 devWidth  = lpDevice()->GetWidth();
+	uint32 devHeight = lpDevice()->GetHeight();
+
+	// This is only useful if xPos or yPos is >= negative devWidth, or devHeight.
+	// Consider while < 0 or modulus operation instead?
+	if (xPos < 0) xPos += devWidth;
+	if (yPos < 0) yPos += devHeight;
 
 	if (xPos + width > devWidth || yPos + height > devHeight) {
 		Error_Warn(true, "Invalid sizes provided to Viewport_CreatePixel()");
 		return nullptr;
 	}
 
-	if (viewportGlobs.freeList == nullptr) Viewport_AddList();
-	
-	newViewport = viewportGlobs.freeList;
-	viewportGlobs.freeList = newViewport->nextFree;
-	newViewport->nextFree = nullptr;
+	/// CHANGE: newViewport now has its nextFree field assigned to itself, like all other listSets.
+	Viewport* newViewport = viewportListSet.Add();
+	ListSet::MemZero(newViewport); // Clear memory before returning.
 
-	if (lpD3DRM()->CreateViewport(lpDevice(), camera->masterFrame, xPos, yPos, width, height, &newViewport->lpVP) == D3DRM_OK){
+	if (lpD3DRM()->CreateViewport(lpDevice(), camera->masterFrame, xPos, yPos, width, height, &newViewport->lpVP) == D3DRM_OK) {
 
 		/// X86: 32-bit pointer
-		newViewport->lpVP->SetAppData((DWORD) newViewport);
+		newViewport->lpVP->SetAppData((DWORD)newViewport);
 
 		newViewport->smoothFOV = 0.0f;
 		return newViewport;
+	}
+	else Error_Warn(true, "CreateViewport() call failed");
 
-	} else Error_Warn(true, "CreateViewport() call failed");
+	/// SANITY: Proper cleanup on failure. Don't need to call Viewport_Remove since there's no lpVP to release.
+	viewportListSet.Remove(newViewport);
 
 	return nullptr;
 }
 
 // <LegoRR.exe @004771d0>
-void __cdecl Gods98::Viewport_GetSize(Viewport* vp, OUT uint32* width, OUT uint32* height)
+void __cdecl Gods98::Viewport_GetSize(Viewport* vp, OPTIONAL OUT uint32* width, OPTIONAL OUT uint32* height)
 {
 	log_firstcall();
 
@@ -127,7 +120,7 @@ void __cdecl Gods98::Viewport_GetSize(Viewport* vp, OUT uint32* width, OUT uint3
 
 	Error_Fatal(!vp, "NULL passed as viewport to Viewport_Configure()");
 
-	if (width) *width = vp->lpVP->GetWidth();
+	if (width)  *width  = vp->lpVP->GetWidth();
 	if (height) *height = vp->lpVP->GetHeight();
 }
 
@@ -142,9 +135,10 @@ void __cdecl Gods98::Viewport_SetCamera(Viewport* vp, Container* cont)
 
 	// Does it matter that a non-camera container can be used as a camera????
 
-	if (vp->lpVP->SetCamera(cont->masterFrame) == D3DRM_OK){
+	if (vp->lpVP->SetCamera(cont->masterFrame) == D3DRM_OK) {
 
-	} else Error_Warn(true, "Cannot set container as camera");
+	}
+	else Error_Warn(true, "Cannot set container as camera");
 }
 
 // <LegoRR.exe @00477230>
@@ -152,7 +146,6 @@ Gods98::Container* __cdecl Gods98::Viewport_GetCamera(Viewport* vp)
 {
 	log_firstcall();
 
-	IDirect3DRMFrame3* frame;
 	Container* camera = nullptr;
 
 	Viewport_CheckInit();
@@ -161,11 +154,13 @@ Gods98::Container* __cdecl Gods98::Viewport_GetCamera(Viewport* vp)
 
 	// Does it matter that a non-camera container can be used as a camera????
 
-	if (vp->lpVP->GetCamera(&frame) == D3DRM_OK){
-		Container_AppData* appData = (Container_AppData*) frame->GetAppData();
+	IDirect3DRMFrame3* frame;
+	if (vp->lpVP->GetCamera(&frame) == D3DRM_OK) {
+		Container_AppData* appData = (Container_AppData*)frame->GetAppData();
 		if (appData) camera = appData->ownerContainer;
 		frame->Release();
-	} else Error_Warn(true, "Cannot set container as camera");
+	}
+	else Error_Warn(true, "Cannot set container as camera");
 
 	return camera;
 }
@@ -177,9 +172,10 @@ void __cdecl Gods98::Viewport_SetBackClip(Viewport* vp, real32 dist)
 
 	Viewport_CheckInit();
 
-	if (vp->lpVP->SetBack(dist) == D3DRM_OK){
+	if (vp->lpVP->SetBack(dist) == D3DRM_OK) {
 
-	} else Error_Warn(true, "Cannot set back clipping plane distance");
+	}
+	else Error_Warn(true, "Cannot set back clipping plane distance");
 }
 
 // <LegoRR.exe @00477290>
@@ -208,39 +204,45 @@ void __cdecl Gods98::Viewport_Clear(Viewport* vp, bool32 full)
 	Viewport_CheckInit();
 
 	if (full) {
-
+		// Viewport_GetScene doesn't add to RefCount. No need to Release scene afterwards.
 		IDirect3DRMFrame3* scene = Viewport_GetScene(vp);
 		D3DCOLOR colour = 0;
+		/// REFACTOR: Moved this call above area assignment to group with other related calls.
+		if (scene) colour = scene->GetSceneBackground();
+
 		Area2F area = {
-			(real32) vp->lpVP->GetX(),
-			(real32) vp->lpVP->GetY(),
-			(real32) vp->lpVP->GetWidth(),
-			(real32) vp->lpVP->GetHeight()
+			(real32)vp->lpVP->GetX(),
+			(real32)vp->lpVP->GetY(),
+			(real32)vp->lpVP->GetWidth(),
+			(real32)vp->lpVP->GetHeight(),
 		};
 
-		if (scene) colour = scene->GetSceneBackground();
+		// Probably an old clear method before being replaced with the code below.
 //		DirectDraw_Clear(&area, colour);
 //		vp->lpVP->Clear(D3DRMCLEAR_ZBUFFER);
 
-		{
-			IDirect3DViewport* view1;
-			IDirect3DViewport3* view3;
-			/// FIXME: Cast from float to unsigned
-			D3DRECT rect = { // sint32 casts to stop compiler from complaining
-				(sint32) (uint32) area.x,
-				(sint32) (uint32) area.y,
-				(sint32) (uint32) (area.x + area.width),
-				(sint32) (uint32) (area.y + area.height),
-			};
-			HRESULT r = vp->lpVP->GetDirect3DViewport(&view1);
-			r = view1->QueryInterface(IID_IDirect3DViewport3, (void**)&view3);
-			view1->Release();
-			r = view3->Clear2(1, &rect, D3DCLEAR_ZBUFFER|D3DCLEAR_TARGET, colour, 1.0f, 0);
-			view3->Release();
-		}
+		/// FIXME: Cast from float to unsigned
+		D3DRECT rect = { // sint32 casts for width,height to stop compiler from complaining
+			(sint32)area.x,
+			(sint32)area.y,
+			(sint32)(uint32)(area.x + area.width),
+			(sint32)(uint32)(area.y + area.height),
+		};
 
-	} else {
+		IDirect3DViewport* view1;
+		IDirect3DViewport3* view3;
+		HRESULT r = vp->lpVP->GetDirect3DViewport(&view1);
+		r = view1->QueryInterface(IID_IDirect3DViewport3, (void**)&view3);
+		view1->Release();
 
+		// 1    = rectangle in array to clear: &rect
+		// 1.0f = depth to fill Z buffer with
+		// 0    = value to fill stencil bits with
+		r = view3->Clear2(1, &rect, D3DCLEAR_ZBUFFER|D3DCLEAR_TARGET, colour, 1.0f, 0);
+		view3->Release();
+
+	}
+	else {
 		vp->lpVP->Clear(D3DRMCLEAR_ALL);
 
 	}
@@ -253,29 +255,32 @@ void __cdecl Gods98::Viewport_Render(Viewport* vp, Container* root, real32 delta
 
 	Viewport_CheckInit();
 
-	Error_Fatal(!vp||!root, "NULL passed as viewport or container to Viewport_Render()");
+	Error_Fatal(!vp || !root, "NULL passed as viewport or container to Viewport_Render()");
 
 	vp->rendering = true;
 
+	/// FIX APPLY: Avoid divide-by-zero during pause by also checking delta.
 	if (vp->smoothFOV != 0.0f && delta != 0.0f) {
 
-		real32 coef, fov = vp->lpVP->GetField();
+		real32 fov = vp->lpVP->GetField();
 
-		coef = 4.0f * (1.0f / delta);
+		real32 coef = 4.0f * (1.0f / delta);
 		fov *= coef;
 		fov += vp->smoothFOV;
 		fov *= 1.0f / (1.0f + coef);
 
 		vp->lpVP->SetField(fov);
 		if (fov == vp->smoothFOV) vp->smoothFOV = 0.0f;
+
 	}
 
 	HRESULT r;
-	if ((r = vp->lpVP->Render(root->masterFrame)) == D3DRM_OK){
+	if ((r = vp->lpVP->Render(root->masterFrame)) == D3DRM_OK) {
 
 		Mesh_PostRenderAll(vp);
 
-	} else {
+	}
+	else {
 		Error_Warn(true, "Cannot render viewport");
 		CHKRM(r);
 	}
@@ -291,11 +296,9 @@ void __cdecl Gods98::Viewport_Remove(Viewport* dead)
 	Viewport_CheckInit();
 	Error_Fatal(!dead, "NULL passed to Viewport_Remove()");
 
-	dead->nextFree = viewportGlobs.freeList;
-	viewportGlobs.freeList = dead;
+	dead->lpVP->Release();
 
-	/// WARN: HRESULT r is unused
-	HRESULT r = dead->lpVP->Release();
+	viewportListSet.Remove(dead);
 }
 
 // (Field of View, FOV)
@@ -339,7 +342,7 @@ void __cdecl Gods98::Viewport_InverseTransform(Viewport* vp, OUT Vector3F* dest,
 	Viewport_CheckInit();
 	Error_Fatal(!vp, "NULL passed to Viewport_InverseTransform()");
 	
-	vp->lpVP->InverseTransform((LPD3DVECTOR) dest, (LPD3DRMVECTOR4D) const_cast<Vector4F*>(src));
+	vp->lpVP->InverseTransform((LPD3DVECTOR)dest, (LPD3DRMVECTOR4D)const_cast<Vector4F*>(src));
 }
 
 // <LegoRR.exe @00477570>
@@ -350,7 +353,7 @@ void __cdecl Gods98::Viewport_Transform(Viewport* vp, OUT Vector4F* dest, const 
 	Viewport_CheckInit();
 	Error_Fatal(!vp, "NULL passed to Viewport_InverseTransform()");
 	
-	vp->lpVP->Transform((LPD3DRMVECTOR4D) dest, (LPD3DVECTOR) const_cast<Vector3F*>(src));
+	vp->lpVP->Transform((LPD3DRMVECTOR4D)dest, (LPD3DVECTOR)const_cast<Vector3F*>(src));
 }
 
 // <LegoRR.exe @00477590>
@@ -388,27 +391,8 @@ IDirect3DRMFrame3* __cdecl Gods98::Viewport_GetScene(Viewport* vp)
 // <LegoRR.exe @00477630>
 void __cdecl Gods98::Viewport_AddList(void)
 {
-	log_firstcall();
-
-	Viewport_CheckInit();
-
-	Error_Fatal(viewportGlobs.listCount+1 >= VIEWPORT_MAXLISTS, "Run out of lists");
-
-	uint32 count = 0x00000001 << viewportGlobs.listCount;
-
-	Viewport *list;
-	if (list = viewportGlobs.listSet[viewportGlobs.listCount] = (Viewport*)Mem_Alloc(sizeof(Viewport) * count)){
-
-		viewportGlobs.listCount++;
-
-		for (uint32 loop=1 ; loop<count ; loop++){
-
-			list[loop-1].nextFree = &list[loop];
-		}
-		list[count-1].nextFree = viewportGlobs.freeList;
-		viewportGlobs.freeList = list;
-
-	} else Error_Fatal(true, Error_Format("Unable to allocate %d bytes of memory for new list.\n", sizeof(Viewport) * count));
+	// NOTE: This function is no longer called, viewportListSet.Add already handles this.
+	viewportListSet.AddList();
 }
 
 // <LegoRR.exe @004776a0>
@@ -416,20 +400,8 @@ void __cdecl Gods98::Viewport_RemoveAll(void)
 {
 	log_firstcall();
 
-	for (uint32 list=0 ; list<viewportGlobs.listCount ; list++){
-		if (viewportGlobs.listSet[list]){
-			uint32 count = 0x00000001 << list;
-			for (uint32 loop=0 ; loop<count ; loop++){
-				Viewport* tempViewport;
-				if (tempViewport = &viewportGlobs.listSet[list][loop]){
-					if (tempViewport->nextFree == tempViewport){
-
-						tempViewport->lpVP->Release();
-	
-					}
-				}
-			}
-		}
+	for (Viewport* viewport : viewportListSet.EnumerateAlive()) {
+		Viewport_Remove(viewport);
 	}
 }
 
