@@ -12,6 +12,7 @@
 
 #include "../../common.h"
 #include "../geometry.h"
+#include "../core/ListSet.hpp"
 
 
 /**********************************************************************************
@@ -447,6 +448,9 @@ struct Container_Globs
 };
 assert_sizeof(Container_Globs, 0x2018);
 
+
+using Container_ListSet = ListSet::WrapperCollection<Container_Globs>;
+
 #pragma endregion
 
 /**********************************************************************************
@@ -460,6 +464,8 @@ extern char (& s_FormatPartName_name)[1024];
 
 // <LegoRR.exe @0076bd80>
 extern Container_Globs & containerGlobs;
+
+extern Container_ListSet containerListSet;
 
 #pragma endregion
 
@@ -591,14 +597,14 @@ bool32 __cdecl Container_SetPerspectiveCorrectionCallback(IDirect3DRMFrame3* fra
 
 // <LegoRR.exe @00474310>
 IDirectDrawSurface4* __cdecl Container_LoadTextureSurface(const char* fname, bool32 managed,
-								OUT uint32* width, OUT uint32* height, OUT bool32* trans);
+														  OUT uint32* width, OUT uint32* height, OUT bool32* trans);
 
 // <LegoRR.exe @004746d0>
 bool32 __cdecl Container_GetDecalColour(const char* fname, OUT uint32* colour);
 
 // <LegoRR.exe @004747b0>
 Container_Texture* __cdecl Container_LoadTexture2(const char* fname, bool32 immediate,
-								OUT uint32* width, OUT uint32* height);
+												  OUT uint32* width, OUT uint32* height);
 
 // <LegoRR.exe @004749d0>
 void __cdecl Container_FreeTexture(Container_Texture* text);
@@ -608,7 +614,7 @@ void __cdecl Container_Mesh_Swap(Container* target, Container* origin, bool32 re
 
 // <LegoRR.exe @00474bb0>
 uint32 __cdecl Container_Mesh_AddGroup(Container* cont, uint32 vertexCount,
-								uint32 faceCount, uint32 vPerFace, const uint32* faceData);
+									   uint32 faceCount, uint32 vPerFace, const uint32* faceData);
 
 // <LegoRR.exe @00474ce0>
 uint32 __cdecl Container_Mesh_GetGroupCount(Container* cont);
@@ -627,17 +633,17 @@ bool32 __cdecl Container_Mesh_HandleSeperateMeshGroups(IN OUT IDirect3DRMMesh** 
 
 // <LegoRR.exe @00474f00>
 bool32 __cdecl Container_Mesh_GetGroup(Container* cont, uint32 groupID,
-								OUT uint32* vertexCount, OUT uint32* faceCount,
-								OUT uint32* vPerFace, OUT uint32* faceDataSize,
-								OUT uint32* faceData);
+									   OUT uint32* vertexCount, OUT uint32* faceCount,
+									   OUT uint32* vPerFace, OUT uint32* faceDataSize,
+									   OUT uint32* faceData);
 
 // <LegoRR.exe @00474f80>
 uint32 __cdecl Container_Mesh_GetVertices(Container* cont, uint32 groupID, uint32 index,
-								uint32 count, OUT Vertex* retArray);
+										  uint32 count, OUT Vertex* retArray);
 
 // <LegoRR.exe @00474ff0>
 uint32 __cdecl Container_Mesh_SetVertices(Container* cont, uint32 groupID, uint32 index,
-								uint32 count, const Vertex* values);
+										  uint32 count, const Vertex* values);
 
 // <LegoRR.exe @00475060>
 void __cdecl Container_Mesh_SetTexture(Container* cont, uint32 groupID, Container_Texture* itext);
@@ -653,11 +659,11 @@ bool32 __cdecl Container_Mesh_GetBox(Container* cont, OUT Box3F* box);
 
 // <LegoRR.exe @004752b0>
 void __cdecl Container_Mesh_SetEmissive(Container* cont, uint32 groupID,
-								real32 r, real32 g, real32 b);
+										real32 r, real32 g, real32 b);
 
 // <LegoRR.exe @004752e0>
 void __cdecl Container_Mesh_SetColourAlpha(Container* cont, uint32 groupID,
-								real32 r, real32 g, real32 b, real32 a);
+										   real32 r, real32 g, real32 b, real32 a);
 
 // <LegoRR.exe @00475330>
 void __cdecl Container_Transform(Container* cont, OUT Vector3F* dest, const Vector3F* src);
@@ -685,11 +691,11 @@ uint32 __cdecl Container_GetAnimationFrames(Container* cont);
 
 // <LegoRR.exe @004756f0>
 void __cdecl Container_SetPosition(Container* cont, OPTIONAL Container* ref,
-								real32 x, real32 y, real32 z);
+								   real32 x, real32 y, real32 z);
 
 // <LegoRR.exe @00475730>
 void __cdecl Container_SetOrientation(Container* cont, OPTIONAL Container* ref,
-								real32 dirx, real32 diry, real32 dirz, real32 upx, real32 upy, real32 upz);
+									  real32 dirx, real32 diry, real32 dirz, real32 upx, real32 upy, real32 upz);
 
 // <LegoRR.exe @00475780>
 void __cdecl Container_GetPosition(Container* cont, OPTIONAL Container* ref, OUT Vector3F* pos);
@@ -699,7 +705,7 @@ void __cdecl Container_GetOrientation(Container* cont, OPTIONAL Container* ref, 
 
 // <LegoRR.exe @00475840>
 void __cdecl Container_AddRotation(Container* cont, Container_Combine combine,
-								real32 x, real32 y, real32 z, real32 angle);
+								   real32 x, real32 y, real32 z, real32 angle);
 
 // <LegoRR.exe @00475870>
 void __cdecl Container_AddScale(Container* cont, Container_Combine combine,
@@ -707,14 +713,14 @@ void __cdecl Container_AddScale(Container* cont, Container_Combine combine,
 
 // <LegoRR.exe @004758a0>
 void __cdecl Container_AddTranslation(Container* cont, Container_Combine combine,
-								real32 x, real32 y, real32 z);
+									  real32 x, real32 y, real32 z);
 
 // <LegoRR.exe @004758d0>
 void __cdecl Container_ClearTransform(Container* cont);
 
 // <LegoRR.exe @00475970>
 void __cdecl Container_AddTransform(Container* cont, Container_Combine combine,
-								const Matrix4F mat);
+									const Matrix4F mat);
 
 // <LegoRR.exe @00475990>
 real32 __cdecl Container_GetZXRatio(Container* cont);
@@ -765,9 +771,9 @@ IDirect3DRMFrame3* __cdecl Container_Frame_Find(Container* cont, const char* fin
 
 // <LegoRR.exe @00476230>
 void __cdecl Container_Frame_SetAppData(IDirect3DRMFrame3* frame, Container* owner,
-	OPTIONAL AnimClone* animClone, OPTIONAL const char* asfname, OPTIONAL uint32* frameCount,
-	OPTIONAL const char* frameName, OPTIONAL real32* currTime, OPTIONAL real32* transCo,
-	OPTIONAL const char* actSample, OPTIONAL void* soundRecord, OPTIONAL uint32* trigger);
+										OPTIONAL AnimClone* animClone, OPTIONAL const char* asfname, OPTIONAL uint32* frameCount,
+										OPTIONAL const char* frameName, OPTIONAL real32* currTime, OPTIONAL real32* transCo,
+										OPTIONAL const char* actSample, OPTIONAL void* soundRecord, OPTIONAL uint32* trigger);
 
 // <LegoRR.exe @004763a0>
 void __cdecl Container_Frame_RemoveAppData(IDirect3DRMFrame3* frame);
@@ -811,7 +817,7 @@ const char* __cdecl Container_Frame_GetName(IDirect3DRMFrame3* frame);
 
 // <LegoRR.exe @004765f0>
 bool32 __cdecl Container_Frame_WalkTree(IDirect3DRMFrame3* frame, uint32 level,
-									ContainerWalkTreeCallback Callback, void* data);
+										ContainerWalkTreeCallback Callback, void* data);
 
 // <LegoRR.exe @004766d0>
 bool32 __cdecl Container_Frame_SearchCallback(IDirect3DRMFrame3* frame, void* data);

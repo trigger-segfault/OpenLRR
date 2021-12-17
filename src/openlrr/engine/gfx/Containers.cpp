@@ -42,6 +42,8 @@ char (& Gods98::s_FormatPartName_name)[1024] = *(char(*)[1024])0x00506400;
 // <LegoRR.exe @0076bd80>
 Gods98::Container_Globs & Gods98::containerGlobs = *(Gods98::Container_Globs*)0x0076bd80;
 
+Gods98::Container_ListSet Gods98::containerListSet = Gods98::Container_ListSet(Gods98::containerGlobs);
+
 #pragma endregion
 
 /**********************************************************************************
@@ -80,10 +82,6 @@ Gods98::Container* __cdecl Gods98::Container_Initialise(const char* gameName)
 
 	std::memset(&containerGlobs, 0, sizeof(Container_Globs));
 
-	for (uint32 loop = 0; loop < CONTAINER_MAXLISTS; loop++) {
-		containerGlobs.listSet[loop] = nullptr;
-	}
-
 	containerGlobs.typeName[(uint32)Container_Type::Null] = CONTAINER_NULLSTRING;
 	containerGlobs.typeName[(uint32)Container_Type::Mesh] = CONTAINER_MESHSTRING;
 	containerGlobs.typeName[(uint32)Container_Type::Frame] = CONTAINER_FRAMESTRING;
@@ -102,23 +100,24 @@ Gods98::Container* __cdecl Gods98::Container_Initialise(const char* gameName)
 	containerGlobs.extensionName[(uint32)Container_Type::Light] = "";
 
 	containerGlobs.gameName = gameName;
-	containerGlobs.freeList = nullptr;
-	containerGlobs.listCount = 0;
+
+	containerListSet.Initialise();
 	containerGlobs.flags = Container_GlobFlags::CONTAINER_GLOB_FLAG_INITIALISED;
 
 	containerGlobs.textureCount = 0;
 	containerGlobs.sharedDir = nullptr;
+
 
 	Container* root;
 	containerGlobs.rootContainer = root = Container_Create(nullptr);
 
 	root->masterFrame->SetSortMode(D3DRMSORT_NONE);
 
-	/*
-	#ifdef _DEBUG_2
-		Container_Frame_FormatName(root->masterFrame, "Container Root Master Frame for %s", gameName);
-	#endif // _DEBUG_2
-	*/
+/*
+#ifdef _DEBUG_2
+	Container_Frame_FormatName(root->masterFrame, "Container Root Master Frame for %s", gameName);
+#endif // _DEBUG_2
+*/
 	// Debuggy
 //	scene->AddChild(CDF(root->masterFrame));
 
@@ -128,32 +127,17 @@ Gods98::Container* __cdecl Gods98::Container_Initialise(const char* gameName)
 // <LegoRR.exe @00472ac0>
 void __cdecl Gods98::Container_Shutdown(void)
 {
-	uint32 unfreed = 0;
-
 	Container_DebugCheckOK(CONTAINER_DEBUG_NOTREQUIRED);
 
-	for (uint32 loop = 0; loop < CONTAINER_MAXLISTS; loop++) {
+	uint32 unfreed = 0;
 
-		if (containerGlobs.listSet[loop]) {
-
-			uint32 count = 0x00000001 << loop;
-
-			for (uint32 sub = 0; sub < count; sub++) {
-				Container* testCont;
-				if (testCont = &containerGlobs.listSet[loop][sub]) {
-					if (testCont->nextFree == testCont) {
-						Error_Debug(Error_Format("Warning: Unfreed Container type #%d\n", testCont->type));
-						unfreed++;
-						Container_Remove2(testCont, true);
-					}
-				}
-			}
-
-			Mem_Free(containerGlobs.listSet[loop]);
-		}
+	for (Container* cont : containerListSet.EnumerateAlive()) {
+		Error_Debug(Error_Format("Warning: Unfreed Container type #%d\n", cont->type));
+		unfreed++;
+		Container_Remove2(cont, true);
 	}
 
-	containerGlobs.freeList = nullptr;
+	containerListSet.Shutdown();
 	containerGlobs.flags = Container_GlobFlags::CONTAINER_GLOB_FLAG_NONE;
 
 	for (uint32 loop = 0; loop < containerGlobs.textureCount; loop++) {
@@ -165,6 +149,7 @@ void __cdecl Gods98::Container_Shutdown(void)
 
 	if (containerGlobs.sharedDir)
 		Mem_Free(containerGlobs.sharedDir);
+
 
 #ifdef _DEBUG_2
 	if (unfreed) Error_Debug(Error_Format("Warning: %d Unremoved Container%s\n", unfreed, unfreed == 1 ? "" : "s"));
@@ -214,21 +199,18 @@ Gods98::Container* __cdecl Gods98::Container_GetRoot(void)
 // <LegoRR.exe @00472c10>
 Gods98::Container* __cdecl Gods98::Container_Create(Container* parent)
 {
-	IDirect3DRMFrame3* parentFrame = nullptr, *hiddenParentFrame = nullptr;
-
 	Container_DebugCheckOK(CONTAINER_DEBUG_NOTREQUIRED);
+
+	IDirect3DRMFrame3* parentFrame = nullptr;
+	IDirect3DRMFrame3* hiddenParentFrame = nullptr;
 
 	if (parent) {
 		parentFrame = parent->masterFrame;
 		hiddenParentFrame = parent->hiddenFrame;
 	}
 
-	if (containerGlobs.freeList == nullptr) Container_AddList();
-
-	Container* newContainer = containerGlobs.freeList;
-	containerGlobs.freeList = newContainer->nextFree;
-	std::memset(newContainer, 0, sizeof(Container));
-	newContainer->nextFree = newContainer;
+	Container* newContainer = containerListSet.Add();
+	ListSet::MemZero(newContainer);
 
 	// Container Initialisation
 
@@ -238,7 +220,7 @@ Gods98::Container* __cdecl Gods98::Container_Create(Container* parent)
 	newContainer->cloneData = nullptr;
 	newContainer->typeData = nullptr;
 	newContainer->type = Container_Type::Null;
-	newContainer->flags = ContainerFlags::CONTAINER_FLAG_NONE; //0x00000000;
+	newContainer->flags = ContainerFlags::CONTAINER_FLAG_NONE;
 	newContainer->activityCallback = nullptr;
 	newContainer->activityCallbackData = nullptr;
 	newContainer->userData = nullptr;
@@ -287,7 +269,7 @@ void __cdecl Gods98::Container_Remove2(Container* dead, bool32 kill)
 	Error_Fatal(!dead, "NULL passed to Container_Remove()");
 
 /*	{
-		for (uint32 loop=0 ; loop<containerGlobs.rotationCount ; loop++) {
+		for (uint32 loop = 0; loop < containerGlobs.rotationCount; loop++) {
 			Container_RotationData* rot = &containerGlobs.rotationList[loop];
 			if (dead == rot->container) rot->container = nullptr;
 		}
@@ -295,13 +277,14 @@ void __cdecl Gods98::Container_Remove2(Container* dead, bool32 kill)
 
 	if (dead->type != Container_Type::Reference) Container_SetParent(dead, nullptr);		// Unparent it first...
 
-	if (dead->type == Container_Type::FromActivity || dead->type == Container_Type::Anim){
+	if (dead->type == Container_Type::FromActivity || dead->type == Container_Type::Anim) {
 
 		if (dead->cloneData) {
-			if (kill){
+			if (kill) {
 				if (dead->cloneData->cloneTable) Mem_Free(dead->cloneData->cloneTable);
 				Mem_Free(dead->cloneData);
-			} else {
+			}
+			else {
 				dead->cloneData->used = false;
 				return;
 			}
@@ -312,7 +295,7 @@ void __cdecl Gods98::Container_Remove2(Container* dead, bool32 kill)
 	// typeData (as there are is an unlimited/unordered number of them) therefore
 	// they are stored in the frames AppData section... So release them...
 
-	if (dead->type == Container_Type::FromActivity){
+	if (dead->type == Container_Type::FromActivity) {
 //		IDirect3DRMAnimationSet** animSetList;
 		AnimClone** animCloneList;
 		IDirect3DRMFrame3** frameList;
@@ -326,7 +309,7 @@ void __cdecl Gods98::Container_Remove2(Container* dead, bool32 kill)
 		frameList = (IDirect3DRMFrame3**)Mem_Alloc(sizeof(IDirect3DRMFrame3*) * count);
 		Container_GetActivities(dead, frameList, animCloneList, nullptr);
 
-		for (uint32 loop=0 ; loop<count ; loop++){
+		for (uint32 loop = 0; loop < count; loop++) {
 
 			// Release the animation set,
 //			r = animSetList[loop]->lpVtbl->Release(animSetList[loop]);
@@ -343,21 +326,23 @@ void __cdecl Gods98::Container_Remove2(Container* dead, bool32 kill)
 		Mem_Free(animCloneList);
 		Mem_Free(frameList);
 
-	} else if (dead->type == Container_Type::Mesh){
-		
+	}
+	else if (dead->type == Container_Type::Mesh) {
+
 		Mesh* transmesh;
 
-		if (dead->typeData){
-	
-			if (transmesh = dead->typeData->transMesh)
+		if (dead->typeData) {
+
+			if (transmesh = dead->typeData->transMesh) {
 				Mesh_Remove(dead->typeData->transMesh, dead->activityFrame);
+			}
 			else {
 				IDirect3DRMMesh* mesh = dead->typeData->mesh;
 				// Free the seperate mesh groups if used...
 				Container_MeshAppData* appData;
-				if (appData = (Container_MeshAppData*)mesh->GetAppData()){
+				if (appData = (Container_MeshAppData*)mesh->GetAppData()) {
 
-					for (uint32 loop=0 ; loop<appData->usedCount ; loop++) {
+					for (uint32 loop = 0; loop < appData->usedCount; loop++) {
 						IDirect3DRMMesh* subMesh = appData->meshList[loop];
 						dead->activityFrame->DeleteVisual((IUnknown*)subMesh);
 						r = subMesh->Release();
@@ -370,12 +355,13 @@ void __cdecl Gods98::Container_Remove2(Container* dead, bool32 kill)
 			}
 
 		}
-	} else if (dead->type == Container_Type::Anim){
-		
+	}
+	else if (dead->type == Container_Type::Anim) {
+
 //		IDirect3DRMAnimationSet* animSet = Container_Frame_GetAnimSet(dead->activityFrame);
 //		r = animSet->Release();
 		AnimClone* animClone;
-		if (animClone = Container_Frame_GetAnimClone(dead->activityFrame)){
+		if (animClone = Container_Frame_GetAnimClone(dead->activityFrame)) {
 			AnimClone_Remove(animClone);
 		}
 	}
@@ -395,7 +381,7 @@ void __cdecl Gods98::Container_Remove2(Container* dead, bool32 kill)
 	Container_Frame_RemoveAppData(dead->hiddenFrame);
 
 	// Remove the frames and all unreferenced decendants from the hierachy...
-	
+
 
 		// Special case... Don't remove the masterFrame if this is a reference Container.
 //		dead->activityFrame->GetParent(&parentFrame);
@@ -417,15 +403,16 @@ void __cdecl Gods98::Container_Remove2(Container* dead, bool32 kill)
 		r = dead->masterFrame->Release();
 		r = dead->activityFrame->Release();
 
-	//	containerGlobs.rootFrame->DeleteChild(CDF(dead->hiddenFrame));
+//		containerGlobs.rootFrame->DeleteChild(CDF(dead->hiddenFrame));
 		dead->hiddenFrame->GetParent(&parentFrame);
-	//	parentFrame = CUF(tempFrame1);
+//		parentFrame = CUF(tempFrame1);
 		if (parentFrame) {
 			parentFrame->DeleteChild(dead->hiddenFrame);
 			parentFrame->Release();
 		}
 		r = dead->hiddenFrame->Release();
-	} else {
+	}
+	else {
 		dead->hiddenFrame->Release();
 	}
 
@@ -433,8 +420,7 @@ void __cdecl Gods98::Container_Remove2(Container* dead, bool32 kill)
 	Mem_DebugTrash(dead, CONTAINER_TRASHVALUE, sizeof(Container));
 
 	// Link the freed Container in at the begining of the free list so it may be re-used...
-	dead->nextFree = containerGlobs.freeList;
-	containerGlobs.freeList = dead;
+	containerListSet.Remove(dead);
 }
 
 // <LegoRR.exe @00472f90>
@@ -483,12 +469,12 @@ Gods98::Container* __cdecl Gods98::Container_Load(Container* parent, const char*
 
 				while (conf) {
 
-					const char* fileStr, *sampleStr;
+					const char* fileStr, * sampleStr;
 					real32 transCo;
 					uint32 trigger;
 					bool32 lws = false, looping;
 					const char* itemName = conf->itemName;
-					//					lpSound sample;
+//					Sound* sample;
 
 					if ((*itemName != '!') || !(mainGlobs.flags & MainFlags::MAIN_FLAG_REDUCEANIMATION)) {
 						if (*itemName == '!') itemName++;
@@ -498,7 +484,7 @@ Gods98::Container* __cdecl Gods98::Container_Load(Container* parent, const char*
 						if (fileStr = Config_GetTempStringValue(rootConf, tempString2)) {
 							std::sprintf(tempString, "%s\\%s", baseDir, fileStr);
 							std::sprintf(tempString2, "%s%s%s%s%s", containerGlobs.gameName, CONFIG_SEPARATOR, conf->dataString, CONFIG_SEPARATOR, ACTIVITY_TRANSCOSTRING);
-							//						if (Config_FindItem(rootConf, tempString2)){
+//						if (Config_FindItem(rootConf, tempString2)) {
 							transCo = Config_GetRealValue(rootConf, tempString2);
 							std::sprintf(tempString2, "%s%s%s%s%s", containerGlobs.gameName, CONFIG_SEPARATOR, conf->dataString, CONFIG_SEPARATOR, ACTIVITY_TRIGGERSTRING);
 							trigger = Config_GetIntValue(rootConf, tempString2);
@@ -510,13 +496,14 @@ Gods98::Container* __cdecl Gods98::Container_Load(Container* parent, const char*
 
 							// Get the activity sample...
 
-							sprintf(tempString2, "%s%s%s%s%s", containerGlobs.gameName, CONFIG_SEPARATOR, conf->dataString, CONFIG_SEPARATOR, ACTIVITY_SAMPLESTRING);
-							//							if (
+							std::sprintf(tempString2, "%s%s%s%s%s", containerGlobs.gameName, CONFIG_SEPARATOR, conf->dataString, CONFIG_SEPARATOR, ACTIVITY_SAMPLESTRING);
+//							if (
 							sampleStr = Config_GetStringValue(rootConf, tempString2);
-							//							){
-							//								sprintf(tempString2, "%s\\%s", baseDir, fileStr);
-							//								if ((sample = Sound_Load(tempString2)) == nullptr) Error_Fatal(true, "Cannot load sample");
-							//							} else sample = nullptr;
+//							) {
+//								std::sprintf(tempString2, "%s\\%s", baseDir, fileStr);
+//								if ((sample = Sound_Load(tempString2)) == nullptr) Error_Fatal(true, "Cannot load sample");
+//							}
+//							else sample = nullptr;
 
 							if (Container_AddActivity(cont, tempString, itemName, transCo, trigger, sampleStr, nullptr, lws, looping)) {
 
@@ -525,7 +512,7 @@ Gods98::Container* __cdecl Gods98::Container_Load(Container* parent, const char*
 							}
 							else Error_Fatal(true, Error_Format("Unable to load Activity \"%s\" from \"%s\"", itemName, tempString));
 
-							//						} else Error_Fatal(true, Error_Format("Cannot get \"%s\" value from activity file", tempString2));
+//						} else Error_Fatal(true, Error_Format("Cannot get \"%s\" value from activity file", tempString2));
 						}
 						else Error_Fatal(true, Error_Format("Unable to get item \"%s\" from activity file", tempString2));
 					}
@@ -550,7 +537,7 @@ Gods98::Container* __cdecl Gods98::Container_Load(Container* parent, const char*
 		cont = Container_Create(parent);
 		cont->type = type;
 		// Just add it onto the activity frame...
-		sprintf(tempString, "%s.%s", name, containerGlobs.extensionName[(uint32)type]);
+		std::sprintf(tempString, "%s.%s", name, containerGlobs.extensionName[(uint32)type]);
 		if (Container_FrameLoad(tempString, cont->activityFrame));
 		else Error_Warn(true, Error_Format("Cannot Load File \"%s\".\n", tempString));
 
@@ -563,13 +550,14 @@ Gods98::Container* __cdecl Gods98::Container_Load(Container* parent, const char*
 
 		// Create a meshbuilder, retrieve the mesh object
 		// then attach it to the activity frame...
-		sprintf(tempString, "%s.%s", name, containerGlobs.extensionName[(uint32)type]);
+		std::sprintf(tempString, "%s.%s", name, containerGlobs.extensionName[(uint32)type]);
 		if (fdata = File_LoadBinary(tempString, &fsize)) {
 			cont = Container_Create(parent);
 			cont->type = type;
 			if (mesh = Container_MeshLoad(fdata, fsize, tempString, cont->activityFrame, noTexture)) {
 				Container_SetTypeData(cont, nullptr, nullptr, mesh, nullptr);
-			} //else Error_Warn(true, Error_Format("Cannot Load File \"%s\"", tempString));
+			}
+			//else Error_Warn(true, Error_Format("Cannot Load File \"%s\"", tempString));
 			Mem_Free(fdata);
 		}
 
@@ -582,7 +570,7 @@ Gods98::Container* __cdecl Gods98::Container_Load(Container* parent, const char*
 
 		cont = Container_Create(parent);
 		cont->type = Container_Type::Anim;
-		sprintf(tempString, "%s.%s", name, containerGlobs.extensionName[(uint32)Container_Type::Anim]);
+		std::sprintf(tempString, "%s.%s", name, containerGlobs.extensionName[(uint32)Container_Type::Anim]);
 		if (animClone = Container_LoadAnimSet(tempString, cont->activityFrame, &frameCount, (type == Container_Type::LWS), looping)) {
 			Container_Frame_SetAppData(cont->activityFrame, cont, animClone, name, &frameCount, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
 		}
@@ -638,7 +626,8 @@ Gods98::Container* __cdecl Gods98::Container_Load(Container* parent, const char*
 
 
 // <inlined>
-/*__inline*/ Gods98::Container_Type __cdecl Gods98::Container_GetType(const Container* cont) {
+/*__inline*/ Gods98::Container_Type __cdecl Gods98::Container_GetType(const Container* cont)
+{
 
 	return cont->type;
 }
@@ -668,9 +657,9 @@ bool32 __cdecl Gods98::Container_IsCurrentActivity(Container* cont, const char* 
 // <LegoRR.exe @00473630>
 bool32 __cdecl Gods98::Container_SetActivity(Container* cont, const char* actname)
 {
-	IDirect3DRMFrame3* frame, *currFrame;
+	IDirect3DRMFrame3* frame, * currFrame;
 	bool32 result = false;
-	char* currAnimName, *name, *freeAddr = nullptr;
+	char* currAnimName, * name, * freeAddr = nullptr;
 
 	Container_DebugCheckOK(cont);
 
@@ -781,7 +770,7 @@ Gods98::Container* __cdecl Gods98::Container_MakeLight(Container* parent, Contai
 		if (lpD3DRM()->CreateLightRGB((D3DRMLIGHTTYPE)type, r, g, b, &light) == D3DRM_OK) {
 			Container_NoteCreation(light);
 
-			cont->activityFrame->AddLight( light);
+			cont->activityFrame->AddLight(light);
 			Container_SetTypeData(cont, nullptr, light, nullptr, nullptr);
 		}
 		else Error_Fatal(true, "Unable to create light");
@@ -799,7 +788,6 @@ Gods98::Container* __cdecl Gods98::Container_MakeLight(Container* parent, Contai
 Gods98::Container* __cdecl Gods98::Container_MakeMesh2(Container* parent, Container_MeshType type)
 {
 	Container* cont = Container_Create(parent);
-	IDirect3DRMMesh* mesh;
 
 	Container_DebugCheckOK(CONTAINER_DEBUG_NOTREQUIRED);
 
@@ -815,7 +803,6 @@ Gods98::Container* __cdecl Gods98::Container_MakeMesh2(Container* parent, Contai
 		{
 
 			Mesh_RenderFlags flags = Mesh_RenderFlags::MESH_TRANSFORM_FLAG_PARENTPOS;
-			Mesh* transmesh;
 
 			switch (type) {
 			case Container_MeshType::Transparent:	flags |= Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHATRANS;		break;
@@ -825,11 +812,12 @@ Gods98::Container* __cdecl Gods98::Container_MakeMesh2(Container* parent, Contai
 			case Container_MeshType::Subtractive:	flags |= Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHASA0;		break;
 			}
 
-			transmesh = Mesh_CreateOnFrame(cont->activityFrame, nullptr, flags, nullptr, Mesh_Type::Norm);
+			Mesh* transmesh = Mesh_CreateOnFrame(cont->activityFrame, nullptr, flags, nullptr, Mesh_Type::Norm);
 			Container_SetTypeData(cont, nullptr, nullptr, nullptr, transmesh);
 
 		}
 		else {
+			IDirect3DRMMesh* mesh;
 			if (lpD3DRM()->CreateMesh(&mesh) == D3DRM_OK) {
 				Container_NoteCreation(mesh);
 
@@ -871,7 +859,8 @@ IDirect3DRMFrame3* __cdecl Gods98::Container_GetMasterFrame(Container* cont)
 // <LegoRR.exe @00473950>
 Gods98::Container* __cdecl Gods98::Container_Clone(Container* orig)
 {
-	Container* cont = nullptr, *useOldClone = nullptr;
+	Container* cont = nullptr;
+	Container* useOldClone = nullptr;
 	D3DRMMATRIX4D mat;
 	uint32 loadRef = 0;
 
@@ -881,7 +870,7 @@ Gods98::Container* __cdecl Gods98::Container_Clone(Container* orig)
 
 		// Special case - Don't allow cloning of separated group meshes...
 
-		LPDIRECT3DRMMESH mesh = orig->typeData->mesh;
+		IDirect3DRMMesh* mesh = orig->typeData->mesh;
 		Error_Fatal(!mesh, "TypeData missing on Object");
 		if (mesh->GetAppData()) Error_Fatal(true, "Cannot clone separated mesh objects");
 	}
@@ -889,16 +878,19 @@ Gods98::Container* __cdecl Gods98::Container_Clone(Container* orig)
 	if (orig->type == Container_Type::FromActivity || orig->type == Container_Type::Anim) {
 
 		// If the object being cloned is a clone itself then use the original
-		if (orig->cloneData) if (orig->cloneData->clonedFrom) orig = orig->cloneData->clonedFrom;
+		if (orig->cloneData && orig->cloneData->clonedFrom) {
+			orig = orig->cloneData->clonedFrom;
+		}
 
 		if (orig->cloneData) {
 
 			Container* testClone;
 
 			// If the original clone is unused then return that...
-			if (!orig->cloneData->used) useOldClone = orig;
+			if (!orig->cloneData->used) {
+				useOldClone = orig;
+			}
 			else {
-
 				// Find an unused clone...
 				for (uint32 loop = 0; loop < orig->cloneData->cloneCount; loop++) {
 					if (testClone = orig->cloneData->cloneTable[loop]) {
@@ -937,7 +929,11 @@ Gods98::Container* __cdecl Gods98::Container_Clone(Container* orig)
 			loadRef = 0;
 		}
 	}
-	else cont = Container_Create(Container_GetParent(orig));
+	else {
+		cont = Container_Create(Container_GetParent(orig));
+	}
+
+
 
 	{
 		// Duplicate the activity frames transformation matrix
@@ -989,7 +985,6 @@ Gods98::Container* __cdecl Gods98::Container_Clone(Container* orig)
 	}
 	else if (cont->type == Container_Type::FromActivity) {
 
-		uint32 loop, count;
 		IDirect3DRMFrame3** frameList;
 		char** actNameList;
 		const char* fname;
@@ -998,19 +993,19 @@ Gods98::Container* __cdecl Gods98::Container_Clone(Container* orig)
 		const char* sample;
 		AnimClone* origClone;//, newClone;
 
-		count = Container_GetActivities(orig, nullptr, nullptr, nullptr);
+		uint32 count = Container_GetActivities(orig, nullptr, nullptr, nullptr);
 		frameList = (IDirect3DRMFrame3**)Mem_Alloc(sizeof(IDirect3DRMFrame3*) * count);
 		actNameList = (char**)Mem_Alloc(sizeof(char*) * count);
 
 		Container_GetActivities(orig, frameList, nullptr, actNameList);
-		for (loop = 0; loop < count; loop++) {
+		for (uint32 loop = 0; loop < count; loop++) {
 			fname = Container_Frame_GetAnimSetFileName(frameList[loop]);
 			transCo = Container_Frame_GetTransCo(frameList[loop]);
 			sample = Container_Frame_GetSample(frameList[loop]);
 			origClone = Container_Frame_GetAnimClone(frameList[loop]);
 			trigger = Container_Frame_GetTrigger(frameList[loop]);
 			Container_Frame_SetAppData(frameList[loop], nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
-//			Container_AddActivity2(cont, fname, &actNameList[loop][std::strlen(CONTAINER_ACTIVITYFRAMEPREFIX)+1], transCo, loadRef, sample);
+//			Container_AddActivity2(cont, fname, &actNameList[loop][std::strlen(CONTAINER_ACTIVITYFRAMEPREFIX) + 1], transCo, loadRef, sample);
 			Container_AddActivity2(cont, fname, &actNameList[loop][std::strlen(CONTAINER_ACTIVITYFRAMEPREFIX) + 1], transCo, trigger, sample, origClone, false, false);		// Last two parameters are ignored durng cloning...
 			Mem_Free(actNameList[loop]);
 
@@ -1037,13 +1032,14 @@ Gods98::Container* __cdecl Gods98::Container_Clone(Container* orig)
 //		IDirect3DRMAnimationSet* animSet;
 		const char* fname;
 		uint32 frameCount;
-		AnimClone* origClone, *newClone;
+		AnimClone* origClone, * newClone;
 
 		fname = Container_Frame_GetAnimSetFileName(orig->activityFrame);
 
-//		if (animSet = Container_LoadAnimSet(fname, cont->activityFrame, loadRef, &frameCount)){
+//		if (animSet = Container_LoadAnimSet(fname, cont->activityFrame, loadRef, &frameCount)) {
 //			Container_Frame_SetAppData(cont->activityFrame, cont, animSet, fname, &frameCount, nullptr, nullptr, nullptr, nullptr);
-//		} else Error_Fatal(true, Error_Format("Cannot clone from reference %i of file \"%s\" (too few copies specified in xwave?).\n", loadRef, fname));
+//		}
+//		else Error_Fatal(true, Error_Format("Cannot clone from reference %i of file \"%s\" (too few copies specified in xwave?).\n", loadRef, fname));
 
 		origClone = Container_Frame_GetAnimClone(orig->activityFrame);
 		newClone = AnimClone_Make(origClone, cont->activityFrame, &frameCount);
@@ -1079,7 +1075,7 @@ void __cdecl Gods98::Container_Hide(Container* cont, bool32 hide)
 
 	bool32 hidden;
 
-	if (cont == nullptr)		return;
+	if (cont == nullptr) return;
 
 	hidden = cont->flags & ContainerFlags::CONTAINER_FLAG_HIDDEN;
 	Container_DebugCheckOK(cont);
@@ -1090,7 +1086,7 @@ void __cdecl Gods98::Container_Hide(Container* cont, bool32 hide)
 //		if (transmesh = cont->typeData->transMesh) {
 //			Mesh_Hide(transmesh, hide);
 //		}
-	//	} else {
+//	} else {
 	if (hide && !hidden) {
 		Container_Frame_SafeAddChild(cont->hiddenFrame, cont->activityFrame);
 		cont->flags |= ContainerFlags::CONTAINER_FLAG_HIDDEN;
@@ -1160,7 +1156,7 @@ const char* __cdecl Gods98::Container_FormatPartName(Container* cont, const char
 	char tempString[1024];
 	/// FIX APPLY: dummy init
 	IDirect3DRMFrame3* frame = nullptr;
-	char* fname, *s;
+	char* fname, * s;
 	AnimClone* animClone;
 
 	Container_DebugCheckOK(cont);
@@ -1187,9 +1183,12 @@ const char* __cdecl Gods98::Container_FormatPartName(Container* cont, const char
 	else {
 		std::sprintf(tempString, "%s", Container_Frame_GetAnimSetFileName(frame));
 		::_strlwr(tempString);
-		for (fname = s = tempString; *s != '\0'; s++) if (*s == '\\') fname = s + 1;
-	//		std::sprintf(s_FormatPartName_name, "xf_????_%s_%s_%0.2d_DDIclone_%0.2d", partname, fname, instance, Container_GetCloneNumber(cont));
-	//		std::sprintf(s_FormatPartName_name, "xf_????????_%s_%s_%0.2d_DDc_%0.2d", partname, fname, instance, Container_GetCloneNumber(cont));
+		for (fname = s = tempString; *s != '\0'; s++) {
+			if (*s == '\\') fname = s + 1;
+		}
+
+//		std::sprintf(s_FormatPartName_name, "xf_????_%s_%s_%0.2d_DDIclone_%0.2d", partname, fname, instance, Container_GetCloneNumber(cont));
+//		std::sprintf(s_FormatPartName_name, "xf_????????_%s_%s_%0.2d_DDc_%0.2d", partname, fname, instance, Container_GetCloneNumber(cont));
 		if (instance) std::sprintf(s_FormatPartName_name, "xf_????????_%s_%s_%0.2d_DDc_00", partname, fname, *instance);
 		else std::sprintf(s_FormatPartName_name, "xf_????????_%s_%s_??_DDc_00", partname, fname);
 	}
@@ -1283,7 +1282,7 @@ bool32 __cdecl Gods98::Container_SetPerspectiveCorrectionCallback(IDirect3DRMFra
 	DWORD visualCount;
 	frame->GetVisuals(&visualCount, nullptr);
 	if (visualCount) {
-//		visualArray = Mem_Alloc(sizeof(LPDIRECT3DRMVISUAL) * visualCount);
+//		visualArray = (IDirect3DRMVisual**)Mem_Alloc(sizeof(IDirect3DRMVisual*) * visualCount);
 		Error_Fatal(visualCount >= CONTAINER_MAXVISUALS, "CONTAINER_MAXVISUALS too small");
 		IDirect3DRMVisual** visualArray = containerGlobs.visualArray;
 		frame->GetVisuals(&visualCount, (IUnknown**)visualArray);
@@ -1315,7 +1314,7 @@ bool32 __cdecl Gods98::Container_SetPerspectiveCorrectionCallback(IDirect3DRMFra
 
 // <LegoRR.exe @00474310>
 IDirectDrawSurface4* __cdecl Gods98::Container_LoadTextureSurface(const char* fname, bool32 managed,
-								OUT uint32* width, OUT uint32* height, OUT bool32* trans)
+																  OUT uint32* width, OUT uint32* height, OUT bool32* trans)
 {
 	uint8* fileData;
 	uint32 size;
@@ -1338,7 +1337,7 @@ IDirectDrawSurface4* __cdecl Gods98::Container_LoadTextureSurface(const char* fn
 			desc.dwHeight = image.height;
 			desc.ddsCaps.dwCaps = DDSCAPS_TEXTURE;
 
-			//#ifndef _GODS98_VIDEOMEMTEXTURES
+//#ifndef _GODS98_VIDEOMEMTEXTURES
 			if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_DONTMANAGETEXTURES)) {
 				if (managed)
 					desc.ddsCaps.dwCaps2 = DDSCAPS2_TEXTUREMANAGE;
@@ -1346,12 +1345,12 @@ IDirectDrawSurface4* __cdecl Gods98::Container_LoadTextureSurface(const char* fn
 					desc.ddsCaps.dwCaps |= DDSCAPS_VIDEOMEMORY;
 			}
 			else {
-				//#else //_GODS98_VIDEOMEMTEXTURES
+//#else //_GODS98_VIDEOMEMTEXTURES
 				desc.ddsCaps.dwCaps |= DDSCAPS_VIDEOMEMORY;
 			}
-			//#endif //_GODS98_VIDEOMEMTEXTURES
+//#endif //_GODS98_VIDEOMEMTEXTURES
 
-						// Find the prefered 8 bit palettized format...
+			// Find the prefered 8 bit palettized format...
 			desc.ddpfPixelFormat.dwSize = sizeof(DDPIXELFORMAT);
 			if (lpDevice()->FindPreferredTextureFormat(DDBD_8, D3DRMFPTF_PALETTIZED, &desc.ddpfPixelFormat) != D3DRM_OK) {
 
@@ -1380,7 +1379,7 @@ IDirectDrawSurface4* __cdecl Gods98::Container_LoadTextureSurface(const char* fn
 				desc.dwSize = sizeof(desc);
 
 				if ((result = surface->Lock(nullptr, &desc, DDLOCK_WAIT, nullptr)) == DD_OK) {
-					///sint32 y;
+					//sint32 y;
 					uint8* surfaceMem = (uint8*)desc.lpSurface;
 					uint8* imageMem = (uint8*)image.buffer1;
 					for (sint32 y = 0; y < image.height; y++) {
@@ -1396,7 +1395,7 @@ IDirectDrawSurface4* __cdecl Gods98::Container_LoadTextureSurface(const char* fn
 							uint32 r, g, b;
 							uint32 decalColour;
 
-							if (copy) {		// Find the cards preferred texture format...
+							if (copy) { // Find the cards preferred texture format...
 
 								std::memset(&descBak.ddpfPixelFormat, 0, sizeof(descBak.ddpfPixelFormat));
 								descBak.ddpfPixelFormat.dwSize = sizeof(DDPIXELFORMAT);
@@ -1469,7 +1468,7 @@ IDirectDrawSurface4* __cdecl Gods98::Container_LoadTextureSurface(const char* fn
 						uint32 refCount;
 						surface->AddRef();
 						refCount = surface->Release();
-						sprintf(&error[strlen(error)], "- Reference count == %i", refCount);
+						std::sprintf(&error[std::strlen(error)], "- Reference count == %i", refCount);
 					}
 
 					Error_Fatal(true, error);
@@ -1494,8 +1493,10 @@ bool32 __cdecl Gods98::Container_GetDecalColour(const char* fname, OUT uint32* c
 	const char* s;
 	const char* t;
 
-	for (s=t=fname ; *t!='\0' ; t++) if (*t == '\\') s = t+1;
-	if ((*s == 'a' || *s == 'A') && std::isdigit(*(s+1)) && std::isdigit(*(s+2)) && std::isdigit(*(s+3)) && *(s+4) == '_') {
+	for (s = t = fname; *t != '\0'; t++) {
+		if (*t == '\\') s = t + 1;
+	}
+	if ((*s == 'a' || *s == 'A') && std::isdigit(s[1]) && std::isdigit(s[2]) && std::isdigit(s[3]) && s[4] == '_') {
 		*colour = std::atoi(s+1);
 		return true;
 	}
@@ -1504,22 +1505,22 @@ bool32 __cdecl Gods98::Container_GetDecalColour(const char* fname, OUT uint32* c
 
 // <LegoRR.exe @004747b0>
 Gods98::Container_Texture* __cdecl Gods98::Container_LoadTexture2(const char* fname, bool32 immediate,
-								OUT uint32* width, OUT uint32* height)
+																  OUT uint32* width, OUT uint32* height)
 {
 	IDirect3DRMTexture3* texture = nullptr;
 
 	const char* path = File_VerifyFilename(fname);
-	//	LPUCHAR s, t;
+//	LPUCHAR s, t;
 	Container_Texture* newText;
 	uint32 decalColour;
-	//#ifndef CONTAINER_USEOWNTEXTURELOAD
+//#ifndef CONTAINER_USEOWNTEXTURELOAD
 	HRESULT r;
-	//#endif
+//#endif
 
-		// This malloc() (not Mem_Alloc()) is deliberate...
-	if (newText = (Container_Texture * )legacy::malloc(sizeof(Container_Texture))) {
+	// This malloc() (not Mem_Alloc()) is deliberate...
+	if (newText = (Container_Texture*)legacy::malloc(sizeof(Container_Texture))) {
 
-		//#ifdef CONTAINER_USEOWNTEXTURELOAD
+//#ifdef CONTAINER_USEOWNTEXTURELOAD
 		if (immediate) {
 
 			IDirectDrawSurface* surf1;
@@ -1535,8 +1536,10 @@ Gods98::Container_Texture* __cdecl Gods98::Container_LoadTexture2(const char* fn
 						Container_NoteCreation(texture);
 						surf1->Release();
 
-						//					for (s=t=fname ; '\0'!=*t ; t++) if ('\\' == *t) s = t+1;
-						//					if ('a' == *s && isdigit(*(s+1)) && isdigit(*(s+2)) && isdigit(*(s+3)) && '_' == *(s+4)) {
+//					for (s = t = fname; *t != '\0'; t++) {
+//						if ('\\' == *t) s = t + 1;
+// 					}
+//					if (*s == 'a' && std::isdigit(s[1]) && std::isdigit(s[2]) && std::isdigit(s[3]) && s[4] == '_') {
 
 						if (Container_GetDecalColour(fname, &decalColour)) {
 
@@ -1563,26 +1566,27 @@ Gods98::Container_Texture* __cdecl Gods98::Container_LoadTexture2(const char* fn
 
 		}
 		else {
-			//#else // CONTAINER_USEOWNTEXTURELOAD
+//#else // CONTAINER_USEOWNTEXTURELOAD
 
 			if ((r = lpD3DRM()->LoadTexture(path, &texture)) == D3DRM_OK) {
-				D3DRMIMAGE* image;
-				uint32 r, g, b;//, i;
 				Container_NoteCreation(texture);
 
 				Error_Debug(Error_Format("Loaded texture %s\n", path));
 				Error_LogLoad(true, path);
 
+				D3DRMIMAGE* image;
 				if (image = texture->GetImage()) {
-					//				for (s=t=fname ; '\0'!=*t ; t++) if ('\\' == *t) s = t+1;
-					//				if ('a' == *s && isdigit(*(s+1)) && isdigit(*(s+2)) && isdigit(*(s+3)) && '_' == *(s+4)) {
+//				for (s = t = fname; *t != '\0'; t++) {
+//					if ('\\' == *t) s = t + 1;
+// 				}
+//				if (*s == 'a' && std::isdigit(s[1]) && std::isdigit(s[2]) && std::isdigit(s[3]) && s[4] == '_') {
 
 					if (Container_GetDecalColour(fname, &decalColour)) {
 
-						//					i = atoi(s+1);
-						r = image->palette[decalColour].red;
-						g = image->palette[decalColour].green;
-						b = image->palette[decalColour].blue;
+//						uint32 i = std::atoi(s + 1);
+						uint32 r = image->palette[decalColour].red;
+						uint32 g = image->palette[decalColour].green;
+						uint32 b = image->palette[decalColour].blue;
 						texture->SetDecalTransparency(true);
 						texture->SetDecalTransparentColor(RGB_MAKE(r, g, b));
 					}
@@ -1600,13 +1604,11 @@ Gods98::Container_Texture* __cdecl Gods98::Container_LoadTexture2(const char* fn
 			else {
 
 				/// FIX APPLY: This is almost definitely supposed to be a comparison, not assignment
-				if (r == D3DRMERR_FILENOTFOUND)
-				{
+				if (r == D3DRMERR_FILENOTFOUND) {
 					Error_Warn(true, Error_Format("Invalid filename specified \"%s\"", path));
 					Error_LogLoadError(true, Error_Format("%d\t%s", (sint32)Error_LoadError::InvalidFName, path));
 				}
-				else
-				{
+				else {
 					Error_LogLoadError(true, Error_Format("%d\t%s", (sint32)Error_LoadError::RMTexture, path));
 					Error_Warn(true, Error_Format("Cannot open file %s", path));
 				}
@@ -1614,7 +1616,7 @@ Gods98::Container_Texture* __cdecl Gods98::Container_LoadTexture2(const char* fn
 			}
 
 		}
-		//#endif // CONTAINER_USEOWNTEXTURELOAD
+//#endif // CONTAINER_USEOWNTEXTURELOAD
 
 		legacy::free(newText);
 	}
@@ -1624,7 +1626,7 @@ Gods98::Container_Texture* __cdecl Gods98::Container_LoadTexture2(const char* fn
 // <LegoRR.exe @004749d0>
 void __cdecl Gods98::Container_FreeTexture(Container_Texture* text)
 {
-	if (text) {		// Wrench out the textures because of the vast video memory sucking hole that is Mesh.c
+	if (text) { // Wrench out the textures because of the vast video memory sucking hole that is Mesh.c
 		if (text->surface) while (text->surface->Release());
 		if (text->texture) while (text->texture->Release());
 		// This will call free(text) (Not Mem_Free()) if there are no more references to the texture...
@@ -1657,12 +1659,12 @@ void __cdecl Gods98::Container_Mesh_Swap(Container* target, Container* origin, b
 
 		frame->GetVisuals(&count, nullptr);
 		if (count) {
-			//			visuals = Mem_Alloc(sizeof(LPDIRECT3DRMVISUAL) * count);
+//			visuals = (IDirect3DRMVisual**)Mem_Alloc(sizeof(IDirect3DRMVisual*) * count);
 			Error_Fatal(count >= CONTAINER_MAXVISUALS, "CONTAINER_MAXVISUALS too small");
 			visuals = containerGlobs.visualArray;
 			frame->GetVisuals(&count, (IUnknown**)visuals);
 
-			//		Error_Debug(Error_Format("Moving %i visuals to the hidden frame\n", count));
+	//		Error_Debug(Error_Format("Moving %i visuals to the hidden frame\n", count));
 			for (uint32 loop = 0; loop < count; loop++) {
 
 				visual = visuals[loop];
@@ -1670,22 +1672,22 @@ void __cdecl Gods98::Container_Mesh_Swap(Container* target, Container* origin, b
 				target->hiddenFrame->AddVisual((IUnknown*)visual);
 				frame->DeleteVisual((IUnknown*)visual);
 			}
-			//			Mem_Free(visuals);
+//			Mem_Free(visuals);
 		}
 
-		/*		if (origin) {
-					Error_Fatal(origin->type!=Container_Type::Mesh, "Container_Mesh_Swap() called with non-mesh object as 'origin' container");
-					mesh = origin->typeData->mesh;
-					Error_Fatal(!mesh, "Container has no mesh object");
-					Error_Fatal(mesh->GetAppData(), "Not yet supported with separate mesh groups");
+/*		if (origin) {
+			Error_Fatal(origin->type!=Container_Type::Mesh, "Container_Mesh_Swap() called with non-mesh object as 'origin' container");
+			mesh = origin->typeData->mesh;
+			Error_Fatal(!mesh, "Container has no mesh object");
+			Error_Fatal(mesh->GetAppData(), "Not yet supported with separate mesh groups");
 
-					// Add the origin's mesh as the new visual...
-					frame->AddVisual((IUnknown*) mesh);
-				}
-		*/
+			// Add the origin's mesh as the new visual...
+			frame->AddVisual((IUnknown*) mesh);
+		}
+*/
 
 		if (origin) {
-			//			Error_Fatal(Container_Mesh != origin->type, "Container_Mesh_Swap() called with non-mesh object as 'origin' container");
+//			Error_Fatal(Container_Mesh != origin->type, "Container_Mesh_Swap() called with non-mesh object as 'origin' container");
 			if ((mesh = origin->typeData->mesh) == nullptr) {
 				transmesh = origin->typeData->transMesh;
 				Error_Fatal(transmesh == nullptr, "Container has no mesh object");
@@ -1709,34 +1711,34 @@ void __cdecl Gods98::Container_Mesh_Swap(Container* target, Container* origin, b
 
 		frame->GetVisuals(&count, nullptr);
 		if (count) {
-			//			visuals = Mem_Alloc(sizeof(LPDIRECT3DRMVISUAL) * count);
+//			visuals = (IDirect3DRMVisual**)Mem_Alloc(sizeof(IDirect3DRMVisual*) * count);
 			Error_Fatal(count >= CONTAINER_MAXVISUALS, "CONTAINER_MAXVISUALS too small");
 			visuals = containerGlobs.visualArray;
 			frame->GetVisuals(&count, (IUnknown**)visuals);
 
-			//		Error_Debug(Error_Format("Deleting %i visuals...\n", count));
+	//		Error_Debug(Error_Format("Deleting %i visuals...\n", count));
 			for (uint32 loop = 0; loop < count; loop++) {
 				visual = visuals[loop];
 				frame->DeleteVisual((IUnknown*)visual);
 			}
-			//			Mem_Free(visuals);
+//			Mem_Free(visuals);
 		}
 
 		target->hiddenFrame->GetVisuals(&count, nullptr);
 		if (count) {
-			//			visuals = Mem_Alloc(sizeof(LPDIRECT3DRMVISUAL) * count);
+//			visuals = (IDirect3DRMVisual**)Mem_Alloc(sizeof(IDirect3DRMVisual*) * count);
 			Error_Fatal(count >= CONTAINER_MAXVISUALS, "CONTAINER_MAXVISUALS too small");
 			visuals = containerGlobs.visualArray;
 			target->hiddenFrame->GetVisuals(&count, (IUnknown**)visuals);
 
-			//			Error_Debug(Error_Format("Restoring %i visuals from the hidden frame...\n", count));
+//			Error_Debug(Error_Format("Restoring %i visuals from the hidden frame...\n", count));
 			for (uint32 loop = 0; loop < count; loop++) {
 				visual = visuals[loop];
 				frame->AddVisual((IUnknown*)visual);
 				target->hiddenFrame->DeleteVisual((IUnknown*)visual);
 			}
 
-			//			Mem_Free(visuals);
+//			Mem_Free(visuals);
 		}
 
 		target->flags &= ~ContainerFlags::CONTAINER_FLAG_MESHSWAPPED;
@@ -1746,7 +1748,7 @@ void __cdecl Gods98::Container_Mesh_Swap(Container* target, Container* origin, b
 
 // <LegoRR.exe @00474bb0>
 uint32 __cdecl Gods98::Container_Mesh_AddGroup(Container* cont, uint32 vertexCount,
-								uint32 faceCount, uint32 vPerFace, const uint32* faceData)
+											   uint32 faceCount, uint32 vPerFace, const uint32* faceData)
 {
 	uint32 groupID;
 	Container_MeshAppData* appdata;
@@ -1784,12 +1786,14 @@ uint32 __cdecl Gods98::Container_Mesh_AddGroup(Container* cont, uint32 vertexCou
 					appdata->meshList[appdata->usedCount++] = mesh;
 					cont->activityFrame->AddVisual((IUnknown*)mesh);
 
+
 					{
 						// Set the msb if the group is added as a visual...
 						uint32 value = appdata->usedCount;
 						value |= 0x80000000;
 						mesh->SetAppData(value);
 					}
+
 
 					if (appdata->usedCount == appdata->listSize) {
 						IDirect3DRMMesh** newList;
@@ -1911,7 +1915,7 @@ bool32 __cdecl Gods98::Container_Mesh_IsGroupHidden(Container* cont, uint32 grou
 		IDirect3DRMMesh* groupmesh;
 		if (appdata = (Container_MeshAppData*)mesh->GetAppData()) {
 
-			if (0 != group) {
+			if (group != 0) {
 				groupmesh = appdata->meshList[group - 1];
 				hidden = !(groupmesh->GetAppData() & 0x80000000);
 			}
@@ -1955,13 +1959,13 @@ void __cdecl Gods98::Container_Mesh_HideGroup(Container* cont, uint32 group, boo
 			if (group != 0) {
 				groupmesh = appdata->meshList[group - 1];
 				hidden = !(groupmesh->GetAppData() & 0x80000000);
-				visual = (LPDIRECT3DRMVISUAL)groupmesh;
+				visual = (IDirect3DRMVisual*)groupmesh;
 				group = 0;
 			}
 			else {
 				groupmesh = nullptr;
 				hidden = appdata->groupZeroHidden;
-				visual = (LPDIRECT3DRMVISUAL)mesh;
+				visual = (IDirect3DRMVisual*)mesh;
 			}
 
 			if (hide && !hidden) cont->activityFrame->DeleteVisual((IUnknown*)visual);
@@ -1973,7 +1977,8 @@ void __cdecl Gods98::Container_Mesh_HideGroup(Container* cont, uint32 group, boo
 				else groupmesh->SetAppData(keep | 0x80000000);
 			}
 			else appdata->groupZeroHidden = hide;
-		}// else Error_Fatal(true, "Wrong mesh type");
+		}
+		// else Error_Fatal(true, "Wrong mesh type");
 	}
 }
 
@@ -1998,9 +2003,9 @@ bool32 __cdecl Gods98::Container_Mesh_HandleSeperateMeshGroups(IN OUT IDirect3DR
 
 // <LegoRR.exe @00474f00>
 bool32 __cdecl Gods98::Container_Mesh_GetGroup(Container* cont, uint32 groupID,
-								OUT uint32* vertexCount, OUT uint32* faceCount,
-								OUT uint32* vPerFace, OUT uint32* faceDataSize,
-								OUT uint32* faceData)
+											   OUT uint32* vertexCount, OUT uint32* faceCount,
+											   OUT uint32* vPerFace, OUT uint32* faceDataSize,
+											   OUT uint32* faceData)
 {
 	Mesh* transmesh;
 
@@ -2037,7 +2042,7 @@ bool32 __cdecl Gods98::Container_Mesh_GetGroup(Container* cont, uint32 groupID,
 
 // <LegoRR.exe @00474f80>
 uint32 __cdecl Gods98::Container_Mesh_GetVertices(Container* cont, uint32 groupID, uint32 index,
-								uint32 count, OUT Vertex* retArray)
+												  uint32 count, OUT Vertex* retArray)
 {
 	Mesh* transmesh;
 
@@ -2073,14 +2078,13 @@ uint32 __cdecl Gods98::Container_Mesh_GetVertices(Container* cont, uint32 groupI
 
 // <LegoRR.exe @00474ff0>
 uint32 __cdecl Gods98::Container_Mesh_SetVertices(Container* cont, uint32 groupID, uint32 index,
-								uint32 count, const Vertex* values)
+												  uint32 count, const Vertex* values)
 {
-	Mesh* transmesh;
-
 	Container_DebugCheckOK(cont);
 
 	Error_Fatal(cont->type!=Container_Type::Mesh && cont->type!=Container_Type::LWO, "Container_Mesh_SetVertices() called with non mesh object");
 
+	Mesh* transmesh;
 	if (transmesh = cont->typeData->transMesh) {
 
 		Mesh_SetVertices(transmesh, groupID, index, count, values);
@@ -2145,7 +2149,7 @@ void __cdecl Gods98::Container_Mesh_SetTexture(Container* cont, uint32 groupID, 
 
 		if (mesh->SetGroupTexture(groupID, text1) == D3DRM_OK) {
 
-// unused preprocessor in LegoRR
+			// unused preprocessor in LegoRR
 #ifndef CONTAINER_DISABLEFRAMESETTINGS
 			cont->activityFrame->SetMaterialMode(D3DRMMATERIAL_FROMMESH);
 #endif // CONTAINER_DISABLEFRAMESETTINGS
@@ -2252,9 +2256,9 @@ bool32 __cdecl Gods98::Container_Mesh_GetBox(Container* cont, OUT Box3F* box)
 
 // <LegoRR.exe @004752b0>
 void __cdecl Gods98::Container_Mesh_SetEmissive(Container* cont, uint32 groupID,
-								real32 r, real32 g, real32 b)
+												real32 r, real32 g, real32 b)
 {
-// unused preprocessor in LegoRR
+	// unused preprocessor in LegoRR
 #ifndef CONTAINER_DISABLEFRAMESETTINGS
 	IDirect3DRMMaterial2* material2;
 	IDirect3DRMMaterial* material;
@@ -2268,10 +2272,11 @@ void __cdecl Gods98::Container_Mesh_SetEmissive(Container* cont, uint32 groupID,
 	if (transmesh = cont->typeData->transMesh) {
 
 		Mesh_SetGroupEmissive(transmesh, groupID, r, g, b);
-			
-	} else {
 
-// unused preprocessor in LegoRR
+	}
+	else {
+
+		// unused preprocessor in LegoRR
 #ifndef CONTAINER_DISABLEFRAMESETTINGS
 		mesh = cont->typeData->mesh;
 		Error_Fatal(!mesh, "Container has no mesh object");
@@ -2300,7 +2305,7 @@ void __cdecl Gods98::Container_Mesh_SetEmissive(Container* cont, uint32 groupID,
 
 // <LegoRR.exe @004752e0>
 void __cdecl Gods98::Container_Mesh_SetColourAlpha(Container* cont, uint32 groupID,
-								real32 r, real32 g, real32 b, real32 a)
+												   real32 r, real32 g, real32 b, real32 a)
 {
 	Mesh* transmesh;
 
@@ -2317,7 +2322,7 @@ void __cdecl Gods98::Container_Mesh_SetColourAlpha(Container* cont, uint32 group
 	}
 	else {
 
-// unused preprocessor in LegoRR
+		// unused preprocessor in LegoRR
 #ifndef CONTAINER_DISABLEFRAMESETTINGS
 
 		IDirect3DRMMesh* mesh = cont->typeData->mesh;
@@ -2356,17 +2361,18 @@ void __cdecl Gods98::Container_SetColourAlpha(Container* cont, real32 r, real32 
 {
 	Container_DebugCheckOK(cont);
 	Error_Fatal(!cont->typeData, "Container has no typeData");
-	
+
 	D3DCOLOR colour = Container_GetRGBAColour(r, g, b, a);
 
-	if (cont->type == Container_Type::Light){
+	if (cont->type == Container_Type::Light) {
 		Error_Fatal(!cont->typeData->light, "typedata has no light");
 		cont->typeData->light->SetColor(colour);
 
 		/// NEW GODS98: Feature not present in LegoRR
 		//if (D3DRMLIGHT_AMBIENT == cont->typeData->light->GetType()) Mesh_SetAmbientLight(r, g, b);
 
-	} else {
+	}
+	else {
 
 
 #ifndef CONTAINER_DISABLEFRAMESETTINGS
@@ -2376,20 +2382,24 @@ void __cdecl Gods98::Container_SetColourAlpha(Container* cont, real32 r, real32 
 	}
 
 	/*
-	if (cont->type == Container_Type::Light){
+	if (cont->type == Container_Type::Light) {
 		Error_Fatal(!cont->typeData->light, "typedata has no light");
 		cont->typeData->light->SetColor(colour);
-	} else if (cont->type == Container_Type::Mesh){
+	}
+	else if (cont->type == Container_Type::Mesh) {
 //		Error_Fatal(!cont->typeData->mesh, "typedata has no mesh");
 		cont->activityFrame->SetColor(colour);
 		cont->activityFrame->SetMaterialMode(D3DRMMATERIAL_FROMFRAME);
 //		cont->typeData->mesh->SetGroupColor(groupID, colour);
-//	} else if (cont->type == Container_Type::Mesh){  // yes, this was checking the same type again
+//	}
+//	else if (cont->type == Container_Type::Mesh) { // yes, this was checking the same type again
 //		Error_Fatal(!cont->typeData->meshbuilder, "typedata has no meshbuilder");
 //		cont->typeData->meshbuilder->SetColor(colour);
-//	} else if (cont->type == Container_Type::FromActivity){
+//	}
+//	else if (cont->type == Container_Type::FromActivity) {
 //		Error_Fatal(!cont->typeData->name, "typedata has no activity name");
-	} else Error_Warn(true, Error_Format("Code not implemented for Container type #%d", cont->type));*/
+	}
+	else Error_Warn(true, Error_Format("Code not implemented for Container type #%d", cont->type));*/
 }
 
 // <LegoRR.exe @004753e0>
@@ -2412,40 +2422,43 @@ real32 __cdecl Gods98::Container_SetAnimationTime(Container* cont, real32 time)
 
 	Container_DebugCheckOK(cont);
 
-	if (cont->type == Container_Type::FromActivity){
+	if (cont->type == Container_Type::FromActivity) {
 		Error_Fatal(!cont->typeData, "Container has no typeData");
 
 		currAnimName = cont->typeData->name;
-		if (frame = Container_Frame_Find(cont, currAnimName, 0)){
+		if (frame = Container_Frame_Find(cont, currAnimName, 0)) {
 //			animSet = Container_Frame_GetAnimSet(frame);
 			animClone = Container_Frame_GetAnimClone(frame);
-	
-/*			if (cont->flags & ContainerFlags::CONTAINER_FLAG_TRIGGERSAMPLE){
+
+/*			if (cont->flags & ContainerFlags::CONTAINER_FLAG_TRIGGERSAMPLE) {
 #pragma message ( "Trigger the sample half way through if the SetTime is half way in" )
 				// Trigger the sample... (The sample may be longer than the animset!)
 				lpSound sound;
-				if (sound = Container_Frame_GetSample(frame)){
+				if (sound = Container_Frame_GetSample(frame)) {
 					Sound_Play(sound, Sound_Once);
 				}
 			}*/
 
-			if (cont->flags & ContainerFlags::CONTAINER_FLAG_TRIGGERSAMPLE){
+			if (cont->flags & ContainerFlags::CONTAINER_FLAG_TRIGGERSAMPLE) {
 				const char* sound;
-				if (sound = Container_Frame_GetSample(frame)){
+				if (sound = Container_Frame_GetSample(frame)) {
 					if (containerGlobs.soundTriggerCallback && (containerGlobs.flags & Container_GlobFlags::CONTAINER_GLOB_FLAG_TRIGGERENABLED)) containerGlobs.soundTriggerCallback(sound, cont, containerGlobs.soundTriggerData);
 				}
 				cont->flags &= ~ContainerFlags::CONTAINER_FLAG_TRIGGERSAMPLE;
 			}
 
-		} else Error_Warn(true, "Couldn't find frame (thus AnimationSet) to SetTime() on");
+		}
+		else Error_Warn(true, "Couldn't find frame (thus AnimationSet) to SetTime() on");
 
-	} else if (cont->type == Container_Type::Anim) {
+	}
+	else if (cont->type == Container_Type::Anim) {
 
 //		animSet = Container_Frame_GetAnimSet(cont->activityFrame);
 		animClone = Container_Frame_GetAnimClone(cont->activityFrame);
 		frame = cont->activityFrame;
 
-	}// else Error_Fatal(true, "Container_SetTime() called with non-animation type Object");
+	}
+	// else Error_Fatal(true, "Container_SetTime() called with non-animation type Object");
 
 	if (animClone) {
 
@@ -2457,7 +2470,7 @@ real32 __cdecl Gods98::Container_SetAnimationTime(Container* cont, real32 time)
 
 		frameCount = Container_Frame_GetFrameCount(frame);
 		Container_Frame_SetAppData(frame, nullptr, nullptr, nullptr, nullptr, nullptr, &time, nullptr, nullptr, nullptr, nullptr);
-		if (frameCount){
+		if (frameCount) {
 			frameCount--;
 			if (time > frameCount) {
 				overrun = (time - frameCount);
@@ -2466,7 +2479,7 @@ real32 __cdecl Gods98::Container_SetAnimationTime(Container* cont, real32 time)
 		}
 
 		if (skipSetTime == false) {
-			real32 triggerFrame = (real32) Container_Frame_GetTrigger(frame);
+			real32 triggerFrame = (real32)Container_Frame_GetTrigger(frame);
 #pragma message ( "Not restoring the time on original animation set" )
 			if (frameCount != 1) {
 				AnimClone_SetTime(animClone, time, nullptr);//&oldTime);
@@ -2476,7 +2489,8 @@ real32 __cdecl Gods98::Container_SetAnimationTime(Container* cont, real32 time)
 					}
 				}
 			}
-		} else {
+		}
+		else {
 			cont->flags |= ContainerFlags::CONTAINER_FLAG_ANIMATIONSKIPPED;
 		}
 
@@ -2520,20 +2534,23 @@ real32 __cdecl Gods98::Container_GetAnimationTime(Container* cont)
 	real32 time = 0.0f;
 
 	Container_DebugCheckOK(cont);
-	
+
 	if (cont->type == Container_Type::FromActivity) {
 		Error_Fatal(!cont->typeData, "Container has no typeData");
 
 		currAnimName = cont->typeData->name;
-		if (frame = Container_Frame_Find(cont, currAnimName, 0)){
+		if (frame = Container_Frame_Find(cont, currAnimName, 0)) {
 			time = Container_Frame_GetCurrTime(frame);
-		} else Error_Warn(true, "Couldn't find frame (thus AnimationSet) to SetTime() on");
-		
-	} else if (cont->type == Container_Type::Anim) {
+		}
+		else Error_Warn(true, "Couldn't find frame (thus AnimationSet) to SetTime() on");
+
+	}
+	else if (cont->type == Container_Type::Anim) {
 
 		time = Container_Frame_GetCurrTime(cont->activityFrame);
 
-	} //else Error_Fatal(true, "Container_SetTime() called with non-animation type container");
+	}
+	//else Error_Fatal(true, "Container_SetTime() called with non-animation type container");
 
 	return time;
 }
@@ -2559,13 +2576,13 @@ uint32 __cdecl Gods98::Container_GetAnimationFrames(Container* cont)
 
 // <LegoRR.exe @004756f0>
 void __cdecl Gods98::Container_SetPosition(Container* cont, OPTIONAL Container* ref,
-								real32 x, real32 y, real32 z)
+										   real32 x, real32 y, real32 z)
 {
-	IDirect3DRMFrame3* refFrame, *frame;
+	IDirect3DRMFrame3* refFrame, * frame;
 	Container_GetFrames(cont, ref, &frame, &refFrame);
 	frame->SetPosition(refFrame, x, y, z);
 
-// unused preprocessor in LegoRR
+	// unused preprocessor in LegoRR
 #ifdef CONTAINER_MATCHHIDDENHIERARCHY
 	Container_GetFramesHidden(cont, ref, &frame, &refFrame);
 	frame->SetPosition(refFrame, x, y, z);
@@ -2574,13 +2591,13 @@ void __cdecl Gods98::Container_SetPosition(Container* cont, OPTIONAL Container* 
 
 // <LegoRR.exe @00475730>
 void __cdecl Gods98::Container_SetOrientation(Container* cont, OPTIONAL Container* ref,
-								real32 dirx, real32 diry, real32 dirz, real32 upx, real32 upy, real32 upz)
+											  real32 dirx, real32 diry, real32 dirz, real32 upx, real32 upy, real32 upz)
 {
-	IDirect3DRMFrame3* refFrame, *frame;
+	IDirect3DRMFrame3* refFrame, * frame;
 	Container_GetFrames(cont, ref, &frame, &refFrame);
 	frame->SetOrientation(refFrame, dirx, diry, dirz, upx, upy, upz);
 
-// unused preprocessor in LegoRR
+	// unused preprocessor in LegoRR
 #ifdef CONTAINER_MATCHHIDDENHIERARCHY
 	Container_GetFramesHidden(cont, ref, &frame, &refFrame);
 	frame->SetOrientation(refFrame, dirx, diry, dirz, upx, upy, upz);
@@ -2590,7 +2607,7 @@ void __cdecl Gods98::Container_SetOrientation(Container* cont, OPTIONAL Containe
 // <LegoRR.exe @00475780>
 void __cdecl Gods98::Container_GetPosition(Container* cont, OPTIONAL Container* ref, OUT Vector3F* pos)
 {
-	IDirect3DRMFrame3* refFrame, *frame;
+	IDirect3DRMFrame3* refFrame, * frame;
 	Container_GetFrames(cont, ref, &frame, &refFrame);
 	frame->GetPosition(refFrame, (LPD3DVECTOR)pos);
 }
@@ -2598,18 +2615,18 @@ void __cdecl Gods98::Container_GetPosition(Container* cont, OPTIONAL Container* 
 // <LegoRR.exe @004757c0>
 void __cdecl Gods98::Container_GetOrientation(Container* cont, OPTIONAL Container* ref, OPTIONAL OUT Vector3F* dir, OPTIONAL OUT Vector3F* up)
 {
-	IDirect3DRMFrame3* refFrame, *frame;
+	IDirect3DRMFrame3* refFrame, * frame;
 	Vector3F vdir, vup;
 
 	Container_GetFrames(cont, ref, &frame, &refFrame);
-	frame->GetOrientation(refFrame, (LPD3DVECTOR) &vdir, (LPD3DVECTOR) &vup);
+	frame->GetOrientation(refFrame, (LPD3DVECTOR)&vdir, (LPD3DVECTOR)&vup);
 	if (dir) *dir = vdir;
 	if (up) *up = vup;
 }
 
 // <LegoRR.exe @00475840>
 void __cdecl Gods98::Container_AddRotation(Container* cont, Container_Combine combine,
-								real32 x, real32 y, real32 z, real32 angle)
+										   real32 x, real32 y, real32 z, real32 angle)
 {
 	IDirect3DRMFrame3* frame;
 	Container_DebugCheckOK(cont);
@@ -2619,7 +2636,7 @@ void __cdecl Gods98::Container_AddRotation(Container* cont, Container_Combine co
 
 	frame->AddRotation((D3DRMCOMBINETYPE)combine, x, y, z, angle);
 
-// unused preprocessor in LegoRR
+	// unused preprocessor in LegoRR
 #ifdef CONTAINER_MATCHHIDDENHIERARCHY
 	if (Container_Reference != cont->type) {
 		frame = cont->hiddenFrame;
@@ -2630,7 +2647,7 @@ void __cdecl Gods98::Container_AddRotation(Container* cont, Container_Combine co
 
 // <LegoRR.exe @00475870>
 void __cdecl Gods98::Container_AddScale(Container* cont, Container_Combine combine,
-								real32 x, real32 y, real32 z)
+										real32 x, real32 y, real32 z)
 {
 	IDirect3DRMFrame3* frame;
 	Container_DebugCheckOK(cont);
@@ -2640,7 +2657,7 @@ void __cdecl Gods98::Container_AddScale(Container* cont, Container_Combine combi
 
 	frame->AddScale((D3DRMCOMBINETYPE)combine, x, y, z);
 
-// unused preprocessor in LegoRR
+	// unused preprocessor in LegoRR
 #ifdef CONTAINER_MATCHHIDDENHIERARCHY
 	if (Container_Reference != cont->type) {
 		frame = cont->hiddenFrame;
@@ -2651,7 +2668,7 @@ void __cdecl Gods98::Container_AddScale(Container* cont, Container_Combine combi
 
 // <LegoRR.exe @004758a0>
 void __cdecl Gods98::Container_AddTranslation(Container* cont, Container_Combine combine,
-								real32 x, real32 y, real32 z)
+											  real32 x, real32 y, real32 z)
 {
 	IDirect3DRMFrame3* frame;
 	Container_DebugCheckOK(cont);
@@ -2661,7 +2678,7 @@ void __cdecl Gods98::Container_AddTranslation(Container* cont, Container_Combine
 
 	frame->AddTranslation((D3DRMCOMBINETYPE)combine, x, y, z);
 
-// unused preprocessor in LegoRR
+	// unused preprocessor in LegoRR
 #ifdef CONTAINER_MATCHHIDDENHIERARCHY
 	if (Container_Reference != cont->type) {
 		frame = cont->hiddenFrame;
@@ -2685,7 +2702,7 @@ void __cdecl Gods98::Container_ClearTransform(Container* cont)
 
 // <LegoRR.exe @00475970>
 void __cdecl Gods98::Container_AddTransform(Container* cont, Container_Combine combine,
-								const Matrix4F mat)
+											const Matrix4F mat)
 {
 	IDirect3DRMFrame3* frame;
 	Container_DebugCheckOK(cont);
@@ -2695,7 +2712,7 @@ void __cdecl Gods98::Container_AddTransform(Container* cont, Container_Combine c
 
 	frame->AddTransform((D3DRMCOMBINETYPE)combine, const_cast<D3DVALUE(*)[4]>(mat));
 
-// unused preprocessor in LegoRR
+	// unused preprocessor in LegoRR
 #ifdef CONTAINER_MATCHHIDDENHIERARCHY
 	if (Container_Reference != cont->type) {
 		frame = cont->hiddenFrame;
@@ -2707,7 +2724,7 @@ void __cdecl Gods98::Container_AddTransform(Container* cont, Container_Combine c
 // <LegoRR.exe @00475990>
 real32 __cdecl Gods98::Container_GetZXRatio(Container* cont)
 {
-	IDirect3DRMFrame3* frame, *parent;
+	IDirect3DRMFrame3* frame, * parent;
 	Matrix4F mat;
 	Container_DebugCheckOK(cont);
 
@@ -2726,14 +2743,14 @@ void __cdecl Gods98::Container_SetParent(Container* child, OPTIONAL Container* p
 {
 	// Pass NULL as the parent to unhook the Container...
 
-	IDirect3DRMFrame3* parentFrame, *childFrame, *childFrameHidden;
+	IDirect3DRMFrame3* parentFrame, * childFrame, * childFrameHidden;
 //	IDirect3DRMFrame* tempFrame1;
 	Container_DebugCheckOK(child);
 
 	childFrame = child->masterFrame;
 	childFrameHidden = child->hiddenFrame;
 	Error_Fatal(!childFrame||!childFrameHidden, "Child has no master/hiddenFrame");
-	
+
 	if (parent == nullptr) {
 
 		// Delete the Child from its existing parent...
@@ -2753,12 +2770,15 @@ void __cdecl Gods98::Container_SetParent(Container* child, OPTIONAL Container* p
 			parentFrame->Release();
 		}
 
-	} else {
-	
+	}
+	else {
+
 		parentFrame = parent->masterFrame;
 		Error_Fatal(!parentFrame, "Parent has no masterFrame");
-//		if (parentFrame->AddChild(CDF(childFrame)) == D3DRM_OK){
-//		} else Error_Fatal(true, "Unable to add childFrame to parentFrame");
+//		if (parentFrame->AddChild(CDF(childFrame)) == D3DRM_OK) {
+// 
+//		}
+//		else Error_Fatal(true, "Unable to add childFrame to parentFrame");
 
 		Container_Frame_SafeAddChild(parentFrame, childFrame);
 
@@ -2771,7 +2791,7 @@ void __cdecl Gods98::Container_SetParent(Container* child, OPTIONAL Container* p
 // <LegoRR.exe @00475a60>
 Gods98::Container* __cdecl Gods98::Container_GetParent(Container* child)
 {
-	IDirect3DRMFrame3* childFrame, *parentFrame;
+	IDirect3DRMFrame3* childFrame, * parentFrame;
 //	IDirect3DRMFrame* tempFrame1;
 	Container* parent;
 
@@ -2802,16 +2822,17 @@ real32 __cdecl Gods98::Container_GetTransCoef(Container* cont)
 
 	Container_DebugCheckOK(cont);
 
-	if (cont->type == Container_Type::FromActivity){
+	if (cont->type == Container_Type::FromActivity) {
 
 		if (cont->typeData != nullptr) {
 			if (cont->typeData->name != nullptr) {
-				if (actframe = Container_Frame_Find(cont, cont->typeData->name, 0)){
+				if (actframe = Container_Frame_Find(cont, cont->typeData->name, 0)) {
 					return Container_Frame_GetTransCo(actframe);
 				}
 			}
 		}
-	} else Error_Warn(true, "Container_GetTransCoef() called with non-activity object");
+	}
+	else Error_Warn(true, "Container_GetTransCoef() called with non-activity object");
 
 	return 0.0f;
 }
@@ -2821,19 +2842,20 @@ Gods98::Container* __cdecl Gods98::Container_SearchOwner(IDirect3DRMFrame3* fram
 {
 	// Search upwards from a frame until a non-reference container is found...
 
-	Container* owner = nullptr, *test;
+	Container* owner = nullptr, * test;
 	IDirect3DRMFrame3* parent;
 	HRESULT r;
 
-	while (owner == nullptr && frame != nullptr){
-		if (test = Container_Frame_GetOwner(frame)){
+	while (owner == nullptr && frame != nullptr) {
+		if (test = Container_Frame_GetOwner(frame)) {
 			if (test->type != Container_Type::Reference) owner = test;
 		}
 		frame->GetParent(&parent);
 		if (parent) {
 			frame = parent;
 			r = parent->Release();
-		} else frame = nullptr;
+		}
+		else frame = nullptr;
 	}
 
 	return owner;
@@ -2861,13 +2883,14 @@ Gods98::Container* __cdecl Gods98::Container_Frame_GetContainer(IDirect3DRMFrame
 			// Release the unused master frame and replace it with the correct one.
 			Container_Frame_RemoveAppData(cont->masterFrame);
 */
-// Remove the redundant frames from the container...
+
+			// Remove the redundant frames from the container...
 			r = cont->masterFrame->Release();
 			r = cont->activityFrame->Release();
-			//			r = cont->hiddenFrame->Release();
+//			r = cont->hiddenFrame->Release();
 
 			cont->masterFrame = frame;
-			//			cont->hiddenFrame = nullptr;
+//			cont->hiddenFrame = nullptr;
 			cont->activityFrame = nullptr;
 
 			cont->type = Container_Type::Reference;
@@ -2907,47 +2930,29 @@ Gods98::Container_Type __cdecl Gods98::Container_ParseTypeString(const char* str
 
 	Container_DebugCheckOK(CONTAINER_DEBUG_NOTREQUIRED);
 
-	if (str != nullptr){
+	if (str != nullptr) {
 		std::strcpy(string, str);
 		uint32 argc = Util_Tokenise(string, argv, ":");
 		if (argc > 1 && ::_stricmp(argv[1], "NOTEXTURE") == 0) *noTexture = true;
 		else *noTexture = false;
 
-		for (uint32 loop=0; loop<(uint32)Container_Type::TypeCount; loop++){
-			if (containerGlobs.typeName[loop] != nullptr){
+		for (uint32 loop = 0; loop < (uint32)Container_Type::TypeCount; loop++) {
+			if (containerGlobs.typeName[loop] != nullptr) {
 				if (::_stricmp(containerGlobs.typeName[loop], string) == 0) {
 					return (Container_Type)loop;
 				}
 			}
 		}
-	} else Error_Fatal(true, "Null string passed to Container_ParseTypeString()");
+	}
+	else Error_Fatal(true, "Null string passed to Container_ParseTypeString()");
 	return Container_Type::Invalid;
 }
 
 // <LegoRR.exe @00475cb0>
 void __cdecl Gods98::Container_AddList(void)
 {
-	Container_DebugCheckOK(CONTAINER_DEBUG_NOTREQUIRED);
-
-	Error_Fatal(containerGlobs.listCount+1 >= CONTAINER_MAXLISTS, "Run out of lists");
-
-	uint32 count = 0x00000001 << containerGlobs.listCount;
-
-	Container* list;
-	if (list = containerGlobs.listSet[containerGlobs.listCount] = (Container*)Mem_Alloc(sizeof(Container) * count)){
-
-		containerGlobs.listCount++;
-
-		for (uint32 loop=1 ; loop<count ; loop++){
-
-//			list[loop-1].flags = ContainerFlags::CONTAINER_FLAG_INITIALISED;
-
-			list[loop-1].nextFree = &list[loop];
-		}
-		list[count-1].nextFree = containerGlobs.freeList;
-		containerGlobs.freeList = list;
-
-	} else Error_Fatal(true, Error_Format("Unable to allocate %d bytes of memory for new list.\n", sizeof(Container) * count));
+	// NOTE: This function is no longer called, containerListSet.Add already handles this.
+	containerListSet.AddList();
 }
 
 // <LegoRR.exe @00475d30>
@@ -2968,16 +2973,16 @@ uint32 __cdecl Gods98::Container_GetActivities(Container* cont, OUT IDirect3DRMF
 	char* name;
 	HRESULT r;
 
-	if (cont->type == Container_Type::FromActivity){
-		for (uint32 source=0 ; source<2 ; source++){
+	if (cont->type == Container_Type::FromActivity) {
+		for (uint32 source = 0; source < 2; source++) {
 
 			if (source == 0) sourceFrame = cont->activityFrame;
 			if (source == 1) sourceFrame = cont->hiddenFrame;
 
-			if (sourceFrame->GetChildren(&children) == D3DRM_OK){
+			if (sourceFrame->GetChildren(&children) == D3DRM_OK) {
 				uint32 count = children->GetSize();
 //				Error_Warn(!count, "Can't find any children on frame");
-				for (uint32 loop=0 ; loop<count ; loop++){
+				for (uint32 loop = 0; loop < count; loop++) {
 					children->GetElement(loop, &frame1);
 
 					r = frame1->QueryInterface(Idl::IID_IDirect3DRMFrame3, (void**)&childFrame);
@@ -2985,26 +2990,29 @@ uint32 __cdecl Gods98::Container_GetActivities(Container* cont, OUT IDirect3DRMF
 					frame1->Release();
 
 					childFrame->GetName(&nameLen, nullptr);
-					if (nameLen){
+					if (nameLen) {
 						name = (char*)Mem_Alloc(nameLen);
 						childFrame->GetName(&nameLen, name);
 
-						if (::_strnicmp(name, CONTAINER_ACTIVITYFRAMEPREFIX, std::strlen(CONTAINER_ACTIVITYFRAMEPREFIX)) == 0){
+						if (::_strnicmp(name, CONTAINER_ACTIVITYFRAMEPREFIX, std::strlen(CONTAINER_ACTIVITYFRAMEPREFIX)) == 0) {
 							if (frameList != nullptr) frameList[listSize] = childFrame;
 							if (acList != nullptr) acList[listSize] = Container_Frame_GetAnimClone(childFrame);
 							if (nameList != nullptr) nameList[listSize] = name;
 							listSize++;
-		
+
 							if (nameList == nullptr) Mem_Free(name);
-						} else Mem_Free(name);
+						}
+						else Mem_Free(name);
 					}
 					r = childFrame->Release();
 				}
 				r = children->Release();
 
-			} else Error_Fatal(true, "GetChildren() call failed");
+			}
+			else Error_Fatal(true, "GetChildren() call failed");
 		}
-	} else Error_Fatal(true, "Container_GetActivities() supplied with a non-activity object");
+	}
+	else Error_Fatal(true, "Container_GetActivities() supplied with a non-activity object");
 
 	return listSize;
 }
@@ -3068,7 +3076,7 @@ bool32 __cdecl Gods98::Container_AddActivity2(Container* cont, const char* filen
 
 	std::sprintf(xFile, "%s.%s", filename, containerGlobs.extensionName[(uint32)Container_Type::Anim]);
 
-	if (lpD3DRM()->CreateFrame(cont->hiddenFrame, &newFrame) == D3DRM_OK){
+	if (lpD3DRM()->CreateFrame(cont->hiddenFrame, &newFrame) == D3DRM_OK) {
 		Container_NoteCreation(newFrame);
 
 		// Set the name of the parent to the animation set.
@@ -3078,20 +3086,22 @@ bool32 __cdecl Gods98::Container_AddActivity2(Container* cont, const char* filen
 		Container_Frame_FormatName(newFrame, "%s_%s", CONTAINER_ACTIVITYFRAMEPREFIX, actname);
 
 		// Load in the AnimationSet.
-//		if (animSet = Container_LoadAnimSet(xFile, newFrame, fref, &frameCount)){
+//		if (animSet = Container_LoadAnimSet(xFile, newFrame, fref, &frameCount)) GetParent{
 		if (origClone == nullptr) {
 			animClone = Container_LoadAnimSet(xFile, newFrame, &frameCount, lws, looping);
-		} else {
+		}
+		else {
 			animClone = AnimClone_Make(origClone, newFrame, &frameCount);
 		}
 
-			Container_Frame_SetAppData(newFrame, cont, animClone, filename, &frameCount, nullptr, nullptr, &transCo, sample, nullptr, &trigger);
+		Container_Frame_SetAppData(newFrame, cont, animClone, filename, &frameCount, nullptr, nullptr, &transCo, sample, nullptr, &trigger);
 
-			return true;
-			
+		return true;
+
 //		} else Error_Warn(true, Error_Format("Unable to load animset %s", xFile));
-		
-	} else Error_Warn(true, "Unable to create frame for new activity");
+
+	}
+	else Error_Warn(true, "Unable to create frame for new activity");
 
 	return false;
 }
@@ -3113,7 +3123,7 @@ void __cdecl Gods98::Container_Frame_ReferenceDestroyCallback(LPDIRECT3DRMOBJECT
 // <LegoRR.exe @00476100>
 IDirect3DRMFrame3* __cdecl Gods98::Container_Frame_Find(Container* cont, const char* findName, bool32 /*uint32*/ hidden)
 {
-	IDirect3DRMFrame3* frame, *childFrame, *foundFrame = nullptr;
+	IDirect3DRMFrame3* frame, * childFrame, * foundFrame = nullptr;
 	IDirect3DRMFrame* frame1;
 	IDirect3DRMFrameArray* children;
 	DWORD nameLen;
@@ -3124,10 +3134,10 @@ IDirect3DRMFrame3* __cdecl Gods98::Container_Frame_Find(Container* cont, const c
 	if (hidden) frame = cont->hiddenFrame;
 	else frame = cont->activityFrame;
 
-	if (frame->GetChildren(&children) == D3DRM_OK){
+	if (frame->GetChildren(&children) == D3DRM_OK) {
 		uint32 count = children->GetSize();
 		Error_Warn(!count, "Can't find any children on frame");
-		for (uint32 loop=0 ; loop<count ; loop++){
+		for (uint32 loop = 0; loop < count; loop++) {
 			children->GetElement(loop, &frame1);
 
 			r = frame1->QueryInterface(Idl::IID_IDirect3DRMFrame3, (void**)&childFrame);
@@ -3150,16 +3160,17 @@ IDirect3DRMFrame3* __cdecl Gods98::Container_Frame_Find(Container* cont, const c
 		}
 		r = children->Release();
 
-	} else Error_Fatal(true, "GetChildren() call failed");
+	}
+	else Error_Fatal(true, "GetChildren() call failed");
 
 	return foundFrame;
 }
 
 // <LegoRR.exe @00476230>
 void __cdecl Gods98::Container_Frame_SetAppData(IDirect3DRMFrame3* frame, Container* owner,
-	OPTIONAL AnimClone* animClone, OPTIONAL const char* asfname, OPTIONAL uint32* frameCount,
-	OPTIONAL const char* frameName, OPTIONAL real32* currTime, OPTIONAL real32* transCo,
-	OPTIONAL const char* actSample, OPTIONAL void* soundRecord, OPTIONAL uint32* trigger)
+												OPTIONAL AnimClone* animClone, OPTIONAL const char* asfname, OPTIONAL uint32* frameCount,
+												OPTIONAL const char* frameName, OPTIONAL real32* currTime, OPTIONAL real32* transCo,
+												OPTIONAL const char* actSample, OPTIONAL void* soundRecord, OPTIONAL uint32* trigger)
 {
 	Container_AppData* appData;
 
@@ -3168,7 +3179,7 @@ void __cdecl Gods98::Container_Frame_SetAppData(IDirect3DRMFrame3* frame, Contai
 
 //#pragma message ( "Sound3D removal changes" )
 
-	if (appData = (Container_AppData*)frame->GetAppData()){
+	if (appData = (Container_AppData*)frame->GetAppData()) {
 		if (owner != nullptr) appData->ownerContainer = owner;
 		if (animClone != nullptr) appData->animClone = animClone;
 		if (asfname != nullptr && appData->animSetFileName != nullptr) Mem_Free(appData->animSetFileName);
@@ -3180,7 +3191,8 @@ void __cdecl Gods98::Container_Frame_SetAppData(IDirect3DRMFrame3* frame, Contai
 		/// OLD LEGORR: Uncommented assignment of SoundRecord, used by LegoRR
 		if (soundRecord != nullptr) appData->soundList = (Sound3D_SoundFrameRecord*)soundRecord;
 		if (trigger != nullptr) appData->trigger = *trigger;
-	} else {
+	}
+	else {
 		appData = (Container_AppData*)Mem_Alloc(sizeof(Container_AppData));
 		appData->ownerContainer = owner;
 		appData->animClone = animClone;
@@ -3200,8 +3212,8 @@ void __cdecl Gods98::Container_Frame_SetAppData(IDirect3DRMFrame3* frame, Contai
 		frame->SetAppData((DWORD)appData);
 	}
 
-	if (asfname != nullptr){
-		appData->animSetFileName = (char*)Mem_Alloc(std::strlen(asfname)+1);
+	if (asfname != nullptr) {
+		appData->animSetFileName = (char*)Mem_Alloc(std::strlen(asfname) + 1);
 		std::strcpy(appData->animSetFileName, asfname);
 	}
 }
@@ -3309,7 +3321,7 @@ void __cdecl Gods98::Container_Frame_FormatName(IDirect3DRMFrame3* frame, const 
 {
 	char buffer[1024];
 	std::va_list args;
-	
+
 	va_start(args, msg);
 	uint32 len = std::vsprintf(buffer, msg, args);
 	va_end(args);
@@ -3327,7 +3339,7 @@ void __cdecl Gods98::Container_Frame_FormatName(IDirect3DRMFrame3* frame, const 
 void __cdecl Gods98::Container_Frame_FreeName(IDirect3DRMFrame3* frame)
 {
 	char* name;
-	if (name = const_cast<char*>(Container_Frame_GetName(frame))){
+	if (name = const_cast<char*>(Container_Frame_GetName(frame))) {
 		Mem_Free(name);
 	}
 }
@@ -3343,7 +3355,7 @@ const char* __cdecl Gods98::Container_Frame_GetName(IDirect3DRMFrame3* frame)
 
 // <LegoRR.exe @004765f0>
 bool32 __cdecl Gods98::Container_Frame_WalkTree(IDirect3DRMFrame3* frame, uint32 level,
-									ContainerWalkTreeCallback Callback, void* data)
+												ContainerWalkTreeCallback Callback, void* data)
 {
 	IDirect3DRMFrameArray* children;
 	IDirect3DRMFrame3* child;
@@ -3355,7 +3367,7 @@ bool32 __cdecl Gods98::Container_Frame_WalkTree(IDirect3DRMFrame3* frame, uint32
 
 	frame->GetChildren(&children);
 	uint32 count = children->GetSize();
-	for (uint32 loop=0 ; loop<count ; loop++){
+	for (uint32 loop = 0; loop < count; loop++) {
 		children->GetElement(loop, &child1);
 		child1->QueryInterface(Idl::IID_IDirect3DRMFrame3, (void**)&child);
 		child1->Release();
@@ -3379,37 +3391,45 @@ bool32 __cdecl Gods98::Container_Frame_SearchCallback(IDirect3DRMFrame3* frame, 
 
 	frame->GetName(&len, nullptr);
 
-	if (len-1 == search->stringLen){
+	if (len-1 == search->stringLen) {
 		char* name = (char*)Mem_Alloc(len);
 		name[0] = '\0';
 		frame->GetName(&len, name);
 
 		// Replace any characters in the name string with '?' if their position
 		// corresponds to a '?' in the search string...
-		for (uint32 loop=0 ; loop<len ; loop++) if (search->string[loop] == '?') name[loop] = '?';
+		for (uint32 loop = 0; loop < len; loop++) {
+			if (search->string[loop] == '?') name[loop] = '?';
+		}
 
 		if (search->mode == Container_SearchMode::FirstMatch) {
 			search->resultFrame = nullptr;
 			if (search->caseSensitive) {
 				if (std::strcmp(name, search->string) == 0) search->resultFrame = frame;
-			} else {
+			}
+			else {
 				if (::_stricmp(name, search->string) == 0) search->resultFrame = frame;
 			}
-		} else if (search->mode == Container_SearchMode::MatchCount) {
+		}
+		else if (search->mode == Container_SearchMode::MatchCount) {
 			if (search->caseSensitive) {
 				if (std::strcmp(name, search->string) == 0) search->count++;
-			} else {
+			}
+			else {
 				if (::_stricmp(name, search->string) == 0) search->count++;
 			}
-		} else if (search->mode == Container_SearchMode::NthMatch){
+		}
+		else if (search->mode == Container_SearchMode::NthMatch) {
 			search->resultFrame = nullptr;
 			if (search->caseSensitive) {
 				if (std::strcmp(name, search->string) == 0) search->count++;
-			} else {
+			}
+			else {
 				if (::_stricmp(name, search->string) == 0) search->count++;
 			}
 			if (search->count == search->matchNumber + 1) search->resultFrame = frame;
-		} else Error_Fatal(true, "Unknown search type");
+		}
+		else Error_Fatal(true, "Unknown search type");
 
 		Mem_Free(name);
 
@@ -3430,17 +3450,17 @@ Gods98::AnimClone* __cdecl Gods98::Container_LoadAnimSet(const char* fname, IDir
 	uint32 fc;
 
 #ifdef _DEBUG_2
-/*	{
-		static char nameList[1024][128];
-		static uint32 nameCount = 0;
+	/*	{
+			static char nameList[1024][128];
+			static uint32 nameCount = 0;
 
-		Error_Fatal(strlen(fname) > 128, "Name too long");
-		Error_Fatal(nameCount > 1024, "name list overflowed");
-		for (uint32 loop=0 ; loop<nameCount ; loop++) {
-			Error_Fatal(0 == stricmp(fname, nameList[loop]), Error_Format("Cannot load the same x animation file twice\n(%s)", fname));
-		}
-		std::strcpy(nameList[nameCount++], fname);
-	}*/
+			Error_Fatal(std::strlen(fname) > 128, "Name too long");
+			Error_Fatal(nameCount > 1024, "name list overflowed");
+			for (uint32 loop = 0; loop < nameCount; loop++) {
+				Error_Fatal(::_stricmp(fname, nameList[loop]) == 0, Error_Format("Cannot load the same x animation file twice\n(%s)", fname));
+			}
+			std::strcpy(nameList[nameCount++], fname);
+		}*/
 #endif // _DEBUG_2
 
 	Error_Debug(Error_Format("Attempting to load animation from xfile \"%s\"\n", fname));
@@ -3452,27 +3472,29 @@ Gods98::AnimClone* __cdecl Gods98::Container_LoadAnimSet(const char* fname, IDir
 		char file[FILE_MAXPATH];
 
 		std::strcpy(file, fname);
-		file[std::strlen(file)-2] = '\0';
+		file[std::strlen(file) - 2] = '\0';
 		if (scene = Lws_Parse(file, looping)) {
 			Lws_LoadMeshes(scene, frame);
 			Lws_SetTime(scene, 0.0f);
 			if (frameCount) *frameCount = Lws_GetFrameCount(scene);
 			animClone = AnimClone_RegisterLws(scene, frame, *frameCount);
-		} else Error_Warn(true, "Cannot load file");
+		}
+		else Error_Warn(true, "Cannot load file");
 
-	} else {
+	}
+	else {
 
-		if (buffer.lpMemory = File_LoadBinary(fname, (uint32*)&buffer.dSize)){
-			if (lpD3DRM()->CreateFrame(frame, &rootFrame) == D3DRM_OK){
+		if (buffer.lpMemory = File_LoadBinary(fname, (uint32*)&buffer.dSize)) {
+			if (lpD3DRM()->CreateFrame(frame, &rootFrame) == D3DRM_OK) {
 				Container_NoteCreation(rootFrame);
-				if (lpD3DRM()->CreateAnimationSet(&animSet) == D3DRM_OK){
+				if (lpD3DRM()->CreateAnimationSet(&animSet) == D3DRM_OK) {
 					Container_NoteCreation(animSet);
-					
+
 					tData.xFileName = fname;
 					tData.flags = Container_TextureFlags::CONTAINER_TEXTURE_FLAG_NONE;
-					
-					if (animSet->Load(&buffer, nullptr, D3DRMLOAD_FROMMEMORY, Container_TextureLoadCallback, &tData, rootFrame) == D3DRM_OK){
-	//				if (animSet->Load(&buffer, nullptr, D3DRMLOAD_FROMMEMORY, nullptr, nullptr, rootFrame) == D3DRM_OK){
+
+					if (animSet->Load(&buffer, nullptr, D3DRMLOAD_FROMMEMORY, Container_TextureLoadCallback, &tData, rootFrame) == D3DRM_OK) {
+	//				if (animSet->Load(&buffer, nullptr, D3DRMLOAD_FROMMEMORY, nullptr, nullptr, rootFrame) == D3DRM_OK) {
 						animSet->SetTime(0.0f);
 
 	/*					{	// Set the animations to use linear interpolation...
@@ -3480,9 +3502,9 @@ Gods98::AnimClone* __cdecl Gods98::Container_LoadAnimSet(const char* fname, IDir
 							IDirect3DRMAnimation2* anim;
 							D3DRMANIMATIONOPTIONS options;
 
-							if (D3DRM_OK == animSet->GetAnimations(&anims)){
+							if (animSet->GetAnimations(&anims) == D3DRM_OK) {
 								uint32 animCount = anims->GetSize();
-								for (uint32 loop=0 ; loop<animCount ; loop++) {
+								for (uint32 loop = 0; loop < animCount; loop++) {
 									anims->GetElement(loop, &anim);
 									options = anim->GetOptions();
 									anim->SetOptions(D3DRMANIMATION_LINEARPOSITION|D3DRMANIMATION_OPEN|D3DRMANIMATION_POSITION);
@@ -3511,8 +3533,8 @@ uint32 __cdecl Gods98::Container_GetAnimFileFrameCount(const char* fileData)
 {
 	uint32 count = 0;
 
-	if (fileData = std::strstr(fileData, "DDiScene")){
-		while(!std::isdigit(*fileData)) fileData++;
+	if (fileData = std::strstr(fileData, "DDiScene")) {
+		while (!std::isdigit(*fileData)) fileData++;
 		count = std::atoi(fileData);
 	}
 
@@ -3527,13 +3549,13 @@ bool32 __cdecl Gods98::Container_FrameLoad(const char* fname, IDirect3DRMFrame3*
 	D3DRMLOADMEMORY buffer;
 	Container_TextureData tData;
 
-	if (buffer.lpMemory = File_LoadBinary(fname, (uint32*)&buffer.dSize)){
+	if (buffer.lpMemory = File_LoadBinary(fname, (uint32*)&buffer.dSize)) {
 
 		tData.xFileName = fname;
 		tData.flags = Container_TextureFlags::CONTAINER_TEXTURE_FLAG_NONE;
 
-		if (frame->Load(&buffer, nullptr, D3DRMLOAD_FROMMEMORY, Container_TextureLoadCallback, &tData) == D3DRM_OK){
-//		if (frame->Load(&buffer, nullptr, D3DRMLOAD_FROMMEMORY, nullptr, nullptr) == D3DRM_OK){
+		if (frame->Load(&buffer, nullptr, D3DRMLOAD_FROMMEMORY, Container_TextureLoadCallback, &tData) == D3DRM_OK) {
+//		if (frame->Load(&buffer, nullptr, D3DRMLOAD_FROMMEMORY, nullptr, nullptr) == D3DRM_OK) {
 			res = true;
 		}
 		Mem_Free(buffer.lpMemory);
@@ -3554,26 +3576,29 @@ IDirect3DRMMesh* __cdecl Gods98::Container_MeshLoad(void* file_data, uint32 file
 	buffer.lpMemory = file_data;
 	buffer.dSize = file_size;
 
-	if (lpD3DRM()->CreateMeshBuilder(&mb) == D3DRM_OK){
+	if (lpD3DRM()->CreateMeshBuilder(&mb) == D3DRM_OK) {
 		Container_NoteCreation(mb);
 
 		tData.xFileName = file_name;
 		tData.flags = Container_TextureFlags::CONTAINER_TEXTURE_FLAG_NONE;
 		if (noTexture) tData.flags |= Container_TextureFlags::CONTAINER_TEXTURE_FLAG_NOLOAD;
 
-		if (mb->Load(&buffer, nullptr, D3DRMLOAD_FROMMEMORY, Container_TextureLoadCallback, &tData) == D3DRM_OK){
-//		if (mb->Load(&buffer, nullptr, D3DRMLOAD_FROMMEMORY, nullptr, nullptr) == D3DRM_OK){
+		if (mb->Load(&buffer, nullptr, D3DRMLOAD_FROMMEMORY, Container_TextureLoadCallback, &tData) == D3DRM_OK) {
+//		if (mb->Load(&buffer, nullptr, D3DRMLOAD_FROMMEMORY, nullptr, nullptr) == D3DRM_OK) {
 			mb->CreateMesh(&mesh);
 			Container_NoteCreation(mesh);
 			r = mb->Release();
-			if (frame->AddVisual((IUnknown*)mesh) == D3DRM_OK){
+			if (frame->AddVisual((IUnknown*)mesh) == D3DRM_OK) {
 
 				return mesh;
 
-			} else Error_Fatal(true, "Unable to add visual to frame");
-		} else Error_Fatal(true, Error_Format("Unable to load MeshBuilder from memory (%s)", file_name));
+			}
+			else Error_Fatal(true, "Unable to add visual to frame");
+		}
+		else Error_Fatal(true, Error_Format("Unable to load MeshBuilder from memory (%s)", file_name));
 		r = mb->Release();
-	} else Error_Fatal(true, "Unable create MeshBuilder");
+	}
+	else Error_Fatal(true, "Unable create MeshBuilder");
 
 	return nullptr;
 }
@@ -3584,7 +3609,7 @@ HRESULT __cdecl Gods98::Container_TextureLoadCallback(char* name, void* data, LP
 	Container_TextureData* textureData = (Container_TextureData*)data;
 	Container_Texture* text;
 
-	if (!(textureData->flags & Container_TextureFlags::CONTAINER_TEXTURE_FLAG_NOLOAD)){
+	if (!(textureData->flags & Container_TextureFlags::CONTAINER_TEXTURE_FLAG_NOLOAD)) {
 
 		char path[1024];
 		char* tag = nullptr;
@@ -3594,7 +3619,7 @@ HRESULT __cdecl Gods98::Container_TextureLoadCallback(char* name, void* data, LP
 		const char* s = textureData->xFileName;
 		char* p = path;
 
-		for (sint32 location=0 ; location<(containerGlobs.sharedDir?2:1) ; location++) {
+		for (sint32 location = 0; location < (containerGlobs.sharedDir ? 2 : 1); location++) {
 
 			if (location == 0) {
 				// Strip the xfilename off the end of the path...
@@ -3603,23 +3628,26 @@ HRESULT __cdecl Gods98::Container_TextureLoadCallback(char* name, void* data, LP
 						if (tag) *tag = '\\';
 						*p = '\0';
 						tag = p;
-					} else *p = *s;
+					}
+					else *p = *s;
 					s++;
 					p++;
 				}
-				if (tag){
+				if (tag) {
 					std::strcat(path, "\\");
 					std::strcat(path, name);
-				} else std::strcpy(path, name);
-			} else {
+				}
+				else std::strcpy(path, name);
+			}
+			else {
 				std::sprintf(path, "%s\\%s", containerGlobs.sharedDir, name);
 			}
 
 			*texture = nullptr;
 
-			for (uint32 loop=0 ; loop<containerGlobs.textureCount ; loop++){
+			for (uint32 loop = 0; loop < containerGlobs.textureCount; loop++) {
 
-				if (containerGlobs.textureSet[loop].fileName && (std::strcmp(containerGlobs.textureSet[loop].fileName, path) == 0)){
+				if (containerGlobs.textureSet[loop].fileName && (std::strcmp(containerGlobs.textureSet[loop].fileName, path) == 0)) {
 					*texture = containerGlobs.textureSet[loop].texture;
 					(*texture)->AddRef();
 
@@ -3627,13 +3655,13 @@ HRESULT __cdecl Gods98::Container_TextureLoadCallback(char* name, void* data, LP
 				}
 			}
 
-			if (text = Container_LoadTexture(path, nullptr, nullptr)){
+			if (text = Container_LoadTexture(path, nullptr, nullptr)) {
 
 				*texture = text->texture;
 
-	#ifndef CONTAINER_DONTFLIPTEXTURES
+#ifndef CONTAINER_DONTFLIPTEXTURES
 				Container_YFlipTexture(*texture);
-	#endif
+#endif
 				if (Graphics_MIPMapEnabled()) {
 					HRESULT r = (*texture)->GenerateMIPMap(0);
 				}
@@ -3643,7 +3671,7 @@ HRESULT __cdecl Gods98::Container_TextureLoadCallback(char* name, void* data, LP
 					Error_Warn(true, "Sorting texture list");
 					std::qsort(containerGlobs.textureSet, containerGlobs.textureCount, sizeof(Container_TextureRef), Container_TextureSetSort);
 					/// FIX APPLY: Infinite for-loop with unsigned `>= 0`, change to `> 0`
-					for ( ; containerGlobs.textureCount>0 ; containerGlobs.textureCount--){
+					for ( ; containerGlobs.textureCount > 0; containerGlobs.textureCount--) {
 						if (containerGlobs.textureSet[containerGlobs.textureCount-1].fileName) break;
 					}
 					Error_Fatal(containerGlobs.textureCount == CONTAINER_MAXTEXTURES, "CONTAINER_MAXTEXTURES overflowed");
@@ -3652,10 +3680,10 @@ HRESULT __cdecl Gods98::Container_TextureLoadCallback(char* name, void* data, LP
 
 				if (containerGlobs.textureCount < CONTAINER_MAXTEXTURES) {
 					Container_TextureRef* textRef = &containerGlobs.textureSet[containerGlobs.textureCount];
-					
+
 					(*texture)->AddDestroyCallback(Container_TextureDestroyCallback, textRef);
 
-					textRef->fileName = (char*)Mem_Alloc(strlen(path)+1);
+					textRef->fileName = (char*)Mem_Alloc(std::strlen(path) + 1);
 					std::strcpy(textRef->fileName, path);
 					textRef->texture = *texture;
 
@@ -3673,15 +3701,15 @@ HRESULT __cdecl Gods98::Container_TextureLoadCallback(char* name, void* data, LP
 void __cdecl Gods98::Container_YFlipTexture(IDirect3DRMTexture3* texture)
 {
 	D3DRMIMAGE* image;
-	if (image = texture->GetImage()){
+	if (image = texture->GetImage()) {
 		sint32 byteWidth = (image->depth * image->width) / 8;
 
 		uint8* buffer;
-		if (buffer = (uint8*)Mem_Alloc(byteWidth)){
-			uint8* topline = (uint8*) image->buffer1;
-			uint8* bottomline = &((uint8*) image->buffer1)[(image->height-1) * image->bytes_per_line];
-			
-			for (sint32 y=0 ; y<image->height/2 ; y++){
+		if (buffer = (uint8*)Mem_Alloc(byteWidth)) {
+			uint8* topline = (uint8*)image->buffer1;
+			uint8* bottomline = &((uint8*)image->buffer1)[(image->height-1) * image->bytes_per_line];
+
+			for (sint32 y = 0; y < image->height/2; y++) {
 				std::memcpy(buffer, bottomline, byteWidth);
 				std::memcpy(bottomline, topline, byteWidth);
 				std::memcpy(topline, buffer, byteWidth);
@@ -3690,7 +3718,8 @@ void __cdecl Gods98::Container_YFlipTexture(IDirect3DRMTexture3* texture)
 			}
 
 			Mem_Free(buffer);
-		} else Error_Warn(true, "Cannot allocate buffer for yflip");
+		}
+		else Error_Warn(true, "Cannot allocate buffer for yflip");
 	}
 }
 
@@ -3702,20 +3731,18 @@ int __cdecl Gods98::Container_TextureSetSort(const void* a, const void* b)
 	if (((Container_TextureRef*)a)->fileName == nullptr && ((Container_TextureRef*)b)->fileName != nullptr) return 1;
 	return 0;
 }
-//int __cdecl Gods98::Container_TextureSetSort(Container_TextureRef* a, Container_TextureRef* b);
 
 // <LegoRR.exe @00476fd0>
 void __cdecl Gods98::Container_TextureDestroyCallback(LPDIRECT3DRMOBJECT lpD3DRMobj, LPVOID lpArg)
 {
 	Container_TextureRef* textRef = (Container_TextureRef*)lpArg;
-	Container_Texture* text;
 
 	Error_Debug(Error_Format("Removing %s from texture list\n", textRef->fileName));
 
-	text = (Container_Texture*)textRef->texture->GetAppData();
+	Container_Texture* text = (Container_Texture*)textRef->texture->GetAppData();
+
 	//  (Gods98 source comment)
 	// This is deliberatly not Mem_Free()
-
 	legacy::free(text);
 
 	Mem_Free(textRef->fileName);
