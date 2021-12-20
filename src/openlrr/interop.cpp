@@ -44,6 +44,7 @@
 #include "game/object/BezierCurve.h"
 #include "game/object/Object.h"
 #include "game/object/Stats.h"
+#include "game/objective/NERPsFile.h"
 #include "game/objective/PTL.h"
 #include "game/world/Camera.h"
 #include "game/Game.h"
@@ -1594,6 +1595,27 @@ bool interop_hook_LegoRR_Messages(void)
 	return_interop(result);
 }
 
+bool interop_hook_LegoRR_NERPsFile(void)
+{   bool result = true;
+
+	// NERPs interpreter functions (except for GetMessageLine)
+
+	result &= hook_write_jmpret(0x004530b0, LegoRR::NERPsFile_LoadScriptFile);
+
+	/// NOT IMPLEMENTED YET
+	//result &= hook_write_jmpret(0x00453130, LegoRR::NERPsFile_LoadMessageFile);
+
+	result &= hook_write_jmpret(0x004534c0, LegoRR::NERPsFile_GetMessageLine);
+	result &= hook_write_jmpret(0x004534e0, LegoRR::NERPsFile_Free);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x004535a0, LegoRR::NERPsRuntime_LoadLiteral);
+
+	result &= hook_write_jmpret(0x004535e0, LegoRR::NERPsRuntime_Execute);
+
+	return_interop(result);
+}
+
 bool interop_hook_LegoRR_PTL(void)
 {   bool result = true;
 	
@@ -1737,6 +1759,9 @@ bool interop_hook_all(void)
 	// defined in order to fix certain original bugs.
 	result &= interop_hook_LegoRR_FrontEnd();
 	result &= interop_hook_LegoRR_SFX();
+
+	// Implementation for NERPs interpreter.
+	result &= interop_hook_LegoRR_NERPsFile();
 
 	//result &= hook_write_jmpret(0x0042c260, LegoRR::Level_HandleEmergeTriggers);
 
