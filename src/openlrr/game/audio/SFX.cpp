@@ -297,8 +297,6 @@ void __cdecl LegoRR::SFX_AddToQueue(SFX_ID sfxID, Gods98::SoundMode mode)
 // <LegoRR.exe @00465260>
 sint32 __cdecl LegoRR::SFX_Random_Play_OrAddToQueue(SFX_ID sfxID, bool32 loop)
 {
-	/// FIXME: Faulty returns here. It's likely a return statement was only included for Sound3D_Play2.
-
 	if (!SFX_IsQueueMode()) {
 
 		if (sfxID != SFX_NULL && SFX_IsSoundOn()) {
@@ -307,9 +305,9 @@ sint32 __cdecl LegoRR::SFX_Random_Play_OrAddToQueue(SFX_ID sfxID, bool32 loop)
 			if (rngSound3DHandle != 0) {
 				return Gods98::Sound3D_Play2(Gods98::Sound3D_Play::Sound3D_Play_Normal, nullptr, rngSound3DHandle, loop, nullptr);
 			}
-			return 0; // rngSound3DHandle; // return 0; // (EAX)
+			//return 0; // rngSound3DHandle; // return 0; // (EAX)
 		}
-		return (sint32)sfxID; // (EAX) // return 0; or return sfxID; if (!SFX_IsSoundOn())
+		//return (sint32)sfxID; // (EAX) // return 0; or return sfxID; if (!SFX_IsSoundOn())
 	}
 	else {
 		if (sfxGlobs.sfxInstanceCount < 10) {
@@ -318,11 +316,15 @@ sint32 __cdecl LegoRR::SFX_Random_Play_OrAddToQueue(SFX_ID sfxID, bool32 loop)
 			sfxGlobs.sfxInstanceTable[sfxGlobs.sfxInstanceCount].flags &= ~SFX_InstanceFlags::SFX_INSTANCE_FLAG_UNK_1; // !playing? queued?
 			sfxGlobs.sfxInstanceCount++;
 
-			return (sint32)sfxInst; // (EAX)
+			//return (sint32)sfxInst; // (EAX)
 		}
 		// Whatever value was passed into EAX here would be returned... this is why we can't have nice things.
-		return 0; // (in_EAX)
+		//return 0; // (in_EAX)
 	}
+
+	/// FIX APPLY: Sanity with return values. This also fixes Issue #3 where a guaranteed random landslide
+	///            on the first tick of "Rubble Trouble" returns junk data into globalSampleSoundHandle.
+	return -1;
 }
 
 // <LegoRR.exe @004652d0>
@@ -393,9 +395,9 @@ sint32 __cdecl LegoRR::SFX_Random_Play_OrInitSoundUnk(IDirect3DRMFrame3* frame, 
 			if (position) sfxInst->position = *position;
 
 			sfxGlobs.sfxInstanceCount++;
-			return 0;
 		}
 	}
+
 	return 0;
 }
 
