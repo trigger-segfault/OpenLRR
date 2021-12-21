@@ -1601,10 +1601,7 @@ bool interop_hook_LegoRR_NERPsFile(void)
 	// NERPs interpreter functions (except for GetMessageLine)
 
 	result &= hook_write_jmpret(0x004530b0, LegoRR::NERPsFile_LoadScriptFile);
-
-	/// NOT IMPLEMENTED YET
-	//result &= hook_write_jmpret(0x00453130, LegoRR::NERPsFile_LoadMessageFile);
-
+	result &= hook_write_jmpret(0x00453130, LegoRR::NERPsFile_LoadMessageFile);
 	result &= hook_write_jmpret(0x004534c0, LegoRR::NERPsFile_GetMessageLine);
 	result &= hook_write_jmpret(0x004534e0, LegoRR::NERPsFile_Free);
 
@@ -1612,6 +1609,8 @@ bool interop_hook_LegoRR_NERPsFile(void)
 	//result &= hook_write_jmpret(0x004535a0, LegoRR::NERPsRuntime_LoadLiteral);
 
 	result &= hook_write_jmpret(0x004535e0, LegoRR::NERPsRuntime_Execute);
+
+	result &= hook_write_jmpret(0x00456af0, LegoRR::NERPs_Level_NERPMessage_Parse);
 
 	return_interop(result);
 }

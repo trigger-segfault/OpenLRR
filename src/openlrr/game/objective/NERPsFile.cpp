@@ -9,12 +9,18 @@
 #include "../../engine/gfx/Containers.h"
 #include "../../legacy.h"
 
+//#include "../audio/SFX.h"
 #include "NERPsFile.h"
 
 
+#define Advisor_SetCurrentAdvisor ((bool32 (__cdecl*)(LegoRR::Advisor_Type, bool32 setFlag2))0x00401800)
 #define Text_Clear ((void (__cdecl*)(void))0x0046ad50)
-#define NERPFunc__SetMessagePermit ((sint32 (__cdecl*)(sint32*))0x004568b0)
 #define NERPsRuntime_EndExecute ((void (__cdecl*)(real32))0x00454060)
+#define NERPFunc__GetTutorialFlags ((sint32 (__cdecl*)(sint32*))0x00456500)
+#define NERPFunc__SetMessagePermit ((sint32 (__cdecl*)(sint32*))0x004568b0)
+#define SFX_StopGlobalSample ((void (__cdecl* )(void))0x00465140)
+#define SFX_SetGlobalSampleDurationIfLE0_AndNullifyHandle ((bool32 (__cdecl* )(real32 duration))0x00465180)
+#define SFX_IsSoundOn ((bool32 (__cdecl* )(void))0x00465630)
 
 
 /**********************************************************************************
@@ -80,7 +86,7 @@ bool32 __cdecl LegoRR::NERPsFile_LoadScriptFile(const char* filename)
 
 	Text_Clear();
 
-	nerpsfileGlobs.fileSize = 0;
+	nerpsfileGlobs.scriptSize = 0;
 	std::memset(nerpsruntimeGlobs.registers, 0, sizeof(nerpsruntimeGlobs.registers));
 
 	nerpsfileGlobs.instructions = nullptr;
@@ -89,18 +95,189 @@ bool32 __cdecl LegoRR::NERPsFile_LoadScriptFile(const char* filename)
 	sint32 setMsgPermit = true;
 	NERPFunc__SetMessagePermit(&setMsgPermit);
 
-	nerpsfileGlobs.instructions = (NERPsInstruction*)Gods98::File_LoadBinary(filename, &nerpsfileGlobs.fileSize);
+	nerpsfileGlobs.instructions = (NERPsInstruction*)Gods98::File_LoadBinary(filename, &nerpsfileGlobs.scriptSize);
 	return (nerpsfileGlobs.instructions != nullptr);
 }
 
 // <LegoRR.exe @00453130>
-bool32 __cdecl LegoRR::NERPsFile_LoadMessageFile(const char* filename);
+bool32 __cdecl LegoRR::NERPsFile_LoadMessageFile(const char* filename)
+{
+	uint32 fileSize;
+	nerpsfileGlobs.messageBuffer = (char*)Gods98::File_LoadBinary(filename, &fileSize);
+	if (nerpsfileGlobs.messageBuffer != nullptr) {
+		// Just like with Config files, you're out of luck if you end the file without any whitespace.
+		// All LRR level message files end without whitespace. The only reason they work is due to undefined behaviour:tm:.
+		/// FIX APPLY: +1 character allocated for guaranteed null terminator.
+		nerpsfileGlobs.messageBuffer = (char*)Gods98::Mem_ReAlloc(nerpsfileGlobs.messageBuffer, fileSize + 1);
+		nerpsfileGlobs.messageBuffer[fileSize] = '\0';
+	}
+
+	// Sanity check
+	if (nerpsfileGlobs.messageBuffer == nullptr) {
+		//nerpsfileGlobs.messageBuffer = nullptr;
+		nerpsfileGlobs.soundsUNKCOUNT = nerpsfileGlobs.soundCount; // No idea what this is doing...
+		return false;
+	}
+
+	/// REFACTOR: With changes to Mem_ReAlloc, we need to assign null to our previous lists, and 0 to counts.
+	Error_Fatal(nerpsfileGlobs.imageList != nullptr, "NERPsFile_LoadMessageFile: imageList was not freed");
+	Error_Fatal(nerpsfileGlobs.soundList != nullptr, "NERPsFile_LoadMessageFile: soundList was not freed");
+	Error_Fatal(nerpsfileGlobs.lineList  != nullptr, "NERPsFile_LoadMessageFile: lineList was not freed");
+	nerpsfileGlobs.imageList  = nullptr;
+	nerpsfileGlobs.soundList  = nullptr;
+	nerpsfileGlobs.lineList   = nullptr;
+	nerpsfileGlobs.imageCount = 0;
+	nerpsfileGlobs.soundCount = 0;
+	nerpsfileGlobs.lineCount  = 0;
+
+
+	//char unusedBuff[4096]; // Added length due to local unused buffers preventing memory corruption.
+	//char fileBuff[4096 /*FILE_MAXPATH + 1*/]; // Added length due to local unused buffers preventing memory corruption.
+	char fileBuff[FILE_MAXPATH + 1];
+
+	bool newLine = true;
+
+	const char* bufferEnd = nerpsfileGlobs.messageBuffer + fileSize;
+	for (char* s = nerpsfileGlobs.messageBuffer; s < bufferEnd; s++) {
+
+		if (*s == '_') *s = ' '; // Convert underscores to spaces.
+
+
+		if ((uchar8)*s < ' ') {
+			// All control characters are newlines! Even tabs..... :'D
+			*s = '\0';
+			newLine = true;
+		}
+		else if (newLine) {
+			// Define either an image, sound, or text line.
+			// NOTE: Faulty logic allows both an image and text line to be assigned at once.
+
+			/// REFACTOR: Moved to start of block, since a different local is now used inside the image/sound parsing blocks.
+			// Set to false to require another control character before we can parse another message image/sound/line.
+			newLine = false;
+
+			// At the end of this block `newLine` is set to `false`, so that the
+			//  previous condition must be hit (or this must be the first loop cycle).
+			
+			if (*s == ':') {
+				// IMAGE DEFINITION: (with file extension)
+				// `:myImageName  Path\To\imageFile.bmp`
+				const char* imageKey = ++s; // Start key after the prefix character.
+
+				/// REFACTOR: std::sscanf only used here to skip until whitespace, which isn't great, using std::isspace instead.
+
+				// Skip past key.
+				//if (std::sscanf(s, "%s", unusedBuff) != 0) {
+				//	s += std::strlen(unusedBuff);
+				while (s < bufferEnd && !std::isspace(*s)) s++;
+				// If key consists of at least one character.
+				if (s != imageKey) {
+
+					// Then tokenise whitespace/control chars while checking for a newline (with '\r'????).
+					bool32 carriage = false;
+					for (; (uchar8)*s <= ' ' && s < bufferEnd; s++) {
+						if (*s == '\r') carriage = true;
+						*s = '\0';
+					}
+
+					/// REFACTOR: Check carriage before std::sscanf, as std::sscanf serves no purpose otherwise.
+					if (!carriage && std::sscanf(s, "%s", fileBuff) != 0) {
+						s += std::strlen(fileBuff);
+
+						Gods98::Image* image = Gods98::Image_LoadBMP(fileBuff);
+						if (image != nullptr) {
+							// Append to the list.
+							/// REFACTOR: Change from Mem_Alloc,Mem_Free,memcpy to Mem_ReAlloc.
+							uint32 newListSize = (nerpsfileGlobs.imageCount + 1) * sizeof(NERPMessageImage);
+							nerpsfileGlobs.imageList = (NERPMessageImage*)Gods98::Mem_ReAlloc(nerpsfileGlobs.imageList, newListSize);
+
+							nerpsfileGlobs.imageList[nerpsfileGlobs.imageCount].key = imageKey;
+							nerpsfileGlobs.imageList[nerpsfileGlobs.imageCount].image = image;
+							nerpsfileGlobs.imageCount++;
+						}
+					}
+				}
+			}
+
+			/// TODO: Should this be changed to `else if` to stop image and text definition on the same line?
+			/// NOTE: Logic for the above image block will NEVER leave s on a non-whitespace/control character if the block is run.
+			if (*s == '$') {
+				// SOUND DEFINITION: (no file extension)
+				// `$mySoundName  Path\To\soundFile`
+				const char* soundKey = ++s; // Start key after the prefix character.
+
+				/// REFACTOR: std::sscanf only used here to skip until whitespace, which isn't great, using std::isspace instead.
+
+				// Skip past key.
+				//if (std::sscanf(s, "%s", unusedBuff) != 0) {
+				//	s += std::strlen(unusedBuff);
+				while (s < bufferEnd && !std::isspace(*s)) s++;
+				// If key consists of at least one character.
+				if (s != soundKey) {
+
+					// Then tokenise whitespace/control chars while checking for a newline (with '\r'????).
+					bool32 carriage = false;
+					for (; (uchar8)*s <= ' ' && s < bufferEnd; s++) {
+						if (*s == '\r') carriage = true;
+						*s = '\0';
+					}
+
+					/// REFACTOR: Check carriage before std::sscanf, as std::sscanf serves no purpose otherwise.
+					if (!carriage && std::sscanf(s, "%s", fileBuff) != 0) {
+						s += std::strlen(fileBuff);
+
+						sint32 sound3DHandle = Gods98::Sound3D_Load(fileBuff, true, false, 0);
+						if (sound3DHandle != 0) {
+							// Append to the list.
+							/// REFACTOR: Change from Mem_Alloc,Mem_Free,memcpy to Mem_ReAlloc.
+							uint32 newListSize = (nerpsfileGlobs.soundCount + 1) * sizeof(NERPMessageSound);
+							nerpsfileGlobs.soundList = (NERPMessageSound*)Gods98::Mem_ReAlloc(nerpsfileGlobs.soundList, newListSize);
+
+							nerpsfileGlobs.soundList[nerpsfileGlobs.soundCount].key = soundKey;
+							nerpsfileGlobs.soundList[nerpsfileGlobs.soundCount].sound3DHandle = sound3DHandle;
+							nerpsfileGlobs.soundCount++;
+
+							nerpsfileGlobs.soundsUNKCOUNT = nerpsfileGlobs.soundCount;
+						}
+					}
+				}
+			}
+			else {
+				// TEXT LINE DEFINITION:
+				//  `text_goes_here.`
+				//  `text_goes_here. #refSoundName#`
+
+				// Append to the list.
+				/// REFACTOR: Change from Mem_Alloc,Mem_Free,memcpy to Mem_ReAlloc.
+				uint32 newListSize = (nerpsfileGlobs.lineCount + 1) * sizeof(char*);
+				//linesList = (char**)Gods98::Mem_ReAlloc(linesList, newListSize);
+				//linesList[lineCount++] = s; // Store the current line(?)
+
+				/// REFACTOR: Assign directly to nerpsfileGlobs.lineList,lineCount,
+				///           just like with soundList.
+				nerpsfileGlobs.lineList = (char**)Gods98::Mem_ReAlloc(nerpsfileGlobs.lineList, newListSize);
+				nerpsfileGlobs.lineList[nerpsfileGlobs.lineCount++] = s; // Store the current line(?)
+			}
+
+			/// REFACTOR: Moved to start of block, since a different local is now used inside the image/sound parsing blocks.
+			// Set to false to require another control character before we can parse another message image/sound/line.
+			//newLine = false;
+		}
+
+	}
+
+	/// REFACTOR: Moved to text line definition block
+	//nerpsfileGlobs.lineCount = lineCount;
+	//nerpsfileGlobs.lineList = linesList;
+
+	return true;
+}
 
 // <LegoRR.exe @004534c0>
 char* __cdecl LegoRR::NERPsFile_GetMessageLine(uint32 lineIndex)
 {
-	if (lineIndex < nerpsfileGlobs.messageLineCount) {
-		return nerpsfileGlobs.messageLineList[lineIndex];
+	if (lineIndex < nerpsfileGlobs.lineCount) {
+		return nerpsfileGlobs.lineList[lineIndex];
 	}
 	return nullptr;
 }
@@ -108,24 +285,24 @@ char* __cdecl LegoRR::NERPsFile_GetMessageLine(uint32 lineIndex)
 // <LegoRR.exe @004534e0>
 bool32 __cdecl LegoRR::NERPsFile_Free(void)
 {
-	if (nerpsfileGlobs.fileSize != 0) {
+	if (nerpsfileGlobs.scriptSize != 0) {
 		Gods98::Mem_Free(nerpsfileGlobs.instructions);
 	}
 
 	if (nerpsfileGlobs.messageBuffer != nullptr) {
 		Gods98::Mem_Free(nerpsfileGlobs.messageBuffer);
-		if (nerpsfileGlobs.messageLineList != nullptr) {
-			Gods98::Mem_Free(nerpsfileGlobs.messageLineList);
+		if (nerpsfileGlobs.lineList != nullptr) {
+			Gods98::Mem_Free(nerpsfileGlobs.lineList);
 		}
 	}
 
 	nerpsfileGlobs.messageBuffer = nullptr;
-	nerpsfileGlobs.messageLineList = nullptr;
-	nerpsfileGlobs.messageLineCount = 0;
-	nerpsfileGlobs.fileSize = 0;
+	nerpsfileGlobs.lineList = nullptr;
+	nerpsfileGlobs.lineCount = 0;
+	nerpsfileGlobs.scriptSize = 0;
 
 	for (uint32 i = 0; i < nerpsfileGlobs.soundCount; i++) {
-		Gods98::Sound3D_Remove(nerpsfileGlobs.soundList[i].sampleIndex);
+		Gods98::Sound3D_Remove(nerpsfileGlobs.soundList[i].sound3DHandle);
 	}
 
 	if (nerpsfileGlobs.soundCount != 0) {
@@ -147,6 +324,7 @@ bool32 __cdecl LegoRR::NERPsFile_Free(void)
 // <LegoRR.exe @004535a0>
 void __cdecl LegoRR::NERPsRuntime_LoadLiteral(IN OUT NERPsInstruction* instruction)
 {
+	// Strangely the only place where opcode values are checked without a mask...
 	if (instruction->opcode == NERPsOpcode::Function && c_nerpsFunctions[instruction->operand].arguments == NERPS_ARGS_0) {
 
 		// The wonkey assignment here is because of how NERPs treats instructions as a whole DWORD.
@@ -167,10 +345,10 @@ void __cdecl LegoRR::NERPsRuntime_Execute(real32 elapsedAbs)
 	NERPsInstruction argsStack[3];
 
 	const NERPsInstruction* instructions = nerpsfileGlobs.instructions;
-	const uint32 instrCount = (nerpsfileGlobs.fileSize / sizeof(NERPsInstruction));
+	const uint32 instrCount = (nerpsfileGlobs.scriptSize / sizeof(NERPsInstruction));
 
-	// Left and right-hand registers during comparisons
-	// regA is also used as the result of a conditional expression
+	// Left and right-hand registers during comparisons.
+	// regA is also used as the result of a conditional expression.
 	uint32 regA = 0;
 	uint32 regB = 0; // dummy init = lastRegB; // Assigning uninitialised memory, oh no...
 	bool32 negate = false;
@@ -448,6 +626,143 @@ void __cdecl LegoRR::NERPsRuntime_Execute(real32 elapsedAbs)
 	}
 
 	NERPsRuntime_EndExecute(elapsedAbs);
+}
+
+
+
+// <LegoRR.exe @00456af0>
+void __cdecl LegoRR::NERPs_Level_NERPMessage_Parse(const char* text, OPTIONAL OUT char* buffer, bool32 updateTimer)
+{
+	real32 newTimerValue = nerpsMessageTimerValues[2];
+
+	if (nerpsfileGlobs.imageCount == 0 && nerpsfileGlobs.soundCount == 0 && buffer != nullptr) {
+		// No images or sounds, we can copy straight into the buffer, since there **shouldn't** be
+		// anything to strip. Note that the number of these is determined by `:imageKey` and `$soundKey`
+		// definitions elsewhere in the message file.
+		std::strcpy(buffer, text);
+	}
+	else {
+		// Go through and format text by picking out image/sound markers and only copying over plaintext to buffer.
+
+		/// REFACTOR: Index and count variables for images/sounds were originally stored in uint8, changed to uint32.
+		uint32 imageCount = 0;
+		Gods98::Image* images[20] = { nullptr };
+
+		char keyBuff[256];
+
+		char* buffPtr = buffer;
+		while (*text != '\0') {
+			if (*text == '<') {
+				// IMAGE REFERENCE:
+				//  `<imageKey>`
+				text++;
+				char* keyPtr = keyBuff;
+
+				/// CHANGE: Set keyClosed to true regardless of matching an image.
+				bool keyClosed = false; // If we've hit the closing '>' ~~AND found an image match~~.
+				while (*text != '\0' && !keyClosed) {
+					// Check for end of key.
+					if (*text == '>') {
+						*keyPtr = '\0'; // Null-terminate key, now that we've found the end.
+
+						for (uint32 i = 0; i < nerpsfileGlobs.imageCount; i++) {
+							if (::_stricmp(nerpsfileGlobs.imageList[i].key, keyBuff) == 0) {
+								// Store our images so we can draw them at the end of the function.
+								images[imageCount] = nerpsfileGlobs.imageList[i].image;
+								imageCount++;
+								keyClosed = true;
+								break;
+							}
+						}
+						/// CHANGE: Force-finish even if we haven't found a match.
+						keyClosed = true;
+					}
+					else {
+						*keyPtr++ = *text; // Copy to key buffer.
+					}
+					text++;
+				}
+
+			}
+			else if (*text == '#') {
+				// SOUND REFERENCE:
+				//  `#soundKey#`
+				text++;
+				char* keyPtr = keyBuff;
+
+				bool keyClosed = false; // If we've hit the closing '#' REGARDLESS of finding a sound match...
+				while (*text != '\0' && !keyClosed) {
+					// Check for end of key.
+					if (*text == '#') {
+						*keyPtr = '\0'; // Null-terminate key, now that we've found the end.
+
+						for (uint32 i = 0; i < nerpsfileGlobs.soundCount; i++) {
+							if (::_stricmp(nerpsfileGlobs.soundList[i].key, keyBuff) == 0) {
+								sint32 sound3DHandle = nerpsfileGlobs.soundList[i].sound3DHandle;
+
+								// Play the sound if it's not the currently-playing sound(?)
+								if (nerpsfileGlobs.soundsUNKCOUNT != i) {
+									nerpsfileGlobs.soundsUNKCOUNT = i;
+
+									real32 playTime = Gods98::Sound3D_GetSamplePlayTime(sound3DHandle);
+
+									// Only used if updateTimer is true.
+									newTimerValue = ((playTime * nerpsMessageTimerValues[0]) + nerpsMessageTimerValues[1]);
+
+									if (SFX_IsSoundOn()) {
+										SFX_StopGlobalSample();
+
+										/// TODO: Does calling this again always return the same result?
+										playTime = Gods98::Sound3D_GetSamplePlayTime(sound3DHandle);
+
+										SFX_SetGlobalSampleDurationIfLE0_AndNullifyHandle((real32)(playTime * STANDARD_FRAMERATE));
+										Gods98::Sound3D_Play2(Gods98::Sound3D_Play::Sound3D_Play_Normal, nullptr, sound3DHandle, false, nullptr);
+										nerpsUnkSampleIndex = sound3DHandle;
+
+										TutorialFlags tflags = (TutorialFlags)NERPFunc__GetTutorialFlags(nullptr);
+										if (tflags == TUTORIAL_NONE) {
+											Advisor_SetCurrentAdvisor(Advisor_TalkInGame, true);
+											nerpsfileGlobs.AdvisorTalkingMode = true;
+										}
+									}
+								}
+								break;
+							}
+						}
+						keyClosed = true;
+					}
+					else {
+						*keyPtr++ = *text; // Copy to key buffer.
+					}
+					text++;
+				}
+
+			}
+			else {
+				// MESSAGE TEXT:
+				if (buffer) *buffPtr++ = *text; // Copy to output buffer.
+				text++;
+			}
+		}
+		
+		if (buffer) *buffPtr = '\0';
+
+		if (imageCount != 0) {
+			const uint32 fullWidth = nerpsIconWidth * imageCount;
+
+			for (uint32 i = 0; i < imageCount; i++) {
+				const Point2F destPos = {
+					(nerpsIconPos.x - (real32)fullWidth) + (real32)(uint32)(nerpsIconSpace * i),
+					nerpsIconPos.y,
+				};
+				Gods98::Image_DisplayScaled(images[i], nullptr, &destPos, nullptr);
+			}
+		}
+	}
+
+	if (updateTimer) {
+		nerpsruntimeGlobs.messageTimer = newTimerValue;
+	}
 }
 
 #pragma endregion

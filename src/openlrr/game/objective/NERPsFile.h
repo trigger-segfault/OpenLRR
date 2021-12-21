@@ -106,33 +106,38 @@ assert_sizeof(NERPsTutorialAction, 0x4);
 
 
 // <https://kb.rockraidersunited.com/NERPs_documentation>
-
-
-
+// NERPs Opcodes are checked using a bitwise AND comparison.
+// Load is only performed when none of the other 4 bits are set (see `Mask`).
+//
+// Opcodes are checked in the order:
+//  1) Function
+//  2) Operator
+//  3) Label
+//  4) Jump
+//  5) Load
 flags_scoped(NERPsOpcode) : uint16
 {
-	Load       = 0, // Load literal integer
-	Operator   = 1, // Everything else...
-	Function   = 2, // Call hardcoded NERPs function
-	Label      = 4, // Define label at instruction index (this serves no purpose during code execution, but is handled)
-	Jump       = 8, // Unconditional jump to instruction index
-	//NERPS_OPCODE_LITERAL = 0,
-	//NERPS_OPCODE_COMPARISON = 1,
-	//NERPS_OPCODE_CALL = 2,
-	//NERPS_OPCODE_LABEL = 4,
-	//NERPS_OPCODE_GOTO = 8,
+	Load       = 0,   // Load literal integer
+
+	Operator   = 0x1, // Everything else...
+	Function   = 0x2, // Call hardcoded NERPs function
+	Label      = 0x4, // Define label at instruction index (this serves no purpose during code execution, but is handled)
+	Jump       = 0x8, // Unconditional jump to instruction index
+
+	Mask       = (Operator|Function|Label|Jump),
 };
 flags_scoped_end(NERPsOpcode, 0x2);
 
 
 //{ "+", "#", "/", "\\", "?", ">", "<", "=", ">=", "<=", "!=" };
+// Operands for the NERPsOpcode::Operator instruction.
 enum class NERPsOperator : uint16
 {
-	Plus   = 0,  // "+"  Addition(???)
-	Pound  = 1,  // "#"  (???)
-	FSlash = 2,  // "/"  Divide(???)
-	BSlash = 3,  // "\\" (1 character)
-	Test   = 4,  // "?"  (expression "?" then action)
+	Plus   = 0,  // "+"  Boolean and "&&"
+	Pound  = 1,  // "#"  Boolean not "!"
+	FSlash = 2,  // "/"  Boolean or  "||"
+	BSlash = 3,  // "\\" Unknown, maybe line continuation (has no effect, single character \ )
+	Test   = 4,  // "?"  Test conditional (has no effect) if condition "then" action
 	Cgt    = 5,  // ">"  Compare greater than
 	Clt    = 6,  // "<"  Compare less than
 	Ceq    = 7,  // "="  Compare equal
@@ -143,12 +148,14 @@ enum class NERPsOperator : uint16
 assert_sizeof(NERPsOperator, 0x2);
 
 
-// Intermediate enum used during NERPsRuntime_Execute, not in the instruction format.
+// Intermediate enum used during `NERPsRuntime_Execute`. This is not an instruction operand!
+// Note that `Boolean not` is not a NERPsComparison type, allowing it to be used in
+// combination with binary comparison operators.
 enum class NERPsComparison : uint32
 {
 	None = 0,
-	And  = 1,  // "&&" Logical AND
-	Or   = 2,  // "||" Logical OR
+	And  = 1,  // "&&" Boolean and
+	Or   = 2,  // "||" Boolean or
 	Cgt  = 3,  // ">"  Compare greater than
 	Clt  = 4,  // "<"  Compare less than
 	Ceq  = 5,  // "="  Compare equal
@@ -157,7 +164,6 @@ enum class NERPsComparison : uint32
 	Cne  = 8,  // "!=" Compare not equal
 };
 assert_sizeof(NERPsComparison, 0x4);
-
 
 #pragma endregion
 
@@ -186,8 +192,17 @@ assert_sizeof(BlockPointer, 0xc);
 
 struct NERPMessageSound // [LegoRR/NERPs.c|struct:0x8]
 {
-	/*0,4*/	char* key;
-	/*4,4*/	sint32 sampleIndex;
+	/*0,4*/	const char* key;
+	/*4,4*/	sint32 sound3DHandle;
+	/*8*/
+};
+assert_sizeof(NERPMessageSound, 0x8);
+
+
+struct NERPMessageImage // [LegoRR/NERPs.c|struct:0x8]
+{
+	/*0,4*/	const char* key;
+	/*4,4*/	Gods98::Image* image;
 	/*8*/
 };
 assert_sizeof(NERPMessageSound, 0x8);
@@ -195,7 +210,7 @@ assert_sizeof(NERPMessageSound, 0x8);
 
 struct NERPsFunctionSignature // [LegoRR/NERPs.c|struct:0xc]
 {
-	/*0,4*/	char* name;
+	/*0,4*/	const char* name;
 	/*4,4*/	NERPsFunction function;
 	/*8,4*/	NERPsFunctionArgs arguments;
 	/*c*/
@@ -240,14 +255,14 @@ struct NERPsFile_Globs // [LegoRR/NERPs.c|struct:0xb4|tags:GLOBS]
 	/*20,4*/	bool32 bool_20;
 	/*24,4*/	real32 float_24;
 	/*28,4*/	real32 float_28;
-	/*2c,4*/	NERPsInstruction* instructions; // void* fileData;
-	/*30,4*/	uint32 fileSize;
+	/*2c,4*/	NERPsInstruction* instructions; // (script fileData)
+	/*30,4*/	uint32 scriptSize; // (script fileSize)
 	/*34,2c*/	undefined4 reserved1[11];
 	/*60,4*/	char* messageBuffer;
-	/*64,4*/	uint32 messageLineCount;
-	/*68,4*/	char** messageLineList;
-	/*6c,4*/	uint32 messageCount;
-	/*70,4*/	void* messageList;
+	/*64,4*/	uint32 lineCount;
+	/*68,4*/	char** lineList;
+	/*6c,4*/	uint32 imageCount;
+	/*70,4*/	NERPMessageImage* imageList;
 	/*74,4*/	uint32 soundCount;
 	/*78,4*/	NERPMessageSound* soundList;
 	/*7c,4*/	undefined4 soundsUNKCOUNT;
@@ -372,6 +387,13 @@ void __cdecl NERPsRuntime_LoadLiteral(IN OUT NERPsInstruction* instruction);
 
 // <LegoRR.exe @004535e0>
 void __cdecl NERPsRuntime_Execute(real32 elapsedAbs);
+
+
+
+// text is the raw input line (which usually has `#soundName#` and `<imageName>` etc.)
+// buffer is the stripped output line without the `#soundName#` or `<imageKey>` markers.
+// <LegoRR.exe @00456af0>
+void __cdecl NERPs_Level_NERPMessage_Parse(const char* text, OPTIONAL OUT char* buffer, bool32 updateTimer);
 
 #pragma endregion
 
