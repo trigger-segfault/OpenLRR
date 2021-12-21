@@ -79,7 +79,7 @@ bool interop_hook_Gods98_3DSound(void)
 	// internal, no need to hook these
 	//result &= hook_write_jmpret(0x0047ab10, Gods98::Sound3D_CheckVolumeLimits);
 
-	// used by: NERPsFile_LoadMessageFile, SFX_Sample_LoadProperty
+	// used by: NERPsFile_LoadMessageFile, SFX_LoadSampleProperty
 	result &= hook_write_jmpret(0x0047ab30, Gods98::Sound3D_Load);
 
 	// internal, no need to hook these
@@ -104,19 +104,19 @@ bool interop_hook_Gods98_3DSound(void)
 	// internal, no need to hook these
 	//result &= hook_write_jmpret(0x0047b2e0, Gods98::Sound3D_AddSoundRecord);
 
-	// used by: SFX_Sample_Random_SetBufferVolume
+	// used by: SFX_Random_SetBufferVolume
 	result &= hook_write_jmpret(0x0047b310, Gods98::Sound3D_SetBufferVolume);
-	// used by: SFX_Sample_Random_GetBufferVolume
+	// used by: SFX_Random_GetBufferVolume
 	result &= hook_write_jmpret(0x0047b390, Gods98::Sound3D_GetBufferVolume);
 
 	// internal, no need to hook these
 	//result &= hook_write_jmpret(0x0047b3b0, Gods98::Sound3D_GetSoundBuffer);
 
-	// used by: Lws_HandleTrigger, SFX_Sample_Sound3D_StopSound
+	// used by: Lws_HandleTrigger, SFX_Sound3D_StopSound
 	result &= hook_write_jmpret(0x0047b3f0, Gods98::Sound3D_StopSound);
 
 	// used by: Game_SetPaused, Level_Free, Lego_GoBackToMissionSelect,
-	//           SFX_SetSoundStates_IsOn_StopAll
+	//           SFX_SetSoundOn
 	result &= hook_write_jmpret(0x0047b420, Gods98::Sound3D_StopAllSounds);
 
 	// internal, no need to hook these
@@ -149,7 +149,7 @@ bool interop_hook_Gods98_3DSound(void)
 	//result &= hook_write_jmpret(0x0047b980, Gods98::Sound3D_CreateSoundBuffer);
 	//result &= hook_write_jmpret(0x0047ba50, Gods98::Sound3D_SendSoundToBuffer);
 
-	// used by: NERPs_Level_NERPMessage_Parse, SFX_Sample_Random_GetSamplePlayTime
+	// used by: NERPs_Level_NERPMessage_Parse, SFX_Random_GetSamplePlayTime
 	result &= hook_write_jmpret(0x0047bba0, Gods98::Sound3D_GetSamplePlayTime);
 
 	// internal, no need to hook these
@@ -285,7 +285,7 @@ bool interop_hook_Gods98_Containers(void)
 	result &= hook_write_jmpret(0x00472ba0, Gods98::Container_EnableSoundTriggers);
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x00472bc0, Gods98::Container_SetTriggerFrameCallback);
-	// used by: SFX_InitHashNames
+	// used by: SFX_Initialise
 	result &= hook_write_jmpret(0x00472be0, Gods98::Container_SetSoundTriggerCallback);
 	// used by: Mesh_CreateOnFrame, Lego_LoadLighting,
 	//           LiveObject_Flocks_Initialise, Smoke_CreateSmokeArea
@@ -319,7 +319,7 @@ bool interop_hook_Gods98_Containers(void)
 	//           Water_InitVertices
 	result &= hook_write_jmpret(0x00473820, Gods98::Container_MakeMesh2);
 
-	// used by: SFX_Sample_Container_Random_Play_OrInitSoundUnk
+	// used by: SFX_Container_Random_Play_OrInitSoundUnk
 	result &= hook_write_jmpret(0x00473940, Gods98::Container_GetMasterFrame);
 
 	result &= hook_write_jmpret(0x00473950, Gods98::Container_Clone);
@@ -1631,10 +1631,35 @@ bool interop_hook_LegoRR_SFX(void)
 {   bool result = true;
 
 	// Ensure data is initialized to zero, testing if NERPs in-game messages are using garbage data
-	result &= hook_write_jmpret(0x00464a00, LegoRR::SFX_InitHashNames);
+	result &= hook_write_jmpret(0x00464a00, LegoRR::SFX_Initialise);
+
+	result &= hook_write_jmpret(0x00464ee0, LegoRR::SFX_Container_SoundTriggerCallback);
+	result &= hook_write_jmpret(0x00464f10, LegoRR::SFX_SetSamplePopulateMode);
+	result &= hook_write_jmpret(0x00464f30, LegoRR::SFX_GetType);
 
 	// Fix apply for sound groups cutting out the first-listed sound
-	result &= hook_write_jmpret(0x00464fc0, LegoRR::SFX_Sample_LoadProperty);
+	result &= hook_write_jmpret(0x00464fc0, LegoRR::SFX_LoadSampleProperty);
+
+	result &= hook_write_jmpret(0x004650e0, LegoRR::SFX_Random_GetSound3DHandle);
+	result &= hook_write_jmpret(0x00465140, LegoRR::SFX_StopGlobalSample);
+	result &= hook_write_jmpret(0x00465180, LegoRR::SFX_SetGlobalSampleDurationIfLE0_AndNullifyHandle);
+	result &= hook_write_jmpret(0x004651b0, LegoRR::SFX_Random_SetAndPlayGlobalSample);
+	result &= hook_write_jmpret(0x00465220, LegoRR::SFX_AddToQueue);
+	result &= hook_write_jmpret(0x00465260, LegoRR::SFX_Random_Play_OrAddToQueue);
+	result &= hook_write_jmpret(0x004652d0, LegoRR::SFX_Random_SetBufferVolume);
+	result &= hook_write_jmpret(0x004652f0, LegoRR::SFX_Random_GetBufferVolume);
+	result &= hook_write_jmpret(0x00465310, LegoRR::SFX_Container_Random_Play_OrInitSoundUnk);
+	result &= hook_write_jmpret(0x00465350, LegoRR::SFX_Random_Play_OrInitSoundUnk);
+	result &= hook_write_jmpret(0x00465420, LegoRR::SFX_Random_GetSamplePlayTime);
+	result &= hook_write_jmpret(0x00465450, LegoRR::SFX_Sound3D_StopSound);
+	result &= hook_write_jmpret(0x00465460, LegoRR::SFX_Update);
+	result &= hook_write_jmpret(0x00465510, LegoRR::SFX_Sound3D_Update);
+	result &= hook_write_jmpret(0x00465520, LegoRR::SFX_SetSoundOn);
+	result &= hook_write_jmpret(0x00465560, LegoRR::SFX_SetSoundOn_AndStopAll);
+	result &= hook_write_jmpret(0x00465570, LegoRR::SFX_IsQueueMode);
+	result &= hook_write_jmpret(0x00465580, LegoRR::SFX_SetQueueMode_AndFlush);
+	result &= hook_write_jmpret(0x00465590, LegoRR::SFX_SetQueueMode);
+	result &= hook_write_jmpret(0x00465630, LegoRR::SFX_IsSoundOn);
 
 	return_interop(result);
 }

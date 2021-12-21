@@ -415,7 +415,7 @@ struct Lego_Globs // [LegoRR/Lego.c|struct:0xf00|tags:GLOBS]
 	/*1cc,4*/       uint32 upgradeCount;
 	/*1d0,48*/      char* surfaceName[18];
 	/*218,48*/      char* langSurface_name[18];
-	/*260,48*/      SFX_Type langSurface_sound[Lego_SurfaceType_Count];
+	/*260,48*/      SFX_ID langSurface_sound[Lego_SurfaceType_Count];
 	/*2a8,4*/       Gods98::Container* contBoulder;
 	/*2ac,4*/       Gods98::Container* contBoulderExplode;
 	/*2b0,4*/       Gods98::Container* contBoulderExplodeIce;

@@ -319,7 +319,7 @@ struct LegoObject // [LegoRR/LegoObject.c|struct:0x40c|tags:LISTSET]
 	/*348,4*/       sint32* stealTableptr_348; // element size is 0x4
 	/*34c,4*/       LOD_PolyLevel polyMode_34c;
 	/*350,4*/       sint32 soundHandle_350;
-	/*354,4*/       SFX_Type soundHandle_354; // (engine sound only?)
+	/*354,4*/       SFX_ID soundHandle_354; // (engine sound only?)
 	/*358,4*/       undefined4 field_358;
 	/*35c,4*/       undefined4 field_35c;
 	/*360,4*/       undefined4 field_360;
@@ -368,7 +368,7 @@ struct LegoObject_Globs // [LegoRR/LegoObject.c|struct:0xc644|tags:GLOBS]
 {
 	/*0000,80*/     LegoObject* listSet[32];
 	/*0080,4*/      LegoObject* freeList;
-	/*0084,4b0*/    SFX_Type objectTtSFX[LegoObject_Type_Count][LegoObject_ID_Count]; // [objType:20][objID:15]
+	/*0084,4b0*/    SFX_ID objectTtSFX[LegoObject_Type_Count][LegoObject_ID_Count]; // [objType:20][objID:15]
 	/*0534,13c*/    const char* activityName[Activity_Type_Count]; // [activityType:79]
 	/*0670,4*/      void* UnkSurfaceGrid_1_TABLE;
 	/*0674,4*/      void* UnkSurfaceGrid_2_TABLE;

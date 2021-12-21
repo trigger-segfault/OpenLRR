@@ -157,18 +157,18 @@ bool32 __cdecl LegoRR::Stats_Initialise(const Gods98::Config* config, const char
         real32 pickSphere = Config_GetRealValue(config, Stats_ID("PickSphere"));
             
             
-        SFX_Type drillSound; //SFX_Type local_e0;
-        SFX_Type drillFadeSound; //SFX_Type local_e8;
-        SFX_Type engineSound; //SFX_Type local_e4;
+        SFX_ID drillSound; //SFX_ID local_e0;
+        SFX_ID drillFadeSound; //SFX_ID local_e8;
+        SFX_ID engineSound; //SFX_ID local_e4;
         if (!SFX_GetType(Config_GetTempStringValue(config, Stats_ID("DrillSound")), &drillSound)) {
-            drillSound = SFX_Type::SFX_Drill;
+            drillSound = SFX_ID::SFX_Drill;
         }
         if (!SFX_GetType(Config_GetTempStringValue(config, Stats_ID("DrillFadeSound")), &drillFadeSound)) {
-            drillFadeSound = SFX_Type::SFX_DrillFade;
+            drillFadeSound = SFX_ID::SFX_DrillFade;
         }
             
         if (!SFX_GetType(Config_GetTempStringValue(config, Stats_ID("EngineSound")), &engineSound)) {
-            engineSound = SFX_Type::SFX_NULL;
+            engineSound = SFX_ID::SFX_NULL;
         }
 
         //real32 local_10c = (float)fVar14;
@@ -987,13 +987,13 @@ sint32 __cdecl LegoRR::Stats_GetWaterEntrances(LegoRR::LegoObject_Type objType, 
 }
 
 // <LegoRR.exe @0046a250>
-LegoRR::SFX_Type __cdecl LegoRR::StatsObject_GetDrillSoundType(LegoRR::LegoObject* liveObj, bool32 fade)
+LegoRR::SFX_ID __cdecl LegoRR::StatsObject_GetDrillSoundType(LegoRR::LegoObject* liveObj, bool32 fade)
 {
 	return (fade ? liveObj->stats->DrillFadeSound : liveObj->stats->DrillSound);
 }
 
 // <LegoRR.exe @0046a280>
-LegoRR::SFX_Type __cdecl LegoRR::StatsObject_GetEngineSound(LegoRR::LegoObject* liveObj)
+LegoRR::SFX_ID __cdecl LegoRR::StatsObject_GetEngineSound(LegoRR::LegoObject* liveObj)
 {
 	return liveObj->stats->EngineSound;
 }

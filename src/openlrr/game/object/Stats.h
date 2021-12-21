@@ -182,9 +182,9 @@ struct ObjectStats // [LegoRR/Stats.c|struct:0x150]
 	/*0b4,4*/       sint32 CostCrystal;
 	/*0b8,4*/       sint32 CostRefinedOre;
 	/*0bc,4*/       sint32 CrystalDrain; // (leveled)
-	/*0c0,4*/       SFX_Type DrillSound; // (from: FUN_00464f30, invalid: 2 SFX_Drill)
-	/*0c4,4*/       SFX_Type DrillFadeSound; // (from: FUN_00464f30, invalid: SFX_DrillFade)
-	/*0c8,4*/       SFX_Type EngineSound; // (from: FUN_00464f30, invalid: SFX_Null)
+	/*0c0,4*/       SFX_ID DrillSound; // (from: FUN_00464f30, invalid: 2 SFX_Drill)
+	/*0c4,4*/       SFX_ID DrillFadeSound; // (from: FUN_00464f30, invalid: SFX_DrillFade)
+	/*0c8,4*/       SFX_ID EngineSound; // (from: FUN_00464f30, invalid: SFX_Null)
 	/*0cc,4*/       sint32 NumOfToolsCanCarry; // (leveled)
 	/*0d0,4*/       sint32 WaterEntrances;
 	/*0d4,4*/       real32 RubbleCoef; // (default: 1.0)
@@ -369,10 +369,10 @@ uint32 __cdecl Stats_GetLevels(LegoObject_Type objType, sint32 objID);
 sint32 __cdecl Stats_GetWaterEntrances(LegoObject_Type objType, sint32 objID, sint32 objLevel);
 
 // <LegoRR.exe @0046a250>
-SFX_Type __cdecl StatsObject_GetDrillSoundType(LegoObject* liveObj, bool32 fade);
+SFX_ID __cdecl StatsObject_GetDrillSoundType(LegoObject* liveObj, bool32 fade);
 
 // <LegoRR.exe @0046a280>
-SFX_Type __cdecl StatsObject_GetEngineSound(LegoObject* liveObj);
+SFX_ID __cdecl StatsObject_GetEngineSound(LegoObject* liveObj);
 
 // <LegoRR.exe @0046a2a0>
 real32 __cdecl StatsObject_GetRestPercent(LegoObject* liveObj);
