@@ -39,6 +39,7 @@
 #include "engine/Init.h"
 
 #include "game/audio/SFX.h"
+#include "game/front/Credits.h"
 #include "game/front/FrontEnd.h"
 #include "game/interface/Advisor.h"
 #include "game/interface/Messages.h"
@@ -1511,6 +1512,15 @@ bool interop_hook_LegoRR_Advisor(void)
 	return_interop(result);
 }
 
+bool interop_hook_LegoRR_Credits(void)
+{   bool result = true;
+
+	// used by: Front_Callback_TriggerPlayCredits
+	result &= hook_write_jmpret(0x00409ff0, LegoRR::Credits_Play);
+	
+	return_interop(result);
+}
+
 bool interop_hook_LegoRR_BezierCurve(void)
 {   bool result = true;
 
@@ -1829,6 +1839,7 @@ bool interop_hook_all(void)
 
 	result &= interop_hook_LegoRR_Advisor();
 	result &= interop_hook_LegoRR_BezierCurve();
+	result &= interop_hook_LegoRR_Credits();
 	result &= interop_hook_LegoRR_LegoCamera();
 	result &= interop_hook_LegoRR_Messages();
 	result &= interop_hook_LegoRR_PTL();

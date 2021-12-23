@@ -4,6 +4,7 @@
 #pragma once
 
 #include "../../common.h"
+#include "../../engine/gfx/Containers.h"
 #include "../../engine/geometry.h"
 #include "../../engine/undefined.h"
 
