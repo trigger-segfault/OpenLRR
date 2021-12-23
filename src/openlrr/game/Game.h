@@ -552,6 +552,9 @@ __inline const Gods98::Config* Lego_Config(void) { return legoGlobs.config; }
 // <inlined>
 __inline const char* Lego_GameName(void) { return legoGlobs.gameName; }
 
+// <inlined>
+__inline ViewMode Lego_GetViewMode(void) { return legoGlobs.viewMode; }
+
 // <LegoRR.exe @00431490>
 //Lego_Level* __cdecl noinline(Lego_GetLevel)(void);
 __inline Lego_Level* Lego_GetLevel(void) { return legoGlobs.currLevel; }

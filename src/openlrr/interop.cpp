@@ -40,6 +40,7 @@
 
 #include "game/audio/SFX.h"
 #include "game/front/FrontEnd.h"
+#include "game/interface/Advisor.h"
 #include "game/interface/Messages.h"
 #include "game/object/BezierCurve.h"
 #include "game/object/Object.h"
@@ -1457,6 +1458,59 @@ bool interop_hook_Gods98_Init(void)
 }
 
 
+bool interop_hook_LegoRR_Advisor(void)
+{   bool result = true;
+
+	// used by: Lego_Initialise
+	result &= hook_write_jmpret(0x00401000, LegoRR::Advisor_Initialise);
+
+	// used by: Level_Free
+	result &= hook_write_jmpret(0x004011c0, LegoRR::Advisor_Stop);
+
+	// used by: Lego_Initialise
+	result &= hook_write_jmpret(0x00401210, LegoRR::Advisor_InitViewport);
+	result &= hook_write_jmpret(0x00401270, LegoRR::Advisor_LoadAnims);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x004013a0, LegoRR::Advisor_GetAdvisorType);
+	//result &= hook_write_jmpret(0x00401430, LegoRR::Advisor_GetAnimType);
+
+	// used by: Lego_Initialise
+	result &= hook_write_jmpret(0x004014a0, LegoRR::Advisor_LoadPositions);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x004016f0, LegoRR::Advisor_AddPosition);
+
+	// used by: Panel_SetCurrentAdvisorFromButton
+	result &= hook_write_jmpret(0x00401780, LegoRR::Advisor_SetParameters);
+	result &= hook_write_jmpret(0x004017d0, LegoRR::Advisor_GetOrigPos);
+
+	// used by: Interface_FUN_0041c420, NERPs_Level_NERPMessage_Parse, Objective_Update,
+	//          Panel_SetCurrentAdvisorFromButton
+	result &= hook_write_jmpret(0x00401800, LegoRR::Advisor_Start);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x00401870, LegoRR::Advisor_PlaySFX);
+
+	// used by: Lego_MainLoop
+	result &= hook_write_jmpret(0x004018d0, LegoRR::Advisor_Update);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x004019b0, LegoRR::Advisor_MoveAnimation);
+
+	// used by: Lego_HandleDebugKeys, NERPFunc__FlashCallToArmsIcon, NERPsRuntime_UpdateTimers,
+	//          NERPsRuntime_FlashIcon, Objective_ProgrammerModeGT3_FUN_00458ba0, Objective_Update
+	result &= hook_write_jmpret(0x00401a60, LegoRR::Advisor_End);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x00401a70, LegoRR::Advisor_ViewportTransform);
+
+	// used by: Interface_FUN_0041c420
+	result &= hook_write_jmpret(0x00401b60, LegoRR::Advisor_IsAnimating);
+	
+	return_interop(result);
+}
+
 bool interop_hook_LegoRR_BezierCurve(void)
 {   bool result = true;
 
@@ -1773,6 +1827,7 @@ bool interop_hook_all(void)
 	//result &= interop_hook_Gods98_Init(); // no need to hook, used by: WinMain
 
 
+	result &= interop_hook_LegoRR_Advisor();
 	result &= interop_hook_LegoRR_BezierCurve();
 	result &= interop_hook_LegoRR_LegoCamera();
 	result &= interop_hook_LegoRR_Messages();

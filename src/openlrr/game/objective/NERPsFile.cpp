@@ -9,18 +9,15 @@
 #include "../../engine/gfx/Containers.h"
 #include "../../legacy.h"
 
-//#include "../audio/SFX.h"
+#include "../audio/SFX.h"
+#include "../interface/Advisor.h"
 #include "NERPsFile.h"
 
 
-#define Advisor_SetCurrentAdvisor ((bool32 (__cdecl*)(LegoRR::Advisor_Type, bool32 setFlag2))0x00401800)
 #define Text_Clear ((void (__cdecl*)(void))0x0046ad50)
 #define NERPsRuntime_EndExecute ((void (__cdecl*)(real32))0x00454060)
 #define NERPFunc__GetTutorialFlags ((sint32 (__cdecl*)(sint32*))0x00456500)
 #define NERPFunc__SetMessagePermit ((sint32 (__cdecl*)(sint32*))0x004568b0)
-#define SFX_StopGlobalSample ((void (__cdecl* )(void))0x00465140)
-#define SFX_SetGlobalSampleDurationIfLE0_AndNullifyHandle ((bool32 (__cdecl* )(real32 duration))0x00465180)
-#define SFX_IsSoundOn ((bool32 (__cdecl* )(void))0x00465630)
 
 
 /**********************************************************************************
@@ -721,7 +718,7 @@ void __cdecl LegoRR::NERPs_Level_NERPMessage_Parse(const char* text, OPTIONAL OU
 
 										TutorialFlags tflags = (TutorialFlags)NERPFunc__GetTutorialFlags(nullptr);
 										if (tflags == TUTORIAL_NONE) {
-											Advisor_SetCurrentAdvisor(Advisor_TalkInGame, true);
+											Advisor_Start(Advisor_TalkInGame, true);
 											nerpsfileGlobs.AdvisorTalkingMode = true;
 										}
 									}
