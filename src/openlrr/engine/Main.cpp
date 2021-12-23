@@ -603,6 +603,10 @@ void __cdecl Gods98::Main_LoopUpdate(bool32 clear)
 
 	if (clear) DirectDraw_Clear(nullptr, 0 /*black*/);
 	mainGlobs.flags &= ~MainFlags::MAIN_FLAG_UPDATED;
+
+	/// FIX APPLY: Allow the window close button to function within menus and screens by
+	///            forcefully exiting the game when LRR is deep in a nested UI loop.
+	if (mainGlobs.exit) Main_Exit();
 }
 
 // <LegoRR.exe @00478230>
