@@ -44,7 +44,7 @@ enum AdvisorPositionFlags : uint32 // [LegoRR/Advisor.c|flags:0x4|type:uint]
 {
 	ADVISOR_FLAG_NONE    = 0,
 	ADVISOR_FLAG_NOPANEL = 0x10000,
-	ADVISOR_FLAG_DEFAULT = 0x20000,
+	ADVISOR_FLAG_USED    = 0x20000, // This Advisor_Type has been loaded
 	ADVISOR_FLAG_HASTEXT = 0x40000,
 };
 flags_end(AdvisorPositionFlags, 0x4);

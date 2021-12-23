@@ -131,11 +131,12 @@ void __cdecl LegoRR::Advisor_LoadAnims(const Gods98::Config* config, const char*
 		char* value = Gods98::Config_GetStringValue(config, Config_ID(gameName, "Advisor", animName));
 
 		if (value == nullptr) {
+			// If the property isn't found, check if its listed with the reduce prefix: '!'
 			if (!(Gods98::Main_GetFlags() & Gods98::MainFlags::MAIN_FLAG_REDUCEANIMATION)) {
-				/// FIXME: Reduce buffer name is never used, '!' prefix cannot
-				///        be used with Advisor block properties as intended.
-				std::sprintf(reduceName, "!%s", animName); // unused??
-				value = Gods98::Config_GetStringValue(config, Config_ID(gameName, "Advisor", animName));
+				/// FIX APPLY: Correctly check reduce prefix by passing reduceName
+				///            into Config_ID instead of animName again.
+				std::sprintf(reduceName, "!%s", animName);
+				value = Gods98::Config_GetStringValue(config, Config_ID(gameName, "Advisor", reduceName));
 			}
 		}
 
@@ -234,7 +235,7 @@ void __cdecl LegoRR::Advisor_LoadPositions(const Gods98::Config* config, const c
 // <LegoRR.exe @004016f0>
 void __cdecl LegoRR::Advisor_AddPosition(Advisor_Type advisorType, Advisor_Anim animType, Text_Type textType, SFX_ID sfxID, Panel_Type panelType, real32 x, real32 y)
 {
-	advisorGlobs.positions[advisorType].flags = ADVISOR_FLAG_DEFAULT; // Always set
+	advisorGlobs.positions[advisorType].flags = ADVISOR_FLAG_USED;
 	advisorGlobs.positions[advisorType].animType = animType;
 	advisorGlobs.positions[advisorType].textType = textType;
 	advisorGlobs.positions[advisorType].sfxID = sfxID;
@@ -276,8 +277,7 @@ void __cdecl LegoRR::Advisor_GetOrigPos(Advisor_Type advisorType, OUT real32* or
 // <LegoRR.exe @00401800>
 bool32 __cdecl LegoRR::Advisor_Start(Advisor_Type advisorType, bool32 loop)
 {
-	// Note that ADVISOR_FLAG_DEFAULT is always set.
-	if (advisorGlobs.positions[advisorType].flags & ADVISOR_FLAG_DEFAULT) {
+	if (advisorGlobs.positions[advisorType].flags & ADVISOR_FLAG_USED) {
 
 		if (!(advisorGlobs.flags & ADVISOR_GLOB_FLAG_ANIMATING) && Lego_GetViewMode() != ViewMode_FP) {
 			advisorGlobs.currType = advisorType;
