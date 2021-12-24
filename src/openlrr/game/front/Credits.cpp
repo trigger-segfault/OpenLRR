@@ -26,18 +26,15 @@ void __cdecl LegoRR::Credits_Play(const char* textFile, Gods98::Font* font, cons
 	char cconvBuff[1024];
 	uint32 fileSize;
 
+	/// REFACTOR: Use extension of File_LoadBinary function to null-terminate buffer.
 	// First try loading the filename with an added ".cconv" extension.
 	std::sprintf(cconvBuff, "%s.cconv", textFile);
-	char* text = (char*)Gods98::File_LoadBinary(cconvBuff, &fileSize);
+	char* text = (char*)Gods98::File_LoadBinaryString(cconvBuff, &fileSize);
 	// Otherwise, try loading the filename as-is.
-	if (!text) text = (char*)Gods98::File_LoadBinary(textFile, &fileSize);
+	if (!text) text = (char*)Gods98::File_LoadBinaryString(textFile, &fileSize);
 
 
 	if (text != nullptr) {
-		// Resize text to make room for a null terminator.
-		text = (char*)Gods98::Mem_ReAlloc(text, fileSize + 4);
-		text[fileSize] = '\0';
-
 		Gods98::Animation_t* anim = Gods98::Animation_Load(aviFile);
 
 

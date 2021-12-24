@@ -71,8 +71,8 @@ Gods98::Config* __cdecl Gods98::Config_Load(const char* filename)
 
 	configGlobs.flags |= Config_GlobFlags::CONFIG_GLOB_FLAG_LOADINGCONFIG;
 
-	/// FIXME: Load into buffer with one extra byte for null-termination
-	if (fdata = (char*)File_LoadBinary(filename, &fileSize)) {
+	/// FIX APPLY: Use extension of File_LoadBinary function to null-terminate buffer.
+	if (fdata = (char*)File_LoadBinaryString(filename, &fileSize)) {
 
 		rootConf = Config_Create(nullptr);
 		rootConf->fileData = fdata;

@@ -296,16 +296,33 @@ const char* __cdecl _File_GetWadName(const char* fName);
 char* __cdecl File_GetLine(OUT char* buffer, uint32 size, File* file);
 
 // <LegoRR.exe @00480360>
-void* __cdecl File_LoadBinary(const char* filename, OUT uint32* sizeptr);
+void* __cdecl File_LoadBinary(const char* filename, OPTIONAL OUT uint32* sizeptr);
 
+// WARNING: Does not null-terminate data!
 // <missing>
-void* __cdecl File_LoadASCII(const char* filename, OUT uint32* sizeptr);
+void* __cdecl File_LoadASCII(const char* filename, OPTIONAL OUT uint32* sizeptr);
 
 // <LegoRR.exe @00480380>
-void* __cdecl File_Load(const char* filename, OUT uint32* sizeptr, bool32 binary);
+void* __cdecl File_Load(const char* filename, OPTIONAL OUT uint32* sizeptr, bool32 binary);
+
+
+/// CUSTOM: Extension of File_LoadBinary that allocates one extra byte and null-terminates the end of the buffer.
+///         Extra byte IS NOT included in the value returned by sizeptr.
+void* __cdecl File_LoadBinaryString(const char* filename, OPTIONAL OUT uint32* sizeptr);
+
+/// CUSTOM: Extension of File_Load to allow terminating the end of the buffer with extra bytes.
+///         extraSize IS NOT included in the value returned by sizeptr.
+void* __cdecl File_Load2(const char* filename, OPTIONAL OUT uint32* sizeptr, bool32 binary, uint32 extraSize);
+
 
 // <LegoRR.exe @00480430>
-uint32 __cdecl File_LoadBinaryHandle(const char* filename, OUT uint32* sizeptr);
+uint32 __cdecl File_LoadBinaryHandle(const char* filename, OPTIONAL OUT uint32* sizeptr);
+
+
+/// CUSTOM: Extension of File_LoadBinaryHandle to allow ASCII and terminating the end of the buffer with extra bytes.
+///         extraSize IS NOT included in the value returned by sizeptr.
+uint32 __cdecl File_LoadHandle2(const char* filename, OPTIONAL OUT uint32* sizeptr, bool32 binary, uint32 extraSize);
+
 
 // <LegoRR.exe @004804e0>
 const char* __cdecl File_VerifyFilename(const char* filename);

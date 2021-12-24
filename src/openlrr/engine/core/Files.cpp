@@ -841,73 +841,114 @@ char* __cdecl Gods98::File_GetLine(OUT char* buffer, uint32 size, File* file)
 }
 
 // <LegoRR.exe @00480360>
-void* __cdecl Gods98::File_LoadBinary(const char* filename, OUT uint32* sizeptr)
+void* __cdecl Gods98::File_LoadBinary(const char* filename, OPTIONAL OUT uint32* sizeptr)
 {
 	log_firstcall();
 
-	return File_Load(filename, sizeptr, true);
+	return File_Load2(filename, sizeptr, true, 0);
 }
 
 // <missing>
-void* __cdecl Gods98::File_LoadASCII(const char* filename, OUT uint32* sizeptr)
+void* __cdecl Gods98::File_LoadASCII(const char* filename, OPTIONAL OUT uint32* sizeptr)
 {
-	return File_Load(filename, sizeptr, false);
+	return File_Load2(filename, sizeptr, false, 0);
 }
 
 // <LegoRR.exe @00480380>
-void* __cdecl Gods98::File_Load(const char* filename, OUT uint32* sizeptr, bool32 binary)
+void* __cdecl Gods98::File_Load(const char* filename, OPTIONAL OUT uint32* sizeptr, bool32 binary)
 {
 	log_firstcall();
 
-	File* ifp;
-	if (ifp = File_Open(filename, binary ? "rb" : "r")) {
-		File_Seek(ifp, 0, SeekOrigin::End);
-		uint32 size = File_Tell(ifp);
+	return File_Load2(filename, sizeptr, binary, 0);
+}
+
+
+/// CUSTOM: Extension of File_LoadBinary that allocates one extra byte and null-terminates the end of the buffer.
+///         Extra byte IS NOT included in the value returned by sizeptr.
+void* __cdecl Gods98::File_LoadBinaryString(const char* filename, OPTIONAL OUT uint32* sizeptr)
+{
+	log_firstcall();
+
+	return File_Load2(filename, sizeptr, true, 1);
+}
+
+/// CUSTOM: Extension of File_Load to allow terminating the end of the buffer with extra bytes.
+///         extraSize IS NOT included in the value returned by sizeptr.
+void* __cdecl Gods98::File_Load2(const char* filename, OPTIONAL OUT uint32* sizeptr, bool32 binary, uint32 extraSize)
+{
+	log_firstcall();
+
+	File* file;
+	if (file = File_Open(filename, binary ? "rb" : "r")) {
+		File_Seek(file, 0, SeekOrigin::End);
+		uint32 size = File_Tell(file);
 
 		if (fileGlobs.loadCallback) fileGlobs.loadCallback(filename, size, fileGlobs.loadCallbackData);
 
-		char* buffer;
-		if (buffer = (char*)Mem_Alloc(size)) {
+		/// CUSTOM: Add extraSize to null-terminate buffer with.
+		uint8* buffer;
+		if (buffer = (uint8*)Mem_Alloc(size + extraSize)) {
+			File_Seek(file, 0, SeekOrigin::Set);
+			File_Read(buffer, sizeof(uint8), size, file);
 
-			File_Seek(ifp, 0, SeekOrigin::Set);
-			File_Read(buffer, sizeof(char), size, ifp);
-			if (sizeptr != nullptr) *sizeptr = size;
+			/// CUSTOM: Null-terminate extraSize of buffer.
+			std::memset(buffer + size, 0, extraSize);
 
-			File_Close(ifp);
+			if (sizeptr) *sizeptr = size;
+
+			File_Close(file);
 			return buffer;
 		}
-		File_Close(ifp);
+		File_Close(file);
 	}
 
 	return nullptr;
 }
 
+
 // <LegoRR.exe @00480430>
-uint32 __cdecl Gods98::File_LoadBinaryHandle(const char* filename, OUT uint32* sizeptr)
+uint32 __cdecl Gods98::File_LoadBinaryHandle(const char* filename, OPTIONAL OUT uint32* sizeptr)
 {
 	log_firstcall();
 
-	File* ifp;
-	if (ifp = File_Open(filename, "rb")) {
-		File_Seek(ifp, 0, SeekOrigin::End);
-		uint32 size = File_Tell(ifp);
+	return File_LoadHandle2(filename, sizeptr, true, 0);
+}
+
+
+/// CUSTOM: Extension of File_LoadBinaryHandle to allow ASCII and terminating the end of the buffer with extra bytes.
+///         extraSize IS NOT included in the value returned by sizeptr.
+uint32 __cdecl Gods98::File_LoadHandle2(const char* filename, OPTIONAL OUT uint32* sizeptr, bool32 binary, uint32 extraSize)
+{
+	log_firstcall();
+
+	File* file;
+	if (file = File_Open(filename, binary ? "rb" : "r")) {
+		File_Seek(file, 0, SeekOrigin::End);
+		uint32 size = File_Tell(file);
+
 		if (fileGlobs.loadCallback) fileGlobs.loadCallback(filename, size, fileGlobs.loadCallbackData);
 
-		uint32 handle;
-		if ((handle = Mem_AllocHandle(size)) != -1) {
-			char* buffer = (char*) Mem_AddressHandle(handle);
-			File_Seek(ifp, 0, SeekOrigin::Set);
-			File_Read(buffer, sizeof(char), size, ifp);
-			if (sizeptr != nullptr) *sizeptr = size;
+		/// CUSTOM: Add extraSize to null-terminate buffer with.
+		Mem_HandleValue handle;
+		if ((handle = Mem_AllocHandle(size + extraSize)) != -1) {
+			uint8* buffer = (uint8*)Mem_AddressHandle(handle);
+			File_Seek(file, 0, SeekOrigin::Set);
+			File_Read(buffer, sizeof(uint8), size, file);
 
-			File_Close(ifp);
+			/// CUSTOM: Null-terminate extraSize of buffer.
+			std::memset(buffer + size, 0, extraSize);
+
+			if (sizeptr) *sizeptr = size;
+
+			File_Close(file);
 			return handle;
 		}
-		File_Close(ifp);
+		File_Close(file);
 	}
 
 	return (uint32)-1;
 }
+
 
 // <LegoRR.exe @004804e0>
 const char* __cdecl Gods98::File_VerifyFilename(const char* filename)

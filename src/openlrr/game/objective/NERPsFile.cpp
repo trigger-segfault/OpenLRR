@@ -99,15 +99,9 @@ bool32 __cdecl LegoRR::NERPsFile_LoadScriptFile(const char* filename)
 // <LegoRR.exe @00453130>
 bool32 __cdecl LegoRR::NERPsFile_LoadMessageFile(const char* filename)
 {
+	/// FIX APPLY: Use extension of File_LoadBinary function to null-terminate buffer.
 	uint32 fileSize;
-	nerpsfileGlobs.messageBuffer = (char*)Gods98::File_LoadBinary(filename, &fileSize);
-	if (nerpsfileGlobs.messageBuffer != nullptr) {
-		// Just like with Config files, you're out of luck if you end the file without any whitespace.
-		// All LRR level message files end without whitespace. The only reason they work is due to undefined behaviour:tm:.
-		/// FIX APPLY: +1 character allocated for guaranteed null terminator.
-		nerpsfileGlobs.messageBuffer = (char*)Gods98::Mem_ReAlloc(nerpsfileGlobs.messageBuffer, fileSize + 1);
-		nerpsfileGlobs.messageBuffer[fileSize] = '\0';
-	}
+	nerpsfileGlobs.messageBuffer = (char*)Gods98::File_LoadBinaryString(filename, &fileSize);
 
 	// Sanity check
 	if (nerpsfileGlobs.messageBuffer == nullptr) {
