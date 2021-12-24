@@ -92,13 +92,13 @@ flags_scoped(Sound3D_GlobFlags) : uint32
 flags_scoped_end(Sound3D_GlobFlags, 0x4);
 
 
-enum class Sound3D_Play : sint32 // Sound3D_PlayTAG
+enum class Sound3DPlay : sint32 // Sound3D_PlayTAG
 {
-	Sound3D_Play_OnFrame = 0,
-	Sound3D_Play_OnPos   = 1,
-	Sound3D_Play_Normal  = 2,
+	OnFrame = 0,
+	OnPos   = 1,
+	Normal  = 2,
 };
-assert_sizeof(Sound3D_Play, 0x4);
+assert_sizeof(Sound3DPlay, 0x4);
 
 #pragma endregion
 
@@ -270,7 +270,7 @@ void __cdecl Sound3D_SetWorldPos(IDirectSound3DBuffer* sound3DBuff, const Vector
 bool32 __cdecl Sound3D_CheckAlreadyExists(IDirect3DRMFrame3* frame, IDirectSound3DBuffer* sound3DBuff);
 
 // <LegoRR.exe @0047b030>
-sint32 __cdecl Sound3D_Play2(Sound3D_Play play, IDirect3DRMFrame3* frame, sint32 soundTableIndex, bool32 loop, OPTIONAL const Vector3F* wPos);
+sint32 __cdecl Sound3D_Play2(Sound3DPlay play, IDirect3DRMFrame3* frame, sint32 soundTableIndex, bool32 loop, OPTIONAL const Vector3F* wPos);
 
 // <LegoRR.exe @0047b2e0>
 void __cdecl Sound3D_AddSoundRecord(IDirect3DRMFrame3* frame, IDirectSoundBuffer* soundBuff, IDirectSound3DBuffer* sound3DBuff);
@@ -398,14 +398,13 @@ __inline IDirectSoundBuffer* lpDSStreamBuff(bool32 looping) { return looping?sou
 
 #define Sound3D_Initialised()								sound3DGlobs.intialised
 
-#define Sound3D_PlayOnFrame( frame, sound, loop )			Sound3D_Play2( Sound3D_Play_OnFrame, (frame), (sound), (loop), nullptr )
-#define Sound3D_PlayOnCont( cont, sound, loop )				Sound3D_Play2( Sound3D_Play_OnFrame, (cont)->masterFrame, (sound), (loop), nullptr )
-#define Sound3D_PlayOnPos( sound, loop, wPos )				Sound3D_Play2( Sound3D_Play_OnPos, nullptr, (sound), (loop), (wPos) )
-#define Sound3D_PlayNormal( sound, loop )					Sound3D_Play2( Sound3D_Play_Normal, nullptr, (sound), (loop), nullptr )
-#define Sound3D_MakeContainerListener( cont )				Sound3D_MakeListener( (cont)->masterFrame )
-#define Sound3D_StopContainerSounds( cont )					Sound3D_StopFrameSounds( (cont)->masterFrame )
-#define SOUND3D_VOLUME_MAX		Sound3D_MaxVolume()
-#define SOUND3D_VOLUME_MIN		Sound3D_MinVolume()
+#define Sound3D_PlayOnFrame(frame, sound, loop)				Sound3D_Play2(Gods98::Sound3DPlay::OnFrame, (frame), (sound), (loop), nullptr)
+#define Sound3D_PlayOnCont(cont, sound, loop)				Sound3D_Play2(Gods98::Sound3DPlay::OnFrame, (cont)->masterFrame, (sound), (loop), nullptr)
+#define Sound3D_PlayOnPos(sound, loop, wPos)				Sound3D_Play2(Gods98::Sound3DPlay::OnPos, nullptr, (sound), (loop), (wPos))
+#define Sound3D_PlayNormal(sound, loop)						Sound3D_Play2(Gods98::Sound3DPlay::Normal, nullptr, (sound), (loop), nullptr)
+#define Sound3D_MakeContainerListener(cont)					Sound3D_MakeListener((cont)->masterFrame)
+#define SOUND3D_VOLUME_MAX		Gods98::Sound3D_MaxVolume()
+#define SOUND3D_VOLUME_MIN		Gods98::Sound3D_MinVolume()
 
 #pragma endregion
 

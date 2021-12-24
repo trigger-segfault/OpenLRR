@@ -68,7 +68,7 @@ bool32 __cdecl Gods98::Sound_PlayCDTrack(uint32 track, SoundMode mode, SoundCDSt
 	log_firstcall();
 
 	if (soundGlobs.initialised){
-		if (mode == SoundMode::Sound_Loop) soundGlobs.loopCDTrack = true;
+		if (mode == SoundMode::Loop) soundGlobs.loopCDTrack = true;
 		soundGlobs.currTrack = track;
 		soundGlobs.CDStopCallback = StopCallback;
 		return Play_CDTrack(track);

@@ -2435,7 +2435,7 @@ real32 __cdecl Gods98::Container_SetAnimationTime(Container* cont, real32 time)
 				// Trigger the sample... (The sample may be longer than the animset!)
 				lpSound sound;
 				if (sound = Container_Frame_GetSample(frame)) {
-					Sound_Play(sound, Sound_Once);
+					Sound_Play(sound, SoundMode::Once);
 				}
 			}*/
 

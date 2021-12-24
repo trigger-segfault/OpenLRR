@@ -303,7 +303,7 @@ void __cdecl LegoRR::Advisor_PlaySFX(Advisor_Type advisorType)
 		Gods98::Container_SetAnimationTime(animCont, 0.0f);
 
 		SFX_Random_Play_OrAddToQueue(advisorGlobs.positions[advisorType].sfxID, false);
-		SFX_AddToQueue(SFX_CaptainSlide, Gods98::SoundMode::Sound_Once);
+		SFX_AddToQueue(SFX_CaptainSlide, Gods98::SoundMode::Once);
 	}
 }
 

@@ -713,7 +713,7 @@ void __cdecl LegoRR::NERPs_Level_NERPMessage_Parse(const char* text, OPTIONAL OU
 										playTime = Gods98::Sound3D_GetSamplePlayTime(sound3DHandle);
 
 										SFX_SetGlobalSampleDurationIfLE0_AndNullifyHandle((real32)(playTime * STANDARD_FRAMERATE));
-										Gods98::Sound3D_Play2(Gods98::Sound3D_Play::Sound3D_Play_Normal, nullptr, sound3DHandle, false, nullptr);
+										Gods98::Sound3D_Play2(Gods98::Sound3DPlay::Normal, nullptr, sound3DHandle, false, nullptr);
 										nerpsUnkSampleIndex = sound3DHandle;
 
 										TutorialFlags tflags = (TutorialFlags)NERPFunc__GetTutorialFlags(nullptr);

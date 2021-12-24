@@ -48,7 +48,7 @@ typedef void (__cdecl* SoundCDStopCallback)(void);
 
 #pragma region Constants
 
-#define WAVEVERSION 1
+#define WAVEVERSION			1
 
 #ifndef ER_MEM
 #define ER_MEM 				0xe000
@@ -75,11 +75,11 @@ typedef void (__cdecl* SoundCDStopCallback)(void);
 #endif
 
 
-#define MAX_SAMPLES 100
+#define MAX_SAMPLES			100
 
-#define MULTI_SOUND 5
+#define MULTI_SOUND			5
 
-#define MCI_RETURN_SIZE 200
+#define MCI_RETURN_SIZE		200
 
 #pragma endregion
 
@@ -91,9 +91,9 @@ typedef void (__cdecl* SoundCDStopCallback)(void);
 
 enum class SoundMode : uint32
 {
-	Sound_Once  = 0,
-	Sound_Loop  = 1,
-	Sound_Multi = 2,
+	Once  = 0,
+	Loop  = 1,
+	Multi = 2,
 };
 assert_sizeof(SoundMode, 0x4);
 

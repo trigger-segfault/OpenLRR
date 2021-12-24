@@ -416,7 +416,7 @@ bool32 __cdecl Gods98::Sound3D_CheckAlreadyExists(IDirect3DRMFrame3* frame, IDir
 }
 
 // <LegoRR.exe @0047b030>
-sint32 __cdecl Gods98::Sound3D_Play2(Sound3D_Play play, IDirect3DRMFrame3* frame, sint32 soundTableIndex, bool32 loop, OPTIONAL const Vector3F* wPos)
+sint32 __cdecl Gods98::Sound3D_Play2(Sound3DPlay play, IDirect3DRMFrame3* frame, sint32 soundTableIndex, bool32 loop, OPTIONAL const Vector3F* wPos)
 {
 	log_firstcall();
 
@@ -437,7 +437,7 @@ sint32 __cdecl Gods98::Sound3D_Play2(Sound3D_Play play, IDirect3DRMFrame3* frame
 				const char* useFile = nullptr;
 				char cdFileName[FILE_MAXPATH];
 				FILE *mfp;
-				Error_Fatal(Sound3D_Play::Sound3D_Play_Normal != play, "Can only play a streaming sound noramlly, not 3D.");
+				Error_Fatal(Sound3DPlay::Normal != play, "Can only play a streaming sound noramlly, not 3D.");
 				if (mfp = std::fopen(hdFileName, "r")) {
 					useFile = hdFileName;
 					std::fclose(mfp);
@@ -468,14 +468,14 @@ sint32 __cdecl Gods98::Sound3D_Play2(Sound3D_Play play, IDirect3DRMFrame3* frame
 			//DEFAULT SETTINGS
 			{
 				sint32 volume = sound->volume;
-				if (Sound3D_Play::Sound3D_Play_Normal == play) volume += -800;
+				if (Sound3DPlay::Normal == play) volume -= 800;
 				soundBuff->SetVolume(volume);
 			}
 
 			sound3DBuff->SetMinDistance( sound3DGlobs.minDistanceForAttentuation, DS3D_DEFERRED );
 			sound3DBuff->SetMaxDistance( sound3DGlobs.maxDistance, DS3D_DEFERRED );
 
-			if (Sound3D_Play::Sound3D_Play_OnFrame == play) {
+			if (Sound3DPlay::OnFrame == play) {
 				sound3DBuff->SetMode(DS3DMODE_NORMAL, DS3D_DEFERRED);			
 				frame->GetScene(&root);		
 				Sound3D_CheckAlreadyExists(frame, sound3DBuff );
@@ -486,13 +486,13 @@ sint32 __cdecl Gods98::Sound3D_Play2(Sound3D_Play play, IDirect3DRMFrame3* frame
 				sound3DBuff->SetPosition(cPos.x, cPos.y, cPos.z, DS3D_DEFERRED);
 				root->Release();
 			}
-			else if (Sound3D_Play::Sound3D_Play_OnPos == play) {
+			else if (Sound3DPlay::OnPos == play) {
 				sound3DBuff->SetMode( DS3DMODE_NORMAL, DS3D_DEFERRED);
 				Sound3D_SetWorldPos( sound3DBuff, wPos, nullptr);
 				Sound3D_CheckAlreadyExists(nullptr, sound3DBuff );
 				Sound3D_AddSoundRecord(nullptr, soundBuff, sound3DBuff );
 			}
-			else if (Sound3D_Play::Sound3D_Play_Normal == play) {	
+			else if (Sound3DPlay::Normal == play) {	
 				sound3DBuff->SetMode( DS3DMODE_DISABLE, DS3D_DEFERRED);
 
 				Sound3D_CheckAlreadyExists(nullptr, sound3DBuff );
