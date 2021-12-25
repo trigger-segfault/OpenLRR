@@ -1391,7 +1391,9 @@ IDirectDrawSurface4* __cdecl Gods98::Container_LoadTextureSurface(const char* fn
 					}
 					surface->Unlock(nullptr);
 
-					if (DirectDraw()->CreatePalette(DDPCAPS_INITIALIZE | DDPCAPS_8BIT | DDPCAPS_ALLOW256, (LPPALETTEENTRY)image.palette, &palette, nullptr) == D3DRM_OK) {
+					if (DirectDraw()->CreatePalette(DDPCAPS_INITIALIZE | DDPCAPS_8BIT | DDPCAPS_ALLOW256,
+													reinterpret_cast<PALETTEENTRY*>(image.palette), &palette, nullptr) == D3DRM_OK)
+					{
 						if (surface->SetPalette(palette) == D3DRM_OK) {
 
 							uint32 r, g, b;
@@ -1872,12 +1874,14 @@ void __cdecl Gods98::Container_Mesh_SetQuality(Container* cont, uint32 groupID, 
 	}
 	else {
 
-		D3DRMRENDERQUALITY d3drmqual;
-		if (quality == Container_Quality::Wireframe) d3drmqual = D3DRMRENDER_WIREFRAME;
-		if (quality == Container_Quality::UnlitFlat) d3drmqual = D3DRMRENDER_UNLITFLAT;
-		if (quality == Container_Quality::Flat)      d3drmqual = D3DRMRENDER_FLAT;
-		if (quality == Container_Quality::Gouraud)   d3drmqual = D3DRMRENDER_GOURAUD;
-		if (quality == Container_Quality::Phong)     d3drmqual = D3DRMRENDER_PHONG;
+		D3DRMRENDERQUALITY d3drmqual = 0; // dummy init
+		switch (quality) {
+		case Container_Quality::Wireframe:	d3drmqual = D3DRMRENDER_WIREFRAME;
+		case Container_Quality::UnlitFlat:	d3drmqual = D3DRMRENDER_UNLITFLAT;
+		case Container_Quality::Flat:		d3drmqual = D3DRMRENDER_FLAT;
+		case Container_Quality::Gouraud:	d3drmqual = D3DRMRENDER_GOURAUD;
+		case Container_Quality::Phong:		d3drmqual = D3DRMRENDER_PHONG;
+		}
 
 		Container_DebugCheckOK(cont);
 		Error_Fatal(!cont->typeData, "Container has no typeData");
@@ -2066,7 +2070,7 @@ uint32 __cdecl Gods98::Container_Mesh_GetVertices(Container* cont, uint32 groupI
 
 		Container_Mesh_HandleSeperateMeshGroups(&mesh, &groupID);
 
-		if (mesh->GetVertices(groupID, index, count, (LPD3DRMVERTEX)retArray) == D3DRM_OK) {
+		if (mesh->GetVertices(groupID, index, count, reinterpret_cast<D3DRMVERTEX*>(retArray)) == D3DRM_OK) {
 
 		}
 		else {
@@ -2101,7 +2105,7 @@ uint32 __cdecl Gods98::Container_Mesh_SetVertices(Container* cont, uint32 groupI
 
 		Container_Mesh_HandleSeperateMeshGroups(&mesh, &groupID);
 
-		if (mesh->SetVertices(groupID, index, count, (LPD3DRMVERTEX)values) == D3DRM_OK) {
+		if (mesh->SetVertices(groupID, index, count, reinterpret_cast<D3DRMVERTEX*>(const_cast<Vertex*>(values))) == D3DRM_OK) {
 
 		}
 		else {
@@ -2233,7 +2237,7 @@ bool32 __cdecl Gods98::Container_Mesh_GetBox(Container* cont, OUT Box3F* box)
 	Container_DebugCheckOK(cont);
 	Error_Fatal(cont->type != Container_Type::Mesh, "Container_Mesh_GetBox() called with non mesh object");
 	Error_Fatal(!mesh, "'From' Container has no mesh object");
-	mesh->GetBox((LPD3DRMBOX)box);
+	mesh->GetBox(reinterpret_cast<D3DRMBOX*>(box));
 
 	if (appdata = (Container_MeshAppData*)mesh->GetAppData()) {
 
@@ -2347,7 +2351,8 @@ void __cdecl Gods98::Container_Transform(Container* cont, OUT Vector3F* dest, co
 {
 	Container_DebugCheckOK(cont);
 
-	cont->masterFrame->Transform((LPD3DVECTOR)dest, (LPD3DVECTOR)const_cast<Vector3F*>(src));
+	cont->masterFrame->Transform(reinterpret_cast<D3DVECTOR*>(dest),
+								 reinterpret_cast<D3DVECTOR*>(const_cast<Vector3F*>(src)));
 }
 
 // <LegoRR.exe @00475350>
@@ -2355,7 +2360,8 @@ void __cdecl Gods98::Container_InverseTransform(Container* cont, OUT Vector3F* d
 {
 	Container_DebugCheckOK(cont);
 
-	cont->masterFrame->InverseTransform((LPD3DVECTOR)dest, (LPD3DVECTOR)const_cast<Vector3F*>(src));
+	cont->masterFrame->InverseTransform(reinterpret_cast<D3DVECTOR*>(dest),
+										reinterpret_cast<D3DVECTOR*>(const_cast<Vector3F*>(src)));
 }
 
 // <LegoRR.exe @00475370>
@@ -2611,7 +2617,7 @@ void __cdecl Gods98::Container_GetPosition(Container* cont, OPTIONAL Container* 
 {
 	IDirect3DRMFrame3* refFrame, * frame;
 	Container_GetFrames(cont, ref, &frame, &refFrame);
-	frame->GetPosition(refFrame, (LPD3DVECTOR)pos);
+	frame->GetPosition(refFrame, reinterpret_cast<D3DVECTOR*>(pos));
 }
 
 // <LegoRR.exe @004757c0>
@@ -2621,7 +2627,7 @@ void __cdecl Gods98::Container_GetOrientation(Container* cont, OPTIONAL Containe
 	Vector3F vdir, vup;
 
 	Container_GetFrames(cont, ref, &frame, &refFrame);
-	frame->GetOrientation(refFrame, (LPD3DVECTOR)&vdir, (LPD3DVECTOR)&vup);
+	frame->GetOrientation(refFrame, reinterpret_cast<D3DVECTOR*>(&vdir), reinterpret_cast<D3DVECTOR*>(&vup));
 	if (dir) *dir = vdir;
 	if (up) *up = vup;
 }

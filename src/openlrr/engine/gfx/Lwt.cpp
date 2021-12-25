@@ -107,9 +107,8 @@ bool32 __cdecl Gods98::LWD3D(uint8** p, real32* f)
 // <LegoRR.exe @0048c4d0>
 bool32 __cdecl Gods98::PNTSprc(File* file, LWSIZE* sizeData, sint32 csize, real32** verts, bool32 dflag)
 {
-	char cbuff[10]={0}; // unused, keeping here in-case it's a bad safeguard for buffer overrun
+	char cbuff[10] = { 0 }; // unused, keeping here in-case it's a bad safeguard for buffer overrun
 	char buff[256];
-	//D3DVECTOR pos;
 	Vector3F pos;
 
 	uint8* sp=(uint8*)Mem_Alloc(csize+16);

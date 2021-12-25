@@ -235,6 +235,12 @@ __inline Vector3F* Maths_Vector3DApplyMatrix(OUT Vector3F* result, const Matrix4
 bool32 __cdecl Maths_RaySphereIntersection(const Vector3F* center, real32 radius, const Vector3F* camera, const Vector3F* line);
 
 
+/// CUSTOM:
+inline bool Maths_Vector2DEquals(const Point2F* a, const Point2F* b) { return a->x == b->x && a->y == b->y; }
+
+inline bool Maths_Vector3DEquals(const Vector3F* a, const Vector3F* b) { return a->x == b->x && a->y == b->y && a->z == b->z; }
+
+inline bool Maths_Vector4DEquals(const Vector4F* a, const Vector4F* b) { return a->x == b->x && a->y == b->y && a->z == b->z && a->w == b->w; }
 
 #pragma endregion
 

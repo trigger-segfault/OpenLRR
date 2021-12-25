@@ -1479,7 +1479,7 @@ void __cdecl Gods98::Main_SetMenu(HMENU newMenu, bool32 owner)
 				// Re-adjust window size to account for difference with/without menu.
 
 				Rect2I rect = { 0 }; // dummy init
-				::GetWindowRect(Main_hWnd(), (RECT*)&rect);
+				::GetWindowRect(Main_hWnd(), reinterpret_cast<RECT*>(&rect));
 				rect.right  = rect.left + appWidth();
 				rect.bottom = rect.top + appHeight();
 

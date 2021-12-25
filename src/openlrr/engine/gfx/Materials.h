@@ -38,7 +38,7 @@ assert_sizeof(Material, 0x4);
 
 // <LegoRR.exe @00489780>
 Material* __cdecl Material_Create(real32 emissiveRed, real32 emissiveGreen, real32 emissiveBlue,
-								real32 specularRed, real32 specularGreen, real32 specularBlue, real32 power);
+								  real32 specularRed, real32 specularGreen, real32 specularBlue, real32 power);
 
 
 // <unused?>

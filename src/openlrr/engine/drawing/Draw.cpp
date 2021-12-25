@@ -265,8 +265,8 @@ bool32 __cdecl Gods98::Draw_LockSurface(IDirectDrawSurface4* surf, DrawEffect ef
 
 	std::memset(&desc, 0, sizeof(DDSURFACEDESC2));
 	desc.dwSize = sizeof(DDSURFACEDESC2);
-//	if ((r = surf->Lock((RECT*)&drawGlobs.lockRect, &desc, DDLOCK_WAIT, nullptr)) == DD_OK){
-	if ((r = surf->Lock(nullptr, &desc, DDLOCK_WAIT, nullptr)) == DD_OK){
+//	if ((r = surf->Lock(reinterpret_cast<RECT*>(&drawGlobs.lockRect), &desc, DDLOCK_WAIT, nullptr)) == DD_OK) {
+	if ((r = surf->Lock(nullptr, &desc, DDLOCK_WAIT, nullptr)) == DD_OK) {
 
 
 		drawGlobs.buffer = desc.lpSurface;
@@ -297,7 +297,7 @@ void __cdecl Gods98::Draw_UnlockSurface(IDirectDrawSurface4* surf)
 {
 	log_firstcall();
 
-//	surf->Unlock((RECT*)&drawGlobs.lockRect);
+//	surf->Unlock(reinterpret_cast<RECT*>(&drawGlobs.lockRect));
 	surf->Unlock(nullptr);
 	drawGlobs.buffer = nullptr;
 	drawGlobs.pitch = 0;

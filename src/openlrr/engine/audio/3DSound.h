@@ -32,9 +32,6 @@ struct IDirect3DRMFrame3;
 typedef IDirect3DRMFrame3* LPDIRECT3DRMFRAME3;
 typedef float D3DVALUE;
 
-//struct _D3DVECTOR;
-//typedef struct _D3DVECTOR D3DVECTOR;
-
 /*struct HMMIO__;
 typedef struct HMMIO__ *HMMIO;
 struct _MMCKINFO;
@@ -155,7 +152,6 @@ assert_sizeof(Sound3D_SoundRecord, 0x10);
 struct Sound3D_SoundFrameRecord
 {
 	/*00,4*/ IDirectSound3DBuffer* sound3DBuff;
-	///*04,c*/ D3DVECTOR pos;
 	/*04,c*/ Vector3F pos;
 	/*10,4*/ Sound3D_SoundFrameRecord* next;
 	/*14*/
@@ -370,7 +366,6 @@ void __cdecl Sound3D_Stream_CheckPosition(bool32 looping);
 
 // <LegoRR.exe @0047c380>
 bool32 __cdecl Sound3D_D3DVectorEqual(const Vector3F* a, const Vector3F* b);
-//bool32 __cdecl Sound3D_D3DVectorEqual(const D3DVECTOR* a, const D3DVECTOR* b);
 
 // <LegoRR.exe @0047c3c0>
 real32 __cdecl Sound3D_SetRollOffFactor(real32 rollOff);

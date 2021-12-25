@@ -9,6 +9,7 @@
 
 #include "../core/Errors.h"
 #include "../core/Files.h"
+#include "../core/Maths.h"
 #include "../core/Memory.h"
 #include "../gfx/Containers.h"
 #include "Sound.h"
@@ -351,34 +352,31 @@ void __cdecl Gods98::Sound3D_ListenerCallback(LPDIRECT3DRMFRAME3 obj, void* arg,
 	bool32 change = false;
 
 
-	obj->GetScene( &root );
+	obj->GetScene(&root);
 	
-	obj->GetPosition( root, (LPD3DVECTOR)&rlvCameraInfo );
-	if( !Sound3D_D3DVectorEqual(&rlvCameraInfo, &sound3DGlobs.s_ListenerCallback_oldPos) )
-	{	
-		lp3DListenerInfo()->SetPosition(
-			rlvCameraInfo.x, rlvCameraInfo.y, rlvCameraInfo.z, DS3D_DEFERRED );
+	obj->GetPosition(root, reinterpret_cast<D3DVECTOR*>(&rlvCameraInfo));
+	if (!Maths_Vector3DEquals(&rlvCameraInfo, &sound3DGlobs.s_ListenerCallback_oldPos)) {
+		lp3DListenerInfo()->SetPosition(rlvCameraInfo.x, rlvCameraInfo.y, rlvCameraInfo.z, DS3D_DEFERRED);
 
 		sound3DGlobs.s_ListenerCallback_oldPos = rlvCameraInfo;
 		change = true;
 	}
 
-	obj->GetOrientation( root, (LPD3DVECTOR)&rlvCameraInfo, (LPD3DVECTOR)&rlvCameraUp );
-	if( !Sound3D_D3DVectorEqual(&rlvCameraInfo, &sound3DGlobs.s_ListenerCallback_oldOrien) || !Sound3D_D3DVectorEqual(&rlvCameraUp, &sound3DGlobs.s_ListenerCallback_oldOrienUp) )
+	obj->GetOrientation(root, reinterpret_cast<D3DVECTOR*>(&rlvCameraInfo), reinterpret_cast<D3DVECTOR*>(&rlvCameraUp));
+	if (!Maths_Vector3DEquals(&rlvCameraInfo, &sound3DGlobs.s_ListenerCallback_oldOrien) ||
+		!Maths_Vector3DEquals(&rlvCameraUp, &sound3DGlobs.s_ListenerCallback_oldOrienUp))
 	{	
-		lp3DListenerInfo()->SetOrientation(
-			rlvCameraInfo.x, rlvCameraInfo.y, rlvCameraInfo.z,
-			rlvCameraUp.x, rlvCameraUp.y, rlvCameraUp.z, DS3D_DEFERRED);
+		lp3DListenerInfo()->SetOrientation(rlvCameraInfo.x, rlvCameraInfo.y, rlvCameraInfo.z,
+										   rlvCameraUp.x, rlvCameraUp.y, rlvCameraUp.z, DS3D_DEFERRED);
 
 		sound3DGlobs.s_ListenerCallback_oldOrien = rlvCameraInfo;
 		sound3DGlobs.s_ListenerCallback_oldOrienUp = rlvCameraUp;
 		change = true;
 	}
 	
-	if( change )
-	{
-		if( lp3DListenerInfo()->CommitDeferredSettings() != DS_OK)
-			Error_Warn( true, "DirectSound 3D failed commit listener info settings." );
+	if (change) {
+		if (lp3DListenerInfo()->CommitDeferredSettings() != DS_OK)
+			Error_Warn(true, "DirectSound 3D failed commit listener info settings.");
 	}
 
 	root->Release();
@@ -481,7 +479,7 @@ sint32 __cdecl Gods98::Sound3D_Play2(Sound3DPlay play, IDirect3DRMFrame3* frame,
 				Sound3D_CheckAlreadyExists(frame, sound3DBuff );
 				Sound3D_AttachSound(frame, sound3DBuff );
 				Sound3D_AddSoundRecord(frame, soundBuff, sound3DBuff );
-				frame->GetPosition(root, (LPD3DVECTOR) &cPos);
+				frame->GetPosition(root, reinterpret_cast<D3DVECTOR*>(&cPos));
 				//Sound3D_SetWorldPos(sound3DBuff, &cPos, nullptr);
 				sound3DBuff->SetPosition(cPos.x, cPos.y, cPos.z, DS3D_DEFERRED);
 				root->Release();
@@ -803,20 +801,20 @@ void __cdecl Gods98::Sound3D_SoundCallback(LPDIRECT3DRMFRAME3 tFrame, void* arg,
 {
 	log_firstcall();
 
-	Container_AppData* data = (Container_AppData *)tFrame->GetAppData();
+	Container_AppData* data = (Container_AppData*)tFrame->GetAppData();
 	Vector3F rlvVisualInfo;
 	IDirect3DRMFrame3* root;
-	Sound3D_SoundFrameRecord* temp = data->soundList;
 
 	tFrame->GetScene(&root);
+
+	Sound3D_SoundFrameRecord* temp = data->soundList;
 	
-	while(temp)
-	{
+	while (temp != nullptr) {
 		//GET POSITION OF THE 3D SOUND WHEN IT WAS LAST SET, THEN COMPARE IT WITH THE POSITION OF ITS FRAME
 		//IF DIFFERENT, UPDATE THE SOUND POSITION
-		tFrame->GetPosition(root, (LPD3DVECTOR)&rlvVisualInfo);
-		if (!Sound3D_D3DVectorEqual(&rlvVisualInfo, &temp->pos)) {
-			temp->sound3DBuff->SetPosition( rlvVisualInfo.x, rlvVisualInfo.y,rlvVisualInfo.z, DS3D_IMMEDIATE );
+		tFrame->GetPosition(root, reinterpret_cast<D3DVECTOR*>(&rlvVisualInfo));
+		if (!Maths_Vector3DEquals(&rlvVisualInfo, &temp->pos)) {
+			temp->sound3DBuff->SetPosition(rlvVisualInfo.x, rlvVisualInfo.y,rlvVisualInfo.z, DS3D_IMMEDIATE);
 			temp->pos = rlvVisualInfo;
 		}
 
@@ -1435,16 +1433,8 @@ void __cdecl Gods98::Sound3D_Stream_CheckPosition(bool32 looping)
 // <LegoRR.exe @0047c380>
 bool32 __cdecl Gods98::Sound3D_D3DVectorEqual(const Vector3F* a, const Vector3F* b)
 {
-	log_firstcall();
-
-	if( (a->x == b->x) &&
-		(a->y == b->y) &&
-		(a->z == b->z) )
-		return true;
-
-	return false;
+	return Maths_Vector3DEquals(a, b);
 }
-//bool32 __cdecl Gods98::Sound3D_D3DVectorEqual(const D3DVECTOR* a, const D3DVECTOR* b);
 
 // <LegoRR.exe @0047c3c0>
 real32 __cdecl Gods98::Sound3D_SetRollOffFactor(real32 rollOff)

@@ -342,7 +342,8 @@ void __cdecl Gods98::Viewport_InverseTransform(Viewport* vp, OUT Vector3F* dest,
 	Viewport_CheckInit();
 	Error_Fatal(!vp, "NULL passed to Viewport_InverseTransform()");
 	
-	vp->lpVP->InverseTransform((LPD3DVECTOR)dest, (LPD3DRMVECTOR4D)const_cast<Vector4F*>(src));
+	vp->lpVP->InverseTransform(reinterpret_cast<D3DVECTOR*>(dest),
+							   reinterpret_cast<D3DRMVECTOR4D*>(const_cast<Vector4F*>(src)));
 }
 
 // <LegoRR.exe @00477570>
@@ -353,7 +354,8 @@ void __cdecl Gods98::Viewport_Transform(Viewport* vp, OUT Vector4F* dest, const 
 	Viewport_CheckInit();
 	Error_Fatal(!vp, "NULL passed to Viewport_InverseTransform()");
 	
-	vp->lpVP->Transform((LPD3DRMVECTOR4D)dest, (LPD3DVECTOR)const_cast<Vector3F*>(src));
+	vp->lpVP->Transform(reinterpret_cast<D3DRMVECTOR4D*>(dest),
+						reinterpret_cast<D3DVECTOR*>(const_cast<Vector3F*>(src)));
 }
 
 // <LegoRR.exe @00477590>

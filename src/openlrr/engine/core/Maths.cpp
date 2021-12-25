@@ -154,14 +154,18 @@ Vector3F* __cdecl Gods98::Maths_Vector3DRandom(OUT Vector3F* r)
 {
 	log_firstcall();
 
-	return (Vector3F*)::D3DRMVectorRandom((LPD3DVECTOR)r);
+	return reinterpret_cast<Vector3F*>(::D3DRMVectorRandom(reinterpret_cast<D3DVECTOR*>(r)));
 }
 
 
 // <unused>
 Vector3F* __cdecl Gods98::Maths_Vector3DReflect(OUT Vector3F* d, const Vector3F* ray, const Vector3F* norm)
 {
-	return (Vector3F*)::D3DRMVectorReflect((LPD3DVECTOR)d, (LPD3DVECTOR)const_cast<Vector3F*>(ray), (LPD3DVECTOR)const_cast<Vector3F*>(norm));
+	log_firstcall();
+
+	return reinterpret_cast<Vector3F*>(::D3DRMVectorReflect(reinterpret_cast<D3DVECTOR*>(d),
+															reinterpret_cast<D3DVECTOR*>(const_cast<Vector3F*>(ray)),
+															reinterpret_cast<D3DVECTOR*>(const_cast<Vector3F*>(norm))));
 }
 
 
@@ -170,7 +174,10 @@ Vector3F* __cdecl Gods98::Maths_Vector3DRotate(OUT Vector3F* r, const Vector3F* 
 {
 	log_firstcall();
 
-	return (Vector3F*)::D3DRMVectorRotate((LPD3DVECTOR)r, (LPD3DVECTOR)const_cast<Vector3F*>(v), (LPD3DVECTOR)const_cast<Vector3F*>(axis), theta);
+	return reinterpret_cast<Vector3F*>(::D3DRMVectorRotate(reinterpret_cast<D3DVECTOR*>(r),
+														   reinterpret_cast<D3DVECTOR*>(const_cast<Vector3F*>(v)),
+														   reinterpret_cast<D3DVECTOR*>(const_cast<Vector3F*>(axis)),
+														   theta));
 }
 
 // <LegoRR.exe @004797f0>
@@ -210,7 +217,7 @@ real32 __cdecl Gods98::Maths_TriangleAreaZ(const Vector3F* p1, const Vector3F* p
 	if (norm.z < 0.0f) {
 		uint32 base = 0; // dummy init (I don't know if initialization is guaranteed with this loop)
 
-		for (uint32 loop=0 ; loop<3 ; loop++){
+		for (uint32 loop = 0; loop < 3; loop++) {
 
 			// Store a set of lengths and vectors...
 			Maths_Vector3DSubtract(&edgeVec[loop], edgeDef[loop][1], edgeDef[loop][0]);
@@ -234,10 +241,10 @@ real32 __cdecl Gods98::Maths_TriangleAreaZ(const Vector3F* p1, const Vector3F* p
 		// Calculate the angle between the base and the 'next' side...
 		// Obtain the height from the angle and the length of the adjacent edge.
 		uint32 next = (base + 1) % 3;
-		angle = (real32) std::acos(Maths_Vector3DDotProduct(&edgeVec[base], &edgeVec[next]));
+		angle = Maths_ACos(Maths_Vector3DDotProduct(&edgeVec[base], &edgeVec[next]));
 		if (::_finite(angle)) {
 
-			height = (real32) std::sin(angle) * len[next];
+			height = Maths_Sin(angle) * len[next];
 
 			// 1/2base * height...
 			area = (len[base] / 2.0f) * height;
@@ -261,7 +268,7 @@ real32 __cdecl Gods98::Maths_RandRange(real32 low, real32 high)
 {
 	log_firstcall();
 
-	real32 val = (real32) Maths_Rand();
+	real32 val = (real32)Maths_Rand();
 	val /= LEGACY_RAND_MAX; // 0x7fff
 
 	val *= (high-low);
@@ -279,7 +286,7 @@ bool32 __cdecl Gods98::Maths_RayPlaneIntersection(Vector3F* endPoint, const Vect
 	Maths_Vector3DNormalise(&n);
 
 	real32 dist;
-	if (Maths_RayPlaneDistance(&dist, rayOrigin, &r, planePoint, &n)){
+	if (Maths_RayPlaneDistance(&dist, rayOrigin, &r, planePoint, &n)) {
 		Maths_RayEndPoint(endPoint, rayOrigin, &r, dist);
 		return true;
 	}
@@ -290,7 +297,7 @@ bool32 __cdecl Gods98::Maths_RayPlaneIntersection(Vector3F* endPoint, const Vect
 bool32 __cdecl Gods98::Maths_RayPlaneDistance(OUT real32* dist, const Vector3F* rayOrigin, const Vector3F* ray, const Vector3F* planePoint, const Vector3F* planeNormal)
 {
 	real32 t;
-	if ((t = Maths_Vector3DDotProduct(planeNormal, ray)) != 0.0f){
+	if ((t = Maths_Vector3DDotProduct(planeNormal, ray)) != 0.0f) {
 
 		// Translate the point in the plane so that the ray would originate from (0,0,0).
 		Vector3F point;
@@ -385,9 +392,9 @@ bool32 __cdecl Gods98::Maths_PointInsidePoly(const Point2F* point, const Point2F
 
 	uint32 rightCount = 0;
 
-	for (uint32 loop=0 ; loop<count ; loop++){
+	for (uint32 loop = 0; loop < count; loop++) {
 		if ((fromList[loop].y <= point->y && toList[loop].y >= point->y) ||
-			(fromList[loop].y >= point->y && toList[loop].y <= point->y)){
+			(fromList[loop].y >= point->y && toList[loop].y <= point->y)) {
 
 			real32 alt = toList[loop].y - fromList[loop].y;
 			real32 slope = toList[loop].x - fromList[loop].x;

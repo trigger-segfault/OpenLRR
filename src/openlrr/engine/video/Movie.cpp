@@ -28,7 +28,7 @@ bool Gods98::G98CMovie::InitSample(IAMMultiMediaStream* lpAMMMStream)
 			this->m_err = this->m_sampleStream->CreateSample(nullptr, nullptr, 0, &this->m_sample);
 			if (this->m_err >= 0) {
 
-				this->m_err = this->m_sample->GetSurface(&this->m_baseSurf, (RECT*)&this->m_movieRect);
+				this->m_err = this->m_sample->GetSurface(&this->m_baseSurf, reinterpret_cast<RECT*>(&this->m_movieRect));
 				if (this->m_err >= 0) {
 
 					this->m_err = this->m_baseSurf->QueryInterface(IID_IDirectDrawSurface3, (void**)&this->m_surf);
