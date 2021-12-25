@@ -720,7 +720,7 @@ void __cdecl Container_ClearTransform(Container* cont);
 
 // <LegoRR.exe @00475970>
 void __cdecl Container_AddTransform(Container* cont, Container_Combine combine,
-									const Matrix4F mat);
+									const Matrix4F* mat);
 
 // <LegoRR.exe @00475990>
 real32 __cdecl Container_GetZXRatio(Container* cont);

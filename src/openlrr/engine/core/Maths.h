@@ -221,11 +221,11 @@ bool32 __cdecl Maths_PointInsidePoly(const Point2F* point, const Point2F* fromLi
 
 
 // <unused>
-Vector3F* __cdecl Maths_Vector3DApplyMatrixXYZ(OUT Vector3F* result, const Matrix4F matrix, real32 x, real32 y, real32 z);
+Vector3F* __cdecl Maths_Vector3DApplyMatrixXYZ(OUT Vector3F* result, const Matrix4F* matrix, real32 x, real32 y, real32 z);
 
 // not inlined (or even implemented) by Gods98
 // <unused>
-__inline Vector3F* Maths_Vector3DApplyMatrix(OUT Vector3F* result, const Matrix4F matrix, const Vector3F* point)
+__inline Vector3F* Maths_Vector3DApplyMatrix(OUT Vector3F* result, const Matrix4F* matrix, const Vector3F* point)
 {
 	return Maths_Vector3DApplyMatrixXYZ(result, matrix, point->x, point->y, point->z);
 }
@@ -251,39 +251,43 @@ bool32 __cdecl Maths_RaySphereIntersection(const Vector3F* center, real32 radius
 
 // Compared to other Matrix4 multiplication functions, a = right, and b = left
 // <LegoRR.exe @00479fa0>
-void __cdecl Matrix_Mult(OUT Matrix4F ans, const Matrix4F a, const Matrix4F b);
+void __cdecl Matrix_Mult(OUT Matrix4F* ans, const Matrix4F* a, const Matrix4F* b);
 
 // Generates the matrix for a rotation of rot radians about the X-Axis
 // <LegoRR.exe @0047a010>
-void __cdecl Matrix_RotX(OUT Matrix4F ans, real32 rot);
+void __cdecl Matrix_RotX(OUT Matrix4F* ans, real32 rot);
 
 // Generates the matrix for a rotation of rot radians about the Y-Axis
 // <LegoRR.exe @0047a060>
-void __cdecl Matrix_RotY(OUT Matrix4F ans, real32 rot);
+void __cdecl Matrix_RotY(OUT Matrix4F* ans, real32 rot);
 
 // Generates the matrix for a rotation of rot radians about the Z-Axis
 // <LegoRR.exe @0047a0b0>
-void __cdecl Matrix_RotZ(OUT Matrix4F ans, real32 rot);
+void __cdecl Matrix_RotZ(OUT Matrix4F* ans, real32 rot);
 
 // Generates a translation matrix.
 // <LegoRR.exe @0047a100>
-void __cdecl Matrix_Translate(OUT Matrix4F ans, const Vector3F* trans);
+void __cdecl Matrix_Translate(OUT Matrix4F* ans, const Vector3F* trans);
 
 // Makes the identity matrix
 // <LegoRR.exe @0047a130>
-void __cdecl Matrix_Identity(OUT Matrix4F ans);
+void __cdecl Matrix_Identity(OUT Matrix4F* ans);
 
 // Makes the zero matrix.
 // <LegoRR.exe @0047a160>
-void __cdecl Matrix_Zero(OUT Matrix4F ans);
+void __cdecl Matrix_Zero(OUT Matrix4F* ans);
 
 // Copies a matrix.
 // <LegoRR.exe @0047a170>
-void __cdecl Matrix_Copy(OUT Matrix4F to, const Matrix4F from);
+void __cdecl Matrix_Copy(OUT Matrix4F* to, const Matrix4F* from);
 
 
 // <unused>
-bool32 __cdecl Matrix_Invert(OUT Matrix4F q, const Matrix4F a);
+bool32 __cdecl Matrix_Invert(OUT Matrix4F* q, const Matrix4F* a);
+
+
+/// CUSTOM:
+bool Matrix_Equals(const Matrix4F* a, const Matrix4F* b);
 
 #pragma endregion
 

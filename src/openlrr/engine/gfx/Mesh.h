@@ -312,7 +312,7 @@ assert_sizeof(Mesh, 0x34);
 struct Mesh_PostRenderInfo
 {
 	/*00,4*/ Mesh* mesh;
-	/*04,40*/ D3DMATRIX matWorld;
+	/*04,40*/ Matrix4F matWorld;
 	/*44,4*/ Mesh_PostRenderInfo* next;
 	/*48*/
 };
@@ -367,7 +367,7 @@ using Mesh_ListSet = ListSet::WrapperCollection<Gods98::Mesh_Globs>;
 #pragma region Globals
 
 // <LegoRR.exe @005353c0>
-extern Mesh_Globs& meshGlobs;
+extern Mesh_Globs & meshGlobs;
 
 extern Mesh_ListSet meshListSet;
 
@@ -383,7 +383,7 @@ extern Mesh_ListSet meshListSet;
 //#ifdef _DEBUG_2
 
 #define Mesh_Debug_CheckIMDevice_Ptr(PTRTYPE)		{ if (lpIMDevice()==nullptr) return (PTRTYPE) 1; }
-//#define Mesh_Debug_CheckIMDevice_Ptr()		{ if (lpIMDevice()==nullptr) return (LPVOID) 1; }
+//#define Mesh_Debug_CheckIMDevice_Ptr()		{ if (lpIMDevice()==nullptr) return (void*) 1; }
 #define Mesh_Debug_CheckIMDevice_Void()		{ if (lpIMDevice()==nullptr) return; }
 #define Mesh_Debug_CheckIMDevice_Int()		{ if (lpIMDevice()==nullptr) return 1; }
 /*
@@ -541,16 +541,16 @@ void __cdecl Mesh_Hide(Mesh* mesh, bool32 hide);
 BOOL __cdecl Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOID lpArg, D3DRMUSERVISUALREASON lpD3DRMUVreason, LPDIRECT3DRMDEVICE lpD3DRMDev, LPDIRECT3DRMVIEWPORT lpD3DRMview);
 
 // <LegoRR.exe @00482d80>
-void __cdecl Mesh_SetMeshRenderDesc(Mesh* mesh, Viewport* vp, const D3DMATRIX* matWorld, bool32 alphaBlend);
+void __cdecl Mesh_SetMeshRenderDesc(Mesh* mesh, Viewport* vp, const Matrix4F* matWorld, bool32 alphaBlend);
 
 // <LegoRR.exe @00482e10>
-void __cdecl Mesh_SetRenderDesc(Mesh_RenderFlags flags, const D3DMATRIX* matWorld, bool32 alphaBlend);
+void __cdecl Mesh_SetRenderDesc(Mesh_RenderFlags flags, const Matrix4F* matWorld, bool32 alphaBlend);
 
 // <LegoRR.exe @00482f70>
 void __cdecl Mesh_SetAlphaRender(D3DBLEND src, D3DBLEND dest);
 
 // <LegoRR.exe @00482fa0>
-void __cdecl Mesh_AddToPostRenderList(Mesh* mesh, OPTIONAL const D3DMATRIX* matWorld);
+void __cdecl Mesh_AddToPostRenderList(Mesh* mesh, OPTIONAL const Matrix4F* matWorld);
 
 // <LegoRR.exe @00482ff0>
 void __cdecl Mesh_ClearPostRenderList(void);
@@ -589,7 +589,7 @@ D3DMATERIAL* __cdecl Mesh_GetGroupMaterial(Mesh* mesh, uint32 groupID);
 bool32 __cdecl Mesh_SetGroupMaterialValues(Mesh* mesh, uint32 groupID, real32 value, Mesh_Colour type);
 
 // <LegoRR.exe @00483800>
-void __cdecl Mesh_SetIdentityMatrix(OUT Matrix4F m);
+void __cdecl Mesh_SetIdentityMatrix(OUT Matrix4F* m);
 
 // <LegoRR.exe @00483840>
 bool32 __cdecl Mesh_SetCurrentViewport(IDirect3DRMViewport* view);
@@ -597,10 +597,8 @@ bool32 __cdecl Mesh_SetCurrentViewport(IDirect3DRMViewport* view);
 // <LegoRR.exe @004838c0>
 bool32 __cdecl Mesh_SetCurrentGODSViewport(Viewport* vp);
 
-/// TODO: is this the correct matrix ptr level?
 // <LegoRR.exe @00483950>
 bool32 __cdecl Mesh_SetTransform(D3DTRANSFORMSTATETYPE state, const Matrix4F* matrix);
-//bool32 __cdecl Mesh_SetTransform(D3DTRANSFORMSTATETYPE state, const Matrix4F matrix);
 
 // <LegoRR.exe @00483ad0>
 bool32 __cdecl Mesh_ChangeTextureStageState(D3DTEXTURESTAGESTATETYPE dwRenderStateType, uint32 dwRenderState);
@@ -612,16 +610,16 @@ void __cdecl Mesh_StoreTextureAndMat(void);
 void __cdecl Mesh_RestoreTextureAndMat(void);
 
 // <LegoRR.exe @00483c80>
-bool32 __cdecl Mesh_RenderMesh(Mesh* mesh, const D3DMATRIX* matWorld, bool32 alphaBlend);
+bool32 __cdecl Mesh_RenderMesh(Mesh* mesh, const Matrix4F* matWorld, bool32 alphaBlend);
 
 // <LegoRR.exe @00483d30>
 bool32 __cdecl Mesh_CanRenderGroup(const Mesh_Group* group);
 
 // <LegoRR.exe @00483d50>
-bool32 __cdecl Mesh_RenderGroup(Mesh* mesh, Mesh_Group* group, const D3DMATRIX* matWorld, bool32 alphaBlend);
+bool32 __cdecl Mesh_RenderGroup(Mesh* mesh, Mesh_Group* group, const Matrix4F* matWorld, bool32 alphaBlend);
 
 // <LegoRR.exe @00483dc0>
-bool32 __cdecl Mesh_SetGroupRenderDesc(Mesh* mesh, Mesh_Group* group, const D3DMATRIX* matWorld, bool32 alphaBlend);
+bool32 __cdecl Mesh_SetGroupRenderDesc(Mesh* mesh, Mesh_Group* group, const Matrix4F* matWorld, bool32 alphaBlend);
 
 // <LegoRR.exe @00483e30>
 bool32 __cdecl Mesh_RenderTriangleList(D3DMATERIALHANDLE matHandle, IDirect3DTexture2* texture, Mesh_RenderFlags renderFlags,

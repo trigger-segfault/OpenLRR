@@ -171,12 +171,12 @@ void __cdecl Gods98::AnimClone_SetTime(AnimClone* clone, real32 time, OUT real32
 		for (uint32 loop = 0; loop < clone->partCount; loop++) {
 
 			IDirect3DRMFrame3* parent;
-			D3DRMMATRIX4D mat; // same structure as Matrix4F
+			Matrix4F mat;
 
 			orig->partArray[loop]->GetParent(&parent);
-			orig->partArray[loop]->GetTransform(parent, mat);
+			orig->partArray[loop]->GetTransform(parent, mat.m);
 			parent->Release();
-			clone->partArray[loop]->AddTransform(D3DRMCOMBINE_REPLACE, mat);
+			clone->partArray[loop]->AddTransform(D3DRMCOMBINE_REPLACE, mat.m);
 		}
 
 		// Restore the original animations' time if required...
@@ -272,9 +272,9 @@ void __cdecl Gods98::AnimClone_CreateCopy(IDirect3DRMFrame3* orig, IDirect3DRMFr
 
 	// Copy the transformation...
 	orig->GetParent(&parent);
-	orig->GetTransform(parent, mat);
+	orig->GetTransform(parent, mat.m);
 	parent->Release();
-	clone->AddTransform(D3DRMCOMBINE_REPLACE, mat);
+	clone->AddTransform(D3DRMCOMBINE_REPLACE, mat.m);
 
 	// Do exactly the same for each child of the frame...
 	IDirect3DRMFrameArray* children;

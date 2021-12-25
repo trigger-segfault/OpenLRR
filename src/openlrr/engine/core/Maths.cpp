@@ -404,25 +404,25 @@ bool32 __cdecl Gods98::Maths_PointInsidePoly(const Point2F* point, const Point2F
 
 
 // <unused>
-Vector3F* __cdecl Gods98::Maths_Vector3DApplyMatrixXYZ(OUT Vector3F* result, const Matrix4F matrix, real32 x, real32 y, real32 z)
+Vector3F* __cdecl Gods98::Maths_Vector3DApplyMatrixXYZ(OUT Vector3F* result, const Matrix4F* matrix, real32 x, real32 y, real32 z)
 {
 //	real32 tx, ty, tz, tw;
 
-//	tx = (matrix[0][0] * x) + (matrix[1][0] * y) + (matrix[2][0] * z) + matrix[3][0];
-//	ty = (matrix[0][1] * x) + (matrix[1][1] * y) + (matrix[2][1] * z) + matrix[3][1];
-//	tz = (matrix[0][2] * x) + (matrix[1][2] * y) + (matrix[2][2] * z) + matrix[3][2];
-//	tw = (matrix[0][3] * x) + (matrix[1][3] * y) + (matrix[2][3] * z) + matrix[3][3];
+//	real32 tx = (matrix->m[0][0] * x) + (matrix->m[1][0] * y) + (matrix->m[2][0] * z) + matrix->m[3][0];
+//	real32 ty = (matrix->m[0][1] * x) + (matrix->m[1][1] * y) + (matrix->m[2][1] * z) + matrix->m[3][1];
+//	real32 tz = (matrix->m[0][2] * x) + (matrix->m[1][2] * y) + (matrix->m[2][2] * z) + matrix->m[3][2];
+//	real32 tw = (matrix->m[0][3] * x) + (matrix->m[1][3] * y) + (matrix->m[2][3] * z) + matrix->m[3][3];
 
-//	if( fabs( w ) < 1.0e-5f )                 // Tolerance for FLOATs
-//      Error_Warn( true, "Invalid arguments." );
+//	if (std::fabs(w) < 1.0e-5f) // Tolerance for FLOATs
+//		Error_Warn(true, "Invalid arguments.");
 
-//	result->x = tx/tw;
-//	result->y = ty/tw;
-//	result->z = tz/tw;
+//	result->x = tx / tw;
+//	result->y = ty / tw;
+//	result->z = tz / tw;
 
-    result->x = (matrix[0][0] * x) + (matrix[1][0] * y) + (matrix[2][0] * z) + matrix[3][0];
-	result->y = (matrix[0][1] * x) + (matrix[1][1] * y) + (matrix[2][1] * z) + matrix[3][1];
-	result->z = (matrix[0][2] * x) + (matrix[1][2] * y) + (matrix[2][2] * z) + matrix[3][2];
+	result->x = (matrix->m[0][0] * x) + (matrix->m[1][0] * y) + (matrix->m[2][0] * z) + matrix->m[3][0];
+	result->y = (matrix->m[0][1] * x) + (matrix->m[1][1] * y) + (matrix->m[2][1] * z) + matrix->m[3][1];
+	result->z = (matrix->m[0][2] * x) + (matrix->m[1][2] * y) + (matrix->m[2][2] * z) + matrix->m[3][2];
 
 	return result;
 }
@@ -430,7 +430,7 @@ Vector3F* __cdecl Gods98::Maths_Vector3DApplyMatrixXYZ(OUT Vector3F* result, con
 /*
 // not inlined (or even implemented) by Gods98
 // <unused>
-__inline Vector3F* Maths_Vector3DApplyMatrix(OUT Vector3F* result, const Matrix4F matrix, const Vector3F* point)
+__inline Vector3F* Maths_Vector3DApplyMatrix(OUT Vector3F* result, const Matrix4F* matrix, const Vector3F* point)
 {
 	return Maths_Vector3DApplyMatrixXYZ(result, matrix, point->x, point->y, point->z);
 }
@@ -483,18 +483,15 @@ bool32 __cdecl Gods98::Maths_RaySphereIntersection(const Vector3F* center, real3
 
 // Compared to other Matrix4 multiplication functions, a = right, and b = left
 // <LegoRR.exe @00479fa0>
-void __cdecl Gods98::Matrix_Mult(OUT Matrix4F ans, const Matrix4F a, const Matrix4F b)
+void __cdecl Gods98::Matrix_Mult(OUT Matrix4F* ans, const Matrix4F* a, const Matrix4F* b)
 {
 	log_firstcall();
 
 	Matrix_Zero(ans);
-	for (int i=0; i<4; i++) 
-	{
-		for (int j=0; j<4; j++)
-		{
-			for (int k=0; k<4; k++)
-			{
-				ans[i][j] += a[k][j] * b[i][k];
+	for (uint32 i = 0; i < 4; i++) {
+		for (uint32 j = 0; j < 4; j++) {
+			for (uint32 k = 0; k < 4; k++) {
+				ans->m[i][j] += a->m[k][j] * b->m[i][k];
 			}
 		}
 	}
@@ -502,140 +499,154 @@ void __cdecl Gods98::Matrix_Mult(OUT Matrix4F ans, const Matrix4F a, const Matri
 
 // Generates the matrix for a rotation of rot radians about the X-Axis
 // <LegoRR.exe @0047a010>
-void __cdecl Gods98::Matrix_RotX(OUT Matrix4F ans, real32 rot)
+void __cdecl Gods98::Matrix_RotX(OUT Matrix4F* ans, real32 rot)
 {
 	log_firstcall();
 
-	real32 cosine = (real32) Maths_Cos(rot);
-	real32 sine = (real32) Maths_Sin(rot);
-    Matrix_Identity(ans);
+	real32 cosine = Maths_Cos(rot);
+	real32 sine = Maths_Sin(rot);
+	Matrix_Identity(ans);
 
-    ans[1][1] = cosine;
-	ans[2][2] = cosine;
-	ans[1][2] = -sine;
-	ans[2][1] =  sine;
+	ans->m[1][1] = cosine;
+	ans->m[2][2] = cosine;
+	ans->m[1][2] = -sine;
+	ans->m[2][1] =  sine;
 }
 
 // Generates the matrix for a rotation of rot radians about the Y-Axis
 // <LegoRR.exe @0047a060>
-void __cdecl Gods98::Matrix_RotY(OUT Matrix4F ans, real32 rot)
+void __cdecl Gods98::Matrix_RotY(OUT Matrix4F* ans, real32 rot)
 {
 	log_firstcall();
 
-	real32 cosine = (real32) Maths_Cos(rot);
-	real32 sine = (real32) Maths_Sin(rot);
-    Matrix_Identity(ans);
+	real32 cosine = Maths_Cos(rot);
+	real32 sine = Maths_Sin(rot);
+	Matrix_Identity(ans);
 
-    ans[0][0] = cosine;
-	ans[2][2] = cosine;
-	ans[0][2] =  sine;
-	ans[2][0] = -sine;
+	ans->m[0][0] = cosine;
+	ans->m[2][2] = cosine;
+	ans->m[0][2] =  sine;
+	ans->m[2][0] = -sine;
 }
 
 // Generates the matrix for a rotation of rot radians about the Z-Axis
 // <LegoRR.exe @0047a0b0>
-void __cdecl Gods98::Matrix_RotZ(OUT Matrix4F ans, real32 rot)
+void __cdecl Gods98::Matrix_RotZ(OUT Matrix4F* ans, real32 rot)
 {
 	log_firstcall();
 
-	real32 cosine = (real32) Maths_Cos(rot);
-	real32 sine = (real32) Maths_Sin(rot);
-    Matrix_Identity(ans);
+	real32 cosine = Maths_Cos(rot);
+	real32 sine = Maths_Sin(rot);
+	Matrix_Identity(ans);
 
-    ans[0][0] = cosine;
-	ans[1][1] = cosine;
-	ans[0][1] = -sine;
-	ans[1][0] =  sine;
+	ans->m[0][0] = cosine;
+	ans->m[1][1] = cosine;
+	ans->m[0][1] = -sine;
+	ans->m[1][0] =  sine;
 }
 
 // Generates a translation matrix.
 // <LegoRR.exe @0047a100>
-void __cdecl Gods98::Matrix_Translate(OUT Matrix4F ans, const Vector3F* trans)
+void __cdecl Gods98::Matrix_Translate(OUT Matrix4F* ans, const Vector3F* trans)
 {
 	log_firstcall();
 
 	Matrix_Identity(ans);
-	ans[3][0] = trans->x;
-	ans[3][1] = trans->y;
-	ans[3][2] = trans->z;
+
+	ans->m[3][0] = trans->x;
+	ans->m[3][1] = trans->y;
+	ans->m[3][2] = trans->z;
 }
 
 // Makes the identity matrix
 // <LegoRR.exe @0047a130>
-void __cdecl Gods98::Matrix_Identity(OUT Matrix4F ans)
+void __cdecl Gods98::Matrix_Identity(OUT Matrix4F* ans)
 {
 	log_firstcall();
 
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 4; j++) {
-			ans[i][j] = (i == j) ? 1.0f : 0.0f;
+	for (uint32 i = 0; i < 4; i++) {
+		for (uint32 j = 0; j < 4; j++) {
+			ans->m[i][j] = (i == j) ? 1.0f : 0.0f;
 		}
 	}
 }
 
 // Makes the zero matrix.
 // <LegoRR.exe @0047a160>
-void __cdecl Gods98::Matrix_Zero(OUT Matrix4F ans)
+void __cdecl Gods98::Matrix_Zero(OUT Matrix4F* ans)
 {
 	log_firstcall();
 
-	//ALT: std::memset(ans, 0, sizeof(Matrix4F)); // MUST safely assume that Matrix4F typedef supports sizeof
+	//ALT: std::memset(ans, 0, sizeof(Matrix4F));
 
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 4; j++) {
-			ans[i][j] = 0.0f;
+	for (uint32 i = 0; i < 4; i++) {
+		for (uint32 j = 0; j < 4; j++) {
+			ans->m[i][j] = 0.0f;
 		}
 	}
 }
 
 // Copies a matrix.
 // <LegoRR.exe @0047a170>
-void __cdecl Gods98::Matrix_Copy(OUT Matrix4F to, const Matrix4F from)
+void __cdecl Gods98::Matrix_Copy(OUT Matrix4F* to, const Matrix4F* from)
 {
 	log_firstcall();
 
-	//ALT: std::memcpy(to, from, sizeof(Matrix4F)); // MUST safely assume that Matrix4F typedef supports sizeof
+	//ALT: std::memcpy(to, from, sizeof(Matrix4F));
 
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 4; j++) {
-			to[i][j] = from[i][j];
+	for (uint32 i = 0; i < 4; i++) {
+		for (uint32 j = 0; j < 4; j++) {
+			to->m[i][j] = from->m[i][j];
 		}
 	}
 }
 
 
 // <unused>
-bool32 __cdecl Gods98::Matrix_Invert(OUT Matrix4F q, const Matrix4F a)
+bool32 __cdecl Gods98::Matrix_Invert(OUT Matrix4F* q, const Matrix4F* a)
 {
-	if(std::fabs(a[3][3] - 1.0f) > .001f)
+	if (std::fabs(a->m[3][3] - 1.0f) > 0.001f)
 		return false;
-	if(std::fabs(a[0][3]) > .001f || std::fabs(a[1][3]) > .001f || std::fabs(a[2][3]) > .001f)
+	if (std::fabs(a->m[0][3]) > 0.001f || std::fabs(a->m[1][3]) > 0.001f || std::fabs(a->m[2][3]) > 0.001f)
 		return false;
 	
-	real32 fDetInv = 1.0f / ( a[0][0] * ( a[1][1] * a[2][2] - a[1][2] * a[2][1] ) -
-		a[0][1] * ( a[1][0] * a[2][2] - a[1][2] * a[2][0] ) +
-		a[0][2] * ( a[1][0] * a[2][1] - a[1][1] * a[2][0] ) );
+	real32 fDetInv = 1.0f / ( a->m[0][0] * ( a->m[1][1] * a->m[2][2] - a->m[1][2] * a->m[2][1] ) -
+							  a->m[0][1] * ( a->m[1][0] * a->m[2][2] - a->m[1][2] * a->m[2][0] ) +
+							  a->m[0][2] * ( a->m[1][0] * a->m[2][1] - a->m[1][1] * a->m[2][0] ) );
 	
-	q[0][0] =  fDetInv * ( a[1][1] * a[2][2] - a[1][2] * a[2][1] );
-	q[0][1] = -fDetInv * ( a[0][1] * a[2][2] - a[0][2] * a[2][1] );
-	q[0][2] =  fDetInv * ( a[0][1] * a[1][2] - a[0][2] * a[1][1] );
-	q[0][3] = 0.0f;
+	q->m[0][0] =  fDetInv * ( a->m[1][1] * a->m[2][2] - a->m[1][2] * a->m[2][1] );
+	q->m[0][1] = -fDetInv * ( a->m[0][1] * a->m[2][2] - a->m[0][2] * a->m[2][1] );
+	q->m[0][2] =  fDetInv * ( a->m[0][1] * a->m[1][2] - a->m[0][2] * a->m[1][1] );
+	q->m[0][3] = 0.0f;
 	
-	q[1][0] = -fDetInv * ( a[1][0] * a[2][2] - a[1][2] * a[2][0] );
-	q[1][1] =  fDetInv * ( a[0][0] * a[2][2] - a[0][2] * a[2][0] );
-	q[1][2] = -fDetInv * ( a[0][0] * a[1][2] - a[0][2] * a[1][0] );
-	q[1][3] = 0.0f;
+	q->m[1][0] = -fDetInv * ( a->m[1][0] * a->m[2][2] - a->m[1][2] * a->m[2][0] );
+	q->m[1][1] =  fDetInv * ( a->m[0][0] * a->m[2][2] - a->m[0][2] * a->m[2][0] );
+	q->m[1][2] = -fDetInv * ( a->m[0][0] * a->m[1][2] - a->m[0][2] * a->m[1][0] );
+	q->m[1][3] = 0.0f;
 	
-	q[2][0] =  fDetInv * ( a[1][0] * a[2][1] - a[1][1] * a[2][0] );
-	q[2][1] = -fDetInv * ( a[0][0] * a[2][1] - a[0][1] * a[2][0] );
-	q[2][2] =  fDetInv * ( a[0][0] * a[1][1] - a[0][1] * a[1][0] );
-	q[2][3] = 0.0f;
+	q->m[2][0] =  fDetInv * ( a->m[1][0] * a->m[2][1] - a->m[1][1] * a->m[2][0] );
+	q->m[2][1] = -fDetInv * ( a->m[0][0] * a->m[2][1] - a->m[0][1] * a->m[2][0] );
+	q->m[2][2] =  fDetInv * ( a->m[0][0] * a->m[1][1] - a->m[0][1] * a->m[1][0] );
+	q->m[2][3] = 0.0f;
 	
-	q[3][0] = -( a[3][0] * q[0][0] + a[3][1] * q[1][0] + a[3][2] * q[2][0] );
-	q[3][1] = -( a[3][0] * q[0][1] + a[3][1] * q[1][1] + a[3][2] * q[2][1] );
-	q[3][2] = -( a[3][0] * q[0][2] + a[3][1] * q[1][2] + a[3][2] * q[2][2] );
-	q[3][3] = 1.0f;
+	q->m[3][0] = -( a->m[3][0] * q->m[0][0] + a->m[3][1] * q->m[1][0] + a->m[3][2] * q->m[2][0] );
+	q->m[3][1] = -( a->m[3][0] * q->m[0][1] + a->m[3][1] * q->m[1][1] + a->m[3][2] * q->m[2][1] );
+	q->m[3][2] = -( a->m[3][0] * q->m[0][2] + a->m[3][1] * q->m[1][2] + a->m[3][2] * q->m[2][2] );
+	q->m[3][3] = 1.0f;
 	
+	return true;
+}
+
+
+/// CUSTOM:
+bool Gods98::Matrix_Equals(const Matrix4F* a, const Matrix4F* b)
+{
+	for (uint32 i = 0; i < 4; i++) {
+		for (uint32 j = 0; j < 4; j++) {
+			if (a->m[i][j] != b->m[i][j])
+				return false;
+		}
+	}
 	return true;
 }
 

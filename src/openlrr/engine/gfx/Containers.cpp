@@ -17,6 +17,7 @@
 #include "../core/Config.h"
 #include "../core/Errors.h"
 #include "../core/Files.h"
+#include "../core/Maths.h"
 #include "../core/Memory.h"
 #include "../core/Utils.h"
 #include "../drawing/Bmp.h"
@@ -861,7 +862,6 @@ Gods98::Container* __cdecl Gods98::Container_Clone(Container* orig)
 {
 	Container* cont = nullptr;
 	Container* useOldClone = nullptr;
-	D3DRMMATRIX4D mat;
 	uint32 loadRef = 0;
 
 	Container_DebugCheckOK(orig);
@@ -938,9 +938,11 @@ Gods98::Container* __cdecl Gods98::Container_Clone(Container* orig)
 	{
 		// Duplicate the activity frames transformation matrix
 		IDirect3DRMFrame3* parent;
+		Matrix4F mat;
+
 		orig->activityFrame->GetParent(&parent);
-		orig->activityFrame->GetTransform(parent, mat);
-		cont->activityFrame->AddTransform(D3DRMCOMBINE_REPLACE, mat);
+		orig->activityFrame->GetTransform(parent, mat.m);
+		cont->activityFrame->AddTransform(D3DRMCOMBINE_REPLACE, mat.m);
 		parent->Release();
 	}
 
@@ -2690,19 +2692,21 @@ void __cdecl Gods98::Container_AddTranslation(Container* cont, Container_Combine
 // <LegoRR.exe @004758d0>
 void __cdecl Gods98::Container_ClearTransform(Container* cont)
 {
-	Matrix4F identity = {
+	/*const Matrix4F identity = {{
 		{ 1.0f, 0.0f, 0.0f, 0.0f },
 		{ 0.0f, 1.0f, 0.0f, 0.0f },
 		{ 0.0f, 0.0f, 1.0f, 0.0f },
 		{ 0.0f, 0.0f, 0.0f, 1.0f },
-	};
+	}};*/
+	Matrix4F identity;
+	Matrix_Identity(&identity);
 
-	Container_AddTransform(cont, Container_Combine::Replace, identity);
+	Container_AddTransform(cont, Container_Combine::Replace, &identity);
 }
 
 // <LegoRR.exe @00475970>
 void __cdecl Gods98::Container_AddTransform(Container* cont, Container_Combine combine,
-											const Matrix4F mat)
+											const Matrix4F* mat)
 {
 	IDirect3DRMFrame3* frame;
 	Container_DebugCheckOK(cont);
@@ -2710,13 +2714,13 @@ void __cdecl Gods98::Container_AddTransform(Container* cont, Container_Combine c
 	frame = cont->masterFrame;
 	Error_Fatal(!frame, "Container has no masterFrame");
 
-	frame->AddTransform((D3DRMCOMBINETYPE)combine, const_cast<D3DVALUE(*)[4]>(mat));
+	frame->AddTransform((D3DRMCOMBINETYPE)combine, const_cast<real32(*)[4]>(mat->m));
 
 	// unused preprocessor in LegoRR
 #ifdef CONTAINER_MATCHHIDDENHIERARCHY
 	if (Container_Reference != cont->type) {
 		frame = cont->hiddenFrame;
-		frame->AddTransform((D3DRMCOMBINETYPE)combine, mat);
+		frame->AddTransform((D3DRMCOMBINETYPE)combine, const_cast<real32(*)[4]>(mat->m));
 	}
 #endif // CONTAINER_MATCHHIDDENHIERARCHY
 }
@@ -2732,10 +2736,10 @@ real32 __cdecl Gods98::Container_GetZXRatio(Container* cont)
 	Error_Fatal(!frame, "Container has no masterFrame");
 
 	frame->GetParent(&parent);
-	frame->GetTransform(parent, mat);
+	frame->GetTransform(parent, mat.m);
 	parent->Release();
 
-	return mat[2][2] / mat[0][0];
+	return mat.m[2][2] / mat.m[0][0];
 }
 
 // <LegoRR.exe @004759d0>
@@ -3306,14 +3310,14 @@ uint32 __cdecl Gods98::Container_Frame_GetTrigger(IDirect3DRMFrame3* frame)
 void __cdecl Gods98::Container_Frame_SafeAddChild(IDirect3DRMFrame3* parent, IDirect3DRMFrame3* child)
 {
 	// Stop addchild from corrupting the transformation matrix...
-	D3DRMMATRIX4D mat; // same as Matrix4F
 	IDirect3DRMFrame3* oldParent;
+	Matrix4F mat;
 
 	child->GetParent(&oldParent);
-	child->GetTransform(oldParent, mat);
+	child->GetTransform(oldParent, mat.m);
 	if (oldParent) oldParent->Release();
 	parent->AddChild(child);
-	child->AddTransform(D3DRMCOMBINE_REPLACE, mat);
+	child->AddTransform(D3DRMCOMBINE_REPLACE, mat.m);
 }
 
 // <LegoRR.exe @00476530>

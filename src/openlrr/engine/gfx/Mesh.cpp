@@ -619,7 +619,7 @@ void __cdecl Gods98::Mesh_GetSurfInfo(const char* basePath, APPOBJ* lightWaveObj
 					if (--numInTexSeq) {
 					
 						//LOAD TEXTURE SEQUENCE
-						lightWaveSurf[loopSurf].textureSeq = (Mesh_Texture**)Mem_Alloc(sizeof(lpMesh_Texture) * (numInTexSeq));
+						lightWaveSurf[loopSurf].textureSeq = (Mesh_Texture**)Mem_Alloc(sizeof(Mesh_Texture*) * (numInTexSeq));
 
 						for (uint32 frame = 0; frame < numInTexSeq; frame++) {
 							Mesh_GetNextInSequence(baseName, textName, &tempNum, numOfDigits);
@@ -1315,7 +1315,7 @@ BOOL __cdecl Gods98::Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOI
 
 		if (lpIMDevice()) {
 
-			D3DMATRIX matWorld;
+			Matrix4F matWorld;
 			IDirect3DRMViewport2* view;
 			Mesh_Group* group;
 			bool32 postRender = false;
@@ -1325,7 +1325,7 @@ BOOL __cdecl Gods98::Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOI
 			mesh->flags &= ~MeshFlags::MESH_FLAG_FACECAMERADONE;
 
 			//GET THE CURRENT RM WORLD MATRIX FOR POST RENDER
-			lpIMDevice()->GetTransform(D3DTRANSFORMSTATE_WORLD, &matWorld);
+			lpIMDevice()->GetTransform(D3DTRANSFORMSTATE_WORLD, reinterpret_cast<D3DMATRIX*>(&matWorld));
 
 			Mesh_SetCurrentViewport(lpD3DRMview);
 			lpD3DRMview->QueryInterface(Idl::IID_IDirect3DRMViewport2, (void**)&view);
@@ -1335,7 +1335,7 @@ BOOL __cdecl Gods98::Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOI
 			if (mesh->flags & MeshFlags::MESH_FLAG_POSTEFFECT) {
 
 				//POST RENDER MESH
-				Mesh_AddToPostRenderList(mesh, &matWorld);
+				Mesh_AddToPostRenderList(mesh, &matWorld); // (optional parameter)
 			}
 			else if (mesh->renderDesc.renderFlags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA) {
 
@@ -1391,7 +1391,7 @@ BOOL __cdecl Gods98::Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOI
 				}
 
 				if (postRender)
-					Mesh_AddToPostRenderList(mesh, &matWorld);
+					Mesh_AddToPostRenderList(mesh, &matWorld); // (optional parameter)
 			}
 			else {
 				//NOTE IS SOME OF THE GROUPS IN THIS MESH USE ALPHA BLENDING THEY WILL NOT APPEAR
@@ -1422,7 +1422,7 @@ BOOL __cdecl Gods98::Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOI
 }
 
 // <LegoRR.exe @00482d80>
-void __cdecl Gods98::Mesh_SetMeshRenderDesc(Mesh* mesh, Viewport* vp, const D3DMATRIX* matWorld, bool32 alphaBlend)
+void __cdecl Gods98::Mesh_SetMeshRenderDesc(Mesh* mesh, Viewport* vp, const Matrix4F* matWorld, bool32 alphaBlend)
 {
 	//CALL MESH SPECIFIC RENDER FUNCTION
 	if (mesh->renderDesc.renderCallback)
@@ -1479,9 +1479,8 @@ void __cdecl Gods98::Mesh_SetMeshRenderDesc(Mesh* mesh, Viewport* vp, const D3DM
 }
 
 // <LegoRR.exe @00482e10>
-void __cdecl Gods98::Mesh_SetRenderDesc(Mesh_RenderFlags flags, const D3DMATRIX* matWorld, bool32 alphaBlend)
+void __cdecl Gods98::Mesh_SetRenderDesc(Mesh_RenderFlags flags, const Matrix4F* matWorld, bool32 alphaBlend)
 {
-	Matrix4F temp;
 
 
 	//CHECK MESH IS ALPHA BLENDED
@@ -1536,11 +1535,12 @@ void __cdecl Gods98::Mesh_SetRenderDesc(Mesh_RenderFlags flags, const D3DMATRIX*
 
 	//WORLD TRANSORMATION
 	if (flags & Mesh_RenderFlags::MESH_TRANSFORM_FLAG_PARENTPOS) {
-		Mesh_SetTransform(D3DTRANSFORMSTATE_WORLD, (Matrix4F*)matWorld);
+		Mesh_SetTransform(D3DTRANSFORMSTATE_WORLD, matWorld);
 	}
 	else if (flags & Mesh_RenderFlags::MESH_TRANSFORM_FLAG_IDENTITY) {
-		Mesh_SetIdentityMatrix(temp);
-		Mesh_SetTransform(D3DTRANSFORMSTATE_WORLD, &temp);
+		Matrix4F identity;
+		Matrix_Identity(&identity);
+		Mesh_SetTransform(D3DTRANSFORMSTATE_WORLD, &identity);
 
 	}
 
@@ -1583,7 +1583,7 @@ void __cdecl Gods98::Mesh_SetAlphaRender(D3DBLEND src, D3DBLEND dest)
 }
 
 // <LegoRR.exe @00482fa0>
-void __cdecl Gods98::Mesh_AddToPostRenderList(Mesh* mesh, OPTIONAL const D3DMATRIX* matWorld)
+void __cdecl Gods98::Mesh_AddToPostRenderList(Mesh* mesh, OPTIONAL const Matrix4F* matWorld)
 {
 	Mesh_PostRenderInfo* info = (Mesh_PostRenderInfo*)Mem_Alloc(sizeof(Mesh_PostRenderInfo));
 	std::memset(info, 0, sizeof(Mesh_PostRenderInfo));
@@ -1973,11 +1973,9 @@ bool32 __cdecl Gods98::Mesh_SetGroupMaterialValues(Mesh* mesh, uint32 groupID, r
 }
 
 // <LegoRR.exe @00483800>
-void __cdecl Gods98::Mesh_SetIdentityMatrix(OUT Matrix4F m)
+void __cdecl Gods98::Mesh_SetIdentityMatrix(OUT Matrix4F* m)
 {
-	m[0][1] = m[0][2] = m[0][3] = m[1][0] = m[1][2] = m[1][3] = 0.0f;
-	m[2][0] = m[2][1] = m[2][3] = m[3][0] = m[3][1] = m[3][2] = 0.0f;
-	m[0][0] = m[1][1] = m[2][2] = m[3][3] = 1.0f;
+	Matrix_Identity(m);
 }
 
 // <LegoRR.exe @00483840>
@@ -2042,27 +2040,20 @@ bool32 __cdecl Gods98::Mesh_SetCurrentGODSViewport(Viewport* vp)
 	return true;
 }
 
-/// TODO: is this the correct matrix ptr level?
 // <LegoRR.exe @00483950>
-//bool32 __cdecl Gods98::Mesh_SetTransform(D3DTRANSFORMSTATETYPE state, const Matrix4F matrix);
 bool32 __cdecl Gods98::Mesh_SetTransform(D3DTRANSFORMSTATETYPE state, const Matrix4F* matrix)
 {
-	D3DMATRIX oldMatrix;
-	D3DMATRIX newMatrix = *((LPD3DMATRIX)matrix);
+	assert_sizeof(D3DMATRIX, sizeof(Matrix4F));
 
+	Matrix4F oldMatrix;
 
 	//DIRECTX DOCUMENTATION STATES CALLS TO 'SetTransform' SHOULD BE MINIMISED
-	if (lpIMDevice()->GetTransform(state, &oldMatrix) != D3D_OK) {
+	if (lpIMDevice()->GetTransform(state, reinterpret_cast<D3DMATRIX*>(&oldMatrix)) != D3D_OK) {
 		Error_Warn(true, "Cannot 'GetTransform'.");
 	}
 
-	//MAYBE PUT != COMPARISON AS A GLOBAL FUNCTION?
-	if ((oldMatrix._11 != newMatrix._11) || (oldMatrix._12 != newMatrix._12) || (oldMatrix._13 != newMatrix._13) || (oldMatrix._14 != newMatrix._14) ||
-		(oldMatrix._21 != newMatrix._21) || (oldMatrix._22 != newMatrix._22) || (oldMatrix._23 != newMatrix._23) || (oldMatrix._24 != newMatrix._24) ||
-		(oldMatrix._31 != newMatrix._31) || (oldMatrix._32 != newMatrix._32) || (oldMatrix._33 != newMatrix._33) || (oldMatrix._34 != newMatrix._34) ||
-		(oldMatrix._41 != newMatrix._41) || (oldMatrix._42 != newMatrix._42) || (oldMatrix._43 != newMatrix._43) || (oldMatrix._44 != newMatrix._44))
-	{
-		if (lpIMDevice()->SetTransform(state, (LPD3DMATRIX)matrix) != D3D_OK) {
+	if (!Matrix_Equals(&oldMatrix, matrix)) {
+		if (lpIMDevice()->SetTransform(state, const_cast<D3DMATRIX*>(reinterpret_cast<const D3DMATRIX*>(matrix))) != D3D_OK) {
 			Error_Warn(true, "Cannot 'SetTransform'.");
 
 			return false;
@@ -2204,7 +2195,7 @@ void __cdecl Gods98::Mesh_RestoreTextureAndMat(void)
 }
 
 // <LegoRR.exe @00483c80>
-bool32 __cdecl Gods98::Mesh_RenderMesh(Mesh* mesh, const D3DMATRIX* matWorld, bool32 alphaBlend)
+bool32 __cdecl Gods98::Mesh_RenderMesh(Mesh* mesh, const Matrix4F* matWorld, bool32 alphaBlend)
 {
 	bool32 ok = true;
 
@@ -2246,7 +2237,7 @@ bool32 __cdecl Gods98::Mesh_CanRenderGroup(const Mesh_Group* group)
 }
 
 // <LegoRR.exe @00483d50>
-bool32 __cdecl Gods98::Mesh_RenderGroup(Mesh* mesh, Mesh_Group* group, const D3DMATRIX* matWorld, bool32 alphaBlend)
+bool32 __cdecl Gods98::Mesh_RenderGroup(Mesh* mesh, Mesh_Group* group, const Matrix4F* matWorld, bool32 alphaBlend)
 {
 	bool32 ok = true;
 
@@ -2291,7 +2282,7 @@ bool32 __cdecl Gods98::Mesh_RenderGroup(Mesh* mesh, Mesh_Group* group, const D3D
 }
 
 // <LegoRR.exe @00483dc0>
-bool32 __cdecl Gods98::Mesh_SetGroupRenderDesc(Mesh* mesh, Mesh_Group* group, const D3DMATRIX* matWorld, bool32 alphaBlend)
+bool32 __cdecl Gods98::Mesh_SetGroupRenderDesc(Mesh* mesh, Mesh_Group* group, const Matrix4F* matWorld, bool32 alphaBlend)
 {
 	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_DONTMANAGETEXTURES)) {
 

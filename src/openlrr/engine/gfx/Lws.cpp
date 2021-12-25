@@ -426,7 +426,6 @@ Gods98::Lws_Info* __cdecl Gods98::Lws_Clone(Lws_Info* scene, IDirect3DRMFrame3* 
 	Mesh* mesh;
 	uint16 frameCount = 0, loop;
 	IDirect3DRMFrame3* nodeParent;
-	Matrix4F mat;
 
 	if (scene->clonedFrom) scene = scene->clonedFrom;
 
@@ -443,10 +442,11 @@ Gods98::Lws_Info* __cdecl Gods98::Lws_Clone(Lws_Info* scene, IDirect3DRMFrame3* 
 		node = &clone->nodeList[loop];
 
 		// Copy the transformation...
+		Matrix4F mat;
 		scene->frameList[loop]->GetParent(&nodeParent);
-		scene->frameList[loop]->GetTransform(nodeParent, mat);
+		scene->frameList[loop]->GetTransform(nodeParent, mat.m);
 		nodeParent->Release();
-		clone->frameList[loop]->AddTransform(D3DRMCOMBINE_REPLACE, mat);
+		clone->frameList[loop]->AddTransform(D3DRMCOMBINE_REPLACE, mat.m);
 
 		if (!(node->flags & Lws_NodeFlags::LWSNODE_FLAG_NULL)) {
 			mesh = Lws_GetNodeMesh(scene, node);
@@ -638,23 +638,23 @@ void __cdecl Gods98::Lws_SetupNodeTransform(Lws_Info* scene, Lws_Node* node, con
 	// bank then heading then pitch...
 
 	IDirect3DRMFrame3* frame = scene->frameList[node->frameIndex];
-	D3DRMMATRIX4D m; // same as Matrix4F
+	Matrix4F mat;
 
 	if (node->flags & Lws_NodeFlags::LWSNODE_FLAG_FACECAMERA){
 
 		IDirect3DRMFrame3* parent;
-		frame->GetParent(&parent);
 
-		frame->GetTransform(parent, m);
+		frame->GetParent(&parent);
+		frame->GetTransform(parent, mat.m);
 		parent->Release();
 		parent = nullptr;
-		m[0][0] *= scale->x;
-		m[1][1] *= scale->y;
-		m[2][2] *= scale->z;
-		m[3][0] = pos->x;
-		m[3][1] = pos->y;
-		m[3][2] = pos->z;
-		frame->AddTransform(D3DRMCOMBINE_REPLACE, m);
+		mat.m[0][0] *= scale->x;
+		mat.m[1][1] *= scale->y;
+		mat.m[2][2] *= scale->z;
+		mat.m[3][0] = pos->x;
+		mat.m[3][1] = pos->y;
+		mat.m[3][2] = pos->z;
+		frame->AddTransform(D3DRMCOMBINE_REPLACE, mat.m);
 
 	} else {
 	/*	frame->AddTranslation(D3DRMCOMBINE_REPLACE, node->pivotVector.x, node->pivotVector.y, node->pivotVector.z);
@@ -674,50 +674,50 @@ void __cdecl Gods98::Lws_SetupNodeTransform(Lws_Info* scene, Lws_Node* node, con
 
 	/////////////////////////////////////////////////////////////////////
 	// Formula - Unoptimised version
-	//	m[0][0] = Cz * Cy + Sz * Sx * Sy;
-	//	m[0][1] = Sz * Cx;
-	//	m[0][2] = Sz * Sx * Cy - Cz * Sy;
-	//	m[0][3] = 0.0f;
+	//	mat.m[0][0] = Cz * Cy + Sz * Sx * Sy;
+	//	mat.m[0][1] = Sz * Cx;
+	//	mat.m[0][2] = Sz * Sx * Cy - Cz * Sy;
+	//	mat.m[0][3] = 0.0f;
 	//
-	//	m[1][0] = Cz * Sx * Sy - Sz * Cy;
-	//	m[1][1] = Cz * Cx;
-	//	m[1][2] = Sz * Sy + Cz * Sx * Cy;
-	//	m[1][3] = 0.0f;
+	//	mat.m[1][0] = Cz * Sx * Sy - Sz * Cy;
+	//	mat.m[1][1] = Cz * Cx;
+	//	mat.m[1][2] = Sz * Sy + Cz * Sx * Cy;
+	//	mat.m[1][3] = 0.0f;
 	//
-	//	m[2][0] = Cx * Sy;
-	//	m[2][1] = -Sx;
-	//	m[2][2] = Cx * Cy;
-	//	m[2][3] = 0.0f;
+	//	mat.m[2][0] = Cx * Sy;
+	//	mat.m[2][1] = -Sx;
+	//	mat.m[2][2] = Cx * Cy;
+	//	mat.m[2][3] = 0.0f;
 	//
-	//	m[3][0] = k->posx;
-	//	m[3][1] = k->posy;
-	//	m[3][2] = k->posz;
-	//	m[3][3] = 1.0f;
+	//	mat.m[3][0] = k->posx;
+	//	mat.m[3][1] = k->posy;
+	//	mat.m[3][2] = k->posz;
+	//	mat.m[3][3] = 1.0f;
 	///////////////////////////////////////////////////////////////////
 	/*
 		// (Slightly) optimised sub terms - dont know if this is really worth it.
 		REAL SxSy = Sx * Sy;
 		REAL CzCy = Cz * Cy;
 
-		m[0][0] =  ( ( CzCy ) + ( Sz * SxSy ) ) * scale->x;
-		m[0][1] =  Sz * Cx * scale->x;
-		m[0][2] =  ( ( Sz * Sx * Cy) - (Cz * Sy) ) * scale->x;
-		m[0][3] =  0.0f;
+		mat.m[0][0] =  ( ( CzCy ) + ( Sz * SxSy ) ) * scale->x;
+		mat.m[0][1] =  Sz * Cx * scale->x;
+		mat.m[0][2] =  ( ( Sz * Sx * Cy) - (Cz * Sy) ) * scale->x;
+		mat.m[0][3] =  0.0f;
 
-		m[1][0] =  ( ( Cz * SxSy) - ( Sz * Cy) ) * scale->y;
-		m[1][1] =  Cz * Cx * scale->y;
-		m[1][2] =  ( ( Sz * Sy ) + ( CzCy * Sx) ) * scale->y;
-		m[1][3] =  0.0f;
+		mat.m[1][0] =  ( ( Cz * SxSy) - ( Sz * Cy) ) * scale->y;
+		mat.m[1][1] =  Cz * Cx * scale->y;
+		mat.m[1][2] =  ( ( Sz * Sy ) + ( CzCy * Sx) ) * scale->y;
+		mat.m[1][3] =  0.0f;
 
-		m[2][0] =  Cx * Sy * scale->z;
-		m[2][1] = -Sx * scale->z;
-		m[2][2] =  Cx * Cy * scale->z;
-		m[2][3] =  0.0f;
+		mat.m[2][0] =  Cx * Sy * scale->z;
+		mat.m[2][1] = -Sx * scale->z;
+		mat.m[2][2] =  Cx * Cy * scale->z;
+		mat.m[2][3] =  0.0f;
 
-		m[3][0] =  pos->x;
-		m[3][1] =  pos->y;
-		m[3][2] =  pos->z;
-		m[3][3] =  1.0f;
+		mat.m[3][0] =  pos->x;
+		mat.m[3][1] =  pos->y;
+		mat.m[3][2] =  pos->z;
+		mat.m[3][3] =  1.0f;
 
 		frame->lpVtbl->AddTranslation(frame, D3DRMCOMBINE_REPLACE, node->pivotVector.x, node->pivotVector.y, node->pivotVector.z);
 	*/
@@ -725,24 +725,24 @@ void __cdecl Gods98::Lws_SetupNodeTransform(Lws_Info* scene, Lws_Node* node, con
 		real32 pVy = node->pivotVector.y;
 		real32 pVz = node->pivotVector.z;
 
-		m[0][0] = (((((1.0f * scale->x) *  Cz) * 1.0f) *  Cy) + ((((1.0f * scale->x) *  Sz) *  Sx) *  Sy) * 1.0f);
-		m[0][1] = (((((1.0f * scale->x) *  Sz) *  Cx) * 1.0f) * 1.0f);
-		m[0][2] = (((((1.0f * scale->x) *  Cz) * 1.0f) * -Sy) + ((((1.0f * scale->x) *  Sz) *  Sx) *  Cy) * 1.0f);
-		m[0][3] = 0.0f;
-		m[1][0] = (((((1.0f * scale->y) * -Sz) * 1.0f) *  Cy) + ((((1.0f * scale->y) *  Cz) *  Sx) *  Sy) * 1.0f);
-		m[1][1] = (((((1.0f * scale->y) *  Cz) *  Cx) * 1.0f) * 1.0f);
-		m[1][2] = (((((1.0f * scale->y) * -Sz) * 1.0f) * -Sy) + ((((1.0f * scale->y) *  Cz) *  Sx) *  Cy) * 1.0f);
-		m[1][3] = 0.0f;
-		m[2][0] = (((((1.0f * scale->z) * 1.0f) *  Cx) *  Sy) * 1.0f);
-		m[2][1] = (((((1.0f * scale->z) * 1.0f) * -Sx) * 1.0f) * 1.0f);
-		m[2][2] = (((((1.0f * scale->z) * 1.0f) *  Cx) *  Cy) * 1.0f);
-		m[2][3] = 0.0f;
-		m[3][0] = (m[0][0] * pVx) + (m[1][0] * pVy) + (m[2][0] * pVz) + pos->x;
-		m[3][1] = (m[0][1] * pVx) + (m[1][1] * pVy) + (m[2][1] * pVz) + pos->y;
-		m[3][2] = (m[0][2] * pVx) + (m[1][2] * pVy) + (m[2][2] * pVz) + pos->z;
-		m[3][3] = 1.0f;
+		mat.m[0][0] = (((((1.0f * scale->x) *  Cz) * 1.0f) *  Cy) + ((((1.0f * scale->x) *  Sz) *  Sx) *  Sy) * 1.0f);
+		mat.m[0][1] = (((((1.0f * scale->x) *  Sz) *  Cx) * 1.0f) * 1.0f);
+		mat.m[0][2] = (((((1.0f * scale->x) *  Cz) * 1.0f) * -Sy) + ((((1.0f * scale->x) *  Sz) *  Sx) *  Cy) * 1.0f);
+		mat.m[0][3] = 0.0f;
+		mat.m[1][0] = (((((1.0f * scale->y) * -Sz) * 1.0f) *  Cy) + ((((1.0f * scale->y) *  Cz) *  Sx) *  Sy) * 1.0f);
+		mat.m[1][1] = (((((1.0f * scale->y) *  Cz) *  Cx) * 1.0f) * 1.0f);
+		mat.m[1][2] = (((((1.0f * scale->y) * -Sz) * 1.0f) * -Sy) + ((((1.0f * scale->y) *  Cz) *  Sx) *  Cy) * 1.0f);
+		mat.m[1][3] = 0.0f;
+		mat.m[2][0] = (((((1.0f * scale->z) * 1.0f) *  Cx) *  Sy) * 1.0f);
+		mat.m[2][1] = (((((1.0f * scale->z) * 1.0f) * -Sx) * 1.0f) * 1.0f);
+		mat.m[2][2] = (((((1.0f * scale->z) * 1.0f) *  Cx) *  Cy) * 1.0f);
+		mat.m[2][3] = 0.0f;
+		mat.m[3][0] = (mat.m[0][0] * pVx) + (mat.m[1][0] * pVy) + (mat.m[2][0] * pVz) + pos->x;
+		mat.m[3][1] = (mat.m[0][1] * pVx) + (mat.m[1][1] * pVy) + (mat.m[2][1] * pVz) + pos->y;
+		mat.m[3][2] = (mat.m[0][2] * pVx) + (mat.m[1][2] * pVy) + (mat.m[2][2] * pVz) + pos->z;
+		mat.m[3][3] = 1.0f;
 
-		frame->AddTransform(D3DRMCOMBINE_REPLACE, m);
+		frame->AddTransform(D3DRMCOMBINE_REPLACE, mat.m);
 	}
 }
 
@@ -810,11 +810,9 @@ void __cdecl Gods98::Lws_CreateFrames(Lws_Info* scene, Lws_Node* node, IDirect3D
 	lpD3DRM()->CreateFrame(parent, &frame);
 
 	if (node->flags & Lws_NodeFlags::LWSNODE_FLAG_FACECAMERA) {
-		D3DRMMATRIX4D m; // same as Matrix4F
-		std::memset(m, 0, sizeof(D3DRMMATRIX4D));
-		m[0][0] = m[1][1] = m[2][2] = m[3][3] = 1.0f;
-		m[3][0] = m[3][1] = m[3][2] = 0.0f;
-		frame->AddTransform(D3DRMCOMBINE_REPLACE, m);
+		Matrix4F mat;
+		Matrix_Identity(&mat);
+		frame->AddTransform(D3DRMCOMBINE_REPLACE, mat.m);
 	}
 
 	scene->frameList[*frameCount] = frame;
