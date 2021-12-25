@@ -56,17 +56,6 @@ flags_end(DirectionFlags, 0x4);
 #pragma endregion
 
 
-#pragma region Geometry typedefs
-
-typedef real32 Matrix3F[3][3];
-assert_sizeof(Matrix3F, 0x24);
-
-typedef real32 Matrix4F[4][4];
-assert_sizeof(Matrix4F, 0x40);
-
-#pragma endregion
-
-
 #pragma region Geometry structs
 
 #pragma pack(push, 1)
@@ -108,6 +97,7 @@ struct Point2U {
 	/*8*/
 }; assert_sizeof(Point2U, 0x8);
 
+
 // (VECTOR2D)
 struct Point2F {
 	/*0,4*/ real32 x;
@@ -135,6 +125,26 @@ struct Vector4F {
 	/*0c,4*/ real32 w;
 	/*10*/
 }; assert_sizeof(Vector4F, 0x10);
+
+
+// (MATRIX3D)
+struct Matrix3F {
+	/*0,24*/ union {
+		real32 m[3][3];
+		Vector3F v[3];
+	};
+	/*24*/
+}; assert_sizeof(Matrix3F, 0x24);
+
+
+// D3DMATRIX, D3DRMMATRIX4D (MATRIX4D)
+struct Matrix4F {
+	/*0,40*/ union {
+		real32 m[4][4];
+		Vector4F v[4];
+	};
+	/*40*/
+}; assert_sizeof(Matrix4F, 0x40);
 
 
 // SIZE
