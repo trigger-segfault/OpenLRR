@@ -39,6 +39,7 @@
 #include "engine/Init.h"
 
 #include "game/audio/SFX.h"
+#include "game/effects/Smoke.h"
 #include "game/front/Credits.h"
 #include "game/front/FrontEnd.h"
 #include "game/interface/Advisor.h"
@@ -1728,6 +1729,40 @@ bool interop_hook_LegoRR_SFX(void)
 	return_interop(result);
 }
 
+bool interop_hook_LegoRR_Smoke(void)
+{   bool result = true;
+	
+	// used by: Lego_Initialise
+	result &= hook_write_jmpret(0x00465640, LegoRR::Smoke_Initialise);
+	result &= hook_write_jmpret(0x00465660, LegoRR::Smoke_LoadTextures);
+
+	// used by: Level_BlockUpdateSurface
+	result &= hook_write_jmpret(0x004656f0, LegoRR::Smoke_CreateSmokeArea);
+
+	// used by: Level_Free
+	result &= hook_write_jmpret(0x00465c30, LegoRR::Smoke_RemoveAll);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x00465c70, LegoRR::Smoke_Remove);
+
+	// used by: Lego_MainLoop
+	result &= hook_write_jmpret(0x00465d50, LegoRR::Smoke_HideAll);
+
+	// used by: Lego_XYCallback_AddVisibleSmoke, Level_BlockUpdateSurface, Lego_FPHighPolyBlocks_FUN_00433db0
+	result &= hook_write_jmpret(0x00465d80, LegoRR::Smoke_Hide);
+
+	// used by: Lego_MainLoop
+	result &= hook_write_jmpret(0x00465dc0, LegoRR::Smoke_Update);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x00465f10, LegoRR::Smoke_Group_Show);
+	//result &= hook_write_jmpret(0x004660c0, LegoRR::Smoke_Group_Update);
+	//result &= hook_write_jmpret(0x004661a0, LegoRR::Smoke_MeshRenderCallback);
+	//result &= hook_write_jmpret(0x00466200, LegoRR::Smoke_Group_MeshRenderCallback);
+	
+	return_interop(result);
+}
+
 bool interop_hook_LegoRR_Stats(void)
 {   bool result = true;
 	
@@ -1849,6 +1884,7 @@ bool interop_hook_all(void)
 	// defined in order to fix certain original bugs.
 	result &= interop_hook_LegoRR_FrontEnd();
 	result &= interop_hook_LegoRR_SFX();
+	result &= interop_hook_LegoRR_Smoke();
 
 	// Implementation for NERPs interpreter.
 	result &= interop_hook_LegoRR_NERPsFile();

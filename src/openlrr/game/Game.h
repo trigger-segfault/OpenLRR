@@ -555,6 +555,16 @@ __inline const char* Lego_GameName(void) { return legoGlobs.gameName; }
 // <inlined>
 __inline ViewMode Lego_GetViewMode(void) { return legoGlobs.viewMode; }
 
+// <LegoRR.exe @004294d0>
+__inline Gods98::Container* __cdecl Lego_GetCurrentViewLight(void)
+{
+	return ((legoGlobs.viewMode==ViewMode_FP) ? legoGlobs.pointLightFP : legoGlobs.rootSpotlight);
+	//if (legoGlobs.viewMode == ViewMode_FP)
+	//	return legoGlobs.pointLightFP;
+	//else
+	//	return legoGlobs.rootSpotlight;
+}
+
 // <LegoRR.exe @00431490>
 //Lego_Level* __cdecl noinline(Lego_GetLevel)(void);
 __inline Lego_Level* Lego_GetLevel(void) { return legoGlobs.currLevel; }
@@ -562,6 +572,7 @@ __inline Lego_Level* Lego_GetLevel(void) { return legoGlobs.currLevel; }
 // <LegoRR.exe @004314a0>
 //Map3D* __cdecl noinline(Lego_GetMap)(void);
 __inline Map3D* Lego_GetMap(void) { return Lego_GetLevel()->map; }
+
 
 // <LegoRR.exe @0041f870>
 #define Game_SetFlag1_20000_unkCameraRadarHasTrackObj ((bool32(__cdecl*)(bool32 state))0x0041f870)
