@@ -126,7 +126,6 @@ flags_scoped(MeshFlags) : uint32
 	MESH_FLAG_ALPHAHIDDEN          = 0x10000000, // Group
 };
 flags_scoped_end(MeshFlags, 0x4);
-//typedef MeshFlags Mesh_GroupFlags;
 
 
 flags_scoped(Mesh_RenderFlags) : uint32
@@ -602,6 +601,12 @@ bool32 __cdecl Mesh_SetTransform(D3DTRANSFORMSTATETYPE state, const Matrix4F* ma
 
 // <LegoRR.exe @00483ad0>
 bool32 __cdecl Mesh_ChangeTextureStageState(D3DTEXTURESTAGESTATETYPE dwRenderStateType, uint32 dwRenderState);
+
+
+// This is never called, but appears commented out in two Mesh functions where other state restorations occur.
+// <unused>
+void __cdecl Mesh_RestoreTextureStageStates(void);
+
 
 // <LegoRR.exe @00483b70>
 void __cdecl Mesh_StoreTextureAndMat(void);

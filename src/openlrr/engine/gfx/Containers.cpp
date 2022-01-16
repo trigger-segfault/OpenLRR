@@ -1340,7 +1340,7 @@ IDirectDrawSurface4* __cdecl Gods98::Container_LoadTextureSurface(const char* fn
 			desc.ddsCaps.dwCaps = DDSCAPS_TEXTURE;
 
 //#ifndef _GODS98_VIDEOMEMTEXTURES
-			if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_DONTMANAGETEXTURES)) {
+			if (Graphics_ManageTextures()) {
 				if (managed)
 					desc.ddsCaps.dwCaps2 = DDSCAPS2_TEXTUREMANAGE;
 				else

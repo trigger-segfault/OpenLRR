@@ -1462,18 +1462,26 @@ void __cdecl Gods98::Mesh_SetMeshRenderDesc(Mesh* mesh, Viewport* vp, const Matr
 		Graphics_ChangeRenderState(D3DRENDERSTATE_FILLMODE,  D3DFILL_SOLID);
 		break;
 	}
-	Graphics_ChangeRenderState(D3DRENDERSTATE_DITHERENABLE, graphicsGlobs.dither);
+	Graphics_ChangeRenderState(D3DRENDERSTATE_DITHERENABLE, (graphicsGlobs.dither != 0)); // treat as 0/1 bool
 
 	/// ORIGINAL FUNCTIONALITY:
 	//Graphics_ChangeRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_GOURAUD);
 	//Graphics_ChangeRenderState(D3DRENDERSTATE_DITHERENABLE, true);
 
-	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_DONTMANAGETEXTURES)) {
+
+	if (Graphics_ManageTextures()) {
+		// These arguments are used with special alpha and colour operations, that were never *properly*
+		// utilised in LRR. Only `Mesh_ChangeTextureStageState(D3DTSS_COLORARG1, D3DTA_TEXTURE)` ever
+		// had any use, and it may have been unintentional, as the visual effect it created looked broken.
+		// 
+		// It's unclear whether these *actually* require `-ftm` to work. But for now there is no scenario
+		// where they are used (after applying fixes to `-ftm` lighting).
 		Mesh_ChangeTextureStageState(D3DTSS_COLORARG1, D3DTA_TEXTURE);
 		Mesh_ChangeTextureStageState(D3DTSS_COLORARG2, D3DTA_DIFFUSE);
 		Mesh_ChangeTextureStageState(D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
 		Mesh_ChangeTextureStageState(D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
 	}
+
 
 	Mesh_SetRenderDesc(mesh->renderDesc.renderFlags, matWorld, alphaBlend);
 }
@@ -1485,7 +1493,7 @@ void __cdecl Gods98::Mesh_SetRenderDesc(Mesh_RenderFlags flags, const Matrix4F* 
 
 	//CHECK MESH IS ALPHA BLENDED
 	if ((flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALLALPHA) && alphaBlend) {
-		Graphics_ChangeRenderState(D3DRENDERSTATE_FOGENABLE, false); // Don't fog alpha efects...
+		Graphics_ChangeRenderState(D3DRENDERSTATE_FOGENABLE, false); // Don't fog alpha effects...
 	}
 	/*else {
 		Graphics_ChangeRenderState(D3DRENDERSTATE_FOGENABLE, true);
@@ -1511,15 +1519,36 @@ void __cdecl Gods98::Mesh_SetRenderDesc(Mesh_RenderFlags flags, const Matrix4F* 
 	if (flags & Mesh_RenderFlags::MESH_RENDER_FLAG_DOUBLESIDED) Graphics_ChangeRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_NONE);
 	else Graphics_ChangeRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
 
-	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_DONTMANAGETEXTURES)) {
+
+	/// FIX APPLY: ALWAYS apply alpha operations (Modulate). This fixes a bug where texture
+	///            fading/alpha did not work without the `-ftm` commandline option.
+	///            Originally `Mesh_ChangeTextureStageState(D3DTSS_ALPHAOP, ...)` was only
+	///            called with `Graphics_ManageTextures()`, meaning Modulate would never be
+	///            used as the default operation for alpha blending.
+	/// 
+	///            In LRR, without `-ftm`, `D3DTOP_SELECTARG1` was the default operation
+	///             (as specified by Direct3D).
+	///            This was most-noticeable with how thick lava smoke was, and how it just
+	///            *popped* out of existance when reaching the top of its rising animation
+	///             (it was intended to fade away).
+	///            Some people may want to revert this change if they prefer the thicker lava fog colour
+	///             (which did look kinda cool).
+	/// 
+	///            This also fixes the experimental `-flags 32768` commandline option to enable block
+	///            fading/transitioning into its new state. This was quite noticeable when laying down
+	///            new power paths, or paths receiving or losing colour. That said, the fade effect could
+	///            be applied to 10 blocks at one time, so more complex path grids may not have visually
+	///            behaved the same way.
+	uint32 alphaOp = D3DTOP_MODULATE; // Perform expected alpha multiplication.
+	if (Graphics_ManageTextures()) {
 		//ALPHA CHANNEL
 		if (flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHATEX)
-			Mesh_ChangeTextureStageState(D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
+			alphaOp = D3DTOP_SELECTARG1; // Use the texture's alpha.     (unreachable in LRR)
 		else if (flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHADIFFUSE)
-			Mesh_ChangeTextureStageState(D3DTSS_ALPHAOP, D3DTOP_SELECTARG2);
-		else
-			Mesh_ChangeTextureStageState(D3DTSS_ALPHAOP, D3DTOP_MODULATE);
+			alphaOp = D3DTOP_SELECTARG2; // Use diffuse colour as alpha. (unreachable in LRR)
 	}
+	Mesh_ChangeTextureStageState(D3DTSS_ALPHAOP, alphaOp); // Always apply alpha operations.
+
 
 	//Z BUFFER CHECK
 	Graphics_ChangeRenderState(D3DRENDERSTATE_ZENABLE, true);
@@ -1829,13 +1858,11 @@ bool32 __cdecl Gods98::Mesh_SetGroupColour(Mesh* mesh, uint32 groupID, real32 r,
 {
 	/// NEW GODS98: Safety check is not present in LegoRR
 	if (groupID < mesh->groupCount) {
-		Mesh_Group* group = &mesh->groupList[groupID];
-		D3DMATERIAL* material;
-
 
 		Mesh_Debug_CheckIMDevice_Int();
+		Mesh_Group* group = &mesh->groupList[groupID];
 
-		material = Mesh_GetGroupMaterial(mesh, groupID);
+		D3DMATERIAL* material = Mesh_GetGroupMaterial(mesh, groupID);
 
 		if (r < 0.0f) r = 0.0f;
 		if (g < 0.0f) g = 0.0f;
@@ -1849,10 +1876,17 @@ bool32 __cdecl Gods98::Mesh_SetGroupColour(Mesh* mesh, uint32 groupID, real32 r,
 			material->diffuse.g = g;
 			material->diffuse.b = b;
 
-			if ((r == 1.0f) && (g == 1.0f) && (b == 1.0f))
-				group->flags |= MeshFlags::MESH_FLAG_TEXTURECOLOURONLY;
-			else
-				group->flags &= ~MeshFlags::MESH_FLAG_TEXTURECOLOURONLY;
+
+			/// FIX APPLY: REMOVE this, as it would disable a texture's rendering of
+			///            shading when assigning colour of 255,255,255. Which show when
+			///            using the `-ftm` commandline option.
+			///            This *probably* wasn't intended, but *may* have been for old
+			///            graphics card optimizations at the cost of worse visuals.
+			//if ((r == 1.0f) && (g == 1.0f) && (b == 1.0f))
+			//	group->flags |= MeshFlags::MESH_FLAG_TEXTURECOLOURONLY;
+			//else
+			//	group->flags &= ~MeshFlags::MESH_FLAG_TEXTURECOLOURONLY;
+
 
 			//Mesh_HideGroup(mesh, groupID, false);
 			//if ((r == 0.0f) && (g == 0.0f) && (b == 0.0f)) {
@@ -2099,6 +2133,31 @@ bool32 __cdecl Gods98::Mesh_ChangeTextureStageState(D3DTEXTURESTAGESTATETYPE dwR
 	return true;
 }
 
+
+// This is never called, but appears commented out in two Mesh functions where other state restorations occur.
+// <unused>
+void __cdecl Gods98::Mesh_RestoreTextureStageStates(void)
+{
+//#ifndef _GODS98_VIDEOMEMTEXTURES
+
+	/// FIX APPLY: With the other fixes revolving around `Mesh_ChangeTextureStageState`,
+	///            this now needs to be called, whether `Graphics_ManageTextures()` is
+	///            enabled or not.
+	//if (Graphics_ManageTextures()) {
+		for (uint32 loop = 0; loop < MESH_MAXTEXTURESTAGESTATES; loop++) {
+			Mesh_TextureStateChangeData* data = &meshGlobs.stateData[loop];
+			if (data->changed) {
+				if (lpIMDevice()->SetTextureStageState(0, (D3DTEXTURESTAGESTATETYPE)loop, data->origValue) != D3D_OK)
+					Error_Warn(true, "Cannot 'SetTextureStageState'.");
+				data->changed = false;
+			}
+		}
+	//}
+
+//#endif //_GODS98_VIDEOMEMTEXTURES
+}
+
+
 // <LegoRR.exe @00483b70>
 void __cdecl Gods98::Mesh_StoreTextureAndMat(void)
 {
@@ -2114,7 +2173,7 @@ void __cdecl Gods98::Mesh_StoreTextureAndMat(void)
 	meshGlobs.currMatIM = meshGlobs.oldMatIM;
 
 //#ifndef _GODS98_VIDEOMEMTEXTURES
-	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_DONTMANAGETEXTURES)) {
+	if (Graphics_ManageTextures()) {
 		//GET OLD TEXTURE
 		if (lpIMDevice()->GetTexture(0, &meshGlobs.oldTextureIM) != D3D_OK) {
 			Error_Warn(true, "Cannot 'GetTexture' for current D3DIM texture.");
@@ -2171,7 +2230,7 @@ void __cdecl Gods98::Mesh_RestoreTextureAndMat(void)
 	}
 
 //#ifndef _GODS98_VIDEOMEMTEXTURES
-	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_DONTMANAGETEXTURES)) {
+	if (Graphics_ManageTextures()) {
 
 		if (meshGlobs.currTextureIM != meshGlobs.oldTextureIM) {
 			//SET OLD TEXTURE
@@ -2284,13 +2343,16 @@ bool32 __cdecl Gods98::Mesh_RenderGroup(Mesh* mesh, Mesh_Group* group, const Mat
 // <LegoRR.exe @00483dc0>
 bool32 __cdecl Gods98::Mesh_SetGroupRenderDesc(Mesh* mesh, Mesh_Group* group, const Matrix4F* matWorld, bool32 alphaBlend)
 {
-	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_DONTMANAGETEXTURES)) {
-
+	/// SANITY: ALWAYS apply colour operations (Modulate). This change is ONLY to conform to
+	///         how `D3DTSS_ALPHAOP` operations are applied, as the default behaviour is
+	///         already `D3DTOP_MODULATE` for Direct3D colour operations.
+	uint32 colourOp = D3DTOP_MODULATE; // Perform normal colour multiplication.
+	if (Graphics_ManageTextures()) {
 		if ((group->flags & MeshFlags::MESH_FLAG_TEXTURECOLOURONLY) && group->imText)
-			Mesh_ChangeTextureStageState(D3DTSS_COLOROP, D3DTOP_SELECTARG1);
-		else
-			Mesh_ChangeTextureStageState(D3DTSS_COLOROP, D3DTOP_MODULATE);
+			colourOp = D3DTOP_SELECTARG1; // The texture has no shading/lighting applied other than itself.
 	}
+	Mesh_ChangeTextureStageState(D3DTSS_COLOROP, colourOp); // Always apply colour operations.
+
 
 	if (group->flags & MeshFlags::MESH_FLAG_TRANSTEXTURE)
 		Graphics_ChangeRenderState(D3DRENDERSTATE_COLORKEYENABLE, true);
@@ -2314,7 +2376,7 @@ bool32 __cdecl Gods98::Mesh_RenderTriangleList(D3DMATERIALHANDLE matHandle, IDir
 	bool32 ok = true;
 
 	//TEXTURES
-	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_DONTMANAGETEXTURES)) {
+	if (Graphics_ManageTextures()) {
 		if (texture != meshGlobs.currTextureIM) {
 			//SET NEW TEXTURE
 			if (lpIMDevice()->SetTexture(0, texture) != D3D_OK) {

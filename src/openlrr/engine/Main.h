@@ -277,7 +277,7 @@ extern Main_Globs2 mainGlobs2;
 
 #pragma region Entry point
 
-// NOTE: This function is only declared here. Other modules may choose to implement it
+// NOTE: This function is only declared here. Other modules may choose to implement it.
 //  (currently moved to OpenLRR module)
 // This is the GAME entry point as called by WinMain,
 //  this should hook the Main_State loop functions and only perform basic initial setup.

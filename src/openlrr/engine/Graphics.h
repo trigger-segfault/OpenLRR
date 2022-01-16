@@ -70,9 +70,9 @@ struct Graphics_Device;
 #pragma region Enums
 
 #if 0
- // We can safely hardcode these values since D3DRM won't change
- // same as enum Main_Quality (just different symbol names)
- // (unused for now, until Graphics can be untangled from Main)
+// We can safely hardcode these values since D3DRM won't change
+// same as enum Main_Quality (just different symbol names)
+// (unused for now, until Graphics can be untangled from Main)
 enum class Graphics_FogMethod : uint32
 {
 	Vertex = 0x1, // = D3DRMFOGMETHOD_VERTEX,
@@ -165,22 +165,46 @@ __inline IDirect3DRMDevice3* lpDevice(void) { return mainGlobs.device; }
 __inline IDirect3DDevice3* lpIMDevice(void) { return mainGlobs.imDevice; }
 
 // <inlined>
-__inline bool32 Graphics_VideoTexture(void) { return mainGlobs.flags & MainFlags::MAIN_FLAG_VIDEOTEXTURE; }
+__inline bool32 Graphics_VideoTexture(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_VIDEOTEXTURE); }
 
 // <inlined>
-__inline bool32 Graphics_MIPMapEnabled(void) { return mainGlobs.flags & MainFlags::MAIN_FLAG_MIPMAPENABLED; }
+__inline bool32 Graphics_MIPMapEnabled(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_MIPMAPENABLED); }
 
 // <inlined>
-__inline bool32 Graphics_FullScreen(void) { return mainGlobs.flags & MainFlags::MAIN_FLAG_FULLSCREEN; }
+__inline bool32 Graphics_FullScreen(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_FULLSCREEN); }
 
+// Gets the fog method used with `IDirect3DRMFrame3::SetSceneFogMethod(uint32)`.
 // <inlined>
 __inline uint32 Graphics_GetFogMethod(void) { return mainGlobs.fogMethod; }
 
+// Sets the fog method used with `IDirect3DRMFrame3::SetSceneFogMethod(uint32)`.
 // <inlined>
 __inline void Graphics_SetFogMethod(uint32 m) { mainGlobs.fogMethod = m; }
 
 
-// <LegoRR.exe @00477e90>
+
+/// CUSTOM: Gets if the `MAIN_FLAG_DONTMANAGETEXTURES` flag is unset.
+__inline bool32 Graphics_ManageTextures(void) { return !(mainGlobs.flags & MainFlags::MAIN_FLAG_DONTMANAGETEXTURES); }
+
+/// CUSTOM: Gets if the `MAIN_FLAG_REDUCEANIMATION` flag is set.
+__inline bool32 Graphics_ReduceAnimation(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_REDUCEANIMATION); }
+
+/// CUSTOM: Gets if the `MAIN_FLAG_REDUCEFLICS` flag is set.
+__inline bool32 Graphics_ReduceFlics(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_REDUCEFLICS); }
+
+/// CUSTOM: Gets if the `MAIN_FLAG_REDUCEIMAGES` flag is set.
+__inline bool32 Graphics_ReduceImages(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_REDUCEIMAGES); }
+
+/// CUSTOM: Gets if the `MAIN_FLAG_REDUCEPROMESHES` flag is set.
+__inline bool32 Graphics_ReducePromeshes(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_REDUCEPROMESHES); }
+
+/// CUSTOM: Gets if the `MAIN_FLAG_REDUCESAMPLES` flag is set.
+__inline bool32 Graphics_ReduceSamples(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_REDUCESAMPLES); }
+
+
+
+// Turns off Texture Management if the `-ftm` commandline option was NOT used.
+//<LegoRR.exe @00477e90>
 void __cdecl Graphics_DisableTextureManagement(void);
 
 // <LegoRR.exe @00478240>
