@@ -133,6 +133,7 @@ struct Graphics_Globs
 	bool32				blendTransparency; // (placeholder: D3DRMRENDERMODE_BLENDEDTRANSPARENCY)
 	bool32				sortTransparency;  // (placeholder: D3DRMRENDERMODE_SORTEDTRANSPARENCY)
 	Graphics_Quality	renderQuality; // don't put at the top to avoid C 0-initialisation headaches
+	bool32				noAlphaModulation; // Don't use alphaOp modulate. Keep original broken behaviour for translucent effects like lava smoke.
 };
 
 #pragma endregion
@@ -201,6 +202,12 @@ __inline bool32 Graphics_ReducePromeshes(void) { return (mainGlobs.flags & MainF
 /// CUSTOM: Gets if the `MAIN_FLAG_REDUCESAMPLES` flag is set.
 __inline bool32 Graphics_ReduceSamples(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_REDUCESAMPLES); }
 
+
+/// CUSTOM: Gets if the alpha modulation fix should be used.
+__inline bool32 Graphics_AlphaModulation(void) { return !graphicsGlobs.noAlphaModulation; }
+
+/// CUSTOM: Sets if the alpha modulation fix should be used.
+__inline void Graphics_SetAlphaModulation(bool32 on) { graphicsGlobs.noAlphaModulation = !on; }
 
 
 // Turns off Texture Management if the `-ftm` commandline option was NOT used.

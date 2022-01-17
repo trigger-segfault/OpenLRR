@@ -1408,7 +1408,10 @@ BOOL __cdecl Gods98::Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOI
 				/// UNKNOWN: this is false, which would cause the function to do nothing
 				///           in new Gods98 engine source. (in LegoRR it's no argument)
 				Graphics_RestoreStates(/*false*/);
-				//Mesh_RestoreTextureStageStates();
+
+				/// UNCOMMENT: Enable this to allow safely turning on/off alpha modulation at runtime.
+				Mesh_RestoreTextureStageStates();
+
 				Mesh_RestoreTextureAndMat();
 			}
 
@@ -1540,12 +1543,21 @@ void __cdecl Gods98::Mesh_SetRenderDesc(Mesh_RenderFlags flags, const Matrix4F* 
 	///            be applied to 10 blocks at one time, so more complex path grids may not have visually
 	///            behaved the same way.
 	uint32 alphaOp = D3DTOP_MODULATE; // Perform expected alpha multiplication.
+
+	if (!Graphics_AlphaModulation()) {
+		alphaOp = D3DTOP_SELECTARG1; // This is the default behaviour specified by Direct3D.
+	}
 	if (Graphics_ManageTextures()) {
 		//ALPHA CHANNEL
 		if (flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHATEX)
 			alphaOp = D3DTOP_SELECTARG1; // Use the texture's alpha.     (unreachable in LRR)
 		else if (flags & Mesh_RenderFlags::MESH_RENDER_FLAG_ALPHADIFFUSE)
 			alphaOp = D3DTOP_SELECTARG2; // Use diffuse colour as alpha. (unreachable in LRR)
+		// Normally this branch was exclusive to Texture Management mode,
+		// but this has been moved elsewhere to always allow alpha modulation,
+		// and also allow turning it back off.
+		//else
+		//	alphaOp = D3DTOP_MODULATE;
 	}
 	Mesh_ChangeTextureStageState(D3DTSS_ALPHAOP, alphaOp); // Always apply alpha operations.
 
@@ -1699,7 +1711,10 @@ void __cdecl Gods98::Mesh_PostRenderAll(Viewport* vp)
 		/// NOTE: In new Gods98 engine, false would cause no action, in LegoRR
 		///        it's always called.
 		Graphics_RestoreStates(/*false*/);
-		//Mesh_RestoreTextureStageStates();
+
+		/// UNCOMMENT: Enable this to allow safely turning on/off alpha modulation at runtime.
+		Mesh_RestoreTextureStageStates();
+
 		Mesh_RestoreTextureAndMat();
 	}
 }

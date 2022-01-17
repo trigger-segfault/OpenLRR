@@ -132,6 +132,7 @@ void __cdecl OpenLRR_UpdateMenuItems(void)
     Menu_CheckButton(IDM_GRAPHICS_LINEARMIPMAP, Gods98::graphicsGlobs.mipMapLinear);
     Menu_CheckButton(IDM_GRAPHICS_MIPMAP, Gods98::graphicsGlobs.mipMap);
     Menu_CheckButton(IDM_GRAPHICS_SORT, Gods98::graphicsGlobs.sortTransparency);
+    Menu_CheckButton(IDM_GRAPHICS_ALPHAMODULATION, Gods98::Graphics_AlphaModulation());
 
     sint32 curIcon = -1;
     for (uint32 i = 0; i < (uint32)OpenLRRIcon::Count; i++) {
@@ -290,6 +291,10 @@ void __cdecl OpenLRR_HandleCommand(HWND hWnd, uint16 wmId, uint16 wmSrc)
         //std::printf("IDM_GRAPHICS_SORT\n");
         Gods98::graphicsGlobs.sortTransparency = !Gods98::graphicsGlobs.sortTransparency;
         break;*/
+	case IDM_GRAPHICS_ALPHAMODULATION:
+        //std::printf("IDM_GRAPHICS_ALPHAMODULATION\n");
+		Gods98::Graphics_SetAlphaModulation(!Gods98::Graphics_AlphaModulation());
+        break;
 
 
         ////// &Debug //////
