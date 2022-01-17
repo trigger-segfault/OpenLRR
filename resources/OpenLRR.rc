@@ -176,6 +176,7 @@ BEGIN
 #if 0  // not ready yet
             MENUITEM "Clear",                   IDM_CLEAR,CHECKED
 #endif
+            MENUITEM "Wobbly World",            IDM_WOBBLYWORLD
         END
 #if 0  // not ready yet
         POPUP "&Info"

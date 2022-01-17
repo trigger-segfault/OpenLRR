@@ -105,6 +105,7 @@
 // &Debug > Experimental
 #define IDM_BLOCKFADE					321
 #define IDM_CLEAR						322
+#define IDM_WOBBLYWORLD					323
 // &Debug > Info
 #define IDM_FPSMONITOR					331
 #define IDM_MEMORYMONITOR				332

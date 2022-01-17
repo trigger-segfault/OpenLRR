@@ -153,6 +153,7 @@ void __cdecl OpenLRR_UpdateMenuItems(void)
     Menu_CheckButton(IDM_TESTERCALL,    (Gods98::Main_GetFlags() & Gods98::MainFlags::MAIN_FLAG_TESTERCALL));
 
     Menu_CheckButton(IDM_BLOCKFADE,     (Gods98::Main_GetCLFlags() & Gods98::MainCLFlags::CL_FLAG_BLOCKFADE));
+    Menu_CheckButton(IDM_WOBBLYWORLD,   OpenLRR_IsWobblyWorld());
 
     Menu_CheckButton(IDM_DUMPMODE,      (Gods98::Main_GetFlags() & Gods98::MainFlags::MAIN_FLAG_DUMPMODE));
     Menu_CheckButton(IDM_FREEZE,        Gods98::Main_IsPaused());
@@ -338,6 +339,11 @@ void __cdecl OpenLRR_HandleCommand(HWND hWnd, uint16 wmId, uint16 wmSrc)
         Gods98::mainGlobs.clFlags ^= Gods98::MainCLFlags::CL_FLAG_BLOCKFADE;
         break;
 
+    case IDM_WOBBLYWORLD:
+        //std::printf("IDM_WOBBLYWORLD\n");
+		OpenLRR_SetWobblyWorld(!OpenLRR_IsWobblyWorld());
+        break;
+
     case IDM_DUMPMODE:
         //std::printf("IDM_DUMPMODE\n");
         Gods98::mainGlobs.flags ^= Gods98::MainFlags::MAIN_FLAG_DUMPMODE;
@@ -392,6 +398,64 @@ void __cdecl OpenLRR_WindowCallback(HWND hWnd, UINT message, WPARAM wParam, LPAR
 #pragma endregion
 
 
+#pragma region OpenLRR Wobbly World effect
+
+// <LegoRR.exe @00450c20>
+#define Map3D_SetBlockUVWobbles ((void (__cdecl* )(LegoRR::Map3D* map, uint32 bx, uint32 by, bool32 on))0x00450c20)
+
+// Reserved field is always 0, and never used.
+// <LegoRR.exe @0042f620>
+#define Level_BlockUpdateSurface ((void (__cdecl* )(LegoRR::Lego_Level* level, sint32 bx, sint32 by, bool32 reserved))0x0042f620)
+
+
+// Sets if the wobbly world, fun effects are enabled. This needs some hardcoded handling to turn off mid-game.
+void OpenLRR_SetWobblyWorld(bool on)
+{
+	openlrrGlobs.wobblyWorld = on;
+
+	if (!openlrrGlobs.wobblyWorld) {
+		auto level = LegoRR::Lego_GetLevel();
+		if (level != nullptr) {
+			// Turn off wobbly world by relying on hardcoded behaviour of what blocks normally wobble.
+			auto map = LegoRR::Lego_GetMap();
+			for (uint32 by = 0; by < map->blockHeight; by++) {
+				for (uint32 bx = 0; bx < map->blockWidth; bx++) {
+					// Lazy method by turning off wobbles, then having `Level_BlockUpdateSurface` them turn back on as needed.
+					/// WARNING: There could be unintended consequences for calling `Level_BlockUpdateSurface`, when not expected.
+					///          But this mode isn't exactly important enough to worry about that yet...
+					Map3D_SetBlockUVWobbles(map, bx, by, false);
+					Level_BlockUpdateSurface(level, bx, by, 0); // 0 = reserved field
+				}
+			}
+		}
+
+	}
+	else {
+		OpenLRR_UpdateWobblyWorld();
+	}
+}
+
+// Called during `OpenLRR_MainLoop_Wrapper` to forcefully make all block textures wobble.
+void OpenLRR_UpdateWobblyWorld(void)
+{
+	auto level = LegoRR::Lego_GetLevel();
+	if (level != nullptr) {
+		// All the wobbles! All the time!
+		auto map = LegoRR::Lego_GetMap();
+		for (uint32 by = 0; by < map->blockHeight; by++) {
+			for (uint32 bx = 0; bx < map->blockWidth; bx++) {
+				Map3D_SetBlockUVWobbles(map, bx, by, true);
+			}
+		}
+	}
+}
+
+#undef Map3D_SetBlockUVWobbles
+#undef Level_BlockUpdateSurface
+
+#pragma endregion
+
+
 #pragma region Main State wrappers
 
 bool32 __cdecl OpenLRR_Initialise_Wrapper(void)
@@ -414,6 +478,11 @@ bool32 __cdecl OpenLRR_MainLoop_Wrapper(real32 elapsed)
 
 	// NOTE: Similar to Initialise, the main loop does not run when in the FrontEnd!!!
 	// post-MainLoop code here...
+
+
+	if (OpenLRR_IsWobblyWorld()) {
+		OpenLRR_UpdateWobblyWorld();
+	}
 
 	return result;
 }

@@ -64,6 +64,8 @@ struct OpenLRR_Globs
 
 	// Game variables backup:
 	uint32			orig_programmerLevel;
+
+	bool			wobblyWorld; // Fun mode where ALL blocks use the same texture "UV Wobbles" effect as lava and water.
 };
 
 #pragma endregion
@@ -93,6 +95,20 @@ inline HINSTANCE OpenLRR_hInstMain(void)	{ return openlrrGlobs.hInstMain; }
 inline InjectMethod OpenLRR_GetMethod(void)	{ return openlrrGlobs.method; }
 // State how OpenLRR has been injected and attached to `LegoRR.exe`.
 inline InjectMethod OpenLRR_SetMethod(InjectMethod newMethod) { return openlrrGlobs.method = newMethod; }
+
+
+// Gets if the wobbly world fun effects are enabled.
+inline bool OpenLRR_IsWobblyWorld(void) { return openlrrGlobs.wobblyWorld; }
+// Sets if the wobbly world, fun effects are enabled. This needs some hardcoded handling to turn off mid-game.
+void OpenLRR_SetWobblyWorld(bool on);
+// Called during `OpenLRR_MainLoop_Wrapper` to forcefully make all block textures wobble.
+void OpenLRR_UpdateWobblyWorld(void);
+
+
+bool32 __cdecl OpenLRR_Initialise_Wrapper(void);
+bool32 __cdecl OpenLRR_MainLoop_Wrapper(real32 elapsed);
+void __cdecl OpenLRR_Shutdown_Wrapper(void);
+
 
 // Open a console window for easy logging with `printf`.
 FILE* MakeConsole(void);
