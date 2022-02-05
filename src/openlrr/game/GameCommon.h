@@ -41,6 +41,7 @@ struct BlockPointer;
 struct Detail_Mesh;
 struct Detail_TextureSet;
 struct Flocks;
+struct FlocksItem;
 struct Lego_Block;
 struct Lego_Level;
 struct LegoObject;
@@ -52,12 +53,14 @@ struct ObjectStats;
 struct RadarMap;
 struct RoutingBlock;
 struct SelectPlace;
+struct Smoke;
 struct TeleporterService;
 
 struct CreatureData;
 struct BuildingData;
 struct VehicleData;
 struct UpgradeData;
+typedef uint8 DirectionByte;
 
 #pragma endregion
 
@@ -925,6 +928,22 @@ enum LegoObject_AbilityType : sint32
 assert_sizeof(LegoObject_AbilityType, 0x4);
 
 
+enum LegoObject_AbilityFlags : uint32 // [LegoRR/LegoObject.c|flags:0x4|type:uint] These flags contain LiveObject abilities, and are the one of the fields stored/restored with ObjectRecall.
+{
+	// Alternate names, when not used for LiveObjects
+	ABILITY_FLAG_NONE     = 0,
+	ABILITY_FLAG_PILOT    = (1 << LegoObject_AbilityType_Pilot),    // 0x1,
+	ABILITY_FLAG_SAILOR   = (1 << LegoObject_AbilityType_Sailor),   // 0x2,
+	ABILITY_FLAG_DRIVER   = (1 << LegoObject_AbilityType_Driver),   // 0x4,
+	ABILITY_FLAG_DYNAMITE = (1 << LegoObject_AbilityType_Dynamite), // 0x8,
+	ABILITY_FLAG_REPAIR   = (1 << LegoObject_AbilityType_Repair),   // 0x10,
+	ABILITY_FLAG_SCANNER  = (1 << LegoObject_AbilityType_Scanner),  // 0x20,
+
+	ABILITY_FLAGS_ALL     = ((1 << LegoObject_AbilityType_Count) - 1), // 0x3f,
+};
+flags_end(LegoObject_AbilityFlags, 0x4);
+
+
 enum LegoObject_Type : sint32 // [LegoRR/LegoObject.c|enum:0x4|type:int]
 {
 	LegoObject_TVCamera          = -1, // special case for object list
@@ -963,6 +982,8 @@ enum LegoObject_ID : sint32
 	LegoObject_ID_ProcessedOre = 1,
 
 	LegoObject_ID_Ore_Count,
+
+	LegoObject_ID_Pilot = 0,
 
 	LegoObject_ID_Count = 15,
 };
@@ -1136,6 +1157,47 @@ enum LOD_PolyLevel : sint32
 
 	LOD_PolyLevel_Count,
 };
+assert_sizeof(LOD_PolyLevel, 0x4);
+
+
+// Upgrade types for vehicles. MSB [Carry][Scan][Speed][Drill] LSB.
+enum LegoObject_UpgradeType : uint32 // [LegoRR/LegoObject.c|enum:0x4|type:uint]
+{
+	LegoObject_UpgradeType_Drill = 0,
+	LegoObject_UpgradeType_Speed = 1,
+	LegoObject_UpgradeType_Scan  = 2,
+	LegoObject_UpgradeType_Carry = 3,
+
+	LegoObject_UpgradeType_Count,
+};
+assert_sizeof(LegoObject_UpgradeType, 0x4);
+
+
+// Upgrade flags for vehicles. MSB [Carry][Scan][Speed][Drill] LSB.
+// Compared as a mask against the vehicle level.
+enum LegoObject_UpgradeFlags : uint32 // [LegoRR/LegoObject.c|flags:0x4|type:uint]
+{
+	UPGRADE_FLAG_NONE  = 0,
+	UPGRADE_FLAG_DRILL = (1 << LegoObject_UpgradeType_Drill), // 0x1,
+	UPGRADE_FLAG_SPEED = (1 << LegoObject_UpgradeType_Speed), // 0x2,
+	UPGRADE_FLAG_SCAN  = (1 << LegoObject_UpgradeType_Scan),  // 0x4,
+	UPGRADE_FLAG_CARRY = (1 << LegoObject_UpgradeType_Carry), // 0x8,
+
+	UPGRADE_FLAGS_ALL  = ((1 << LegoObject_UpgradeType_Count) - 1), // 0xf,
+};
+flags_end(LegoObject_UpgradeFlags, 0x4);
+
+
+enum WallHighlightType : sint32 // [LegoRR/Lego.c|enum:0x4|type:int|tags:BIGENUMALIAS] (white, gray, red, green, blue, dark-yellow)
+{
+	WALLHIGHLIGHT_NONE      = 0,
+	WALLHIGHLIGHT_DIG       = 1,
+	WALLHIGHLIGHT_DYNAMITE  = 2,
+	WALLHIGHLIGHT_REINFORCE = 3,
+	WALLHIGHLIGHT_SELECTED  = 4,
+	WALLHIGHLIGHT_TUTORIAL  = 5,
+};
+assert_sizeof(WallHighlightType, 0x4);
 
 
 #pragma endregion
