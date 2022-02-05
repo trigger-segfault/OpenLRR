@@ -368,6 +368,7 @@
     <ClCompile Include="game\world\Erode.cpp" />
     <ClCompile Include="game\world\Fallin.cpp" />
     <ClCompile Include="game\world\Map3D.cpp" />
+    <ClCompile Include="game\world\MeshLOD.cpp" />
     <ClCompile Include="game\world\Roof.cpp" />
     <ClCompile Include="game\world\SelectPlace.cpp" />
     <ClCompile Include="game\world\SpiderWeb.cpp" />
