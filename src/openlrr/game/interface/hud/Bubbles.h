@@ -52,7 +52,7 @@ struct Bubble_Globs // [LegoRR/Bubble.c|struct:0x4f4|tags:GLOBS]
 {
 	/*000,4*/	bool32 ObjectUIsAlwaysVisible; // Object Display HUD/UI over entities in-game
 	/*004,9c*/	Gods98::Image* bubbleImages[Bubble_Type_Count];
-	/*0a0,9c*/	char* bubbleName[Bubble_Type_Count];
+	/*0a0,9c*/	const char* bubbleName[Bubble_Type_Count];
 	/*13c,48*/	undefined1 reserved1[72];
 	/*184,a0*/	BubbleData table1[20];
 	/*224,a0*/	BubbleData table2[20];
