@@ -12,6 +12,17 @@
 #include "../geometry.h"
 
 
+/**********************************************************************************
+ ******** Forward Global Namespace Declarations
+ **********************************************************************************/
+
+#pragma region Forward Declarations
+
+struct IDirectDrawSurface4;
+
+#pragma endregion
+
+
 namespace Gods98
 {; // !<---
 
@@ -31,7 +42,7 @@ typedef void (__cdecl* DrawPixelFunc)(sint32 x, sint32 y, uint32 value);
 
 #pragma region Constants
 
-#define DRAW_MAXLINES			200
+#define DRAW_MAXLINES				200
 
 #pragma endregion
 
