@@ -13,13 +13,6 @@
 #include "PTL.h"
 
 
-// <LegoRR.exe @00408bb0>
-//uint32 __cdecl Construction_GetBuildingBase(const char* name);
-#define Construction_GetBuildingBase ((uint32(__cdecl*)(const char*))0x00408bb0)
-
-#define LiveObject_UpdatePowerConsumption ((void(__cdecl*)(LegoObject*))0x0043c830)
-
-
 /**********************************************************************************
  ******** Globals
  **********************************************************************************/
@@ -27,7 +20,7 @@
 #pragma region Globals
 
 // <LegoRR.exe @00556be0>
-LegoRR::PTL_Globs& LegoRR::ptlGlobs = *(LegoRR::PTL_Globs*)0x00556be0;
+LegoRR::PTL_Globs & LegoRR::ptlGlobs = *(LegoRR::PTL_Globs*)0x00556be0;
 
 #pragma endregion
 
@@ -71,7 +64,7 @@ void __cdecl LegoRR::PTL_EventToAction(IN OUT MessageAction* message)
             return;
         }
     }
-    /// TODO: No error handled done by LegoRR
+    /// TODO: No error handling done by LegoRR
 }
 
 

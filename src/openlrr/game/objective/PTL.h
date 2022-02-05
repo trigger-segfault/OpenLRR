@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include "../../common.h"
-
 #include "../interface/Messages.h"
 
 
@@ -83,6 +81,7 @@ extern PTL_Globs & ptlGlobs;
 
 // <LegoRR.exe @0045daa0>
 bool32 __cdecl PTL_Initialise(const char* fname, const char* gameName);
+
 // <LegoRR.exe @0045db30>
 void __cdecl PTL_EventToAction(IN OUT MessageAction* message);
 
