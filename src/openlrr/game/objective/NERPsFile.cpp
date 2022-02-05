@@ -11,13 +11,9 @@
 
 #include "../audio/SFX.h"
 #include "../interface/Advisor.h"
+#include "../interface/TextMessages.h"
 #include "NERPsFile.h"
-
-
-#define Text_Clear ((void (__cdecl*)(void))0x0046ad50)
-#define NERPsRuntime_EndExecute ((void (__cdecl*)(real32))0x00454060)
-#define NERPFunc__GetTutorialFlags ((sint32 (__cdecl*)(sint32*))0x00456500)
-#define NERPFunc__SetMessagePermit ((sint32 (__cdecl*)(sint32*))0x004568b0)
+#include "NERPsFunctions.h"
 
 
 /**********************************************************************************
