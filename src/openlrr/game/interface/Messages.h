@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include "../../common.h"
-
 #include "../GameCommon.h"
 
 
@@ -123,13 +121,16 @@ void __cdecl Message_Debug_RegisterSelectedUnitHotkey(Gods98::Keys key, Message_
 void __cdecl Message_AddMessageAction(Message_Type messageType, LegoObject* argument1Obj, undefined4 argument2, OPTIONAL Point2I* blockPos);
 
 // <LegoRR.exe @00452390>
-void __cdecl Message_PTL_Update(void);
+#define Message_PTL_Update ((void (__cdecl* )(void))0x00452390)
+//void __cdecl Message_PTL_Update(void);
 
 // <LegoRR.exe @004526f0>
-void __cdecl Message_PTL_PickRandomFloor(LegoObject* liveObj);
+#define Message_PTL_PickRandomFloor ((void (__cdecl* )(LegoObject* liveObj))0x004526f0)
+//void __cdecl Message_PTL_PickRandomFloor(LegoObject* liveObj);
 
 // <LegoRR.exe @00452770>
-void __cdecl Message_LiveObject_FUN_00452770(LegoObject* liveObj);
+#define Message_LiveObject_FUN_00452770 ((void (__cdecl* )(LegoObject* liveObj))0x00452770)
+//void __cdecl Message_LiveObject_FUN_00452770(LegoObject* liveObj);
 
 // <LegoRR.exe @004527e0>
 bool32 __cdecl Message_CopySelectedUnits(OUT LegoObject*** unitsList, OUT uint32* unitsCount);
@@ -153,37 +154,47 @@ uint32 __cdecl Message_GetNumSelectedUnits(void);
 void __cdecl Message_CleanupSelectedUnitsCount(void);
 
 // <LegoRR.exe @004528d0>
-bool32 __cdecl Message_LiveObject_Check_IsSelected_OrFlags3_200000(LegoObject* liveObj, uint32* out_index);
+#define Message_LiveObject_Check_IsSelected_OrFlags3_200000 ((bool32 (__cdecl* )(LegoObject* liveObj, OUT uint32* index))0x004528d0)
+//bool32 __cdecl Message_LiveObject_Check_IsSelected_OrFlags3_200000(LegoObject* liveObj, OUT uint32* index);
 
 // <LegoRR.exe @00452910>
 bool32 __cdecl Message_FindIndexOfObject(LegoObject** objsTable, uint32 objsCount, LegoObject* thisObj, OPTIONAL OUT uint32* index);
 
 // <LegoRR.exe @00452950>
-bool32 __cdecl Message_LiveObject_Check_FUN_00452950(LegoObject* liveObj);
+#define Message_LiveObject_Check_FUN_00452950 ((bool32 (__cdecl* )(LegoObject* liveObj))0x00452950)
+//bool32 __cdecl Message_LiveObject_Check_FUN_00452950(LegoObject* liveObj);
 
 // <LegoRR.exe @00452980>
-bool32 __cdecl Message_PTL_Select_LiveObject(LegoObject* liveObj, sint32 param_2);
+#define Message_PTL_Select_LiveObject ((bool32 (__cdecl* )(LegoObject* liveObj, sint32 param_2))0x00452980)
+//bool32 __cdecl Message_PTL_Select_LiveObject(LegoObject* liveObj, sint32 param_2);
 
 // <LegoRR.exe @004529a0>
-bool32 __cdecl Message_LiveObject_DoSelect_FUN_004529a0(LegoObject* liveObj, bool32 param_2, bool32 param_3);
+#define Message_LiveObject_DoSelect_FUN_004529a0 ((bool32 (__cdecl* )(LegoObject* liveObj, bool32 param_2, bool32 param_3))0x004529a0)
+//bool32 __cdecl Message_LiveObject_DoSelect_FUN_004529a0(LegoObject* liveObj, bool32 param_2, bool32 param_3);
 
 // <LegoRR.exe @00452b30>
-bool32 __cdecl Message_LiveObject_Check_FUN_00452b30(LegoObject* liveObj);
+#define Message_LiveObject_Check_FUN_00452b30 ((bool32 (__cdecl* )(LegoObject* liveObj))0x00452b30)
+//bool32 __cdecl Message_LiveObject_Check_FUN_00452b30(LegoObject* liveObj);
 
 // <LegoRR.exe @00452b80>
-void __cdecl Message_PTL_ReduceSelection(void);
+#define Message_PTL_ReduceSelection ((void (__cdecl* )(void))0x00452b80)
+//void __cdecl Message_PTL_ReduceSelection(void);
 
 // <LegoRR.exe @00452ea0>
-void __cdecl Message_PTL_ClearSelection(void);
+#define Message_PTL_ClearSelection ((void (__cdecl* )(void))0x00452ea0)
+//void __cdecl Message_PTL_ClearSelection(void);
 
 // <LegoRR.exe @00452f10>
-bool32 __cdecl Message_PTL_Deselect_LiveObject(LegoObject* liveObj);
+#define Message_PTL_Deselect_LiveObject ((bool32 (__cdecl* )(LegoObject* liveObj))0x00452f10)
+//bool32 __cdecl Message_PTL_Deselect_LiveObject(LegoObject* liveObj);
 
 // <LegoRR.exe @00452f80>
-uint32 __cdecl Message_PTL_Debug_DestroyAll(void);
+#define Message_PTL_Debug_DestroyAll ((uint32 (__cdecl* )(void))0x00452f80)
+//uint32 __cdecl Message_PTL_Debug_DestroyAll(void);
 
 // <LegoRR.exe @00453020>
-bool32 __cdecl Message_PTL_FirstPerson(sint32 cameraFrame);
+#define Message_PTL_FirstPerson ((bool32 (__cdecl* )(uint32 cameraFrame))0x00453020)
+//bool32 __cdecl Message_PTL_FirstPerson(uint32 cameraFrame);
 
 #pragma endregion
 

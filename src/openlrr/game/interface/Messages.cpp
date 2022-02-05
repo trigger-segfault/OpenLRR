@@ -11,13 +11,6 @@
 #include "Messages.h"
 
 
-// <LegoRR.exe @00408bb0>
-//uint32 __cdecl Construction_GetBuildingBase(const char* name);
-#define Construction_GetBuildingBase ((uint32(__cdecl*)(const char*))0x00408bb0)
-
-#define LiveObject_UpdatePowerConsumption ((void(__cdecl*)(LegoObject*))0x0043c830)
-
-
 /**********************************************************************************
  ******** Globals
  **********************************************************************************/
@@ -186,11 +179,14 @@ void __cdecl LegoRR::Message_AddMessageAction(Message_Type messageType, LegoObje
 }
 
 // <LegoRR.exe @00452390>
-void __cdecl LegoRR::Message_PTL_Update(void);
+//void __cdecl LegoRR::Message_PTL_Update(void);
+
 // <LegoRR.exe @004526f0>
-void __cdecl LegoRR::Message_PTL_PickRandomFloor(LegoObject* liveObj);
+//void __cdecl LegoRR::Message_PTL_PickRandomFloor(LegoObject* liveObj);
+
 // <LegoRR.exe @00452770>
-void __cdecl LegoRR::Message_LiveObject_FUN_00452770(LegoObject* liveObj);
+//void __cdecl LegoRR::Message_LiveObject_FUN_00452770(LegoObject* liveObj);
+
 // <LegoRR.exe @004527e0>
 bool32 __cdecl LegoRR::Message_CopySelectedUnits(OUT LegoObject*** unitsList, OUT uint32* unitsCount)
 {
@@ -248,7 +244,8 @@ void __cdecl LegoRR::Message_CleanupSelectedUnitsCount(void)
 }
 
 // <LegoRR.exe @004528d0>
-bool32 __cdecl LegoRR::Message_LiveObject_Check_IsSelected_OrFlags3_200000(LegoObject* liveObj, uint32* out_index);
+//bool32 __cdecl LegoRR::Message_LiveObject_Check_IsSelected_OrFlags3_200000(LegoObject* liveObj, OUT uint32* index);
+
 // <LegoRR.exe @00452910>
 bool32 __cdecl LegoRR::Message_FindIndexOfObject(LegoObject** objsTable, uint32 objsCount, LegoObject* thisObj, OPTIONAL OUT uint32* index)
 {
@@ -263,22 +260,30 @@ bool32 __cdecl LegoRR::Message_FindIndexOfObject(LegoObject** objsTable, uint32 
 }
 
 // <LegoRR.exe @00452950>
-bool32 __cdecl LegoRR::Message_LiveObject_Check_FUN_00452950(LegoObject* liveObj);
+//bool32 __cdecl LegoRR::Message_LiveObject_Check_FUN_00452950(LegoObject* liveObj);
+
 // <LegoRR.exe @00452980>
-bool32 __cdecl LegoRR::Message_PTL_Select_LiveObject(LegoObject* liveObj, sint32 param_2);
+//bool32 __cdecl LegoRR::Message_PTL_Select_LiveObject(LegoObject* liveObj, sint32 param_2);
+
 // <LegoRR.exe @004529a0>
-bool32 __cdecl LegoRR::Message_LiveObject_DoSelect_FUN_004529a0(LegoObject* liveObj, bool32 param_2, bool32 param_3);
+//bool32 __cdecl LegoRR::Message_LiveObject_DoSelect_FUN_004529a0(LegoObject* liveObj, bool32 param_2, bool32 param_3);
+
 // <LegoRR.exe @00452b30>
-bool32 __cdecl LegoRR::Message_LiveObject_Check_FUN_00452b30(LegoObject* liveObj);
+//bool32 __cdecl LegoRR::Message_LiveObject_Check_FUN_00452b30(LegoObject* liveObj);
+
 // <LegoRR.exe @00452b80>
-void __cdecl LegoRR::Message_PTL_ReduceSelection(void);
+//void __cdecl LegoRR::Message_PTL_ReduceSelection(void);
+
 // <LegoRR.exe @00452ea0>
-void __cdecl LegoRR::Message_PTL_ClearSelection(void);
+//void __cdecl LegoRR::Message_PTL_ClearSelection(void);
+
 // <LegoRR.exe @00452f10>
-bool32 __cdecl LegoRR::Message_PTL_Deselect_LiveObject(LegoObject* liveObj);
+//bool32 __cdecl LegoRR::Message_PTL_Deselect_LiveObject(LegoObject* liveObj);
+
 // <LegoRR.exe @00452f80>
-uint32 __cdecl LegoRR::Message_PTL_Debug_DestroyAll(void);
+//uint32 __cdecl LegoRR::Message_PTL_Debug_DestroyAll(void);
+
 // <LegoRR.exe @00453020>
-bool32 __cdecl LegoRR::Message_PTL_FirstPerson(sint32 cameraFrame);
+//bool32 __cdecl LegoRR::Message_PTL_FirstPerson(uint32 cameraFrame);
 
 #pragma endregion
