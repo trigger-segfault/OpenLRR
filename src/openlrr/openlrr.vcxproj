@@ -364,6 +364,7 @@
     <ClCompile Include="game\objective\PTL.cpp" />
     <ClCompile Include="game\world\Camera.cpp" />
     <ClCompile Include="game\world\Construction.cpp" />
+    <ClCompile Include="game\world\Detail.cpp" />
     <ClCompile Include="game\world\ElectricFence.cpp" />
     <ClCompile Include="game\world\Erode.cpp" />
     <ClCompile Include="game\world\Fallin.cpp" />
