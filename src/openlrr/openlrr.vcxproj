@@ -230,6 +230,7 @@
     <ClInclude Include="game\object\AITask.h" />
     <ClInclude Include="game\object\BezierCurve.h" />
     <ClInclude Include="game\object\Building.h" />
+    <ClInclude Include="game\object\Collision.h" />
     <ClInclude Include="game\object\Creature.h" />
     <ClInclude Include="game\object\Dependencies.h" />
     <ClInclude Include="game\object\Flocks.h" />
@@ -346,6 +347,7 @@
     <ClCompile Include="game\interface\ToolTip.cpp" />
     <ClCompile Include="game\object\BezierCurve.cpp" />
     <ClCompile Include="game\object\Building.cpp" />
+    <ClCompile Include="game\object\Collision.cpp" />
     <ClCompile Include="game\object\Creature.cpp" />
     <ClCompile Include="game\object\Dependencies.cpp" />
     <ClCompile Include="game\object\Flocks.cpp" />
