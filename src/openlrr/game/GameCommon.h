@@ -714,6 +714,9 @@ enum PanelButton_Type : sint32
 
 	PanelButton_Encyclopedia_Close = 0,
 	PanelButton_Encyclopedia_Count,
+
+
+	PanelButton_Type_Count = 24,
 };
 assert_sizeof(PanelButton_Type, 0x4);
 
