@@ -352,6 +352,7 @@
     <ClCompile Include="game\object\Dependencies.cpp" />
     <ClCompile Include="game\object\Flocks.cpp" />
     <ClCompile Include="game\object\Object.cpp" />
+    <ClCompile Include="game\object\ObjectRecall.cpp" />
     <ClCompile Include="game\object\Stats.cpp" />
     <ClCompile Include="game\object\Upgrade.cpp" />
     <ClCompile Include="game\object\Vehicle.cpp" />
