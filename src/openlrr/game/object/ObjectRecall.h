@@ -15,6 +15,8 @@ namespace LegoRR
 
 #pragma region Constants
 
+#define OBJECTRECALL_FILE_SIGNATURE		"RROS"
+
 #pragma endregion
 
 /**********************************************************************************
@@ -27,6 +29,7 @@ struct RROSFileHeader // [LegoRR/ObjectRecall.c|struct:0x8] For .osf Object Reca
 {
 	/*0,4*/	char signature[4]; // "RROS"
 	/*4,4*/	uint32 count;
+	///*8,0*/	ObjectRecallEntry entries[];
 	/*8*/
 };
 assert_sizeof(RROSFileHeader, 0x8);
@@ -34,7 +37,7 @@ assert_sizeof(RROSFileHeader, 0x8);
 
 struct ObjectRecallEntry // [LegoRR/ObjectRecall.c|struct:0x14] Object recall structure (for .osf file)
 {
-	/*00,4*/	LegoObject_AbilityFlags abilities; // LiveFlags5
+	/*00,4*/	LegoObject_AbilityFlags abilityFlags; // LiveFlags5
 	/*04,4*/	uint32 level;
 	/*08,c*/	char customName[12];
 	/*14*/
@@ -63,7 +66,7 @@ assert_sizeof(ObjectRecall_Globs, 0x18);
 #pragma region Globals
 
 // <LegoRR.exe @00500e50>
-extern ObjectRecall_Globs & objectrecallGlobs;
+extern ObjectRecall_Globs & objectRecallGlobs;
 
 #pragma endregion
 
