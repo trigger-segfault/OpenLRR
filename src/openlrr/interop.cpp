@@ -401,7 +401,7 @@ bool interop_hook_Gods98_Containers(void)
 	result &= hook_write_jmpret(0x004751d0, Gods98::Container_Mesh_GetBox);
 
 	// used by: LiveObject_SetCrystalPoweredColor, Map3D_Coords_SetEmissive,
-	//           SelectPlace_DrawTiles
+	//           SelectPlace_CheckAndUpdate
 	result &= hook_write_jmpret(0x004752b0, Gods98::Container_Mesh_SetEmissive);
 
 	result &= hook_write_jmpret(0x004752e0, Gods98::Container_Mesh_SetColourAlpha);
