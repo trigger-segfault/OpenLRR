@@ -3,19 +3,10 @@
 
 #pragma once
 
-#include "../../common.h"
-#include "../../engine/colour.h"
-#include "../../engine/geometry.h"
-#include "../../engine/undefined.h"
-
 #include "../../engine/core/Config.h"
-#include "../../engine/gfx/Containers.h"
-#include "../../engine/drawing/Images.h"
-
-#include "../audio/SFX.h"
-#include "Object.h"
 
 #include "../GameCommon.h"
+#include "../audio/SFX.h"
 
 
 namespace LegoRR
@@ -252,6 +243,28 @@ assert_sizeof(Stats_Globs, 0x5b0);
 // <LegoRR.exe @00503bd8>
 extern Stats_Globs & statsGlobs;
 
+// All identical, with field_0x0 being assigned to 0x30, and all other fields zero.
+// Used by: UpgradePart
+// <LegoRR.exe @004aa7a0>
+extern ObjectStats & c_ObjectStats_Upgrade;
+// Used by: Dynamite
+// <LegoRR.exe @004aa8f0>
+extern ObjectStats & c_ObjectStats_Dynamite;
+// Used by: Barrier
+// <LegoRR.exe @004aaa40>
+extern ObjectStats & c_ObjectStats_Barrier;
+// Used by: SpiderWeb, OohScary, ElectricFenceStud, Pusher, Freezer, IceCube, LaserShot
+// <LegoRR.exe @004aab90>
+extern ObjectStats & c_ObjectStats_Other;
+
+#pragma endregion
+
+/**********************************************************************************
+ ******** Macros
+ **********************************************************************************/
+
+#pragma region Macros
+
 #pragma endregion
 
 /**********************************************************************************
@@ -267,13 +280,13 @@ bool32 __cdecl Stats_Initialise(const Gods98::Config* config, const char* gameNa
 void __cdecl Stats_AddToolTaskType(LegoObject_ToolType toolType, AITask_Type taskType);
 
 // <LegoRR.exe @00469d80>
-sint32 __cdecl Stats_GetCostOre(LegoObject_Type objType, sint32 objID, sint32 objLevel);
+sint32 __cdecl Stats_GetCostOre(LegoObject_Type objType, LegoObject_ID objID, uint32 objLevel);
 
 // <LegoRR.exe @00469db0>
-sint32 __cdecl Stats_GetCostCrystal(LegoObject_Type objType, sint32 objID, sint32 objLevel);
+sint32 __cdecl Stats_GetCostCrystal(LegoObject_Type objType, LegoObject_ID objID, uint32 objLevel);
 
 // <LegoRR.exe @00469de0>
-sint32 __cdecl Stats_GetCostRefinedOre(LegoObject_Type objType, sint32 objID, sint32 objLevel);
+sint32 __cdecl Stats_GetCostRefinedOre(LegoObject_Type objType, LegoObject_ID objID, uint32 objLevel);
 
 // <LegoRR.exe @00469e10>
 sint32 __cdecl StatsObject_GetCrystalDrain(LegoObject* liveObj);
@@ -333,7 +346,7 @@ real32 __cdecl StatsObject_GetHealthDecayRate(LegoObject* liveObj);
 real32 __cdecl StatsObject_GetEnergyDecayRate(LegoObject* liveObj);
 
 // <LegoRR.exe @0046a0c0>
-real32 __cdecl Stats_GetOxygenCoef(LegoObject_Type objType, sint32 objID);
+real32 __cdecl Stats_GetOxygenCoef(LegoObject_Type objType, LegoObject_ID objID);
 
 // <LegoRR.exe @0046a0e0>
 real32 __cdecl StatsObject_GetOxygenCoef(LegoObject* liveObj);
@@ -351,22 +364,22 @@ StatsFlags2 __cdecl StatsObject_GetStatsFlags2(LegoObject* liveObj);
 StatsFlags3 __cdecl StatsObject_GetStatsFlags3(LegoObject* liveObj);
 
 // <LegoRR.exe @0046a180>
-StatsFlags1 __cdecl Stats_GetStatsFlags1(LegoObject_Type objType, sint32 objID);
+StatsFlags1 __cdecl Stats_GetStatsFlags1(LegoObject_Type objType, LegoObject_ID objID);
 
 // <LegoRR.exe @0046a1a0>
-StatsFlags2 __cdecl Stats_GetStatsFlags2(LegoObject_Type objType, sint32 objID);
+StatsFlags2 __cdecl Stats_GetStatsFlags2(LegoObject_Type objType, LegoObject_ID objID);
 
 // <LegoRR.exe @0046a1c0>
-StatsFlags3 __cdecl Stats_GetStatsFlags3(LegoObject_Type objType, sint32 objID);
+StatsFlags3 __cdecl Stats_GetStatsFlags3(LegoObject_Type objType, LegoObject_ID objID);
 
 // <LegoRR.exe @0046a1e0>
 real32 __cdecl StatsObject_GetRepairValue(LegoObject* liveObj);
 
 // <LegoRR.exe @0046a200>
-uint32 __cdecl Stats_GetLevels(LegoObject_Type objType, sint32 objID);
+uint32 __cdecl Stats_GetLevels(LegoObject_Type objType, LegoObject_ID objID);
 
 // <LegoRR.exe @0046a220>
-sint32 __cdecl Stats_GetWaterEntrances(LegoObject_Type objType, sint32 objID, sint32 objLevel);
+sint32 __cdecl Stats_GetWaterEntrances(LegoObject_Type objType, LegoObject_ID objID, uint32 objLevel);
 
 // <LegoRR.exe @0046a250>
 SFX_ID __cdecl StatsObject_GetDrillSoundType(LegoObject* liveObj, bool32 fade);
@@ -396,10 +409,10 @@ real32 __cdecl StatsObject_GetUpgradeTime(LegoObject* liveObj);
 real32 __cdecl StatsObject_GetFunctionCoef(LegoObject* liveObj);
 
 // <LegoRR.exe @0046a380>
-sint32 __cdecl Stats_GetUpgradeCostOre(LegoObject_Type objType, sint32 objID, sint32 objLevel);
+sint32 __cdecl Stats_GetUpgradeCostOre(LegoObject_Type objType, LegoObject_ID objID, LegoObject_UpgradeType upgradeType);
 
 // <LegoRR.exe @0046a3b0>
-sint32 __cdecl Stats_GetUpgradeCostStuds(LegoObject_Type objType, sint32 objID, sint32 objLevel);
+sint32 __cdecl Stats_GetUpgradeCostStuds(LegoObject_Type objType, LegoObject_ID objID, LegoObject_UpgradeType upgradeType);
 
 // <LegoRR.exe @0046a3e0>
 bool32 __cdecl Stats_FindToolFromTaskType(AITask_Type taskType, OUT LegoObject_ToolType* toolType);

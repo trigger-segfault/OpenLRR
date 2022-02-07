@@ -76,7 +76,7 @@ const char* LegoRR::Debug_GetObjectTypeName(LegoObject_Type objType)
 	return _debugObjectTypeNames[(sint32)objType + 1]; // +1 for TVCamera
 }
 
-const char* LegoRR::Debug_GetObjectIDName(LegoObject_Type objType, uint32 objID)
+const char* LegoRR::Debug_GetObjectIDName(LegoObject_Type objType, LegoObject_ID objID)
 {
 	switch (objID) {
 	case LegoObject_Type::LegoObject_TVCamera:

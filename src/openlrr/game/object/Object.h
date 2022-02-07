@@ -259,7 +259,7 @@ struct HiddenObject // [LegoRR/LegoObject.c|struct:0x2c] Name is only guessed
 	/*10,4*/	real32 heading;
 	/*14,4*/	void* objSrcData;
 	/*18,4*/	LegoObject_Type objType;
-	/*1c,4*/	sint32 objID;
+	/*1c,4*/	LegoObject_ID objID;
 	/*20,4*/	real32 health;
 	/*24,4*/	char* thisOLName;
 	/*28,4*/	char* drivingOLName;
@@ -271,7 +271,7 @@ assert_sizeof(HiddenObject, 0x2c);
 struct LegoObject // [LegoRR/LegoObject.c|struct:0x40c|tags:LISTSET]
 {
 	/*000,4*/       LegoObject_Type type;
-	/*004,4*/       sint32 id;
+	/*004,4*/       LegoObject_ID id;
 	/*008,4*/       char* customName; // max size is 11 (NOT null-terminated)
 	/*00c,4*/       VehicleData* vehicle;
 	/*010,4*/       CreatureData* miniFigure;
@@ -442,6 +442,9 @@ void __cdecl LegoObject_Initialise(void);
 
 // <LegoRR.exe @00437310>
 void __cdecl LegoObject_Shutdown(void);
+
+// <LegoRR.exe @0043c830>
+#define LegoObject_UpdatePowerConsumption ((void (__cdecl* )(LegoObject* liveObj))0x0043c830)
 
 // <LegoRR.exe @0044a330>
 void __cdecl LiveObject_FP_GetPositionAndHeading(LegoObject* liveObj, int cameraFrame, OUT Vector3F* position, OPTIONAL OUT Vector3F* dir);

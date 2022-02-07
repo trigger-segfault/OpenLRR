@@ -292,8 +292,8 @@ struct Lego_Level // [LegoRR/Lego.c|struct:0x284]
 	/*0a4,4*/       undefined4 field_a4; // (init: 0)
 	/*0a8,4*/       undefined4 field_a8; // (init: 0)
 	/*0ac,4*/       sint32 numProcessedOre;
-	/*0b0,4*/       sint32 EmergeCreature; // (searches for object index by name, expects RockMonsterType)
 	/*0b4,4*/       char* NextLevel;
+	/*0b0,4*/       LegoObject_ID EmergeCreature; // (searches for object index by name, expects RockMonsterType)
 	/*0b8,4*/       Lego_Block* blocks; // grid of blocks [y][x]
 	/*0bc,54*/      ObjectiveData objective;
 	/*110,4*/       bool32 hasBlockPointers;
@@ -309,7 +309,7 @@ struct Lego_Level // [LegoRR/Lego.c|struct:0x284]
 	/*260,4*/       real32 TrainTime; // (mult: 25.0)
 	/*264,4*/       real32 EmergeTimeOut; // (default: 1500.0)
 	/*268,4*/       real32 SlugTime; // (default: 60.0, mult: 25.0 (applies to default))
-	/*26c,4*/       sint32 Slug; // (default: 20 (invalid), searches for object index by name, expects RockMonsterType)
+	/*26c,4*/       LegoObject_ID Slug; // (default: 20 (invalid), searches for object index by name, expects RockMonsterType)
 	/*270,4*/       char* FullName; // (replace '_' with ' ')
 	/*274,4*/       TextureType BoulderAnimation; // (texture index, hardcoded: Rock, Lava, Ice)
 	/*278,4*/       real32 MaxStolen;
@@ -579,19 +579,16 @@ __inline Map3D* Lego_GetMap(void) { return Lego_GetLevel()->map; }
 
 
 // <LegoRR.exe @0042e7e0>
-#define Object_GetObjectByName ((bool32(__cdecl*)(const char*,LegoObject_Type*,sint32*,void**))0x0042e7e0)
-//__inline bool32 __cdecl Object_GetObjectByName(const char* objName, OUT LegoObject_Type* objType, OUT sint32* objID, OPTIONAL OUT void** objContainer);
+#define Lego_GetObjectByName ((bool32 (__cdecl* )(const char* objName, OUT LegoObject_Type* objType, OUT LegoObject_ID* objID, OUT void** model))0x0042e7e0)
+//__inline bool32 __cdecl Lego_GetObjectByName(const char* objName, OUT LegoObject_Type* objType, OUT LegoObject_ID* objID, OPTIONAL OUT void** model);
 
 // <LegoRR.exe @0042eca0>
-#define Object_GetTypeResource ((bool32(__cdecl*)(LegoObject_Type,sint32,void**))0x0042eca0)
-//__inline bool32 __cdecl Object_GetTypeResource(LegoObject_Type objType, sint32 objID, OUT void** objContainer);
+#define Lego_GetObjectTypeModel ((bool32 (__cdecl* )(LegoObject_Type objType, LegoObject_ID objID, OUT void** model))0x0042eca0)
+//__inline bool32 __cdecl Lego_GetObjectTypeModel(LegoObject_Type objType, LegoObject_ID objID, OUT void** model);
 
 // <LegoRR.exe @0042ee70>
-#define Object_GetTypeCount ((uint32(__cdecl*)(LegoObject_Type))0x0042ee70)
-/*__inline uint32 __cdecl Object_GetTypeCount(LegoObject_Type objType)
+#define Lego_GetObjectTypeIDCount ((uint32 (__cdecl* )(LegoObject_Type objType))0x0042ee70)
 {
-    return ((uint32(__cdecl*)(LegoObject_Type))0x0042ee70)(objType);
-}*/
 
 // <LegoRR.exe @0042c260>
 bool32 __cdecl Level_HandleEmergeTriggers(Lego_Level* level, const Point2I* blockPos, OUT Point2I* emergeBlockPos);

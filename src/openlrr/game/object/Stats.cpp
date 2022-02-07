@@ -6,15 +6,9 @@
 #include "../../engine/core/Utils.h"
 
 #include "../Game.h"
-
+#include "../world/Construction.h"
+#include "Object.h"
 #include "Stats.h"
-
-
-// <LegoRR.exe @00408bb0>
-//uint32 __cdecl Construction_GetBuildingBase(const char* name);
-#define Construction_GetBuildingBase ((uint32(__cdecl*)(const char*))0x00408bb0)
-
-#define LiveObject_UpdatePowerConsumption ((void(__cdecl*)(LegoObject*))0x0043c830)
 
 
 /**********************************************************************************
@@ -26,8 +20,22 @@
 // <LegoRR.exe @00503bd8>
 LegoRR::Stats_Globs & LegoRR::statsGlobs = *(LegoRR::Stats_Globs*)0x00503bd8;
 
-#pragma endregion
 
+// All identical, with field_0x0 being assigned to 0x30, and all other fields zero.
+// Used by: UpgradePart
+// <LegoRR.exe @004aa7a0>
+LegoRR::ObjectStats & LegoRR::c_ObjectStats_Upgrade = *(LegoRR::ObjectStats*)0x004aa7a0;
+// Used by: Dynamite
+// <LegoRR.exe @004aa8f0>
+LegoRR::ObjectStats & LegoRR::c_ObjectStats_Dynamite = *(LegoRR::ObjectStats*)0x004aa8f0;
+// Used by: Barrier
+// <LegoRR.exe @004aaa40>
+LegoRR::ObjectStats & LegoRR::c_ObjectStats_Barrier = *(LegoRR::ObjectStats*)0x004aaa40;
+// Used by: SpiderWeb, OohScary, ElectricFenceStud, Pusher, Freezer, IceCube, LaserShot
+// <LegoRR.exe @004aab90>
+LegoRR::ObjectStats & LegoRR::c_ObjectStats_Other = *(LegoRR::ObjectStats*)0x004aab90;
+
+#pragma endregion
 
 /**********************************************************************************
  ******** Functions
@@ -37,8 +45,7 @@ LegoRR::Stats_Globs & LegoRR::statsGlobs = *(LegoRR::Stats_Globs*)0x00503bd8;
 
 using namespace Gods98;
 
-#define Stats_ID(name) Config_ID(gameName, "Stats", Config_GetItemName(prop), name)
-#define float10 long double
+#define Stats_ID(name) Config_ID(gameName, "Stats", Gods98::Config_GetItemName(prop), name)
 
 // <LegoRR.exe @00466aa0>
 bool32 __cdecl LegoRR::Stats_Initialise(const Gods98::Config* config, const char* gameName)
@@ -52,20 +59,20 @@ bool32 __cdecl LegoRR::Stats_Initialise(const Gods98::Config* config, const char
     for (prop = Config_FindArray(config, arrayID); prop != nullptr; prop = Config_GetNextItem(prop)) {
 
         LegoObject_Type type = LegoObject_None;
-        sint32 id = 0;
-        if (!Object_GetObjectByName(Config_GetItemName(prop), &type, &id, nullptr)) {
+        LegoObject_ID id = (LegoObject_ID)0;
+        if (!Lego_GetObjectByName(Config_GetItemName(prop), &type, &id, nullptr)) {
             Error_Warn(true, "Object name in Stats not found");
             continue;
         }
 
         if (statsGlobs.objectStats[type] == nullptr) {
-            uint32 subtypeArraySize = Object_GetTypeCount(type) * sizeof(ObjectStats*);
+            uint32 subtypeArraySize = Lego_GetObjectTypeIDCount(type) * sizeof(ObjectStats*);
 
             statsGlobs.objectStats[type] = (ObjectStats**)Gods98::Mem_Alloc(subtypeArraySize);
             std::memset(statsGlobs.objectStats[type], 0, subtypeArraySize);
         }
 
-        /// REFACTOR: Moved to after Object_GetObjectByName and type array allocation
+        /// REFACTOR: Moved to after Lego_GetObjectByName and type array allocation
         uint32 levels = (uint32)Config_GetIntValue(config, Stats_ID("Levels"));
         Error_Fatal(levels > OBJECT_MAXLEVELS, "Cannot have levels greater than maximum in Stats");
         StatsFlags1 flags1 = StatsFlags1::STATS1_NONE;
@@ -771,19 +778,19 @@ void __cdecl LegoRR::Stats_AddToolTaskType(LegoRR::LegoObject_ToolType toolType,
 }
 
 // <LegoRR.exe @00469d80>
-sint32 __cdecl LegoRR::Stats_GetCostOre(LegoRR::LegoObject_Type objType, sint32 objID, sint32 objLevel)
+sint32 __cdecl LegoRR::Stats_GetCostOre(LegoRR::LegoObject_Type objType, LegoObject_ID objID, uint32 objLevel)
 {
 	return statsGlobs.objectStats[objType][objID][objLevel].CostOre;
 }
 
 // <LegoRR.exe @00469db0>
-sint32 __cdecl LegoRR::Stats_GetCostCrystal(LegoRR::LegoObject_Type objType, sint32 objID, sint32 objLevel)
+sint32 __cdecl LegoRR::Stats_GetCostCrystal(LegoRR::LegoObject_Type objType, LegoObject_ID objID, uint32 objLevel)
 {
 	return statsGlobs.objectStats[objType][objID][objLevel].CostCrystal;
 }
 
 // <LegoRR.exe @00469de0>
-sint32 __cdecl LegoRR::Stats_GetCostRefinedOre(LegoRR::LegoObject_Type objType, sint32 objID, sint32 objLevel)
+sint32 __cdecl LegoRR::Stats_GetCostRefinedOre(LegoRR::LegoObject_Type objType, LegoObject_ID objID, uint32 objLevel)
 {
 	return statsGlobs.objectStats[objType][objID][objLevel].CostRefinedOre;
 }
@@ -915,7 +922,7 @@ real32 __cdecl LegoRR::StatsObject_GetEnergyDecayRate(LegoRR::LegoObject* liveOb
 }
 
 // <LegoRR.exe @0046a0c0>
-real32 __cdecl LegoRR::Stats_GetOxygenCoef(LegoRR::LegoObject_Type objType, sint32 objID)
+real32 __cdecl LegoRR::Stats_GetOxygenCoef(LegoRR::LegoObject_Type objType, LegoObject_ID objID)
 {
 	return statsGlobs.objectStats[objType][objID]->OxygenCoef;
 }
@@ -951,19 +958,19 @@ LegoRR::StatsFlags3 __cdecl LegoRR::StatsObject_GetStatsFlags3(LegoRR::LegoObjec
 }
 
 // <LegoRR.exe @0046a180>
-LegoRR::StatsFlags1 __cdecl LegoRR::Stats_GetStatsFlags1(LegoRR::LegoObject_Type objType, sint32 objID)
+LegoRR::StatsFlags1 __cdecl LegoRR::Stats_GetStatsFlags1(LegoRR::LegoObject_Type objType, LegoObject_ID objID)
 {
 	return statsGlobs.objectStats[objType][objID]->flags1;
 }
 
 // <LegoRR.exe @0046a1a0>
-LegoRR::StatsFlags2 __cdecl LegoRR::Stats_GetStatsFlags2(LegoRR::LegoObject_Type objType, sint32 objID)
+LegoRR::StatsFlags2 __cdecl LegoRR::Stats_GetStatsFlags2(LegoRR::LegoObject_Type objType, LegoObject_ID objID)
 {
 	return statsGlobs.objectStats[objType][objID]->flags2;
 }
 
 // <LegoRR.exe @0046a1c0>
-LegoRR::StatsFlags3 __cdecl LegoRR::Stats_GetStatsFlags3(LegoRR::LegoObject_Type objType, sint32 objID)
+LegoRR::StatsFlags3 __cdecl LegoRR::Stats_GetStatsFlags3(LegoRR::LegoObject_Type objType, LegoObject_ID objID)
 {
 	return statsGlobs.objectStats[objType][objID]->flags3;
 }
@@ -975,13 +982,13 @@ real32 __cdecl LegoRR::StatsObject_GetRepairValue(LegoRR::LegoObject* liveObj)
 }
 
 // <LegoRR.exe @0046a200>
-uint32 __cdecl LegoRR::Stats_GetLevels(LegoRR::LegoObject_Type objType, sint32 objID)
+uint32 __cdecl LegoRR::Stats_GetLevels(LegoRR::LegoObject_Type objType, LegoObject_ID objID)
 {
 	return statsGlobs.objectLevels[objType][objID];
 }
 
 // <LegoRR.exe @0046a220>
-sint32 __cdecl LegoRR::Stats_GetWaterEntrances(LegoRR::LegoObject_Type objType, sint32 objID, sint32 objLevel)
+sint32 __cdecl LegoRR::Stats_GetWaterEntrances(LegoRR::LegoObject_Type objType, LegoObject_ID objID, uint32 objLevel)
 {
 	return statsGlobs.objectStats[objType][objID][objLevel].WaterEntrances;
 }
@@ -1041,15 +1048,17 @@ real32 __cdecl LegoRR::StatsObject_GetFunctionCoef(LegoRR::LegoObject* liveObj)
 }
 
 // <LegoRR.exe @0046a380>
-sint32 __cdecl LegoRR::Stats_GetUpgradeCostOre(LegoRR::LegoObject_Type objType, sint32 objID, sint32 objLevel)
+sint32 __cdecl LegoRR::Stats_GetUpgradeCostOre(LegoRR::LegoObject_Type objType, LegoObject_ID objID, LegoObject_UpgradeType upgradeType)
 {
-	return statsGlobs.objectStats[objType][objID][objLevel].UpgradeCostOre;
+	// One of the only two leveled fields that have no relation to the object's actual level.
+	return statsGlobs.objectStats[objType][objID][upgradeType].UpgradeCostOre;
 }
 
 // <LegoRR.exe @0046a3b0>
-sint32 __cdecl LegoRR::Stats_GetUpgradeCostStuds(LegoRR::LegoObject_Type objType, sint32 objID, sint32 objLevel)
+sint32 __cdecl LegoRR::Stats_GetUpgradeCostStuds(LegoRR::LegoObject_Type objType, LegoObject_ID objID, LegoObject_UpgradeType upgradeType)
 {
-	return statsGlobs.objectStats[objType][objID][objLevel].UpgradeCostStuds;
+	// One of the only two leveled fields that have no relation to the object's actual level.
+	return statsGlobs.objectStats[objType][objID][upgradeType].UpgradeCostStuds;
 }
 
 // <LegoRR.exe @0046a3e0>
@@ -1160,7 +1169,7 @@ void __cdecl LegoRR::StatsObject_Debug_ToggleObjectPower(LegoRR::LegoObject* liv
 	else
 		liveObj->stats->flags2 &= ~STATS2_SELFPOWERED;
 
-	LiveObject_UpdatePowerConsumption(liveObj);
+	LegoObject_UpdatePowerConsumption(liveObj);
 }
 
 

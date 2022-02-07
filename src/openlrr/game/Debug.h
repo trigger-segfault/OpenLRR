@@ -57,7 +57,7 @@ namespace LegoRR
 #pragma region Functions
 
 const char* Debug_GetObjectTypeName(LegoObject_Type objType);
-const char* Debug_GetObjectIDName(LegoObject_Type objType, uint32 objID);
+const char* Debug_GetObjectIDName(LegoObject_Type objType, LegoObject_ID objID);
 
 #pragma endregion
 
