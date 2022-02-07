@@ -588,7 +588,6 @@ __inline Map3D* Lego_GetMap(void) { return Lego_GetLevel()->map; }
 
 // <LegoRR.exe @0042ee70>
 #define Lego_GetObjectTypeIDCount ((uint32 (__cdecl* )(LegoObject_Type objType))0x0042ee70)
-{
 
 // <LegoRR.exe @0042c260>
 bool32 __cdecl Level_HandleEmergeTriggers(Lego_Level* level, const Point2I* blockPos, OUT Point2I* emergeBlockPos);
