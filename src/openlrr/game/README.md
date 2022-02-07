@@ -19,13 +19,13 @@
 
   Game interaction, icon menus, panels, heads up displays, and some shared 2D drawing code.
 
-* `object/`
-
-  In-game entity AI, stats, logic, and graphics resource containers.
-
-* `objective/`
+* `mission/`
 
   Level goals, reward quotas, scripting, and PTL files.
+
+* `object/`
+
+  In-game entity AI, stats, logic, and object models.
 
 * `world/`
 

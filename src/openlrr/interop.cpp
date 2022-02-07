@@ -47,8 +47,8 @@
 #include "game/object/BezierCurve.h"
 #include "game/object/Object.h"
 #include "game/object/Stats.h"
-#include "game/objective/NERPsFile.h"
-#include "game/objective/PTL.h"
+#include "game/mission/NERPsFile.h"
+#include "game/mission/PTL.h"
 #include "game/world/Camera.h"
 #include "game/Game.h"
 
