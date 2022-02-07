@@ -575,7 +575,7 @@ __inline Map3D* Lego_GetMap(void) { return Lego_GetLevel()->map; }
 
 
 // <LegoRR.exe @0041f870>
-#define Game_SetFlag1_20000_unkCameraRadarHasTrackObj ((bool32(__cdecl*)(bool32 state))0x0041f870)
+#define Lego_SetRadarNoTrackObject ((void (__cdecl* )(bool32 noTrackObj))0x0041f870)
 
 
 // <LegoRR.exe @0042e7e0>

@@ -248,10 +248,10 @@ void __cdecl LegoRR::Camera_Update(LegoCamera* cam, Lego_Level* level, real32 el
 		Vector3F radar_vecObjPos;
 
 		if (cam->trackObj == nullptr) {
-			Game_SetFlag1_20000_unkCameraRadarHasTrackObj(true);
+			Lego_SetRadarNoTrackObject(true);
 		}
-		else if ((radar_objCont = LiveObject_GetActivityContainer(cam->trackObj)) != nullptr) {
-			Game_SetFlag1_20000_unkCameraRadarHasTrackObj(false);
+		else if ((radar_objCont = LegoObject_GetActivityContainer(cam->trackObj)) != nullptr) {
+			Lego_SetRadarNoTrackObject(false);
 
 
 			Gods98::Container_GetPosition(cam->contCam, nullptr, &radar_vecCont1Pos);
@@ -361,7 +361,7 @@ void __cdecl LegoRR::Camera_Update(LegoCamera* cam, Lego_Level* level, real32 el
 		/// REFACTOR: fp_vecObjDir used as dummy, but it's not necessary since both arguments are optional
 		Gods98::Container_GetOrientation(cam->contCam, nullptr, &fp_vecCont1Dir, nullptr);// &fp_vecObjDir);
 
-		LiveObject_FP_GetPositionAndHeading(cam->trackObj, cam->trackFPCameraFrame, &fp_vecObjPos, &fp_vecObjDir);
+		LegoObject_FP_GetPositionAndHeading(cam->trackObj, cam->trackFPCameraFrame, &fp_vecObjPos, &fp_vecObjDir);
 
 		if (!(cam->flags & CameraFlags::CAMERA_FLAG_FPSETUP)) {
 

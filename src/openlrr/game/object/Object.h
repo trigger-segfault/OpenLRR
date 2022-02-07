@@ -447,12 +447,10 @@ void __cdecl LegoObject_Shutdown(void);
 #define LegoObject_UpdatePowerConsumption ((void (__cdecl* )(LegoObject* liveObj))0x0043c830)
 
 // <LegoRR.exe @0044a330>
-void __cdecl LiveObject_FP_GetPositionAndHeading(LegoObject* liveObj, int cameraFrame, OUT Vector3F* position, OPTIONAL OUT Vector3F* dir);
-#define LiveObject_FP_GetPositionAndHeading ((decltype(LiveObject_FP_GetPositionAndHeading)*)0x0044a330)
+#define LegoObject_FP_GetPositionAndHeading ((void (__cdecl* )(LegoObject* liveObj, sint32 cameraFrame, OUT Vector3F* worldPos, OPTIONAL OUT Vector3F* dir))0x0044a330)
 
 // <LegoRR.exe @0044a4c0>
-Gods98::Container* __cdecl LiveObject_GetActivityContainer(LegoObject* liveObj);
-#define LiveObject_GetActivityContainer ((decltype(LiveObject_GetActivityContainer)*)0x0044a4c0)
+#define LegoObject_GetActivityContainer ((Gods98::Container* (__cdecl* )(LegoObject* liveObj))0x0044a4c0)
 
 #pragma endregion
 
