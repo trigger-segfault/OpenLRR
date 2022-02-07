@@ -91,6 +91,17 @@ LegoRR::LegoCamera* __cdecl LegoRR::Camera_Create(Gods98::Container* contRoot, L
 	return nullptr;
 }
 
+/// CUSTOM: Modified function to replace interop hook of `Camera_EnableFreeMovement`.
+///         This allows toggling Camera free movement with Numpad 0 instead of only being able to "turn it off".
+// <LegoRR.exe @00435cc1>
+void __cdecl LegoRR::Camera_ToggleFreeMovement(LegoCamera* cam, bool32 unused)
+{
+	bool32 on = !(cam->flags & CameraFlags::CAMERA_FLAG_FREEMOVEMENT);
+
+	Camera_EnableFreeMovement(cam, on);
+}
+
+// NO LONGER USED FOR INTEROP HOOK.
 // <LegoRR.exe @00435cc1>
 void __cdecl LegoRR::Camera_EnableFreeMovement(LegoCamera* cam, bool32 on)
 {

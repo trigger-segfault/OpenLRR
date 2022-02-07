@@ -1554,8 +1554,12 @@ bool interop_hook_LegoRR_LegoCamera(void)
 	
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x00435a50, LegoRR::Camera_Create);
+	
 	// used by: Lego_HandleKeys
-	result &= hook_write_jmpret(0x00435cc1, LegoRR::Camera_EnableFreeMovement);
+	// INTEROP HOOK REPLACEMENT TO ALLOW TOGGLING FREE MOVEMENT MODE.
+	result &= hook_write_jmpret(0x00435cc1, LegoRR::Camera_ToggleFreeMovement);
+	//result &= hook_write_jmpret(0x00435cc1, LegoRR::Camera_EnableFreeMovement);
+	
 	// used by: Lego_Shutdown_Debug
 	result &= hook_write_jmpret(0x00435cf8, LegoRR::Camera_Free);
 	// used by: Lego_Initialise

@@ -119,11 +119,24 @@ extern Camera_Globs & cameraGlobs;
 
 #pragma region Functions
 
+// <unused>
+__inline bool32 Camera_IsFreeMovement(const LegoCamera* cam) { return (cam->flags & CameraFlags::CAMERA_FLAG_FREEMOVEMENT); }
+
+
+
 // <LegoRR.exe @00435a50>
 LegoCamera* __cdecl Camera_Create(Gods98::Container* contRoot, LegoCamera_Type camType);
 
+
+/// CUSTOM: Modified function to replace interop hook of `Camera_EnableFreeMovement`.
+///         This allows toggling Camera free movement with Numpad 0 instead of only being able to "turn it off".
+// <LegoRR.exe @00435cc1>
+void __cdecl Camera_ToggleFreeMovement(LegoCamera* cam, bool32 unused);
+
+// NO LONGER USED FOR INTEROP HOOK.
 // <LegoRR.exe @00435cc1>
 void __cdecl Camera_EnableFreeMovement(LegoCamera* cam, bool32 on);
+
 
 // <LegoRR.exe @00435cf8>
 void __cdecl Camera_Free(LegoCamera* cam);
