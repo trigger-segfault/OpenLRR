@@ -350,6 +350,7 @@
     <ClCompile Include="game\mission\NERPsRuntime.cpp" />
     <ClCompile Include="game\mission\Objective.cpp" />
     <ClCompile Include="game\mission\PTL.cpp" />
+    <ClCompile Include="game\object\AITask.cpp" />
     <ClCompile Include="game\object\BezierCurve.cpp" />
     <ClCompile Include="game\object\Building.cpp" />
     <ClCompile Include="game\object\Collision.cpp" />
