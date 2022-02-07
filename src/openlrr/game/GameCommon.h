@@ -38,6 +38,7 @@ namespace LegoRR
 
 struct AITask;
 struct BlockPointer;
+struct Construction_Zone;
 struct Detail_Mesh;
 struct Detail_TextureSet;
 struct Flocks;
@@ -60,6 +61,7 @@ struct CreatureData;
 struct BuildingData;
 struct VehicleData;
 struct UpgradeData;
+
 typedef uint8 DirectionByte;
 
 #pragma endregion
@@ -556,7 +558,7 @@ enum Interface_MenuType : sint32
 assert_sizeof(Interface_MenuType, 0x4);
 
 
-enum Interface_MenuItem : sint32
+enum Interface_MenuItemType : sint32
 {
 	Interface_MenuItem_Back                  = 0,
 
@@ -636,7 +638,7 @@ enum Interface_MenuItem : sint32
 
 	Interface_MenuItem_Type_Count,
 };
-assert_sizeof(Interface_MenuItem, 0x4);
+assert_sizeof(Interface_MenuItemType, 0x4);
 
 
 enum Panel_Type : sint32

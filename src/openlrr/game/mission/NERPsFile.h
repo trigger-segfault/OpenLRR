@@ -456,7 +456,7 @@ void __cdecl NERPsRuntime_Execute(real32 elapsedAbs);
 
 
 // <LegoRR.exe @004549d0>
-#define NERPs_GetIconClicked ((sint32 (__cdecl* )(Interface_MenuItem* pMenuIcon))0x004549d0)
+#define NERPs_GetIconClicked ((sint32 (__cdecl* )(Interface_MenuItemType* pMenuIcon))0x004549d0)
 
 
 // [NERPFuncs...]
@@ -552,7 +552,7 @@ void __cdecl NERPsRuntime_Execute(real32 elapsedAbs);
 #define NERPs_SubMenu_GetBuildingVehicleIcon_ByObjectName ((sint32 (__cdecl* )(const char* objName))0x00455600)
 
 // <LegoRR.exe @00455630>
-#define NERPsRuntime_FlashIcon ((bool32 (__cdecl* )(Interface_MenuItem menuIcon, bool32 flash))0x00455630)
+#define NERPsRuntime_FlashIcon ((bool32 (__cdecl* )(Interface_MenuItemType menuIcon, bool32 flash))0x00455630)
 
 
 // [NERPFuncs...]
