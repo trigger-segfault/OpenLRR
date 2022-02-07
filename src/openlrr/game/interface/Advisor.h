@@ -40,23 +40,23 @@ struct LegoCamera;
 
 #pragma region Enums
 
-enum AdvisorPositionFlags : uint32 // [LegoRR/Advisor.c|flags:0x4|type:uint]
+enum AdvisorFlags : uint32 // [LegoRR/Advisor.c|flags:0x4|type:uint]
 {
 	ADVISOR_FLAG_NONE    = 0,
 	ADVISOR_FLAG_NOPANEL = 0x10000,
 	ADVISOR_FLAG_USED    = 0x20000, // This Advisor_Type has been loaded
 	ADVISOR_FLAG_HASTEXT = 0x40000,
 };
-flags_end(AdvisorPositionFlags, 0x4);
+flags_end(AdvisorFlags, 0x4);
 
 
-enum AdvisorStateFlags : uint32 // [LegoRR/Advisor.c|flags:0x4|type:uint]
+enum Advisor_GlobFlags : uint32 // [LegoRR/Advisor.c|flags:0x4|type:uint]
 {
-	ADVISOR_GLOB_FLAG_NONE  = 0,
+	ADVISOR_GLOB_FLAG_NONE      = 0,
 	ADVISOR_GLOB_FLAG_ANIMATING = 0x1,
-	ADVISOR_GLOB_FLAG_LOOPING = 0x2,
+	ADVISOR_GLOB_FLAG_LOOPING   = 0x2,
 };
-flags_end(AdvisorStateFlags, 0x4);
+flags_end(Advisor_GlobFlags, 0x4);
 
 #pragma endregion
 
@@ -86,7 +86,7 @@ struct AdvisorPositionData // [LegoRR/Advisor.c|struct:0x24]
 	/*14,4*/	real32 y; // Mutable y position
 	/*18,4*/	real32 origX; // Immutable x position (set once)
 	/*1c,4*/	real32 origY; // Immutable y position (set once)
-	/*20,4*/	AdvisorPositionFlags flags; // (init: 0x20000), 0x10000 = NULL panel, 0x40000 = non-NULL text
+	/*20,4*/	AdvisorFlags flags; // (init: 0x20000), 0x10000 = NULL panel, 0x40000 = non-NULL text
 	/*24*/
 };
 assert_sizeof(AdvisorPositionData, 0x24);
@@ -103,7 +103,7 @@ struct Advisor_Globs // [LegoRR/Advisor.c|struct:0x410|tags:GLOBS]
 	/*400,4*/	Gods98::Viewport* viewMain;
 	/*404,4*/	real32 viewZ; // Z position of every advisor type (init: 0.96f)
 	/*408,4*/	Gods98::Container* lightCont;
-	/*40c,4*/	AdvisorStateFlags flags;
+	/*40c,4*/	Advisor_GlobFlags flags;
 	/*410*/
 };
 assert_sizeof(Advisor_Globs, 0x410);

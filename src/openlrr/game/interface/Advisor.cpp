@@ -15,16 +15,6 @@
 #include "Advisor.h"
 
 
-// <LegoRR.exe @0045a630>
-#define Panel_GetPanelType ((bool32 (__cdecl* )(const char* panelName, OUT Panel_Type* panelType))0x0045a630)
-// <LegoRR.exe @0045a9c0>
-#define Panel_GetXYField3 ((void (__cdecl* )(Panel_Type panelType, OUT real32* x, OUT real32* y))0x0045a9c0)
-// <LegoRR.exe @0046ad90>
-#define Text_GetTextType ((bool32 (__cdecl* )(const char* textName, OUT Text_Type* textType))0x0046ad90)
-// <LegoRR.exe @0046af20>
-#define Text_DisplayMessage ((void (__cdecl* )(Text_Type textType, bool32 changeTiming, bool32 setFlag4))0x0046af20)
-
-
 /**********************************************************************************
  ******** Globals
  **********************************************************************************/
