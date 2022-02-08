@@ -9,9 +9,10 @@
 #include "../../engine/Main.h"
 #include "../../legacy.h"
 
+#include "../Game.h"
+#include "../audio/SFX.h"
 #include "../interface/Panels.h"
 #include "../interface/TextMessages.h"
-#include "../Game.h"
 #include "Advisor.h"
 
 

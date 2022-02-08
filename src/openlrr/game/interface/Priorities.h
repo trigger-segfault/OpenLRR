@@ -4,7 +4,6 @@
 #pragma once
 
 #include "../GameCommon.h"
-#include "../audio/SFX.h"
 
 
 namespace LegoRR

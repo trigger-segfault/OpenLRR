@@ -6,7 +6,7 @@
 #include "../../engine/input/Keys.h"
 
 #include "../GameCommon.h"
-#include "../audio/SFX.h"
+#include "../object/Object.h"
 #include "../object/Stats.h"
 
 

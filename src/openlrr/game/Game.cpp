@@ -3,6 +3,7 @@
 
 #include "../engine/Main.h"
 
+#include "audio/SFX.h"
 #include "Game.h"
 
 

@@ -9,7 +9,7 @@
 #include "../../engine/gfx/Viewports.h"
 
 #include "../Game.h"
-
+#include "../audio/SFX.h"
 #include "../world/Map3D.h"
 
 #include "Smoke.h"

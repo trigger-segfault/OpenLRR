@@ -3,10 +3,7 @@
 
 #pragma once
 
-#include "../../common.h"
-
 #include "../GameCommon.h"
-#include "../audio/SFX.h"
 
 
 namespace LegoRR

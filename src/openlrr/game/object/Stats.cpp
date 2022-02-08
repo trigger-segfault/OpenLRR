@@ -6,6 +6,7 @@
 #include "../../engine/core/Utils.h"
 
 #include "../Game.h"
+#include "../audio/SFX.h"
 #include "../world/Construction.h"
 #include "Object.h"
 #include "Stats.h"

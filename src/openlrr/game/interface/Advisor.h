@@ -8,9 +8,8 @@
 #include "../../engine/core/Config.h"
 #include "../../engine/gfx/Viewports.h"
 
-#include "../audio/SFX.h"
-#include "../world/Camera.h"
 #include "../GameCommon.h"
+#include "../world/Camera.h"
 
 
 namespace LegoRR

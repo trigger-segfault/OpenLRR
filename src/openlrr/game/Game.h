@@ -18,7 +18,6 @@
 
 #include "GameCommon.h"
 
-#include "audio/SFX.h"
 #include "object/Building.h"
 #include "object/Creature.h"
 #include "object/Object.h"

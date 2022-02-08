@@ -345,20 +345,20 @@ sint32 __cdecl LegoRR::SFX_Random_GetBufferVolume(SFX_ID sfxID)
 
 // if (SFX_IsQueueMode())
 //   sound3D and loop MUST be a boolean with the LSB (0x1) set or unset
-// position must be non-null if (!sound3D)
+// wPos must be non-null if (!sound3D)
 // <LegoRR.exe @00465310>
-sint32 __cdecl LegoRR::SFX_Container_Random_Play_OrInitSoundUnk(Gods98::Container* cont, SFX_ID sfxID, bool32 loop, bool32 sound3D, OPTIONAL const Vector3F* position)
+sint32 __cdecl LegoRR::SFX_Container_Random_Play_OrInitSoundUnk(Gods98::Container* cont, SFX_ID sfxID, bool32 loop, bool32 sound3D, OPTIONAL const Vector3F* wPos)
 {
 	IDirect3DRMFrame3* frame = (cont ? Gods98::Container_GetMasterFrame(cont) : nullptr);
 
-	return SFX_Random_Play_OrInitSoundUnk(frame, sfxID, loop, sound3D, position);
+	return SFX_Random_Play_OrInitSoundUnk(frame, sfxID, loop, sound3D, wPos);
 }
 
 // if (SFX_IsQueueMode())
 //   sound3D and loop MUST be a boolean with the LSB (0x1) set or unset
-// position must be non-null if (SFX_IsQueueMode() && !sound3D)
+// wPos must be non-null if (SFX_IsQueueMode() && !sound3D)
 // <LegoRR.exe @00465350>
-sint32 __cdecl LegoRR::SFX_Random_Play_OrInitSoundUnk(IDirect3DRMFrame3* frame, SFX_ID sfxID, bool32 loop, bool32 sound3D, OPTIONAL const Vector3F* position)
+sint32 __cdecl LegoRR::SFX_Random_Play_OrInitSoundUnk(IDirect3DRMFrame3* frame, SFX_ID sfxID, bool32 loop, bool32 sound3D, OPTIONAL const Vector3F* wPos)
 {
 	if (!SFX_IsQueueMode()) {
 
@@ -371,7 +371,7 @@ sint32 __cdecl LegoRR::SFX_Random_Play_OrInitSoundUnk(IDirect3DRMFrame3* frame, 
 					return Sound3D_Play2(Gods98::Sound3DPlay::OnFrame, frame, rngSound3DHandle, loop, nullptr);
 				}
 				else {
-					return Sound3D_Play2(Gods98::Sound3DPlay::OnPos, nullptr, rngSound3DHandle, loop, position);
+					return Sound3D_Play2(Gods98::Sound3DPlay::OnPos, nullptr, rngSound3DHandle, loop, wPos);
 				}
 			}
 		}
@@ -392,7 +392,7 @@ sint32 __cdecl LegoRR::SFX_Random_Play_OrInitSoundUnk(IDirect3DRMFrame3* frame, 
 			//sfxInst->flags = ((sound3D & 1U) << 1 | loop & 1U) << 1 |
 			//	(sfxInst->flags & 0xfffffff9) | 0x1;
 			
-			if (position) sfxInst->position = *position;
+			if (wPos) sfxInst->position = *wPos;
 
 			sfxGlobs.sfxInstanceCount++;
 		}

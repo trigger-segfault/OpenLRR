@@ -11,7 +11,6 @@
 #include "../../engine/drawing/Images.h"
 
 #include "../GameCommon.h"
-#include "../audio/SFX.h"
 #include "BezierCurve.h"
 #include "ObjectRecall.h"				// For SaveStruct_18
 

@@ -6,7 +6,6 @@
 #include "../../engine/core/Config.h"
 
 #include "../GameCommon.h"
-#include "../audio/SFX.h"
 
 
 namespace LegoRR
