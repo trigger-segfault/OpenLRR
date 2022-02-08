@@ -854,7 +854,7 @@ bool interop_hook_Gods98_Input(void)
 	// used by: WinMain, Main_LoopUpdate, NERPFunc__SetMessage
 	result &= hook_write_jmpret(0x0047f1b0, Gods98::Input_ReadKeys);
 
-	// used by: Credits_Play, Front_PlayMovie, Front_ShowIntroSplash, NERPFunc__GetAnyKeyPressed
+	// used by: Credits_Play, Front_PlayMovie, Front_PlayIntroSplash, NERPFunc__GetAnyKeyPressed
 	result &= hook_write_jmpret(0x0047f270, Gods98::Input_AnyKeyPressed);
 
 	// used by: WinMain
@@ -1543,8 +1543,8 @@ bool interop_hook_LegoRR_FrontEnd(void)
 
 	// QoL apply for always-skippable splash screens and movies
 	result &= hook_write_jmpret(0x00415630, LegoRR::Front_PlayMovie);
-	result &= hook_write_jmpret(0x004156f0, LegoRR::Front_ShowIntroSplash);
-	result &= hook_write_jmpret(0x00415840, LegoRR::Front_ShowIntroMovie);
+	result &= hook_write_jmpret(0x004156f0, LegoRR::Front_PlayIntroSplash);
+	result &= hook_write_jmpret(0x00415840, LegoRR::Front_PlayIntroMovie);
 
 	return_interop(result);
 }
