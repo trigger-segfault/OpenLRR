@@ -348,7 +348,7 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 						} else if (mainGlobs.fixedFrameTiming == 0.0f) { // no fps defined
 							// Measure the time taken over the last frame (to be passed next loop)
 							uint32 currTime = Main_GetTime();
-							time = ((real32)(currTime - lastTime)) / (1000.0f / STANDARD_FRAMERATE);
+							time = ((real32)(currTime - lastTime)) / (1000.0f / STANDARD_FRAMERATE); // milliseconds to standard units
 							lastTime = currTime;
 #ifndef _UNLIMITEDUPDATETIME
 							// LegoRR compiles with this preprocessor undefined (this check still happens).

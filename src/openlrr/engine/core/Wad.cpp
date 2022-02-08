@@ -386,7 +386,7 @@ sint32 __cdecl Gods98::_Wad_FileOpen(const char* fName, Wad_HandleValue wadNo)
 		return WAD_ERROR;
 	}
 
-	std::fseek(Wad_Get(wadNo)->fWad, Wad_Get(wadNo)->wadEntries[fileNo].addr, SEEK_SET);
+	std::fseek(Wad_Get(wadNo)->fWad, Wad_Get(wadNo)->wadEntries[fileNo].fileOffset, SEEK_SET);
 	if (std::fread(ptr, Wad_FileCompressedLength(wadNo, fileNo), 1, Wad_Get(wadNo)->fWad) != 1)
 	{
 		std::free(ptr);

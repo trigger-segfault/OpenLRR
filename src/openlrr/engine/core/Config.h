@@ -22,7 +22,7 @@ namespace Gods98
 
 #pragma region Forward Declarations
 
-enum Keys : uint8;
+enum Keys : uint8; // from `engine/input/Keys.h`
 
 #pragma endregion
 

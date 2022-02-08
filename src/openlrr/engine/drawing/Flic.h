@@ -32,9 +32,7 @@ struct File;
 #define FLICTIMERTICKSPERSECOND	70
 #define MAXFLICS				30
 
-
-#define FLICERRORSTART 3000
-
+#define FLICERRORSTART			3000
 
 #define DIRECTVIDEOPORTAL		(-2)
 

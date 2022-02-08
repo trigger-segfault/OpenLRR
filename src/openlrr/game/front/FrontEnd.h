@@ -5,6 +5,7 @@
 
 #include "../../common.h"
 
+#include "../../engine/drawing/Flic.h"
 #include "../../engine/video/Movie.h"
 
 #include "../GameCommon.h"

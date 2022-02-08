@@ -239,6 +239,62 @@ VOID Input_ReadMouse2(VOID);*/
 
 // Static Function Prototypes
 
+/**
+ * @brief Gets if the current key state is 'down'.
+ * @param k Key code defined by `Keys` enum.
+ */
+#define Input_IsKeyDown(k)		(Gods98::INPUT.Key_Map[(k)])
+/**
+ * @brief Gets if the current key state is 'up'.
+ * @param k Key code defined by `Keys` enum.
+ */
+#define Input_IsKeyUp(k)		(!Gods98::INPUT.Key_Map[(k)])
+
+/**
+ * @brief Gets if the previous key state was 'down'.
+ * @param k Key code defined by `Keys` enum.
+ */
+#define Input_IsPrevKeyDown(k)	(Gods98::INPUT.prevKey_Map[(k)])
+/**
+ * @brief Gets if the previous key state was 'up'.
+ * @param k Key code defined by `Keys` enum.
+ */
+#define Input_IsPrevKeyUp(k)	(!Gods98::INPUT.prevKey_Map[(k)])
+
+/**
+ * @brief Gets if the current key state has changed from 'up' to 'down'.
+ * @param k Key code defined by `Keys` enum.
+ */
+#define Input_IsKeyPressed(k)	(Input_IsKeyDown((k)) && Input_IsPrevKeyUp((k)))
+/**
+ * @brief Gets if the current key state has changed from 'down' to 'up'.
+ * @param k Key code defined by `Keys` enum.
+ */
+#define Input_IsKeyReleased(k)	(Input_IsKeyUp((k)) && Input_IsPrevKeyDown((k)))
+/**
+ * @brief Gets if the current key state is different from the previous.
+ * @param k Key code defined by `Keys` enum.
+ */
+#define Input_IsKeyChanged(k)	(Input_IsKeyDown((k)) != Input_IsPrevKeyDown((k)))
+
+/**
+ * @brief Gets if the current AND PREVIOUS key state is 'down'.
+ * @param k Key code defined by `Keys` enum.
+ */
+#define Input_IsKeyHeld(k)		(Input_IsKeyDown((k)) && Input_IsPrevKeyDown((k)))
+/**
+ * @brief Gets if the current AND PREVIOUS key state is 'up'.
+ * @param k Key code defined by `Keys` enum.
+ */
+#define Input_IsKeyUntouched(k)	(Input_IsKeyUp((k)) && Input_IsPrevKeyUp((k)))
+
+
+/**
+ * @brief Clears the CURRENT keyboard state by setting all keys to 'up'.
+ */
+#define Input_ClearAllKeys()	std::memset(Gods98::INPUT.Key_Map, 0, sizeof(Gods98::INPUT.Key_Map))
+
+
 
 //extern UCHAR Input_KeyTemp;
 //#define Input_KeyHit(k)			(Input_KeyTemp=prevKey_Map[(k)],prevKey_Map[(k)]=Key_Map[(k)],Key_Map[(k)]&&(Key_Map[(k)]^Input_KeyTemp))
@@ -246,7 +302,6 @@ VOID Input_ReadMouse2(VOID);*/
 #define Input_KeyHit(k)			(Gods98::INPUT.Key_Map[(k)]&&(Gods98::INPUT.Key_Map[(k)]^Gods98::INPUT.prevKey_Map[(k)]))
 #define Input_KeyReleased(k)	((!Gods98::INPUT.Key_Map[(k)])&&(Gods98::INPUT.Key_Map[(k)]^Gods98::INPUT.prevKey_Map[(k)]))
 #define Input_KeyIsDown(k)		Gods98::INPUT.Key_Map[(k)]
-#define Input_ClearAllKeys()	std::memset(Gods98::INPUT.Key_Map, 0, sizeof(Gods98::INPUT.Key_Map));
 
 #pragma endregion
 

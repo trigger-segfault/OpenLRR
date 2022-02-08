@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "../../engine/drawing/Flic.h"
+
 #include "../GameCommon.h"
 
 

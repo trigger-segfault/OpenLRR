@@ -2946,7 +2946,7 @@ Gods98::Container_Type __cdecl Gods98::Container_ParseTypeString(const char* str
 		if (argc > 1 && ::_stricmp(argv[1], "NOTEXTURE") == 0) *noTexture = true;
 		else *noTexture = false;
 
-		for (uint32 loop = 0; loop < (uint32)Container_Type::TypeCount; loop++) {
+		for (uint32 loop = 0; loop < (uint32)Container_Type::Count; loop++) {
 			if (containerGlobs.typeName[loop] != nullptr) {
 				if (::_stricmp(containerGlobs.typeName[loop], string) == 0) {
 					return (Container_Type)loop;

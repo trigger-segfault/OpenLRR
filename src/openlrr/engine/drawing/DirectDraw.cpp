@@ -164,7 +164,7 @@ HRESULT __stdcall Gods98::DirectDraw_EnumDeviceCallback(LPGUID lpGuid, LPSTR lpD
 											LPD3DDEVICEDESC lpHELDesc, LPVOID lpContext)
 {
 	Graphics_Device* dev = &directDrawGlobs.deviceList[directDrawGlobs.deviceCount];
-	LPD3DDEVICEDESC desc;
+	D3DDEVICEDESC* desc;
 
 	dev->flags = Graphics_DeviceFlags::GRAPHICS_DEVICE_FLAG_VALID;
 	if (lpHWDesc->dcmColorModel != 0){
@@ -704,7 +704,7 @@ uint32 __cdecl Gods98::DirectDraw_GetColour(IDirectDrawSurface4* surf, uint32 co
 
 		return (r|g|b);
 	} else {
-		LPDIRECTDRAWPALETTE pal;
+		IDirectDrawPalette* pal;
 		PALETTEENTRY entries[256];
 
 		surf->GetPalette(&pal);

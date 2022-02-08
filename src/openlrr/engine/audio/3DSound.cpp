@@ -136,7 +136,7 @@ bool32 __cdecl Gods98::Sound3D_Initialise(HWND hwndParent)
 		sound3DGlobs.minDistanceForAttentuation = 1;//DS3D_DEFAULTMINDISTANCE;
 		sound3DGlobs.maxDistance = 800;//DS3D_DEFAULTMAXDISTANCE;
 
-		lpDSBuff()->GetVolume( (LPLONG)&sound3DGlobs.windowsVolume );
+		lpDSBuff()->GetVolume( (LONG*)&sound3DGlobs.windowsVolume );
 
 		Sound3D_SetVolumeToDefault();
 	}
@@ -1022,9 +1022,9 @@ bool32 __cdecl Gods98::Sound3D_SendSoundToBuffer(Sound3D_SoundData* sound)
 {
 	log_firstcall();
 
-	LPVOID	lpvPtr1;
+	void*	lpvPtr1;
 	DWORD	dwBytes1=0;
-	LPVOID	lpvPtr2;
+	void*	lpvPtr2;
 	DWORD	dwBytes2=0;
 	HRESULT hr;
 
@@ -1058,14 +1058,14 @@ bool32 __cdecl Gods98::Sound3D_SendSoundToBuffer(Sound3D_SoundData* sound)
 		return false;
 	}	
 
-	if( sound->lpDsb3D[0]->GetFrequency((LPDWORD)&sound->freq) != DS_OK)
+	if( sound->lpDsb3D[0]->GetFrequency((DWORD*)&sound->freq) != DS_OK)
 	{	
 		Error_Warn(true, "Error getting sound frequency buffer." );
 
 		return false;
 	}
 
-	if( sound->lpDsb3D[0]->GetVolume((LPLONG)&sound->volume) != DS_OK)
+	if( sound->lpDsb3D[0]->GetVolume((LONG*)&sound->volume) != DS_OK)
 	{	
 		Error_Warn(true, "Error getting sound volume buffer." );
 
@@ -1199,7 +1199,7 @@ bool32 __cdecl Gods98::Sound3D_Stream_BufferSetup(const char* waveFName, bool32 
     dsbd.lpwfxFormat = streamData->wiWave.pwfx;
     
 	{
-		LPDIRECTSOUNDBUFFER newBuffer;
+		IDirectSoundBuffer* newBuffer;
 		if (lpDSnd()->CreateSoundBuffer(&dsbd, &newBuffer, nullptr) != DS_OK) {
 			Error_Warn(true, "Cannot create sound buffer." );
 			return false;
@@ -1289,7 +1289,7 @@ bool32 __cdecl Gods98::Sound3D_Stream_FillDataBuffer(bool32 looping)
 
 	// now unlock the buffer.
 	
-	lpDSStreamBuff(looping)->Unlock((LPVOID)lpWrite1, dwLen1, nullptr, 0);
+	lpDSStreamBuff(looping)->Unlock(lpWrite1, dwLen1, nullptr, 0);
                                                                         
 	streamData->wiWave.dwNextWriteOffset += dwLen1;	
 	// this is a circular buffer. Do mod buffersize.
@@ -1329,7 +1329,7 @@ void __cdecl Gods98::Sound3D_Stream_CheckPosition(bool32 looping)
 		while (streamData->wiWave.dwProgress > streamData->wiWave.dwNextProgressCheck) {
 
 			// A play notification has been received.
-			LPBYTE lpWrite1;
+			uint8* lpWrite1;
 			DWORD dwWrite1;
 			uint32 cbActual = 0;
 			
@@ -1388,7 +1388,7 @@ void __cdecl Gods98::Sound3D_Stream_CheckPosition(bool32 looping)
 				}
 
 				//unlock now
-				lpDSStreamBuff(looping)->Unlock((LPVOID)lpWrite1, dwWrite1,  nullptr, 0);
+				lpDSStreamBuff(looping)->Unlock(lpWrite1, dwWrite1,  nullptr, 0);
 				// setup the nextwrite offset.
 				streamData->wiWave.dwNextWriteOffset += dwWrite1;
 				//check += dwWrite1;
@@ -1410,7 +1410,7 @@ void __cdecl Gods98::Sound3D_Stream_CheckPosition(bool32 looping)
 				//::FillMemory( lpWrite1, dwWrite1, (uint8)(streamData->wiWave.pwfx->wBitsPerSample == 8 ? 128 : 0) );
 				std::memset( lpWrite1, (uint8)(streamData->wiWave.pwfx->wBitsPerSample == 8 ? 128 : 0), dwWrite1 );
 
-				hr = lpDSStreamBuff(looping)->Unlock((LPVOID)lpWrite1, dwWrite1,  nullptr, 0);
+				hr = lpDSStreamBuff(looping)->Unlock(lpWrite1, dwWrite1,  nullptr, 0);
 				
 				// We don't want to cut off the sound before it's done playing.
 				//ON NEXT NOTIFICATION, IF DONE PLAYING IS SET STOP THE SOUND

@@ -82,13 +82,10 @@ typedef sint32 Wad_HandleValue;
 
 struct WadEntry
 {
-	/*00,4*/ Wad_EntryFlags compression;		// Is the file compressed
-	/*04,4*/ sint32 fileLength;			// Length of the file in wad
-	/*08,4*/ sint32 decompressedLength;	// Decompressed length of file
-	/*0c,4*/ union {
-		sint32 addr;
-		void* ptr;
-	};
+	/*00,4*/ Wad_EntryFlags compression;	// Is the file compressed
+	/*04,4*/ sint32 fileLength;				// Length of the file in wad
+	/*08,4*/ sint32 decompressedLength;		// Decompressed length of file
+	/*0c,4*/ sint32 fileOffset;				// Absolute offset to file in wad
 	/*10*/
 };
 assert_sizeof(WadEntry, 0x10);
@@ -100,10 +97,10 @@ struct Wad
 	/*04,4*/ bool32 active;
 	/*08,4*/ void* hFile;			// (unused) HANDLE
 	/*0c,4*/ void* hFileMapping;	// (unused) HANDLE
-	/*10,4*/ FILE* fWad;					// File handle of the wad
-										// Each of the file names in the wad
-	/*14,4*/ char** fileNames;			// Names of actual files
-	/*18,4*/ char** wadNames;			// Names within wad
+	/*10,4*/ FILE* fWad;			// File handle of the wad
+									// Each of the file names in the wad
+	/*14,4*/ char** fileNames;		// Names of actual files
+	/*18,4*/ char** wadNames;		// Names within wad
 	/*1c,4*/ WadEntry* wadEntries;
 	/*20,4*/ sint32 numFiles;
 	/*24*/
@@ -113,10 +110,10 @@ assert_sizeof(Wad, 0x24);
 
 struct Wad_FileHandle
 {
-	/*00,4*/ void* data;					// Pointer to the file data
-	/*04,4*/ bool32 active;				// Is this handle active already
-	/*08,4*/ Wad_HandleValue wadNo;				// Wad file this handle uses
-	/*0c,4*/ sint32 fileNo;		// Index of the file in the wad structure
+	/*00,4*/ void* data;			// Pointer to the file data
+	/*04,4*/ bool32 active;			// Is this handle active already
+	/*08,4*/ Wad_HandleValue wadNo;	// Wad file this handle uses
+	/*0c,4*/ sint32 fileNo;			// Index of the file in the wad structure
 	/*10*/
 };
 assert_sizeof(Wad_FileHandle, 0x10);
@@ -124,12 +121,12 @@ assert_sizeof(Wad_FileHandle, 0x10);
 
 struct Wad_Globs
 {
-	/*000,4*/ uint32 computerNameLength; // (address not known)
-	/*004,4*/ bool32 wadLogFileAccess;    // (address not known)
-	/*008,4*/ FILE* s_ErrorFile_f;      // (address not known)
-	/*00c,168*/ Wad wads[MAX_WADS];				// Wad structures
-	/*174,28*/ sint32 references[MAX_WADS];		// Current count of references to the wad file
-	/*19c,10*/ char computerName[16];    // (address not known)
+	/*000,4*/ uint32 computerNameLength;	// (address not known)
+	/*004,4*/ bool32 wadLogFileAccess;		// (address not known)
+	/*008,4*/ FILE* s_ErrorFile_f;			// (address not known)
+	/*00c,168*/ Wad wads[MAX_WADS];			// Wad structures
+	/*174,28*/ sint32 references[MAX_WADS];	// Current count of references to the wad file
+	/*19c,10*/ char computerName[16];		// (address not known)
 	/*1ac,640*/ Wad_FileHandle fileHandles[MAX_OPEN_FILES];
 	/*7ec*/
 };

@@ -74,7 +74,7 @@ typedef bool32 (__cdecl* ContainerWalkTreeCallback)(IDirect3DRMFrame3* frame, vo
 
 #pragma region Constants
 
-#define CONTAINER_DEBUG_NOTREQUIRED	NULL
+#define CONTAINER_DEBUG_NOTREQUIRED		nullptr
 
 #define CONTAINER_DDSFILEMAGIC			0x20534444
 
@@ -158,7 +158,7 @@ enum class Container_Type : sint32
 	LWS          = 7,
 	LWO          = 8,
 
-	TypeCount    = 9,
+	Count,
 };
 assert_sizeof(Container_Type, 0x4);
 
@@ -293,7 +293,8 @@ struct Container_TypeData
 assert_sizeof(Container_TypeData, 0x10);
 
 
-//typedef struct Container_CloneData;
+// Forward declaration
+struct Container_CloneData;
 
 
 //struct Container_RotationData
@@ -430,8 +431,8 @@ struct Container_Globs
 	/*0000,50*/ Container* listSet[CONTAINER_MAXLISTS];
 	/*0050,4*/ Container* freeList;
 	/*0054,4*/ Container* rootContainer;
-	/*0058,24*/ const char* typeName[(sint32)Container_Type::TypeCount];
-	/*007c,24*/ const char* extensionName[(sint32)Container_Type::TypeCount];
+	/*0058,24*/ const char* typeName[(uint32)Container_Type::Count];
+	/*007c,24*/ const char* extensionName[(uint32)Container_Type::Count];
 	/*00a0,4*/ const char* gameName;
 	/*00a4,10*/ IDirect3DRMVisual* visualArray[CONTAINER_MAXVISUALS];
 	/*00b4,1f40*/ Container_TextureRef textureSet[CONTAINER_MAXTEXTURES];
@@ -521,7 +522,8 @@ Container* __cdecl Container_Load(Container* parent, const char* filename, const
 /*__inline*/ Container_Type __cdecl Container_GetType(const Container* cont);
 
 // <inlined>
-/*__inline*/ bool32 __cdecl Container_AddActivity(Container* cont, const char* fname, const char* actname, real32 transCo, uint32 trigger, const char* sample, AnimClone* animClone, bool32 lws, bool32 looping);
+/*__inline*/ bool32 __cdecl Container_AddActivity(Container* cont, const char* fname, const char* actname, real32 transCo,
+												  uint32 trigger, const char* sample, AnimClone* animClone, bool32 lws, bool32 looping);
 
 
 // <LegoRR.exe @00473600>
@@ -840,10 +842,9 @@ HRESULT __cdecl Container_TextureLoadCallback(char* name, void* data, LPDIRECT3D
 // <LegoRR.exe @00476eb0>
 void __cdecl Container_YFlipTexture(IDirect3DRMTexture3* texture);
 
-// std::qsort callback
+// std::qsort callback for type: Container_TextureRef*
 // <LegoRR.exe @00476fa0>
 int __cdecl Container_TextureSetSort(const void* a, const void* b);
-//int __cdecl Container_TextureSetSort(Container_TextureRef* a, Container_TextureRef* b);
 
 // <LegoRR.exe @00476fd0>
 void __cdecl Container_TextureDestroyCallback(LPDIRECT3DRMOBJECT lpD3DRMobj, LPVOID lpArg);

@@ -44,11 +44,11 @@ struct Font;
 
 flags_scoped(TextWindowFlags) : uint32
 {
-	TEXTWINDOW_FLAG_NONE = 0, // (unused)
+	TEXTWINDOW_FLAG_NONE          = 0, // (unused)
 
 	TEXTWINDOW_FLAG_WINDOWWRAPPED = 0x1,
-	TEXTWINDOW_FLAG_OVERLAY = 0x2,
-	TEXTWINDOW_FLAG_CENTERED = 0x4,
+	TEXTWINDOW_FLAG_OVERLAY       = 0x2,
+	TEXTWINDOW_FLAG_CENTERED      = 0x4,
 };
 flags_scoped_end(TextWindowFlags, 0x4);
 

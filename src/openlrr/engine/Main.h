@@ -318,6 +318,9 @@ __inline bool32 Main_IsDisplaySetup(void) { return mainGlobs2.displaySetup; }
 void __cdecl Main_Sleep(uint32 milliseconds);
 
 
+/// CUSTOM:
+__inline bool32 Main_ShowVersion(void) { return mainGlobs.flags & MainFlags::MAIN_FLAG_SHOWVERSION; }
+
 
 #if 0
 // <inlined>

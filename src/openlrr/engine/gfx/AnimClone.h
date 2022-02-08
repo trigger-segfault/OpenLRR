@@ -127,7 +127,7 @@ bool32 __cdecl AnimClone_SetupFrameArrayCallback(IDirect3DRMFrame3* frame, void*
 
 // <LegoRR.exe @00489bd0>
 bool32 __cdecl AnimClone_WalkTree(IDirect3DRMFrame3* frame, uint32 level,
-								AnimClone_WalkTreeCallback callback, void* data);
+								  AnimClone_WalkTreeCallback callback, void* data);
 
 // <LegoRR.exe @00489cb0>
 void __cdecl AnimClone_CreateCopy(IDirect3DRMFrame3* orig, IDirect3DRMFrame3* clone, bool32 lws);
