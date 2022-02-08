@@ -15,10 +15,6 @@
 #include "Smoke.h"
 
 
-// <LegoRR.exe @0044f900>
-#define Map3D_BlockToWorldPos ((bool32 (__cdecl*)(LegoRR::Map3D* map, uint32 bx, uint32 by, OUT real32* xPos, OUT real32* yPos))0x0044f900)
-
-
 /**********************************************************************************
  ******** Globals
  **********************************************************************************/
