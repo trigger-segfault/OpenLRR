@@ -4,6 +4,8 @@
 #include "../engine/Main.h"
 
 #include "audio/SFX.h"
+#include "world/Detail.h"
+#include "world/Map3D.h"
 #include "Game.h"
 
 
@@ -22,15 +24,15 @@ void __cdecl LegoRR::Lego_Gods_Go_Setup(const char* programName, OUT Gods98::Mai
 	/*Gods98::Main_State mainState = {
 		Lego_Initialise,
 		Lego_MainLoop,
-		Lego_Shutdown_Debug, // proper shutdown, with cleanup
+		Lego_Shutdown_Full, // proper shutdown, with cleanup
 	};*/
 
 	mainState->Initialise = Lego_Initialise;
 	mainState->MainLoop = Lego_MainLoop;
-	mainState->Shutdown = Lego_Shutdown_Debug; // shutdown with cleanup
+	mainState->Shutdown = Lego_Shutdown_Full; // shutdown with cleanup
 
 	if (Gods98::Main_ProgrammerMode() != 10) { // PROGRAMMER_MODE_10
-		mainState->Shutdown = Lego_Shutdown; // immediate shutdown, no cleanup
+		mainState->Shutdown = Lego_Shutdown_Quick; // immediate shutdown, no cleanup
 	}
 }
 
@@ -62,10 +64,10 @@ void __cdecl LegoRR::Lego_Gods_Go(const char* programName)
 	Gods98::Main_State mainState = {
 		Lego_Initialise,
 		Lego_MainLoop,
-		Lego_Shutdown_Debug, // proper shutdown, with cleanup
+		Lego_Shutdown_Full, // proper shutdown, with cleanup
 	};
 	if (Gods98::Main_ProgrammerMode() != 10) { // PROGRAMMER_MODE_10
-		mainState.Shutdown = Lego_Shutdown; // immediate shutdown, no cleanup
+		mainState.Shutdown = Lego_Shutdown_Quick; // immediate shutdown, no cleanup
 	}
 
 	Gods98::Main_SetState(&mainState);*/
@@ -79,10 +81,22 @@ void __cdecl LegoRR::Lego_Gods_Go(const char* programName)
 
 #pragma region Globals
 
+// <LegoRR.exe @004a4558>
+LegoRR::LegoUpdate_Globs & LegoRR::updateGlobs = *(LegoRR::LegoUpdate_Globs*)0x004a4558;
+
+// <LegoRR.exe @004df410>
+LegoRR::GameControl_Globs & LegoRR::gamectrlGlobs = *(LegoRR::GameControl_Globs*)0x004df410;
+
 // <LegoRR.exe @005570c0>
 LegoRR::Lego_Globs & LegoRR::legoGlobs = *(LegoRR::Lego_Globs*)0x005570c0;
 
 #pragma endregion
+
+/**********************************************************************************
+ ******** Functions
+ **********************************************************************************/
+
+#pragma region Functions
 
 
 
@@ -145,3 +159,5 @@ bool32 __cdecl LegoRR::Level_HandleEmergeTriggers(Lego_Level* level, const Point
     #endif
 }
 
+
+#pragma endregion

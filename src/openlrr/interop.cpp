@@ -76,7 +76,7 @@ bool interop_hook_Gods98_3DSound(void)
 	// used by: Sound_Initialise
 	result &= hook_write_jmpret(0x0047a900, Gods98::Sound3D_Initialise);
 
-	// used by: Lego_Shutdown_Debug, Lego_HandleKeys
+	// used by: Lego_Shutdown_Full, Lego_HandleKeys
 	result &= hook_write_jmpret(0x0047aac0, Gods98::Sound3D_ShutDown);
 
 	// internal, no need to hook these
@@ -280,7 +280,7 @@ bool interop_hook_Gods98_Containers(void)
 
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x004729d0, Gods98::Container_Initialise);
-	// used by: Lego_Initialise, Lego_Shutdown_Debug
+	// used by: Lego_Initialise, Lego_Shutdown_Full
 	result &= hook_write_jmpret(0x00472ac0, Gods98::Container_Shutdown);
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x00472b80, Gods98::Container_SetSharedTextureDirectory);
@@ -553,7 +553,7 @@ bool interop_hook_Gods98_DirectDraw(void)
 	result &= hook_write_jmpret(0x0047d010, Gods98::DirectDraw_AdjustTextureUsage);
 	result &= hook_write_jmpret(0x0047d090, Gods98::DirectDraw_GetAvailTextureMem);
 
-	// used by: Main_LoopUpdate, Lego_Shutdown_Debug, RadarMap_Draw_FUN_0045de80
+	// used by: Main_LoopUpdate, Lego_Shutdown_Full, RadarMap_Draw_FUN_0045de80
 	result &= hook_write_jmpret(0x0047d0e0, Gods98::DirectDraw_Clear);
 
 	// internal, no need to hook these
@@ -776,7 +776,7 @@ bool interop_hook_Gods98_Fonts(void)
 
 	result &= hook_write_jmpret(0x0047a800, Gods98::Font_GetHeight);
 
-	// used by: Lego_Shutdown_Debug, Reward_CleanupBaseFont
+	// used by: Lego_Shutdown_Full, Reward_CleanupBaseFont
 	result &= hook_write_jmpret(0x0047a810, Gods98::Font_Remove);
 
 	// internal, no need to hook these
@@ -792,7 +792,7 @@ bool interop_hook_Gods98_Images(void)
 	// used by: Lego_Initialise (new Gods98 calls in WinMain)
 	result &= hook_write_jmpret(0x0047d6d0, Gods98::Image_Initialise);
 
-	// used by: Lego_Shutdown_Debug
+	// used by: Lego_Shutdown_Full
 	result &= hook_write_jmpret(0x0047d6f0, Gods98::Image_Shutdown);
 
 	result &= hook_write_jmpret(0x0047d730, Gods98::Image_Remove);
@@ -863,7 +863,7 @@ bool interop_hook_Gods98_Input(void)
 	//result &= hook_write_jmpret(0x0047f2d0, Gods98::Input_ReadMouse2);
 
 	// used by: Objective_DoHotkeyChecks, Panel_RotationControl_FUN_0045bf90,
-	//           Priorities_FUN_0045d810, Priorities_FUN_0045d900
+	//           Priorities_MoveCursorToPriorityUpButton, Priorities_MoveCursorToPriorityImage
 	result &= hook_write_jmpret(0x0047f390, Gods98::Input_SetCursorPos);
 	return_interop(result);
 }
@@ -887,7 +887,7 @@ bool interop_hook_Gods98_Lws(void)
 
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x00487980, Gods98::Lws_Initialise);
-	// used by: Lego_Shutdown_Debug
+	// used by: Lego_Shutdown_Full
 	result &= hook_write_jmpret(0x00487a20, Gods98::Lws_Shutdown);
 
 	// used by: Container_LoadAnimSet
@@ -1273,7 +1273,7 @@ bool interop_hook_Gods98_Sound(void)
 	// used by: WinMain
 	result &= hook_write_jmpret(0x00488e10, Gods98::Sound_Initialise);
 
-	// used by: Lego_Initialise, Lego_Shutdown_Debug
+	// used by: Lego_Initialise, Lego_Shutdown_Full
 	result &= hook_write_jmpret(0x00488e50, Gods98::Sound_IsInitialised);
 
 	result &= hook_write_jmpret(0x00488e70, Gods98::Sound_PlayCDTrack);
@@ -1346,7 +1346,7 @@ bool interop_hook_Gods98_Viewports(void)
 
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x00477010, Gods98::Viewport_Initialise);
-	// used by: Lego_Shutdown_Debug
+	// used by: Lego_Shutdown_Full
 	result &= hook_write_jmpret(0x00477040, Gods98::Viewport_Shutdown);
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x00477080, Gods98::Viewport_Create);
@@ -1372,7 +1372,7 @@ bool interop_hook_Gods98_Viewports(void)
 	result &= hook_write_jmpret(0x004772d0, Gods98::Viewport_Clear);
 	result &= hook_write_jmpret(0x00477410, Gods98::Viewport_Render);
 
-	// used by: Lego_Shutdown_Debug
+	// used by: Lego_Shutdown_Full
 	result &= hook_write_jmpret(0x004774e0, Gods98::Viewport_Remove);
 	// used by: Lego_SetViewMode
 	result &= hook_write_jmpret(0x00477500, Gods98::Viewport_SmoothSetField);
@@ -1560,7 +1560,7 @@ bool interop_hook_LegoRR_LegoCamera(void)
 	result &= hook_write_jmpret(0x00435cc1, LegoRR::Camera_ToggleFreeMovement);
 	//result &= hook_write_jmpret(0x00435cc1, LegoRR::Camera_EnableFreeMovement);
 	
-	// used by: Lego_Shutdown_Debug
+	// used by: Lego_Shutdown_Full
 	result &= hook_write_jmpret(0x00435cf8, LegoRR::Camera_Free);
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x00435d3e, LegoRR::Camera_InitCameraMovements);

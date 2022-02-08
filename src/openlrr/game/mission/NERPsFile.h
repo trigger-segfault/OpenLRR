@@ -55,6 +55,7 @@ typedef sint32 (__cdecl* NERPsFunction)(sint32* stack);
 enum TutorialFlags : uint32 // [LegoRR/NERPs.c|flags:0x4|type:uint]
 {
 	TUTORIAL_NONE     = 0,
+	TUTORIAL_UNK_1    = 0x1,
 	TUTORIAL_UNK_2    = 0x2,
 	TUTORIAL_UNK_4    = 0x4,
 	TUTORIAL_UNK_8    = 0x8,
