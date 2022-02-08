@@ -41,6 +41,7 @@ enum Interface_MenuItemFlags : uint32 // [LegoRR/Interface.c|flags:0x4|type:uint
 {
 	INTERFACE_MENUITEM_FLAG_NONE  = 0,
 	INTERFACE_MENUITEM_FLAG_UNK_1 = 0x1,
+	INTERFACE_MENUITEM_FLAG_UNK_2 = 0x2,
 	INTERFACE_MENUITEM_FLAG_FLASH = 0x4,
 	INTERFACE_MENUITEM_FLAG_UNK_8 = 0x8,
 };
@@ -395,7 +396,7 @@ extern Interface_Globs & interfaceGlobs;
 #define Interface_FUN_0041e9f0 ((void (__cdecl* )(real32 elapsedAbs))0x0041e9f0)
 
 // <LegoRR.exe @0041eb60>
-#define Interface_DrawTeleportQueueNumber ((void (__cdecl* )(sint32 param_1, sint32 param_2, const Point2F* screenPt))0x0041eb60)
+#define Interface_DrawTeleportQueueNumber ((void (__cdecl* )(LegoObject_Type objType, LegoObject_ID objID, const Point2F* screenPt))0x0041eb60)
 
 // <LegoRR.exe @0041ebd0>
 #define Interface_FUN_0041ebd0 ((void (__cdecl* )(real32 xScreen, real32 yScreen))0x0041ebd0)
@@ -404,7 +405,7 @@ extern Interface_Globs & interfaceGlobs;
 #define Interface_SetFloatTo25_004df1ec_AndUnsetFlags800_004df1f8 ((void (__cdecl* )(void))0x0041ed90)
 
 // <LegoRR.exe @0041edb0>
-#define Interface_FUN_0041edb0 ((bool32 (__cdecl* )(uint32 param_1, uint32 param_2, real32 param_3, real32 param_4, undefined4* param_5, undefined4* param_6, undefined4* param_7))0x0041edb0)
+#define Interface_FUN_0041edb0 ((bool32 (__cdecl* )(uint32 param_1, uint32 param_2, real32 x, real32 y, OUT LegoObject_Type* objType, OUT LegoObject_ID* objID, OUT uint32* objLevel))0x0041edb0)
 
 // <LegoRR.exe @0041f030>
 #define Interface_HasTeleporterForObject ((bool32 (__cdecl* )(LegoObject_Type objType, LegoObject_ID objID))0x0041f030)
@@ -441,37 +442,37 @@ extern Interface_Globs & interfaceGlobs;
 #define Interface_RequestReinforceBlock ((bool32 (__cdecl* )(const Point2I* blockPos))0x0041f330)
 
 // <LegoRR.exe @0041f350>
-#define Interface_DoSelectedUnits_Callback ((bool32 (__cdecl* )(undefined* callback, sint32 lpContext))0x0041f350)
+#define Interface_DoSelectedUnits_Callback ((bool32 (__cdecl* )(LegoObject_RunThroughListsCallback callback, void* data))0x0041f350)
 
 // <LegoRR.exe @0041f3a0>
-#define Interface_LiveObjectCallback_FUN_0041f3a0 ((bool32 (__cdecl* )(LegoObject* liveObj))0x0041f3a0)
+#define Interface_ObjectCallback_IsCarryingButNotStoring ((bool32 (__cdecl* )(LegoObject* liveObj, void* unused))0x0041f3a0)
 
 // <LegoRR.exe @0041f3c0>
-#define Interface_LiveObjectCallback_IsEnergyLessThan100 ((bool32 (__cdecl* )(LegoObject* liveObj))0x0041f3c0)
+#define Interface_ObjectCallback_IsEnergyBelowMax ((bool32 (__cdecl* )(LegoObject* liveObj, void* unused))0x0041f3c0)
 
 // <LegoRR.exe @0041f3e0>
-#define Interface_LiveObjectCallback_IsHealthLessThan100 ((bool32 (__cdecl* )(LegoObject* liveObj))0x0041f3e0)
+#define Interface_ObjectCallback_IsHealthBelowMax ((bool32 (__cdecl* )(LegoObject* liveObj, void* unused))0x0041f3e0)
 
 // <LegoRR.exe @0041f400>
-#define Interface_LiveObjectCallback_FUN_0041f400 ((bool32 (__cdecl* )(LegoObject* liveObj))0x0041f400)
+#define Interface_ObjectCallback_FUN_0041f400 ((bool32 (__cdecl* )(LegoObject* liveObj, void* unused))0x0041f400)
 
 // <LegoRR.exe @0041f520>
-#define Interface_LiveObjectCallback_FUN_0041f520 ((bool32 (__cdecl* )(LegoObject* liveObj))0x0041f520)
+#define Interface_ObjectCallback_SetFlags4_8_HealthM1 ((bool32 (__cdecl* )(LegoObject* liveObj, void* unused))0x0041f520)
 
 // <LegoRR.exe @0041f540>
-#define Interface_LiveObjectCallback_GoEatIfEnergyIsLessThan100 ((bool32 (__cdecl* )(LegoObject* liveObj))0x0041f540)
+#define Interface_ObjectCallback_GoEatIfEnergyBelowMax ((bool32 (__cdecl* )(LegoObject* liveObj, void* unused))0x0041f540)
 
 // <LegoRR.exe @0041f570>
-#define Interface_LiveObjectCallback_GoRepairIfHealthLessThan100 ((bool32 (__cdecl* )(LegoObject* liveObj))0x0041f570)
+#define Interface_ObjectCallback_RequestRepairIfHealthBelowMax ((bool32 (__cdecl* )(LegoObject* liveObj, void* unused))0x0041f570)
 
 // <LegoRR.exe @0041f5a0>
-#define Interface_LiveObjectCallback_DoesNotHaveToolEquipped ((bool32 (__cdecl* )(LegoObject* liveObj, LegoObject_ToolType toolType))0x0041f5a0)
+#define Interface_ObjectCallback_DoesNotHaveToolEquipped ((bool32 (__cdecl* )(LegoObject* liveObj, LegoObject_ToolType toolType))0x0041f5a0)
 
 // <LegoRR.exe @0041f5c0>
-#define Interface_LiveObjectCallback_GoGetToolIfNotEquipped ((bool32 (__cdecl* )(LegoObject* liveObj, LegoObject_ToolType toolType))0x0041f5c0)
+#define Interface_ObjectCallback_GoGetToolIfNotEquipped ((bool32 (__cdecl* )(LegoObject* liveObj, LegoObject_ToolType toolType))0x0041f5c0)
 
 // <LegoRR.exe @0041f5f0>
-#define Interface_LiveObjectCallback_FUN_0041f5f0 ((bool32 (__cdecl* )(LegoObject* liveObj))0x0041f5f0)
+#define Interface_ObjectCallback_FUN_0041f5f0 ((bool32 (__cdecl* )(LegoObject* liveObj, void* unused))0x0041f5f0)
 
 // <LegoRR.exe @0041f650>
 #define Interface_CheckPrimaryUnitHasAbility ((bool32 (__cdecl* )(LegoObject_AbilityFlags abilityFlag))0x0041f650)
@@ -480,10 +481,10 @@ extern Interface_Globs & interfaceGlobs;
 #define Interface_Block_FUN_0041f670 ((bool32 (__cdecl* )(const Point2I* blockPos))0x0041f670)
 
 // <LegoRR.exe @0041f750>
-#define Interface_LiveObjectCallback_HasToolEquipped_2 ((bool32 (__cdecl* )(LegoObject* liveObj, LegoObject_ToolType toolType))0x0041f750)
+#define Interface_ObjectCallback_HasToolEquipped_2 ((bool32 (__cdecl* )(LegoObject* liveObj, LegoObject_ToolType toolType))0x0041f750)
 
 // <LegoRR.exe @0041f770>
-#define Interface_LiveObjectCallback_FUN_0041f770 ((bool32 (__cdecl* )(LegoObject* liveObj))0x0041f770)
+#define Interface_ObjectCallback_PlaceBirdScarerIfEquipped ((bool32 (__cdecl* )(LegoObject* liveObj, void* unused))0x0041f770)
 
 #pragma endregion
 
