@@ -7,18 +7,6 @@
 
 
 /**********************************************************************************
- ******** Forward Global Namespace Declarations
- **********************************************************************************/
-
-#pragma region Forward Declarations
-
-/// TODO: Remove me once Lego module is finished
-#define Level_TryGeneratedRockMonster ((LegoRR::LegoObject*(__cdecl*)(int**, LegoRR::LegoObject_Type, sint32, uint32, uint32))0x0043b1f0)
-
-#pragma endregion
-
-
-/**********************************************************************************
  ******** Game Entry point
  **********************************************************************************/
 
@@ -101,7 +89,7 @@ LegoRR::Lego_Globs & LegoRR::legoGlobs = *(LegoRR::Lego_Globs*)0x005570c0;
 bool32 __cdecl LegoRR::Level_HandleEmergeTriggers(Lego_Level* level, const Point2I* blockPos, OUT Point2I* emergeBlockPos)
 {
     /// DEBUG: (testing) Enable multiple emerges at once :)
-#define DEBUG_MULTIPLE_EMERGE
+//#define DEBUG_MULTIPLE_EMERGE
 
 
 #ifdef DEBUG_MULTIPLE_EMERGE
@@ -118,8 +106,8 @@ bool32 __cdecl LegoRR::Level_HandleEmergeTriggers(Lego_Level* level, const Point
                 const EmergeBlock* emergePt = &trigger->emergePoints[j];
                 if (emergePt->used) {
 
-                    LegoObject* legoObj = Level_TryGeneratedRockMonster(
-                        (int**)((uint8*)legoGlobs.rockMonsterData + (level->EmergeCreature*0x74)),
+                    LegoObject* legoObj = LegoObject_TryGenerateRMonster(
+                        &legoGlobs.rockMonsterData[level->EmergeCreature],
                         LegoObject_RockMonster, level->EmergeCreature,
                         emergePt->blockPos.x, emergePt->blockPos.y);
                     

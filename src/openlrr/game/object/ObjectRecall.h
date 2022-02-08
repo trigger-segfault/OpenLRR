@@ -25,6 +25,17 @@ namespace LegoRR
 
 #pragma region Structs
 
+// Moved to ObjectRecall.h, as a temporary location that both FrontEnd.h and Object.h can rely on without needing to include these heavy modules.
+#if true
+struct SaveStruct_18 // [LegoRR/save.c|struct:0x18]
+{
+	/*00,18*/	undefined field_0x0_0x17[24];
+	/*18*/
+};
+assert_sizeof(SaveStruct_18, 0x18);
+#endif
+
+
 struct RROSFileHeader // [LegoRR/ObjectRecall.c|struct:0x8] For .osf Object Recall save files
 {
 	/*0,4*/	char signature[4]; // "RROS"

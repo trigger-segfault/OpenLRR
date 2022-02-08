@@ -56,7 +56,7 @@ struct DependencyRequirement // [LegoRR/Dependencies.c|struct:0x10]
 {
 	/*00,4*/	LegoObject_Type objType;
 	/*04,4*/	LegoObject_ID objID;
-	/*08,4*/	sint32 objLevel;
+	/*08,4*/	uint32 objLevel;
 	/*0c,4*/	bool32 hasLevel;
 	/*10*/
 };
@@ -67,7 +67,7 @@ struct DependencyUnlocks // [LegoRR/Dependencies.c|struct:0x204]
 {
 	/*000,80*/	LegoObject_Type objTypes[DEPENDENCY_MAXUNLOCKS];
 	/*080,80*/	LegoObject_ID objIDs[DEPENDENCY_MAXUNLOCKS];
-	/*100,80*/	sint32 objLevels[DEPENDENCY_MAXUNLOCKS];
+	/*100,80*/	uint32 objLevels[DEPENDENCY_MAXUNLOCKS];
 	/*180,80*/	bool32 objHasLevels[DEPENDENCY_MAXUNLOCKS]; // (unlocks for a specific level)
 	/*200,4*/	uint32 count;
 	/*204*/
@@ -131,28 +131,28 @@ extern Dependencies_Globs & dependencyGlobs;
 #define Dependencies_Initialise ((void (__cdecl* )(const Gods98::Config* config, const char* gameName))0x0040aaa0)
 
 // <LegoRR.exe @0040add0>
-#define Dependencies_Object_FUN_0040add0 ((bool32 (__cdecl* )(LegoObject_Type objType, LegoObject_ID objID, sint32 objLevel))0x0040add0)
+#define Dependencies_Object_FUN_0040add0 ((bool32 (__cdecl* )(LegoObject_Type objType, LegoObject_ID objID, uint32 objLevel))0x0040add0)
 
 // <LegoRR.exe @0040ae70>
 #define Dependencies_LiveObject_CallbackCheck_FUN_0040ae70 ((bool32 (__cdecl* )(LegoObject* liveObj, LegoObject* otherObj))0x0040ae70)
 
 // <LegoRR.exe @0040aec0>
-#define Dependencies_Object_GetRequirements ((void (__cdecl* )(LegoObject_Type objType, LegoObject_ID objID, sint32 objLevel, OUT DependencyRequirement** requirements, OUT uint32* count))0x0040aec0)
+#define Dependencies_Object_GetRequirements ((void (__cdecl* )(LegoObject_Type objType, LegoObject_ID objID, uint32 objLevel, OUT DependencyRequirement** requirements, OUT uint32* count))0x0040aec0)
 
 // <LegoRR.exe @0040af30>
-#define Dependencies_Object_Unlock ((void (__cdecl* )(LegoObject_Type objType, LegoObject_ID objID, sint32 objLevel, DependencyUnlocks* unlocks))0x0040af30)
+#define Dependencies_Object_Unlock ((void (__cdecl* )(LegoObject_Type objType, LegoObject_ID objID, uint32 objLevel, DependencyUnlocks* unlocks))0x0040af30)
 
 // <LegoRR.exe @0040b0e0>
 #define Dependencies_Prepare_Unk ((void (__cdecl* )(void))0x0040b0e0)
 
 // <LegoRR.exe @0040b180>
-#define Dependencies_Object_IsLevelFlag4 ((bool32 (__cdecl* )(LegoObject_Type objType, LegoObject_ID objID, sint32 objLevel))0x0040b180)
+#define Dependencies_Object_IsLevelFlag4 ((bool32 (__cdecl* )(LegoObject_Type objType, LegoObject_ID objID, uint32 objLevel))0x0040b180)
 
 // <LegoRR.exe @0040b1d0>
-#define Dependencies_Object_AddLevelFlag_100 ((void (__cdecl* )(LegoObject_Type objType, LegoObject_ID objID, sint32 objLevel))0x0040b1d0)
+#define Dependencies_Object_AddLevelFlag_100 ((void (__cdecl* )(LegoObject_Type objType, LegoObject_ID objID, uint32 objLevel))0x0040b1d0)
 
 // <LegoRR.exe @0040b210>
-#define Dependencies_Object_GetLevelFlag_100 ((bool32 (__cdecl* )(LegoObject_Type objType, LegoObject_ID objID, sint32 objLevel))0x0040b210)
+#define Dependencies_Object_GetLevelFlag_100 ((bool32 (__cdecl* )(LegoObject_Type objType, LegoObject_ID objID, uint32 objLevel))0x0040b210)
 
 #pragma endregion
 

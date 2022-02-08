@@ -13,4 +13,6 @@
 // <LegoRR.exe @004df790>
 LegoRR::LegoObject_Globs & LegoRR::objectGlobs = *(LegoRR::LegoObject_Globs*)0x004df790;
 
+LegoRR::LegoObject_ListSet LegoRR::objectListSet = LegoRR::LegoObject_ListSet(LegoRR::objectGlobs);
+
 #pragma endregion
