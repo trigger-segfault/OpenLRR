@@ -273,15 +273,15 @@ struct LegoObject // [LegoRR/LegoObject.c|struct:0x40c|tags:LISTSET]
 	/*000,4*/       LegoObject_Type type;
 	/*004,4*/       LegoObject_ID id;
 	/*008,4*/       char* customName; // max size is 11 (NOT null-terminated)
-	/*00c,4*/       VehicleData* vehicle;
-	/*010,4*/       CreatureData* miniFigure;
-	/*014,4*/       CreatureData* rockMonster;
-	/*018,4*/       BuildingData* building;
-	/*01c,4*/       Gods98::Container* other;
-	/*020,4*/       UpgradeData* upgrade;
 	/*024,4*/       RoutingBlock* routeptr_24; // Unknown pointer, likely in large allocated table
 	/*028,4*/       uint32 routingBlocksTotal; // total blocks to travel for current route
 	/*02c,4*/       uint32 routingBlocksCurrent; // number of blocks traveled (up to routingBlocksTotal)
+	/*00c,4*/       VehicleModel* vehicle; // Model for vehicle objects only.
+	/*010,4*/       CreatureModel* miniFigure; // Model for mini-figure objects only.
+	/*014,4*/       CreatureModel* rockMonster; // Model for monster objects only.
+	/*018,4*/       BuildingModel* building; // Model for building objects only.
+	/*01c,4*/       Gods98::Container* other; // Model for simple objects only.
+	/*020,4*/       Upgrade_PartModel* upgradePart; // First upgrade part model in linked list of parts.
 	/*030,25c*/		BezierCurve routingCurve; // BezierCurve/Catmull-rom spline data
 	/*28c,c*/       Vector3F vector_28c;
 	/*298,8*/       Point2F point_298;

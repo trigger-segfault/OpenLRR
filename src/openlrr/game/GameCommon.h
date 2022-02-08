@@ -57,10 +57,16 @@ struct SelectPlace;
 struct Smoke;
 struct TeleporterService;
 
-struct CreatureData;
-struct BuildingData;
-struct VehicleData;
-struct UpgradeData;
+struct CreatureModel;
+struct BuildingModel;
+struct VehicleModel;
+struct Upgrade_PartInfo;
+struct Upgrade_PartModel;
+struct UpgradesModel;
+struct WeaponsModel;
+
+// ObjectModel of various types: Gods98::Container, CreatureModel, BuildingModel, VehicleModel, Upgrade_PartModel
+typedef void ObjectModel;
 
 typedef uint8 DirectionByte;
 
@@ -129,6 +135,8 @@ typedef uint8 DirectionByte;
 #pragma region Function Typedefs
 
 typedef void (__cdecl* XYCallback)(sint32 x, sint32 y);
+
+typedef real32 (__cdecl* GetWorldZCallback)(real32 xPos, real32 yPos, Map3D* map);
 
 #pragma endregion
 

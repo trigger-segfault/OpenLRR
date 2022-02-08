@@ -29,8 +29,6 @@ namespace LegoRR
 
 #pragma region Function Typedefs
 
-typedef real32 (__cdecl* GetWorldZCallback)(real32 xPos, real32 yPos, Map3D* map);
-
 #pragma endregion
 
 /**********************************************************************************

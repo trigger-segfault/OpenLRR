@@ -228,6 +228,7 @@ struct ObjectiveData // [LegoRR/???|struct:0x54]
 };
 assert_sizeof(ObjectiveData, 0x54);
 
+
 struct EmergeBlock
 {
 	/*0,8*/         Point2I blockPos;
@@ -235,6 +236,7 @@ struct EmergeBlock
 	/*c*/
 };
 assert_sizeof(EmergeBlock, 0xc);
+
 
 struct EmergeTrigger // [LegoRR/Lego.c|struct:0x4c]
 {
@@ -386,11 +388,11 @@ struct Lego_Globs // [LegoRR/Lego.c|struct:0xf00|tags:GLOBS]
 	/*108,4*/       char* langSpiderWeb_theName;
 	/*10c,4*/       char* langOohScary_theName;
 	/*110,4*/       char* langPath_theName;
-	/*114,4*/       VehicleData* vehicleData;
-	/*118,4*/       CreatureData* miniFigureData;
-	/*11c,4*/       CreatureData* rockMonsterData;
-	/*120,4*/       BuildingData* buildingData;
-	/*124,4*/       UpgradeData* upgradeData;
+	/*114,4*/       VehicleModel* vehicleData;
+	/*118,4*/       CreatureModel* miniFigureData;
+	/*11c,4*/       CreatureModel* rockMonsterData;
+	/*120,4*/       BuildingModel* buildingData;
+	/*124,4*/       Upgrade_PartModel* upgradeData;
 	/*128,4*/       char** vehicleName;
 	/*12c,4*/       char** miniFigureName;
 	/*130,4*/       char** rockMonsterName;
@@ -449,7 +451,7 @@ struct Lego_Globs // [LegoRR/Lego.c|struct:0xf00|tags:GLOBS]
 	/*368,c*/       ColourRGBF PowerCrystalRGB;
 	/*374,c*/       ColourRGBF UnpoweredCrystalRGB;
 	/*380,4*/       LegoObject_Type placeObjType;
-	/*384,4*/       sint32 placeObjIndex;
+	/*384,4*/       LegoObject_ID placeObjID;
 	/*388,4*/       Direction placeObjDirection;
 	/*38c,4*/       LegoObject* placeDestSmallTeleporter;
 	/*390,4*/       LegoObject* placeDestBigTeleporter;
@@ -462,7 +464,7 @@ struct Lego_Globs // [LegoRR/Lego.c|struct:0xf00|tags:GLOBS]
 	/*3ac,4*/       real32 DynamiteWakeRadius;
 	/*3b0,4*/       real32 BirdScarerRadius;
 	/*3b4,50*/      LegoObject_Type objTeleportQueueTypes_TABLE[LegoObject_Type_Count];
-	/*404,50*/      sint32 objTeleportQueueIndexes_TABLE[LegoObject_Type_Count];
+	/*404,50*/      LegoObject_ID objTeleportQueueIDs_TABLE[LegoObject_Type_Count];
 	/*454,4*/       uint32 objTeleportQueue_COUNT;
 	/*458,4*/       real32 MiniFigureRunAway;
 	/*45c,c*/       Vector3F vector_45c;
@@ -579,12 +581,12 @@ __inline Map3D* Lego_GetMap(void) { return Lego_GetLevel()->map; }
 
 
 // <LegoRR.exe @0042e7e0>
-#define Lego_GetObjectByName ((bool32 (__cdecl* )(const char* objName, OUT LegoObject_Type* objType, OUT LegoObject_ID* objID, OUT void** model))0x0042e7e0)
-//__inline bool32 __cdecl Lego_GetObjectByName(const char* objName, OUT LegoObject_Type* objType, OUT LegoObject_ID* objID, OPTIONAL OUT void** model);
+#define Lego_GetObjectByName ((bool32 (__cdecl* )(const char* objName, OUT LegoObject_Type* objType, OUT LegoObject_ID* objID, OUT ObjectModel** objModel))0x0042e7e0)
+//__inline bool32 __cdecl Lego_GetObjectByName(const char* objName, OUT LegoObject_Type* objType, OUT LegoObject_ID* objID, OPTIONAL OUT ObjectModel** objModel);
 
 // <LegoRR.exe @0042eca0>
-#define Lego_GetObjectTypeModel ((bool32 (__cdecl* )(LegoObject_Type objType, LegoObject_ID objID, OUT void** model))0x0042eca0)
-//__inline bool32 __cdecl Lego_GetObjectTypeModel(LegoObject_Type objType, LegoObject_ID objID, OUT void** model);
+#define Lego_GetObjectTypeModel ((bool32 (__cdecl* )(LegoObject_Type objType, LegoObject_ID objID, OUT ObjectModel** objModel))0x0042eca0)
+//__inline bool32 __cdecl Lego_GetObjectTypeModel(LegoObject_Type objType, LegoObject_ID objID, OUT ObjectModel** objModel);
 
 // <LegoRR.exe @0042ee70>
 #define Lego_GetObjectTypeIDCount ((uint32 (__cdecl* )(LegoObject_Type objType))0x0042ee70)
