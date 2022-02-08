@@ -330,6 +330,7 @@
     <ClCompile Include="game\front\Loader.cpp" />
     <ClInclude Include="game\front\Reward.cpp" />
     <ClCompile Include="game\Game.cpp" />
+    <ClCompile Include="game\GameState.cpp" />
     <ClCompile Include="game\interface\Advisor.cpp" />
     <ClCompile Include="game\interface\Encyclopedia.cpp" />
     <ClCompile Include="game\interface\HelpWindow.cpp" />
