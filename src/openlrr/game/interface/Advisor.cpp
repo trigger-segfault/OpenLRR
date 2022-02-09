@@ -6,6 +6,7 @@
 #include "../../engine/core/Memory.h"
 #include "../../engine/core/Utils.h"
 #include "../../engine/gfx/Containers.h"
+#include "../../engine/Graphics.h"
 #include "../../engine/Main.h"
 #include "../../legacy.h"
 
