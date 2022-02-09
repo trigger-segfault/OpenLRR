@@ -330,47 +330,55 @@ void __cdecl Gods98::Lws_SetupSoundTriggers(Lws_Info* scene)
 {
 	if (lwsGlobs.FindSFXIDFunc) {
 //	if (lwsGlobs.FindSoundFunc) {
-		Lws_Node* node;
+
 		char line[LWS_MAXLINELEN];
-		uint16 loop;
-		uint32 argc, index;
 		char* argv[256];
 		uint8 triggerIndex = 0;
-		Lws_SoundTrigger* st;
 
 		if (scene->triggerCount) {
 			scene->triggerList = (Lws_SoundTrigger*)Mem_Alloc(sizeof(Lws_SoundTrigger) * scene->triggerCount);
-			for (loop=0 ; loop<scene->nodeCount ; loop++) {
-				node = &scene->nodeList[loop];
+
+			for (uint16 loop = 0; loop < scene->nodeCount; loop++) {
+				Lws_Node* node = &scene->nodeList[loop];
+
 				if (node->flags & Lws_NodeFlags::LWSNODE_FLAG_SOUNDTRIGGER) {
-					st = &scene->triggerList[triggerIndex];
+					Lws_SoundTrigger* st = &scene->triggerList[triggerIndex];
+
 					node->triggerIndex = triggerIndex;
 					triggerIndex++;
 					std::strcpy(line, node->name);
-					argc = Util_Tokenise(line, argv, LWS_SOUNDTRIGGERSEPERATOR);
+					uint32 argc = Util_Tokenise(line, argv, LWS_SOUNDTRIGGERSEPERATOR);
 					st->count = (uint16) argc - 2;
 					Error_Fatal(st->count >= LWS_MAXTRIGGERKEYS, "LWS_MAXTRIGGERKEYS too small");
 					Error_Fatal(st->count == 0, "No trigger frames specified");
+
 					{
 						bool32 result = lwsGlobs.FindSFXIDFunc(argv[1], &st->sfxID);
-						if (mainGlobs.flags & MainFlags::MAIN_FLAG_REDUCESAMPLES) {
+						
+						if (Graphics_IsReduceSamples()) {
 							Error_Warn(!result, Error_Format("Cannot match sound with %s", argv[1]));
 							if (!result)
-								st->sfxID=0;
-						} else {
+								st->sfxID = 0;
+						}
+						else {
 							Error_Fatal(!result, Error_Format("Cannot match sound with %s", argv[1]));
 						}
 					}
-					for (index=0 ; index<st->count ; index++) {
-						char* end = std::strstr(argv[index+2], "-");
+
+					for (uint32 index = 0; index < st->count; index++) {
+						const char* end = std::strstr(argv[index+2], "-");
 						st->frameStartList[index] = std::atoi(argv[index+2]);
+
 						if (end) st->frameEndList[index] = std::atoi(&end[1]);
 						else st->frameEndList[index] = st->frameStartList[index];
 					}
 				}
 			}
 		}
-	} else scene->triggerCount = 0;
+	}
+	else {
+		scene->triggerCount = 0;
+	}
 }
 
 // <LegoRR.exe @00487c50>

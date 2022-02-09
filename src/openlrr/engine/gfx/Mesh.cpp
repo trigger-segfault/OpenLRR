@@ -1437,7 +1437,7 @@ void __cdecl Gods98::Mesh_SetMeshRenderDesc(Mesh* mesh, Viewport* vp, const Matr
 	/// CUSTOM: Add control over rendering quality using settings passed to Main_Setup3D
 	// D3DRENDERSTATE_LIGHTING is not supported by Direct3DDevice3, which is
 	//  why LegoRR doesn't support parsing the UnlitFlat quality in Lego.cfg.
-	switch (graphicsGlobs.renderQuality) {
+	switch (Graphics_GetRenderQuality()) {
 	case Graphics_Quality::Wireframe:
 		Graphics_ChangeRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_FLAT);
 		//Graphics_ChangeRenderState(D3DRENDERSTATE_LIGHTING,  false);
@@ -1465,7 +1465,7 @@ void __cdecl Gods98::Mesh_SetMeshRenderDesc(Mesh* mesh, Viewport* vp, const Matr
 		Graphics_ChangeRenderState(D3DRENDERSTATE_FILLMODE,  D3DFILL_SOLID);
 		break;
 	}
-	Graphics_ChangeRenderState(D3DRENDERSTATE_DITHERENABLE, (graphicsGlobs.dither != 0)); // treat as 0/1 bool
+	Graphics_ChangeRenderState(D3DRENDERSTATE_DITHERENABLE, (Graphics_IsDither() != 0)); // treat as 0/1 bool
 
 	/// ORIGINAL FUNCTIONALITY:
 	//Graphics_ChangeRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_GOURAUD);
@@ -1544,7 +1544,7 @@ void __cdecl Gods98::Mesh_SetRenderDesc(Mesh_RenderFlags flags, const Matrix4F* 
 	///            behaved the same way.
 	uint32 alphaOp = D3DTOP_MODULATE; // Perform expected alpha multiplication.
 
-	if (!Graphics_AlphaModulation()) {
+	if (!Graphics_IsAlphaModulation()) {
 		alphaOp = D3DTOP_SELECTARG1; // This is the default behaviour specified by Direct3D.
 	}
 	if (Graphics_ManageTextures()) {
@@ -1593,12 +1593,12 @@ void __cdecl Gods98::Mesh_SetRenderDesc(Mesh_RenderFlags flags, const Matrix4F* 
 		Graphics_ChangeRenderState(D3DRENDERSTATE_TEXTUREMAG, D3DFILTER_LINEAR);
 
 		/// CUSTOM: Add control over rendering filtering using settings passed to Main_Setup3D
-		if (graphicsGlobs.mipMap) {
+		if (Graphics_IsMIPMap()) {
 			// At the moment, this condition will be disabled until the
 			// effects and any side effects are fully understood.
 			// By default, Lego.cfg specifies `LinearMipMap TRUE`, but
 			// this function would normally pass D3DFILTER_MIPLINEAR.
-			//if (mainGlobs2.mipMapLinear) {
+			//if (Graphics_IsMIPMapLinear()) {
 			//	Graphics_ChangeRenderState(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_LINEARMIPLINEAR);
 			//}
 			//else {

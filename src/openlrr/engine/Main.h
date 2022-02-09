@@ -318,37 +318,75 @@ __inline bool32 Main_IsDisplaySetup(void) { return mainGlobs2.displaySetup; }
 void __cdecl Main_Sleep(uint32 milliseconds);
 
 
-/// CUSTOM:
-__inline bool32 Main_ShowVersion(void) { return mainGlobs.flags & MainFlags::MAIN_FLAG_SHOWVERSION; }
+/// CUSTOM: Gets if the `MAIN_FLAG_SHOWVERSION` flag is set.
+__inline bool32 Main_IsShowVersion(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_SHOWVERSION); }
+
+/// CUSTOM: Sets if the `MAIN_FLAG_SHOWVERSION` flag is set.
+void Main_SetShowVersion(bool32 on);
+
+/// CUSTOM: Gets if the `MAIN_FLAG_LEVELSOPEN` flag is set.
+__inline bool32 Main_IsLevelsOpen(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_LEVELSOPEN); }
+
+/// CUSTOM: Sets if the `MAIN_FLAG_LEVELSOPEN` flag is set.
+void Main_SetLevelsOpen(bool32 on);
+
+/// CUSTOM: Gets if the `MAIN_FLAG_TESTERCALL` flag is set.
+__inline bool32 Main_IsTesterCall(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_TESTERCALL); }
+
+/// CUSTOM: Sets if the `MAIN_FLAG_TESTERCALL` flag is set.
+void Main_SetTesterCall(bool32 on);
+
+/// CUSTOM: Gets if the `MAIN_FLAG_DEBUGMODE` flag is set.
+__inline bool32 Main_IsDebugMode(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_DEBUGMODE); }
+
+/// CUSTOM: Sets if the `MAIN_FLAG_DEBUGMODE` flag is set.
+void Main_SetDebugMode(bool32 on);
+
+/// CUSTOM: Gets if the `MAIN_FLAG_DEBUGCOMPLETE` flag is set.
+__inline bool32 Main_IsDebugComplete(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_DEBUGCOMPLETE); }
+
+/// CUSTOM: Sets if the `MAIN_FLAG_DEBUGCOMPLETE` flag is set.
+void Main_SetDebugComplete(bool32 on);
+
+/// CUSTOM: Gets if the `MAIN_FLAG_DUALMOUSE` flag is set.
+__inline bool32 Main_IsDualMouse(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_DUALMOUSE); }
+
+/// CUSTOM: Sets if the `MAIN_FLAG_DUALMOUSE` flag is set.
+void Main_SetDualMouse(bool32 on);
+
+/// CUSTOM: Gets if the `MAIN_FLAG_DUMPMODE` flag is set.
+__inline bool32 Main_IsDumpMode(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_DUMPMODE); }
+
+/// CUSTOM: Sets if the `MAIN_FLAG_DUMPMODE` flag is set.
+void Main_SetDumpMode(bool32 on);
 
 
-#if 0
+/// CUSTOM: Gets if the `CL_FLAG_BLOCKFADE` flag is set.
+__inline bool32 Main_IsCLBlockFade(void) { return (mainGlobs.clFlags & MainCLFlags::CL_FLAG_BLOCKFADE); }
+
+/// CUSTOM: Sets if the `CL_FLAG_BLOCKFADE` flag is set.
+void Main_SetCLBlockFade(bool32 on);
+
+
+/// CUSTOM: Gets if the specified command line `-flags` value is set.
+__inline bool32 Main_IsCLFlag(MainCLFlags clFlag) { return (mainGlobs.clFlags & clFlag); }
+
+/// CUSTOM: Sets if the specified command line `-flags` value is set.
+void Main_SetCLFlag(MainCLFlags clFlag, bool32 on);
+
+
+/// CUSTOM: Gets if the game is set to close gracefully at the end of the next update loop.
+__inline bool32 Main_IsClosing(void) { return mainGlobs.exit; }
+
+/// CUSTOM: Sets if the game should close gracefully at the end of the next update loop.
+__inline void Main_CloseApp(bool32 close) { mainGlobs.exit = close; }
+
+
+
+// Gets if the `MAIN_FLAG_FULLSCREEN` flag is set.
 // <inlined>
-__inline IDirect3DRM3* lpD3DRM(void) { return mainGlobs.lpD3DRM; }
+__inline bool32 Main_FullScreen(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_FULLSCREEN); }
 
-// <inlined>
-__inline IDirect3DRMDevice3* lpDevice(void) { return mainGlobs.device; }
-
-// <inlined>
-__inline IDirect3DDevice3* lpIMDevice(void) { return mainGlobs.imDevice; }
-
-// <inlined>
-__inline bool32 Main_VideoTexture(void) { return mainGlobs.flags & MainFlags::MAIN_FLAG_VIDEOTEXTURE; }
-
-// <inlined>
-__inline bool32 Main_MIPMapEnabled(void) { return mainGlobs.flags & MainFlags::MAIN_FLAG_MIPMAPENABLED; }
-#endif
-
-// <inlined>
-__inline bool32 Main_FullScreen(void) { return mainGlobs.flags & MainFlags::MAIN_FLAG_FULLSCREEN; }
-
-#if 0
-// <inlined>
-__inline uint32 Main_GetFogMethod(void) { return mainGlobs.fogMethod; }
-
-// <inlined>
-__inline void Main_SetFogMethod(uint32 m) { mainGlobs.fogMethod = m; }
-#endif
 
 // <inlined>
 __inline HWND Main_hWnd(void) { return mainGlobs.hWnd; }
@@ -366,6 +404,10 @@ __inline MainFlags Main_GetFlags(void) { return mainGlobs.flags; }
 // <LegoRR.exe @00401b30>
 uint32 __cdecl noinline(Main_ProgrammerMode)(void);
 __inline uint32 Main_ProgrammerMode(void) { return mainGlobs.programmerLevel; }
+
+/// CUSTOM:
+__inline void Main_SetProgrammerMode(uint32 mode) { mainGlobs.programmerLevel = mode; }
+
 
 // <LegoRR.exe @00401b40>
 const char* __cdecl noinline(Main_GetStartLevel)(void);
@@ -389,13 +431,8 @@ sint32 __stdcall Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrev
 void __cdecl Main_Exit(void);
 
 
-#if 0
-// <LegoRR.exe @00477e90>
-void __cdecl Main_DisableTextureManagement(void);
-#endif
-
 // <LegoRR.exe @00477eb0>
-void __cdecl Main_ParseCommandLine(const char* lpszCmdLine, OUT bool32* nosound, OUT bool32* insistOnCD);
+void __cdecl Main_ParseCommandLine(const char* lpCmdLine, OUT bool32* nosound, OUT bool32* insistOnCD);
 
 
 // <missing>
@@ -412,13 +449,9 @@ void __cdecl Main_LoopUpdate(bool32 clear);
 __inline MainCLFlags Main_GetCLFlags(void) { return mainGlobs.clFlags; }
 MainCLFlags __cdecl noinline(Main_GetCLFlags)(void);
 
-#if 0
-// <LegoRR.exe @00478240>
-uint32 __cdecl Main_GetWindowsBitDepth(void);
+/// CUSTOM:
+__inline void Main_SetCLFlags(MainCLFlags clFlags) { mainGlobs.clFlags = clFlags; }
 
-// <LegoRR.exe @00478260>
-void __cdecl Main_Finalise3D(void);
-#endif
 
 // <LegoRR.exe @00478290>
 bool32 __cdecl Main_SetState(const Main_State* state);
@@ -440,28 +473,13 @@ void __cdecl Main_HandleIO(void);
 // <LegoRR.exe @00478370>
 void __cdecl Main_SetupDisplay(bool32 fullScreen, uint32 xPos, uint32 yPos, uint32 width, uint32 height);
 
-#if 0
-// <LegoRR.exe @00478490>
-bool32 __cdecl Main_SetupDirect3D(const Graphics_Device* dev, IDirectDraw* ddraw1, IDirectDrawSurface4* backSurf, bool32 doubleBuffered);
-#endif
 
 // <LegoRR.exe @004785d0>
 void __cdecl Main_AdjustWindowRect(IN OUT Rect2I* rect);
 
-#if 0
-// <LegoRR.exe @004785f0>
-void __cdecl Main_Setup3D(Graphics_Quality renderQuality, bool32 dither, bool32 linearFilter, bool32 mipMap,
-						  bool32 mipMapLinear, bool32 blendTransparency, bool32 sortTransparency);
-#endif
 
 // <LegoRR.exe @00478690>
 void __cdecl Main_SetTitle(const char* title);
-
-
-#if 0
-// <missing>
-uint32 __cdecl Main_GetTrianglesDrawn(bool32 total);
-#endif
 
 
 // <LegoRR.exe @004786b0>
@@ -475,16 +493,6 @@ LRESULT __cdecl Main_WndProc_Windowed(HWND hWnd, UINT message, WPARAM wParam, LP
 
 // <LegoRR.exe @00478b40>
 LRESULT __stdcall Main_WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-
-#if 0
-// <LegoRR.exe @00478b90>
-void __cdecl Main_ChangeRenderState(D3DRENDERSTATETYPE dwRenderStateType, uint32 dwRenderState);
-
-/// NOTE: newer engine version has argument: BOOL force, but LegoRR DOES NOT have this argument.
-///        (it's possible this argument has been inlined, as it negates calling the entire function body.)
-// <LegoRR.exe @00478c00>
-void __cdecl Main_RestoreStates(void);
-#endif
 
 
 // <missing>

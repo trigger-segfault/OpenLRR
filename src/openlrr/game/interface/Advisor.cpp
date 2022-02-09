@@ -123,7 +123,7 @@ void __cdecl LegoRR::Advisor_LoadAnims(const Gods98::Config* config, const char*
 
 		if (value == nullptr) {
 			// If the property isn't found, check if its listed with the reduce prefix: '!'
-			if (!(Gods98::Main_GetFlags() & Gods98::MainFlags::MAIN_FLAG_REDUCEANIMATION)) {
+			if (!Gods98::Graphics_IsReduceAnimation()) {
 				/// FIX APPLY: Correctly check reduce prefix by passing reduceName
 				///            into Config_ID instead of animName again.
 				std::sprintf(reduceName, "!%s", animName);

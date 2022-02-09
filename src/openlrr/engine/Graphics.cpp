@@ -45,6 +45,79 @@ Gods98::Graphics_Globs Gods98::graphicsGlobs = { 0 };
 
 #pragma region Functions
 
+
+/*bool32 Gods98::Graphics_IsDither(void)
+{
+	return graphicsGlobs.dither;
+}*/
+
+void Gods98::Graphics_SetDither(bool32 on)
+{
+	graphicsGlobs.dither = on;
+}
+
+/*bool32 Gods98::Graphics_IsLinearFilter(void)
+{
+	return graphicsGlobs.linearFilter;
+}*/
+
+void Gods98::Graphics_SetLinearFilter(bool32 on)
+{
+	graphicsGlobs.linearFilter = on;
+}
+
+/*bool32 Gods98::Graphics_IsMIPMap(void)
+{
+	return graphicsGlobs.mipMap;
+}*/
+
+void Gods98::Graphics_SetMIPMap(bool32 on)
+{
+	graphicsGlobs.mipMap = on;
+}
+
+/*bool32 Gods98::Graphics_IsMIPMapLinear(void)
+{
+	return graphicsGlobs.mipMapLinear;
+}*/
+
+void Gods98::Graphics_SetMIPMapLinear(bool32 on)
+{
+	graphicsGlobs.mipMapLinear = on;
+}
+
+/*bool32 Gods98::Graphics_IsBlendTransparency(void)
+{
+	return graphicsGlobs.blendTransparency;
+}*/
+
+void Gods98::Graphics_SetBlendTransparency(bool32 on)
+{
+	graphicsGlobs.blendTransparency = on;
+}
+
+/*bool32 Gods98::Graphics_IsSortTransparency(void)
+{
+	return graphicsGlobs.sortTransparency;
+}*/
+
+void Gods98::Graphics_SetSortTransparency(bool32 on)
+{
+	graphicsGlobs.sortTransparency = on;
+}
+
+
+/*Gods98::Graphics_Quality Gods98::Graphics_GetRenderQuality(void)
+{
+	return graphicsGlobs.renderQuality;
+}*/
+
+void Gods98::Graphics_SetRenderQuality(Graphics_Quality renderQuality)
+{
+	graphicsGlobs.renderQuality = renderQuality;
+}
+
+
 // <LegoRR.exe @00477e90>
 void __cdecl Gods98::Graphics_DisableTextureManagement(void)
 {

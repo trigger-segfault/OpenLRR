@@ -165,14 +165,14 @@ __inline IDirect3DRMDevice3* lpDevice(void) { return mainGlobs.device; }
 // <inlined>
 __inline IDirect3DDevice3* lpIMDevice(void) { return mainGlobs.imDevice; }
 
+// Gets if the `MAIN_FLAG_VIDEOTEXTURE` flag is set.
 // <inlined>
-__inline bool32 Graphics_VideoTexture(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_VIDEOTEXTURE); }
+__inline bool32 Graphics_IsVideoTexture(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_VIDEOTEXTURE); }
 
+// Gets if the `MAIN_FLAG_MIPMAPENABLED` flag is set.
 // <inlined>
-__inline bool32 Graphics_MIPMapEnabled(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_MIPMAPENABLED); }
+__inline bool32 Graphics_IsMIPMapEnabled(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_MIPMAPENABLED); }
 
-// <inlined>
-__inline bool32 Graphics_FullScreen(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_FULLSCREEN); }
 
 // Gets the fog method used with `IDirect3DRMFrame3::SetSceneFogMethod(uint32)`.
 // <inlined>
@@ -188,23 +188,54 @@ __inline void Graphics_SetFogMethod(uint32 m) { mainGlobs.fogMethod = m; }
 __inline bool32 Graphics_ManageTextures(void) { return !(mainGlobs.flags & MainFlags::MAIN_FLAG_DONTMANAGETEXTURES); }
 
 /// CUSTOM: Gets if the `MAIN_FLAG_REDUCEANIMATION` flag is set.
-__inline bool32 Graphics_ReduceAnimation(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_REDUCEANIMATION); }
+__inline bool32 Graphics_IsReduceAnimation(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_REDUCEANIMATION); }
 
 /// CUSTOM: Gets if the `MAIN_FLAG_REDUCEFLICS` flag is set.
-__inline bool32 Graphics_ReduceFlics(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_REDUCEFLICS); }
+__inline bool32 Graphics_IsReduceFlics(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_REDUCEFLICS); }
 
 /// CUSTOM: Gets if the `MAIN_FLAG_REDUCEIMAGES` flag is set.
-__inline bool32 Graphics_ReduceImages(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_REDUCEIMAGES); }
+__inline bool32 Graphics_IsReduceImages(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_REDUCEIMAGES); }
 
 /// CUSTOM: Gets if the `MAIN_FLAG_REDUCEPROMESHES` flag is set.
-__inline bool32 Graphics_ReducePromeshes(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_REDUCEPROMESHES); }
+__inline bool32 Graphics_IsReducePromeshes(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_REDUCEPROMESHES); }
 
 /// CUSTOM: Gets if the `MAIN_FLAG_REDUCESAMPLES` flag is set.
-__inline bool32 Graphics_ReduceSamples(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_REDUCESAMPLES); }
+__inline bool32 Graphics_IsReduceSamples(void) { return (mainGlobs.flags & MainFlags::MAIN_FLAG_REDUCESAMPLES); }
+
+
+
+__inline bool32 Graphics_IsDither(void) { return graphicsGlobs.dither; }
+
+void Graphics_SetDither(bool32 on);
+
+__inline bool32 Graphics_IsLinearFilter(void) { return graphicsGlobs.linearFilter; }
+
+void Graphics_SetLinearFilter(bool32 on);
+
+__inline bool32 Graphics_IsMIPMap(void) { return graphicsGlobs.mipMap; }
+
+void Graphics_SetMIPMap(bool32 on);
+
+__inline bool32 Graphics_IsMIPMapLinear(void) { return graphicsGlobs.mipMapLinear; }
+
+void Graphics_SetMIPMapLinear(bool32 on);
+
+__inline bool32 Graphics_IsBlendTransparency(void) { return graphicsGlobs.blendTransparency; }
+
+void Graphics_SetBlendTransparency(bool32 on);
+
+__inline bool32 Graphics_IsSortTransparency(void) { return graphicsGlobs.sortTransparency; }
+
+void Graphics_SetSortTransparency(bool32 on);
+
+
+__inline Graphics_Quality Graphics_GetRenderQuality(void) { return graphicsGlobs.renderQuality; }
+
+void Graphics_SetRenderQuality(Graphics_Quality renderQuality);
 
 
 /// CUSTOM: Gets if the alpha modulation fix should be used.
-__inline bool32 Graphics_AlphaModulation(void) { return !graphicsGlobs.noAlphaModulation; }
+__inline bool32 Graphics_IsAlphaModulation(void) { return !graphicsGlobs.noAlphaModulation; }
 
 /// CUSTOM: Sets if the alpha modulation fix should be used.
 __inline void Graphics_SetAlphaModulation(bool32 on) { graphicsGlobs.noAlphaModulation = !on; }

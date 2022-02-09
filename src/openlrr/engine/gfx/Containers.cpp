@@ -477,7 +477,7 @@ Gods98::Container* __cdecl Gods98::Container_Load(Container* parent, const char*
 					const char* itemName = conf->itemName;
 //					Sound* sample;
 
-					if ((*itemName != '!') || !(mainGlobs.flags & MainFlags::MAIN_FLAG_REDUCEANIMATION)) {
+					if ((*itemName != '!') || !Graphics_IsReduceAnimation()) {
 						if (*itemName == '!') itemName++;
 
 						std::sprintf(tempString2, "%s%s%s%s%s", containerGlobs.gameName, CONFIG_SEPARATOR, conf->dataString, CONFIG_SEPARATOR, ACTIVITY_FILESTRING);
@@ -3672,7 +3672,7 @@ HRESULT __cdecl Gods98::Container_TextureLoadCallback(char* name, void* data, LP
 #ifndef CONTAINER_DONTFLIPTEXTURES
 				Container_YFlipTexture(*texture);
 #endif
-				if (Graphics_MIPMapEnabled()) {
+				if (Graphics_IsMIPMapEnabled()) {
 					HRESULT r = (*texture)->GenerateMIPMap(0);
 				}
 

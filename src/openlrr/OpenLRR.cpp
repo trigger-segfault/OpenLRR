@@ -119,20 +119,20 @@ void __cdecl OpenLRR_UpdateMenuItems(void)
 
     ////// &Options //////
 
-    Menu_CheckButton(IDM_DUALMOUSE, (Gods98::Main_GetFlags() & Gods98::MainFlags::MAIN_FLAG_DUALMOUSE));
+	Menu_CheckButton(IDM_DUALMOUSE, Gods98::Main_IsDualMouse());
 
     // This can safely be out of range, beacuse of how the Buttons macros function
     sint32 curCursor = (sint32)Gods98::Main_GetCursorVisibility();
     Menu_CheckRadioButtonsArray(Menu_CursorIDs, curCursor);
 
-    Menu_CheckRadioButtonsArray(Menu_QualityIDs, (sint32)Gods98::graphicsGlobs.renderQuality);
-    Menu_CheckButton(IDM_GRAPHICS_BLEND, Gods98::graphicsGlobs.blendTransparency);
-    Menu_CheckButton(IDM_GRAPHICS_DITHER, Gods98::graphicsGlobs.dither);
-    Menu_CheckButton(IDM_GRAPHICS_FILTER, Gods98::graphicsGlobs.linearFilter);
-    Menu_CheckButton(IDM_GRAPHICS_LINEARMIPMAP, Gods98::graphicsGlobs.mipMapLinear);
-    Menu_CheckButton(IDM_GRAPHICS_MIPMAP, Gods98::graphicsGlobs.mipMap);
-    Menu_CheckButton(IDM_GRAPHICS_SORT, Gods98::graphicsGlobs.sortTransparency);
-    Menu_CheckButton(IDM_GRAPHICS_ALPHAMODULATION, Gods98::Graphics_AlphaModulation());
+	Menu_CheckRadioButtonsArray(Menu_QualityIDs,   (sint32)Gods98::Graphics_GetRenderQuality());
+	Menu_CheckButton(IDM_GRAPHICS_BLEND,           Gods98::Graphics_IsBlendTransparency());
+	Menu_CheckButton(IDM_GRAPHICS_DITHER,          Gods98::Graphics_IsDither());
+	Menu_CheckButton(IDM_GRAPHICS_FILTER,          Gods98::Graphics_IsLinearFilter());
+	Menu_CheckButton(IDM_GRAPHICS_LINEARMIPMAP,    Gods98::Graphics_IsMIPMapLinear());
+	Menu_CheckButton(IDM_GRAPHICS_MIPMAP,          Gods98::Graphics_IsMIPMap());
+	Menu_CheckButton(IDM_GRAPHICS_SORT,            Gods98::Graphics_IsSortTransparency());
+	Menu_CheckButton(IDM_GRAPHICS_ALPHAMODULATION, Gods98::Graphics_IsAlphaModulation());
 
     sint32 curIcon = -1;
     for (uint32 i = 0; i < (uint32)OpenLRRIcon::Count; i++) {
@@ -146,19 +146,19 @@ void __cdecl OpenLRR_UpdateMenuItems(void)
 
 
     ////// &Debug //////
-    Menu_CheckButton(IDM_PROGRAMMER,    (Gods98::Main_ProgrammerMode() != 0));
-    Menu_CheckButton(IDM_DEBUGMODE,     (Gods98::Main_GetFlags() & Gods98::MainFlags::MAIN_FLAG_DEBUGMODE));
-    Menu_CheckButton(IDM_DEBUGCOMPLETE, (Gods98::Main_GetFlags() & Gods98::MainFlags::MAIN_FLAG_DEBUGCOMPLETE));
-    Menu_CheckButton(IDM_LEVELSOPEN,    (Gods98::Main_GetFlags() & Gods98::MainFlags::MAIN_FLAG_LEVELSOPEN));
-    Menu_CheckButton(IDM_TESTERCALL,    (Gods98::Main_GetFlags() & Gods98::MainFlags::MAIN_FLAG_TESTERCALL));
+	Menu_CheckButton(IDM_PROGRAMMER,    (Gods98::Main_ProgrammerMode() != 0));
+	Menu_CheckButton(IDM_DEBUGMODE,     Gods98::Main_IsDebugMode());
+	Menu_CheckButton(IDM_DEBUGCOMPLETE, Gods98::Main_IsDebugComplete());
+	Menu_CheckButton(IDM_LEVELSOPEN,    Gods98::Main_IsLevelsOpen());
+	Menu_CheckButton(IDM_TESTERCALL,    Gods98::Main_IsTesterCall());
 
-    Menu_CheckButton(IDM_BLOCKFADE,     (Gods98::Main_GetCLFlags() & Gods98::MainCLFlags::CL_FLAG_BLOCKFADE));
-    Menu_CheckButton(IDM_WOBBLYWORLD,   OpenLRR_IsWobblyWorld());
+	Menu_CheckButton(IDM_BLOCKFADE,     Gods98::Main_IsCLBlockFade());
+	Menu_CheckButton(IDM_WOBBLYWORLD,   OpenLRR_IsWobblyWorld());
 
-    Menu_CheckButton(IDM_DUMPMODE,      (Gods98::Main_GetFlags() & Gods98::MainFlags::MAIN_FLAG_DUMPMODE));
-    Menu_CheckButton(IDM_FREEZE,        Gods98::Main_IsPaused());
-    // These are only useful while paused
-    Menu_EnableButtonsArray(Menu_AdvanceFrameIDs, Gods98::Main_IsPaused());
+	Menu_CheckButton(IDM_DUMPMODE,      Gods98::Main_IsDumpMode());
+	Menu_CheckButton(IDM_FREEZE,        Gods98::Main_IsPaused());
+	// These are only useful while paused
+	Menu_EnableButtonsArray(Menu_AdvanceFrameIDs, Gods98::Main_IsPaused());
 
 }
 
@@ -203,7 +203,7 @@ void __cdecl OpenLRR_HandleCommand(HWND hWnd, uint16 wmId, uint16 wmSrc)
 
     case IDM_EXIT:
         //std::printf("IDM_EXIT\n");
-        Gods98::mainGlobs.exit = true;
+		Gods98::Main_CloseApp(true);
         break;
 
     case IDM_TOGGLEMENU:
@@ -222,7 +222,7 @@ void __cdecl OpenLRR_HandleCommand(HWND hWnd, uint16 wmId, uint16 wmSrc)
 
     case IDM_DUALMOUSE:
         //std::printf("IDM_DUALMOUSE\n");
-        Gods98::mainGlobs.flags ^= Gods98::MainFlags::MAIN_FLAG_DUALMOUSE;
+		Gods98::Main_SetDualMouse(!Gods98::Main_IsDualMouse());
         break;
 
     case IDM_CURSOR_NEVER:
@@ -265,36 +265,36 @@ void __cdecl OpenLRR_HandleCommand(HWND hWnd, uint16 wmId, uint16 wmSrc)
         case IDM_QUALITY_GOURAUD:   std::printf("IDM_QUALITY_GOURAUD\n"); break;
         case IDM_QUALITY_PHONG:     std::printf("IDM_QUALITY_PHONG\n"); break;
         }*/
-        Gods98::graphicsGlobs.renderQuality = (Gods98::Graphics_Quality)((sint32)(wmId - IDM_QUALITY_WIREFRAME));
+		Gods98::Graphics_SetRenderQuality((Gods98::Graphics_Quality)((sint32)(wmId - IDM_QUALITY_WIREFRAME)));
         break;
 
     /*case IDM_GRAPHICS_BLEND:
         //std::printf("IDM_GRAPHICS_BLEND\n");
-        Gods98::graphicsGlobs.blendTransparency = !Gods98::graphicsGlobs.blendTransparency;
+		Gods98::Graphics_SetBlendTransparency(!Gods98::Graphics_IsBlendTransparency());
         break;*/
     case IDM_GRAPHICS_DITHER:
         //std::printf("IDM_GRAPHICS_DITHER\n");
-        Gods98::graphicsGlobs.dither = !Gods98::graphicsGlobs.dither;
+		Gods98::Graphics_SetDither(!Gods98::Graphics_IsDither());
         break;
     /*case IDM_GRAPHICS_FILTER:
         //std::printf("IDM_GRAPHICS_FILTER\n");
-        Gods98::graphicsGlobs.linearFilter = !Gods98::graphicsGlobs.linearFilter;
+		Gods98::Graphics_SetLinearFilter(!Gods98::Graphics_IsLinearFilter());
         break;*/
     case IDM_GRAPHICS_LINEARMIPMAP:
         //std::printf("IDM_GRAPHICS_LINEARMIPMAP\n");
-        Gods98::graphicsGlobs.mipMapLinear = !Gods98::graphicsGlobs.mipMapLinear;
+		Gods98::Graphics_SetMIPMapLinear(!Gods98::Graphics_IsMIPMapLinear());
         break;
     case IDM_GRAPHICS_MIPMAP:
         //std::printf("IDM_GRAPHICS_MIPMAP\n");
-        Gods98::graphicsGlobs.mipMap = !Gods98::graphicsGlobs.mipMap;
+		Gods98::Graphics_SetMIPMap(!Gods98::Graphics_IsMIPMap());
         break;
     /*case IDM_GRAPHICS_SORT:
         //std::printf("IDM_GRAPHICS_SORT\n");
-        Gods98::graphicsGlobs.sortTransparency = !Gods98::graphicsGlobs.sortTransparency;
+		Gods98::Graphics_SetSortTransparency(!Gods98::Graphics_IsSortTransparency());
         break;*/
 	case IDM_GRAPHICS_ALPHAMODULATION:
         //std::printf("IDM_GRAPHICS_ALPHAMODULATION\n");
-		Gods98::Graphics_SetAlphaModulation(!Gods98::Graphics_AlphaModulation());
+		Gods98::Graphics_SetAlphaModulation(!Gods98::Graphics_IsAlphaModulation());
         break;
 
 
@@ -302,41 +302,42 @@ void __cdecl OpenLRR_HandleCommand(HWND hWnd, uint16 wmId, uint16 wmSrc)
 
     case IDM_PROGRAMMER:
         //std::printf("IDM_PROGRAMMER\n");
-        if (Gods98::mainGlobs.programmerLevel == 0) {
+		if (Gods98::Main_ProgrammerMode() == 0) {
+			// Because this field is only used to toggle back on, we want to ensure its value is a non-zero mode.
             if (openlrrGlobs.orig_programmerLevel == 0)
                 openlrrGlobs.orig_programmerLevel = 1; // default
 
-            Gods98::mainGlobs.programmerLevel = openlrrGlobs.orig_programmerLevel;
+			Gods98::Main_SetProgrammerMode(openlrrGlobs.orig_programmerLevel);
         }
         else {
-            openlrrGlobs.orig_programmerLevel = Gods98::mainGlobs.programmerLevel;
-            Gods98::mainGlobs.programmerLevel = 0; // disabled
+			openlrrGlobs.orig_programmerLevel = Gods98::Main_ProgrammerMode();
+			Gods98::Main_SetProgrammerMode(0); // disabled
         }
         break;
 
     case IDM_DEBUGMODE:
         //std::printf("IDM_DEBUGMODE\n");
-        Gods98::mainGlobs.flags ^= Gods98::MainFlags::MAIN_FLAG_DEBUGMODE;
+		Gods98::Main_SetDebugMode(!Gods98::Main_IsDebugMode());
         break;
 
     case IDM_DEBUGCOMPLETE:
         //std::printf("IDM_DEBUGCOMPLETE\n");
-        Gods98::mainGlobs.flags ^= Gods98::MainFlags::MAIN_FLAG_DEBUGCOMPLETE;
+		Gods98::Main_SetDebugComplete(!Gods98::Main_IsDebugComplete());
         break;
 
     case IDM_LEVELSOPEN:
         //std::printf("IDM_LEVELSOPEN\n");
-        Gods98::mainGlobs.flags ^= Gods98::MainFlags::MAIN_FLAG_LEVELSOPEN;
+		Gods98::Main_SetLevelsOpen(!Gods98::Main_IsLevelsOpen());
         break;
 
     case IDM_TESTERCALL:
         //std::printf("IDM_TESTERCALL\n");
-        Gods98::mainGlobs.flags ^= Gods98::MainFlags::MAIN_FLAG_TESTERCALL;
+		Gods98::Main_SetTesterCall(!Gods98::Main_IsTesterCall());
         break;
 
     case IDM_BLOCKFADE:
         //std::printf("IDM_BLOCKFADE\n");
-        Gods98::mainGlobs.clFlags ^= Gods98::MainCLFlags::CL_FLAG_BLOCKFADE;
+		Gods98::Main_SetCLBlockFade(!Gods98::Main_IsCLBlockFade());
         break;
 
     case IDM_WOBBLYWORLD:
@@ -346,9 +347,9 @@ void __cdecl OpenLRR_HandleCommand(HWND hWnd, uint16 wmId, uint16 wmSrc)
 
     case IDM_DUMPMODE:
         //std::printf("IDM_DUMPMODE\n");
-        Gods98::mainGlobs.flags ^= Gods98::MainFlags::MAIN_FLAG_DUMPMODE;
+		Gods98::Main_SetDumpMode(!Gods98::Main_IsDumpMode());
         // these modes are *basically* mutually exclusive
-        if (Gods98::mainGlobs.flags & Gods98::MainFlags::MAIN_FLAG_DUMPMODE)
+		if (Gods98::Main_IsDumpMode())
             Gods98::Main_PauseApp(false);
         break;
 
@@ -356,8 +357,8 @@ void __cdecl OpenLRR_HandleCommand(HWND hWnd, uint16 wmId, uint16 wmSrc)
         //std::printf("IDM_FREEZE\n");
         Gods98::Main_PauseApp(!Gods98::Main_IsPaused());
         // these modes are *basically* mutually exclusive
-        if (Gods98::Main_IsPaused())
-            Gods98::mainGlobs.flags &= ~Gods98::MainFlags::MAIN_FLAG_DUMPMODE;
+		if (Gods98::Main_IsPaused())
+			Gods98::Main_SetDumpMode(false);
         break;
 
     case IDM_ADVANCE_1FRAME:
@@ -400,14 +401,6 @@ void __cdecl OpenLRR_WindowCallback(HWND hWnd, UINT message, WPARAM wParam, LPAR
 
 #pragma region OpenLRR Wobbly World effect
 
-// <LegoRR.exe @00450c20>
-#define Map3D_SetBlockUVWobbles ((void (__cdecl* )(LegoRR::Map3D* map, uint32 bx, uint32 by, bool32 on))0x00450c20)
-
-// Reserved field is always 0, and never used.
-// <LegoRR.exe @0042f620>
-#define Level_BlockUpdateSurface ((void (__cdecl* )(LegoRR::Lego_Level* level, sint32 bx, sint32 by, bool32 reserved))0x0042f620)
-
-
 // Sets if the wobbly world, fun effects are enabled. This needs some hardcoded handling to turn off mid-game.
 void OpenLRR_SetWobblyWorld(bool on)
 {
@@ -449,9 +442,6 @@ void OpenLRR_UpdateWobblyWorld(void)
 		}
 	}
 }
-
-#undef Map3D_SetBlockUVWobbles
-#undef Level_BlockUpdateSurface
 
 #pragma endregion
 

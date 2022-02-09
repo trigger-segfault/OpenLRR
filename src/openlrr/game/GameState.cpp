@@ -224,7 +224,7 @@ bool32 __cdecl LegoRR::Lego_Initialise(void)
 	Text_Initialise("Interface\\MessagePanel\\MsgPanel.bmp", 42, 409, 338, &MsgPanel_rect1, &MsgPanel_rect2, 20.0f);
 
 
-	if (Gods98::Main_ShowVersion()) {
+	if (Gods98::Main_IsShowVersion()) {
 		char* startMessage = Gods98::Config_GetStringValue(legoConfig, Main_ID("StartMessage"));
 		const char* versionString = Gods98::Config_GetTempStringValue(legoConfig, Main_ID("Version"));
 		if (startMessage != nullptr) {
@@ -367,7 +367,7 @@ bool32 __cdecl LegoRR::Lego_Initialise(void)
 							   &legoGlobs.UnpoweredCrystalRGB.red, &legoGlobs.UnpoweredCrystalRGB.green, &legoGlobs.UnpoweredCrystalRGB.blue);
 
 
-	Lego_LoadSamples(legoConfig, !Gods98::Graphics_ReduceSamples());
+	Lego_LoadSamples(legoConfig, !Gods98::Graphics_IsReduceSamples());
 
 	Lego_LoadSurfaceTypeDescriptions_sound(legoConfig, legoGlobs.gameName);
 

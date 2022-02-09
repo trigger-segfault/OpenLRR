@@ -79,6 +79,128 @@ void __cdecl Gods98::Main_Sleep(uint32 milliseconds)
 }
 
 
+/*/// CUSTOM: Gets if the `MAIN_FLAG_SHOWVERSION` flag is set.
+bool32 Gods98::Main_IsShowVersion(void)
+{
+	return (mainGlobs.flags & MainFlags::MAIN_FLAG_SHOWVERSION);
+}*/
+
+/// CUSTOM: Sets if the `MAIN_FLAG_SHOWVERSION` flag is set.
+void Gods98::Main_SetShowVersion(bool32 on)
+{
+	if (on) mainGlobs.flags |= MainFlags::MAIN_FLAG_SHOWVERSION;
+	else    mainGlobs.flags &= ~MainFlags::MAIN_FLAG_SHOWVERSION;
+}
+
+/*/// CUSTOM: Gets if the `MAIN_FLAG_LEVELSOPEN` flag is set.
+bool32 Gods98::Main_IsLevelsOpen(void)
+{
+	return (mainGlobs.flags & MainFlags::MAIN_FLAG_LEVELSOPEN);
+}*/
+
+/// CUSTOM: Sets if the `MAIN_FLAG_LEVELSOPEN` flag is set.
+void Gods98::Main_SetLevelsOpen(bool32 on)
+{
+	if (on) mainGlobs.flags |= MainFlags::MAIN_FLAG_LEVELSOPEN;
+	else    mainGlobs.flags &= ~MainFlags::MAIN_FLAG_LEVELSOPEN;
+}
+
+/*/// CUSTOM: Gets if the `MAIN_FLAG_TESTERCALL` flag is set.
+bool32 Gods98::Main_IsTesterCall(void)
+{
+	return (mainGlobs.flags & MainFlags::MAIN_FLAG_TESTERCALL);
+}*/
+
+/// CUSTOM: Sets if the `MAIN_FLAG_TESTERCALL` flag is set.
+void Gods98::Main_SetTesterCall(bool32 on)
+{
+	if (on) mainGlobs.flags |= MainFlags::MAIN_FLAG_TESTERCALL;
+	else    mainGlobs.flags &= ~MainFlags::MAIN_FLAG_TESTERCALL;
+}
+
+/*/// CUSTOM: Gets if the `MAIN_FLAG_DEBUGMODE` flag is set.
+bool32 Gods98::Main_IsDebugMode(void)
+{
+	return (mainGlobs.flags & MainFlags::MAIN_FLAG_DEBUGMODE);
+}*/
+
+/// CUSTOM: Sets if the `MAIN_FLAG_DEBUGMODE` flag is set.
+void Gods98::Main_SetDebugMode(bool32 on)
+{
+	if (on) mainGlobs.flags |= MainFlags::MAIN_FLAG_DEBUGMODE;
+	else    mainGlobs.flags &= ~MainFlags::MAIN_FLAG_DEBUGMODE;
+}
+
+/*/// CUSTOM: Gets if the `MAIN_FLAG_DEBUGCOMPLETE` flag is set.
+bool32 Gods98::Main_IsDebugComplete(void)
+{
+	return (mainGlobs.flags & MainFlags::MAIN_FLAG_DEBUGCOMPLETE);
+}*/
+
+/// CUSTOM: Sets if the `MAIN_FLAG_DEBUGCOMPLETE` flag is set.
+void Gods98::Main_SetDebugComplete(bool32 on)
+{
+	if (on) mainGlobs.flags |= MainFlags::MAIN_FLAG_DEBUGCOMPLETE;
+	else    mainGlobs.flags &= ~MainFlags::MAIN_FLAG_DEBUGCOMPLETE;
+}
+
+/*/// CUSTOM: Gets if the `MAIN_FLAG_DUALMOUSE` flag is set.
+bool32 Gods98::Main_IsDualMouse(void)
+{
+	return (mainGlobs.flags & MainFlags::MAIN_FLAG_DUALMOUSE);
+}*/
+
+/// CUSTOM: Sets if the `MAIN_FLAG_DUALMOUSE` flag is set.
+void Gods98::Main_SetDualMouse(bool32 on)
+{
+	if (on) mainGlobs.flags |= MainFlags::MAIN_FLAG_DUALMOUSE;
+	else    mainGlobs.flags &= ~MainFlags::MAIN_FLAG_DUALMOUSE;
+}
+
+/*/// CUSTOM: Gets if the `MAIN_FLAG_DUMPMODE` flag is set.
+bool32 Gods98::Main_IsDumpMode(void)
+{
+	return (mainGlobs.flags & MainFlags::MAIN_FLAG_DUMPMODE);
+}*/
+
+/// CUSTOM: Sets if the `MAIN_FLAG_DUMPMODE` flag is set.
+void Gods98::Main_SetDumpMode(bool32 on)
+{
+	if (on) mainGlobs.flags |= MainFlags::MAIN_FLAG_DUMPMODE;
+	else    mainGlobs.flags &= ~MainFlags::MAIN_FLAG_DUMPMODE;
+}
+
+
+/*/// CUSTOM: Gets if the `CL_FLAG_BLOCKFADE` flag is set.
+bool32 Gods98::Main_IsCLBlockFade(void)
+{
+	return (mainGlobs.clFlags & MainCLFlags::CL_FLAG_BLOCKFADE);
+}*/
+
+/// CUSTOM: Sets if the `CL_FLAG_BLOCKFADE` flag is set.
+void Gods98::Main_SetCLBlockFade(bool32 on)
+{
+	if (on) mainGlobs.clFlags |= MainCLFlags::CL_FLAG_BLOCKFADE;
+	else    mainGlobs.clFlags &= ~MainCLFlags::CL_FLAG_BLOCKFADE;
+}
+
+
+/*/// CUSTOM: Gets if the specified command line `-flags` value is set.
+bool32 Gods98::Main_IsCLFlag(MainCLFlags clFlag)
+{
+	return (mainGlobs.clFlags & clFlag);
+}*/
+
+/// CUSTOM: Sets if the specified command line `-flags` value is set.
+void Gods98::Main_SetCLFlag(MainCLFlags clFlag, bool32 on)
+{
+	if (on) mainGlobs.clFlags |= clFlag;
+	else    mainGlobs.clFlags &= ~clFlag;
+}
+
+
+
+
 // <LegoRR.exe @00401b30>
 uint32 __cdecl Gods98::noinline(Main_ProgrammerMode)(void)
 {
@@ -272,7 +394,7 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 			Gods_Go(mainGlobs.programName);
 
 			// If the game wants to run in state mode...
-			if (mainGlobs.stateSet){
+			if (mainGlobs.stateSet) {
 
 				// Run their initialisation code (if required)...
 				if (mainGlobs.currState.Initialise != nullptr) {
@@ -296,7 +418,7 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 
 
 				// If? a main loop is specified then run it until it returns false...
-				if (mainGlobs.currState.MainLoop) {
+				if (mainGlobs.currState.MainLoop != nullptr) {
 					
 					// Use the MultiMedia timer to give a 'realtime passed' value
 					// per frame to the main loop (in 25th's of a second)
@@ -1228,12 +1350,10 @@ LRESULT __stdcall Gods98::Main_WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 		}
     }
 
-	if (mainGlobs.flags & MainFlags::MAIN_FLAG_FULLSCREEN)
-	{
+	if (mainGlobs.flags & MainFlags::MAIN_FLAG_FULLSCREEN) {
 		return Main_WndProc_Fullscreen(hWnd, message, wParam, lParam);
 	}
-	else
-	{
+	else {
 		return Main_WndProc_Windowed(hWnd, message, wParam, lParam);
 	}
 }

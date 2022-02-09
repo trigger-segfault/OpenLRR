@@ -2070,8 +2070,7 @@ void __cdecl LegoRR::Front_Levels_UpdateAvailable_Recursive(LevelLink* link, Sea
 		link->visited = true;
 
 		// ProgrammerMode >=2 has the same effect as `-testlevels`.
-		bool32 debugUnlockAll = ((Gods98::Main_ProgrammerMode() >= 2) ||
-								 (Gods98::Main_GetFlags() & Gods98::MainFlags::MAIN_FLAG_LEVELSOPEN));
+		bool32 debugUnlockAll = ((Gods98::Main_ProgrammerMode() >= 2) || Gods98::Main_IsLevelsOpen());
 	
 		// `unlocked`  - this level is available, but future levels are not affected.
 		// `completed` - this level and all its links are available (no relation to actually being completed).
@@ -2151,7 +2150,7 @@ void __cdecl LegoRR::Front_Callback_SelectMissionItem(real32 elapsedAbs, sint32 
 	frontGlobs.levelSelectLastNumber = frontGlobs.levelSelectHoverNumber;
 	frontGlobs.levelSelectHoverNumber = link->setIndex + 1; // 1-indexed
 
-	if (Gods98::Main_GetFlags() & Gods98::MainFlags::MAIN_FLAG_TESTERCALL) {
+	if (Gods98::Main_IsTesterCall()) {
 		std::sprintf(buffLevel, " (Level %d)", (sint32)(link->setIndex + 1));
 	}
 
@@ -2170,7 +2169,8 @@ void __cdecl LegoRR::Front_Callback_SelectMissionItem(real32 elapsedAbs, sint32 
 	}
 	else if (g_FrontBool_004dc8c4) {
 		TextWindow_PrintF(menuTextWnd->textWindow, langName);
-		if (Gods98::Main_GetFlags() & Gods98::MainFlags::MAIN_FLAG_TESTERCALL) {
+		
+		if (Gods98::Main_IsTesterCall()) {
 			TextWindow_PrintF(menuTextWnd->textWindow, buffLevel);
 		}
 	}
