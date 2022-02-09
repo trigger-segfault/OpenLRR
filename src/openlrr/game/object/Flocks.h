@@ -179,7 +179,7 @@ extern Flocks_Globs & flocksGlobs;
 #define Flocks_CallbackForAllSubdata ((void (__cdecl* )(Flocks* flockData, FlocksCallback callback, void* data))0x0040fdc0)
 
 // <LegoRR.exe @0040fdf0>
-#define Flocks_MathX_RandRangeOne ((float10 (__cdecl* )(void))0x0040fdf0)
+#define Flocks_MathX_RandRangeOne ((real32 (__cdecl* )(void))0x0040fdf0)
 
 // <LegoRR.exe @0040fe00>
 #define Flocks_Callback_FUN_0040fe00 ((void (__cdecl* )(Flocks* flocksData, FlocksItem* subdata, real32* param_3))0x0040fe00)

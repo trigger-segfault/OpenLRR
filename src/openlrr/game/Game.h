@@ -641,7 +641,7 @@ struct Lego_Globs // [LegoRR/Lego.c|struct:0xf00|tags:GLOBS]
 	/*ef0,4*/       char* EndGameAVI1;
 	/*ef4,4*/       char* EndGameAVI2;
 	// [globs: end]
-	/*ef8,8*/       Point2I s_mouseBlockPos_ef8; // (static, Game_unkGameLoop_FUN_00426450)
+	/*ef8,8*/       Point2I mouseBlockPos; // (static, Game_unkGameLoop_FUN_00426450)
 	/*f00*/
 };
 assert_sizeof(Lego_Globs, 0xf00);

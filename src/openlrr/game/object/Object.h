@@ -503,7 +503,7 @@ extern LegoObject_ListSet objectListSet;
 #define LegoObject_RunThroughLists ((bool32 (__cdecl* )(LegoObject_RunThroughListsCallback callback, void* search, bool32 skipIgnoreMeObjs))0x00437a90)
 
 // <LegoRR.exe @00437b40>
-#define LegoObject_SetCustomName ((void (__cdecl* )(LegoObject* liveObj, char* opt_customName))0x00437b40)
+#define LegoObject_SetCustomName ((void (__cdecl* )(LegoObject* liveObj, OPTIONAL const char* customName))0x00437b40)
 
 // <LegoRR.exe @00437ba0>
 #define HiddenObject_RemoveAll ((void (__cdecl* )(void))0x00437ba0)
@@ -945,16 +945,16 @@ extern LegoObject_ListSet objectListSet;
 #define LegoObject_UnkUpdateOrientation ((void (__cdecl* )(LegoObject* liveObj, real32 theta, OPTIONAL const Vector3F* vecDir))0x004425c0)
 
 // <LegoRR.exe @00442740>
-#define LegoObject_GetHeading ((float10 (__cdecl* )(LegoObject* liveObj))0x00442740)
+#define LegoObject_GetHeading ((real32 (__cdecl* )(LegoObject* liveObj))0x00442740)
 
 // <LegoRR.exe @004427b0>
 #define LegoObject_GetBlockPos ((bool32 (__cdecl* )(LegoObject* liveObj, OUT sint32* bx, OUT sint32* by))0x004427b0)
 
 // <LegoRR.exe @00442800>
-#define LegoObject_GetWorldZCallback ((float10 (__cdecl* )(real32 xPos, real32 yPos, Map3D* map))0x00442800)
+#define LegoObject_GetWorldZCallback ((real32 (__cdecl* )(real32 xPos, real32 yPos, Map3D* map))0x00442800)
 
 // <LegoRR.exe @00442820>
-#define LegoObject_GetWorldZCallback_Lake ((float10 (__cdecl* )(real32 xPos, real32 yPos, Map3D* map))0x00442820)
+#define LegoObject_GetWorldZCallback_Lake ((real32 (__cdecl* )(real32 xPos, real32 yPos, Map3D* map))0x00442820)
 
 // <LegoRR.exe @004428b0>
 #define LegoObject_FUN_004428b0 ((void (__cdecl* )(LegoObject* liveObj, real32 xDir, real32 yDir))0x004428b0)
@@ -1092,7 +1092,7 @@ extern LegoObject_ListSet objectListSet;
 #define LegoObject_TeleportDownBuilding ((void (__cdecl* )(LegoObject* liveObj))0x00447dc0)
 
 // <LegoRR.exe @00447df0>
-#define LegoObject_FUN_00447df0 ((float10 (__cdecl* )(LegoObject* liveObj, real32 elapsed))0x00447df0)
+#define LegoObject_FUN_00447df0 ((real32 (__cdecl* )(LegoObject* liveObj, real32 elapsed))0x00447df0)
 
 // <LegoRR.exe @00447f00>
 #define LegoObject_Container_ActivityUpdate_Check ((bool32 (__cdecl* )(LegoObject* liveObj))0x00447f00)
