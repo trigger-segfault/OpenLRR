@@ -290,18 +290,19 @@ VOID Input_ReadMouse2(VOID);*/
 
 
 /**
+ * @brief Clears the CURRENT key state by setting to 'up'.
+ */
+#define Input_ClearKey(k)		(Gods98::INPUT.Key_Map[(k)] = false)
+/**
  * @brief Clears the CURRENT keyboard state by setting all keys to 'up'.
  */
 #define Input_ClearAllKeys()	std::memset(Gods98::INPUT.Key_Map, 0, sizeof(Gods98::INPUT.Key_Map))
 
 
 
-//extern UCHAR Input_KeyTemp;
-//#define Input_KeyHit(k)			(Input_KeyTemp=prevKey_Map[(k)],prevKey_Map[(k)]=Key_Map[(k)],Key_Map[(k)]&&(Key_Map[(k)]^Input_KeyTemp))
-//#define Input_KeyReleased(k)	(Input_KeyTemp=prevKey_Map[(k)],prevKey_Map[(k)]=Key_Map[(k)],(!Key_Map[(k)])&&(Key_Map[(k)]^Input_KeyTemp))
-#define Input_KeyHit(k)			(Gods98::INPUT.Key_Map[(k)]&&(Gods98::INPUT.Key_Map[(k)]^Gods98::INPUT.prevKey_Map[(k)]))
-#define Input_KeyReleased(k)	((!Gods98::INPUT.Key_Map[(k)])&&(Gods98::INPUT.Key_Map[(k)]^Gods98::INPUT.prevKey_Map[(k)]))
-#define Input_KeyIsDown(k)		Gods98::INPUT.Key_Map[(k)]
+//#define Input_KeyHit(k)			(Gods98::INPUT.Key_Map[(k)]&&(Gods98::INPUT.Key_Map[(k)]^Gods98::INPUT.prevKey_Map[(k)]))
+//#define Input_KeyReleased(k)	((!Gods98::INPUT.Key_Map[(k)])&&(Gods98::INPUT.Key_Map[(k)]^Gods98::INPUT.prevKey_Map[(k)]))
+//#define Input_KeyIsDown(k)		Gods98::INPUT.Key_Map[(k)]
 
 #pragma endregion
 

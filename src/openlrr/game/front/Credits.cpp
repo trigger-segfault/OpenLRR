@@ -81,7 +81,7 @@ void __cdecl LegoRR::Credits_Play(const char* textFile, Gods98::Font* font, cons
 		while (!finished) {
 
 			/// CUSTOM: Debug key for faster credits testing (same key as 300% game speed).
-			bool32 debugSpeed = (Gods98::Main_ProgrammerMode() > 0) && Input_KeyIsDown(Gods98::KEYPAD_7);
+			bool32 debugSpeed = (Gods98::Main_ProgrammerMode() > 0) && Input_IsKeyDown(Gods98::KEYPAD_7);
 			// Is key pressed, or is left mouse button released?
 			if ((!debugSpeed && Gods98::Input_AnyKeyPressed()) || (mslbLast && !Gods98::mslb())) {
 				finished = true;
