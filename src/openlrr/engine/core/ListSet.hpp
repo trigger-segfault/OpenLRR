@@ -523,7 +523,12 @@ public:
 	/**
 	 * @brief Returns the number of valid items in the listSet enumerable.
 	 */
-	size_t Count() { return static_cast<size_t>(std::distance(this->begin(), this->end())); }
+	size_t Count()
+	{
+		size_t count = 0;
+		for (auto item : *this) count++;
+		return count;
+	}
 
 
 	iterator begin()              { return iterator(m_cont, 0, 0); }
