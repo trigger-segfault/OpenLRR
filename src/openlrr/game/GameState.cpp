@@ -771,8 +771,9 @@ bool32 __cdecl LegoRR::Lego_Initialise(void)
 		}
 
 		const char* startLevelName;
-		// Programmer modes >= 3 disable the front end.
-		if ((Gods98::Main_ProgrammerMode() < 3) &&
+		/// ALTERATION: allow -startlevel command line option to ALWAYS boot directly into a level.
+		// Programmer modes >= 3 also disable the front end.
+		if (Gods98::Main_GetStartLevel() == nullptr && Gods98::Main_ProgrammerMode() < 3 &&
 			Config_GetBoolOrFalse(legoConfig, Main_ID("FrontEnd")))
 		{
 			Loader_display_loading_bar(nullptr);
