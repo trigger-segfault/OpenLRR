@@ -970,7 +970,7 @@ bool32 __cdecl LegoRR::Lego_MainLoop(real32 elapsed)
 	DamageFont_UpdateAll(elapsedInterface);
 
 	LegoObject_UpdateAll(elapsedWorld);
-	Weapon_Struct2B0_Update_Table_FUN_0046f810(elapsedWorld);
+	Weapon_Update(elapsedWorld);
 	Erode_Update(elapsedWorld);
 	Level_BlockActivity_UpdateAll(legoGlobs.currLevel, elapsedWorld);
 

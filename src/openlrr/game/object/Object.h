@@ -469,8 +469,9 @@ extern LegoObject_ListSet objectListSet;
 // <LegoRR.exe @00437560>
 #define LegoObject_CleanupLevel ((void (__cdecl* )(void))0x00437560)
 
+// Used for consuming and producing unpowered crystals after weapon discharge.
 // <LegoRR.exe @004375c0>
-#define LegoObject_Weapon_FUN_004375c0 ((void (__cdecl* )(LegoObject* liveObj, sint32 weaponType, real32 param_3))0x004375c0)
+#define LegoObject_Weapon_FUN_004375c0 ((void (__cdecl* )(LegoObject* liveObj, sint32 weaponID, real32 coef))0x004375c0)
 
 // <LegoRR.exe @00437690>
 #define LegoObject_DoOpeningClosing ((bool32 (__cdecl* )(LegoObject* liveObj, bool32 open))0x00437690)
@@ -854,7 +855,7 @@ extern LegoObject_ListSet objectListSet;
 #define LegoObject_TrainMiniFigure_instantunk ((void (__cdecl* )(LegoObject* liveObj, LegoObject_AbilityFlags trainFlags))0x0043f870)
 
 // <LegoRR.exe @0043f960>
-#define LegoObject_AddDamage2 ((void (__cdecl* )(LegoObject* liveObj, real32 damage, bool32 param_3, real32 elapsed))0x0043f960)
+#define LegoObject_AddDamage2 ((void (__cdecl* )(LegoObject* liveObj, real32 damage, bool32 showVisual, real32 elapsed))0x0043f960)
 
 // <LegoRR.exe @0043fa90>
 #define LegoObject_UnkUpdateEnergyHealth ((void (__cdecl* )(LegoObject* liveObj, real32 elapsed))0x0043fa90)
@@ -930,7 +931,7 @@ extern LegoObject_ListSet objectListSet;
 #define LegoObject_Proc_FUN_00442190 ((bool32 (__cdecl* )(LegoObject* liveObj, LegoObject* targetObj, sint32 param_3))0x00442190)
 
 // <LegoRR.exe @00442390>
-#define LegoObject_GetWeaponUnk ((void (__cdecl* )(LegoObject* liveObj, WeaponKnownType weaponType))0x00442390)
+#define LegoObject_GetWeaponUnk ((void (__cdecl* )(LegoObject* liveObj, WeaponKnownType knownWeapon))0x00442390)
 
 // <LegoRR.exe @004424d0>
 #define LegoObject_UnkActivityCrumble_FUN_004424d0 ((void (__cdecl* )(LegoObject* liveObj))0x004424d0)
@@ -1086,19 +1087,19 @@ extern LegoObject_ListSet objectListSet;
 #define LegoObject_CallbackBoulderAttackBuilding_FUN_00447be0 ((bool32 (__cdecl* )(LegoObject* liveObj, LegoObject* buildingLiveObj))0x00447be0)
 
 // <LegoRR.exe @00447c10>
-#define LegoObject_FUN_00447c10 ((void (__cdecl* )(LegoObject* liveObj, const Point2F* dir, bool32 param_3))0x00447c10)
+#define LegoObject_Hit ((void (__cdecl* )(LegoObject* liveObj, const Point2F* dir, bool32 reactToHit))0x00447c10)
 
 // <LegoRR.exe @00447dc0>
 #define LegoObject_TeleportDownBuilding ((void (__cdecl* )(LegoObject* liveObj))0x00447dc0)
 
 // <LegoRR.exe @00447df0>
-#define LegoObject_FUN_00447df0 ((real32 (__cdecl* )(LegoObject* liveObj, real32 elapsed))0x00447df0)
+#define LegoObject_MoveAnimation ((real32 (__cdecl* )(LegoObject* liveObj, real32 elapsed))0x00447df0)
 
 // <LegoRR.exe @00447f00>
 #define LegoObject_Container_ActivityUpdate_Check ((bool32 (__cdecl* )(LegoObject* liveObj))0x00447f00)
 
 // <LegoRR.exe @00448160>
-#define LegoObject_FUN_00448160 ((void (__cdecl* )(LegoObject* liveObj, real32 elapsed))0x00448160)
+#define LegoObject_SimpleObject_FUN_00448160 ((void (__cdecl* )(LegoObject* liveObj, real32 elapsed))0x00448160)
 
 // <LegoRR.exe @00448a80>
 #define LegoObject_Debug_DropActivateDynamite ((void (__cdecl* )(LegoObject* liveObj))0x00448a80)
