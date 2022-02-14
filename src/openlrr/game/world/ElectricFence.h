@@ -126,6 +126,15 @@ extern ElectricFence_ListSet efenceListSet;
 
 #pragma region Macros
 
+/**
+ * @brief Gets the 1D index of a level's electric fence grid block at the specified 2D coordinates.
+ */
+#define efenceBlockIndex(bx, by)		((efenceGlobs.level->width*(by))+(bx))
+/**
+ * @brief Gets the level's electric fence grid block at the specified 2D coordinates.
+ */
+#define efenceBlockValue(bx, by)		(efenceGlobs.fenceGrid[efenceBlockIndex((bx),(by))])
+
 #pragma endregion
 
 /**********************************************************************************
@@ -135,86 +144,117 @@ extern ElectricFence_ListSet efenceListSet;
 #pragma region Functions
 
 // <LegoRR.exe @0040ccf0>
-#define ElectricFence_Initialise ((void (__cdecl* )(Lego_Level* level))0x0040ccf0)
+//#define ElectricFence_Initialise ((void (__cdecl* )(Lego_Level* level))0x0040ccf0)
+void __cdecl ElectricFence_Initialise(Lego_Level* level);
 
 // <LegoRR.exe @0040cd60>
-#define ElectricFence_Shutdown ((void (__cdecl* )(void))0x0040cd60)
+//#define ElectricFence_Shutdown ((void (__cdecl* )(void))0x0040cd60)
+void __cdecl ElectricFence_Shutdown(void);
 
 // <LegoRR.exe @0040cdb0>
-#define ElectricFence_ResetAll ((void (__cdecl* )(Lego_Level* level))0x0040cdb0)
+//#define ElectricFence_Restart ((void (__cdecl* )(Lego_Level* level))0x0040cdb0)
+void __cdecl ElectricFence_Restart(Lego_Level* level);
 
 // <LegoRR.exe @0040cdd0>
 #define ElectricFence_UpdateBlockConnections ((void (__cdecl* )(sint32 bx, sint32 by))0x0040cdd0)
+//void __cdecl ElectricFence_UpdateBlockConnections(sint32 bx, sint32 by);
 
+// Public creation function for electric fences.
 // <LegoRR.exe @0040ce80>
-#define ElectricFence_AssignBlockObject ((ElectricFence_Block* (__cdecl* )(LegoObject* liveObj))0x0040ce80)
+//#define ElectricFence_CreateFence ((ElectricFence_Block* (__cdecl* )(LegoObject* liveObj))0x0040ce80)
+ElectricFence_Block* __cdecl ElectricFence_CreateFence(LegoObject* liveObj);
 
 // <LegoRR.exe @0040ceb0>
-#define ElectricFence_Create ((ElectricFence_Block* (__cdecl* )(LegoObject* liveObj, sint32 bx, sint32 by))0x0040ceb0)
+//#define ElectricFence_Create ((ElectricFence_Block* (__cdecl* )(LegoObject* liveObj, sint32 bx, sint32 by))0x0040ceb0)
+ElectricFence_Block* __cdecl ElectricFence_Create(LegoObject* liveObj, sint32 bx, sint32 by);
 
 // <LegoRR.exe @0040cf60>
-#define ElectricFence_AddList ((void (__cdecl* )(void))0x0040cf60)
+//#define ElectricFence_AddList ((void (__cdecl* )(void))0x0040cf60)
+void __cdecl ElectricFence_AddList(void);
 
+// Public removal function for electric fences.
 // <LegoRR.exe @0040cfd0>
-#define ElectricFence_LiveObject_Destroy ((void (__cdecl* )(LegoObject* liveObj))0x0040cfd0)
+//#define ElectricFence_RemoveFence ((void (__cdecl* )(LegoObject* liveObj))0x0040cfd0)
+void __cdecl ElectricFence_RemoveFence(LegoObject* liveObj);
 
 // <LegoRR.exe @0040d030>
-#define ElectricFence_Remove ((void (__cdecl* )(ElectricFence_Block* efence, sint32 bx, sint32 by))0x0040d030)
+//#define ElectricFence_Remove ((void (__cdecl* )(ElectricFence_Block* dead, sint32 bx, sint32 by))0x0040d030)
+void __cdecl ElectricFence_Remove(ElectricFence_Block* dead, sint32 bx, sint32 by);
 
 // <LegoRR.exe @0040d0a0>
 #define ElectricFence_Debug_PlaceFence ((bool32 (__cdecl* )(sint32 bx, sint32 by))0x0040d0a0)
+//bool32 __cdecl ElectricFence_Debug_PlaceFence(sint32 bx, sint32 by);
 
 // <LegoRR.exe @0040d120>
 #define ElectricFence_Debug_RemoveFence ((bool32 (__cdecl* )(sint32 bx, sint32 by))0x0040d120)
+//bool32 __cdecl ElectricFence_Debug_RemoveFence(sint32 bx, sint32 by);
 
 // <LegoRR.exe @0040d170>
 #define ElectricFence_CanPlaceFenceAtBlock ((bool32 (__cdecl* )(sint32 bx, sint32 by))0x0040d170)
+//bool32 __cdecl ElectricFence_CanPlaceFenceAtBlock(sint32 bx, sint32 by);
 
 // <LegoRR.exe @0040d320>
 #define ElectricFence_CheckBuildingAtBlock ((bool32 (__cdecl* )(Lego_Level* level, sint32 bx, sint32 by, bool32 checkPowered))0x0040d320)
+//bool32 __cdecl ElectricFence_CheckBuildingAtBlock(Lego_Level* level, sint32 bx, sint32 by, bool32 checkPowered);
 
 // <LegoRR.exe @0040d380>
-#define ElectricFence_Update ((void (__cdecl* )(real32 elapsedGame))0x0040d380)
+#define ElectricFence_UpdateAll ((void (__cdecl* )(real32 elapsedGame))0x0040d380)
+//void __cdecl ElectricFence_UpdateAll(real32 elapsedGame);
 
 // <LegoRR.exe @0040d3c0>
-#define ElectricFence_RunThroughLists ((void (__cdecl* )(ElectricFence_RunThroughListsCallback callback, void* data))0x0040d3c0)
+//#define ElectricFence_RunThroughLists ((void (__cdecl* )(ElectricFence_RunThroughListsCallback callback, void* data))0x0040d3c0)
+void __cdecl ElectricFence_RunThroughLists(ElectricFence_RunThroughListsCallback callback, void* data);
 
 // <LegoRR.exe @0040d420>
 #define ElectricFence_FUN_0040d420 ((bool32 (__cdecl* )(LegoObject* liveObj, uint32 bx, uint32 by))0x0040d420)
+//bool32 __cdecl ElectricFence_FUN_0040d420(LegoObject* liveObj, uint32 bx, uint32 by);
 
+// DATA: real32* pElapsedGame
 // <LegoRR.exe @0040d510>
-#define ElectricFence_Callback_FUN_0040d510 ((bool32 (__cdecl* )(LegoObject* liveObj, real32* pElapsedGame))0x0040d510)
+#define ElectricFence_Callback_FUN_0040d510 ((bool32 (__cdecl* )(LegoObject* liveObj, void* pElapsedGame))0x0040d510)
+//bool32 __cdecl ElectricFence_Callback_FUN_0040d510(LegoObject* liveObj, void* pElapsedGame);
 
 // <LegoRR.exe @0040d650>
-#define ElectricFence_LiveObject_Callback_FUN_0040d650 ((bool32 (__cdecl* )(LegoObject* liveObj, void* data))0x0040d650)
+#define ElectricFence_LiveObject_Callback_FUN_0040d650 ((bool32 (__cdecl* )(LegoObject* liveObj, void* unused))0x0040d650)
+//bool32 __cdecl ElectricFence_LiveObject_Callback_FUN_0040d650(LegoObject* liveObj, void* data);
 
+// DATA: real32* pElapsedGame
 // <LegoRR.exe @0040d6a0>
-#define ElectricFence_CallbackUpdate ((void (__cdecl* )(ElectricFence_Block* efence, real32* pElapsedGame))0x0040d6a0)
+#define ElectricFence_CallbackUpdate ((void (__cdecl* )(ElectricFence_Block* efence, void* pElapsedGame))0x0040d6a0)
+//void __cdecl ElectricFence_CallbackUpdate(ElectricFence_Block* efence, void* pElapsedGame);
 
 // <LegoRR.exe @0040d780>
 #define ElectricFence_Block_FUN_0040d780 ((void (__cdecl* )(uint32 bx, uint32 by, bool32 param_3, real32 param_4))0x0040d780)
+//void __cdecl ElectricFence_Block_FUN_0040d780(uint32 bx, uint32 by, bool32 param_3, real32 param_4);
 
 // <LegoRR.exe @0040db50>
 #define ElectricFence_Block_UnkAreaDistanceBetweenBlocks ((bool32 (__cdecl* )(uint32 bxFrom, uint32 byFrom, uint32 bxTo, uint32 byTo))0x0040db50)
+//bool32 __cdecl ElectricFence_Block_UnkAreaDistanceBetweenBlocks(uint32 bxFrom, uint32 byFrom, uint32 bxTo, uint32 byTo);
 
 // returns parameter: vector
 // <LegoRR.exe @0040dcc0>
 #define ElectricFence_Block_GetDistanceBetweenBlocks ((Vector3F* (__cdecl* )(uint32 bxFrom, uint32 byFrom, uint32 bxTo, uint32 byTo, OUT Vector3F* vector))0x0040dcc0)
+//Vector3F* __cdecl ElectricFence_Block_GetDistanceBetweenBlocks(uint32 bxFrom, uint32 byFrom, uint32 bxTo, uint32 byTo, OUT Vector3F* vector);
 
 // <LegoRR.exe @0040dd70>
 #define ElectricFence_LiveObject_FUN_0040dd70 ((bool32 (__cdecl* )(LegoObject* liveObj))0x0040dd70)
+//bool32 __cdecl ElectricFence_LiveObject_FUN_0040dd70(LegoObject* liveObj);
 
 // <LegoRR.exe @0040dff0>
 #define ElectricFence_LiveObject_SparkBlock_FUN_0040dff0 ((void (__cdecl* )(LegoObject* liveObj, const Point2F* objWorldPos, uint32 bx, uint32 by))0x0040dff0)
+//void __cdecl ElectricFence_LiveObject_SparkBlock_FUN_0040dff0(LegoObject* liveObj, Point2F* objWorldPos, uint32 bx, uint32 by);
 
 // <LegoRR.exe @0040e110>
 #define ElectricFence_Block_FUN_0040e110 ((bool32 (__cdecl* )(Lego_Level* level, uint32 bx, uint32 by))0x0040e110)
+//bool32 __cdecl ElectricFence_Block_FUN_0040e110(Lego_Level* level, uint32 bx, uint32 by);
 
 // <LegoRR.exe @0040e280>
 #define ElectricFence_Block_ElecFenceStud_FUN_0040e280 ((void (__cdecl* )(Lego_Level* level, uint32 bx, uint32 by, bool32 addNew))0x0040e280)
+//void __cdecl ElectricFence_Block_ElecFenceStud_FUN_0040e280(Lego_Level* level, uint32 bx, uint32 by, bool32 addNew);
 
 // <LegoRR.exe @0040e390>
 #define ElectricFence_Block_IsFence ((bool32 (__cdecl* )(sint32 bx, sint32 by))0x0040e390)
+//bool32 __cdecl ElectricFence_Block_IsFence(sint32 bx, sint32 by);
 
 #pragma endregion
 

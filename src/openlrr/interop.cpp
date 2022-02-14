@@ -51,6 +51,7 @@
 #include "game/mission/NERPsFile.h"
 #include "game/mission/PTL.h"
 #include "game/world/Camera.h"
+#include "game/world/ElectricFence.h"
 #include "game/Game.h"
 
 
@@ -1576,6 +1577,38 @@ bool interop_hook_LegoRR_FrontEnd(void)
 	result &= hook_write_jmpret(0x00415630, LegoRR::Front_PlayMovie);
 	result &= hook_write_jmpret(0x004156f0, LegoRR::Front_PlayIntroSplash);
 	result &= hook_write_jmpret(0x00415840, LegoRR::Front_PlayIntroMovie);
+
+	return_interop(result);
+}
+
+bool interop_hook_LegoRR_ElectricFence(void)
+{   bool result = true;
+
+	// internal, no need to hook these
+	// used by: ElectricFence_Restart
+	//result &= hook_write_jmpret(0x0040ccf0, LegoRR::ElectricFence_Initialise);
+	//result &= hook_write_jmpret(0x0040cd60, LegoRR::ElectricFence_Shutdown);
+
+	// used by: Lego_LoadLevel, Lego_LoadMapSet
+	result &= hook_write_jmpret(0x0040cdb0, LegoRR::ElectricFence_Restart);
+
+	// used by: Lego_LoadOLObjectList, HiddenObject_ExposeBlock, LegoObject_SimpleObject_FUN_00448160
+	result &= hook_write_jmpret(0x0040ce80, LegoRR::ElectricFence_CreateFence);
+
+	// used by: ElectricFence_CreateFence, ElectricFence_Debug_PlaceFence
+	result &= hook_write_jmpret(0x0040ceb0, LegoRR::ElectricFence_Create);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x0040cf60, LegoRR::ElectricFence_AddList);
+
+	// used by: ElectricFence_Debug_RemoveFence, LegoObject_TeleportUp, Message_PTL_Debug_DestroyAll
+	result &= hook_write_jmpret(0x0040cfd0, LegoRR::ElectricFence_RemoveFence);
+
+	// used by: ElectricFence_RemoveFence
+	//result &= hook_write_jmpret(0x0040d030, LegoRR::ElectricFence_Remove);
+
+	// used by: ElectricFence_UpdateAll, ElectricFence_FUN_0040d420
+	result &= hook_write_jmpret(0x0040d3c0, LegoRR::ElectricFence_RunThroughLists);
 
 	return_interop(result);
 }

@@ -987,7 +987,7 @@ bool32 __cdecl LegoRR::Lego_MainLoop(real32 elapsed)
 	Lego_UnkUpdateMapsWorldUnk_FUN_004290d0(elapsedInterface, false);
 
 	LegoObject_HideAllCertainObjects();
-	ElectricFence_Update(elapsedWorld);
+	ElectricFence_UpdateAll(elapsedWorld);
 
 
 	// Input keyDown* parameters are obtained from `Lego_HandleKeys`.
