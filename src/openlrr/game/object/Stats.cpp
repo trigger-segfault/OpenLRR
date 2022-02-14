@@ -1031,7 +1031,7 @@ real32 __cdecl LegoRR::StatsObject_GetStampRadius(LegoRR::LegoObject* liveObj)
 }
 
 // <LegoRR.exe @0046a320>
-sint32 __cdecl LegoRR::StatsObject_GetNumOfToolsCanCarry(LegoRR::LegoObject* liveObj)
+uint32 __cdecl LegoRR::StatsObject_GetNumOfToolsCanCarry(LegoRR::LegoObject* liveObj)
 {
 	return liveObj->stats->NumOfToolsCanCarry;
 }

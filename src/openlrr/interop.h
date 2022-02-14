@@ -48,6 +48,7 @@ bool interop_hook_LegoRR_FrontEnd(void);
 bool interop_hook_LegoRR_LegoCamera(void);
 bool interop_hook_LegoRR_Messages(void);
 bool interop_hook_LegoRR_NERPsFile(void);
+bool interop_hook_LegoRR_Object(void);
 bool interop_hook_LegoRR_PTL(void);
 bool interop_hook_LegoRR_SFX(void);
 bool interop_hook_LegoRR_Smoke(void);

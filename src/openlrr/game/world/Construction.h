@@ -76,7 +76,7 @@ struct Construction_Globs // [LegoRR/Construction.c|struct:0x38|tags:GLOBS]
 {
 	/*00,4*/	uint32 nextHandleValue; // Next handle value used when creating a construction zone. (never reset)
 	/*04,4*/	Construction_Zone* constructList; // Head of linked list.
-	/*08,14*/	undefined4 unused_buildingBaseTable[CONSTRUCTION_MAXBUILDINGBASES]; // (probably related to unused buildingBaseTable)
+	/*08,14*/	Gods98::Container* buildingBaseData[CONSTRUCTION_MAXBUILDINGBASES]; // Observed in RockFall beta (LWO, true)
 	/*1c,14*/	char* buildingBaseName[CONSTRUCTION_MAXBUILDINGBASES]; // empty table, no names
 	/*30,4*/	uint32 buildingBaseCount;
 	/*34,4*/	bool32 disableCryOreDrop;

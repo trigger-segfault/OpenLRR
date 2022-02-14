@@ -1696,7 +1696,7 @@ bool interop_hook_LegoRR_Messages(void)
 	/// NOT IMPLEMENTED YET
 	//result &= hook_write_jmpret(0x00452390, LegoRR::Message_PTL_Update);
 	//result &= hook_write_jmpret(0x004526f0, LegoRR::Message_PTL_PickRandomFloor);
-	//result &= hook_write_jmpret(0x00452770, LegoRR::Message_LiveObject_FUN_00452770);
+	//result &= hook_write_jmpret(0x00452770, LegoRR::Message_RemoveObjectReference);
 
 	result &= hook_write_jmpret(0x004527e0, LegoRR::Message_CopySelectedUnits);
 	result &= hook_write_jmpret(0x00452840, LegoRR::Message_GetSelectedUnits2);
@@ -1744,6 +1744,52 @@ bool interop_hook_LegoRR_NERPsFile(void)
 	result &= hook_write_jmpret(0x004535e0, LegoRR::NERPsRuntime_Execute);
 
 	result &= hook_write_jmpret(0x00456af0, LegoRR::NERPs_Level_NERPMessage_Parse);
+
+	return_interop(result);
+}
+
+bool interop_hook_LegoRR_Object(void)
+{   bool result = true;
+
+	// used by: Lego_Initialise
+	result &= hook_write_jmpret(0x00436ee0, LegoRR::LegoObject_Initialise);
+
+	// used by: Lego_Shutdown_Full
+	result &= hook_write_jmpret(0x00437310, LegoRR::LegoObject_Shutdown);
+
+
+	result &= hook_write_jmpret(0x00437800, LegoRR::LegoObject_Remove);
+	result &= hook_write_jmpret(0x00437a70, LegoRR::LegoObject_RunThroughListsSkipUpgradeParts);
+
+	// used by: LegoObject_RunThroughListsSkipUpgradeParts, LegoObject_UpdateAll, LegoObject_HideAllCertainObjects
+	result &= hook_write_jmpret(0x00437a90, LegoRR::LegoObject_RunThroughLists);
+
+	// used by: LegoObject_Create
+	result &= hook_write_jmpret(0x00438580, LegoRR::LegoObject_Create_internal);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x004385d0, LegoRR::LegoObject_AddList);
+
+	result &= hook_write_jmpret(0x00439c50, LegoRR::LegoObject_RequestPowerGridUpdate);
+
+	// used by: Lego_MainLoop
+	result &= hook_write_jmpret(0x0043b530, LegoRR::LegoObject_UpdateAll);
+
+	// used by: LegoObject_Shutdown, LegoObject_CleanupLevel
+	result &= hook_write_jmpret(0x0043b5e0, LegoRR::LegoObject_RemoveAll);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x0043b610, LegoRR::LegoObject_Callback_Remove);
+
+	// used by: Lego_MainLoop
+	result &= hook_write_jmpret(0x00449ec0, LegoRR::LegoObject_HideAllCertainObjects);
+
+	// used by: Lego_StartLevelEnding, Lego_LoadLevel, Objective_SetStatus
+	result &= hook_write_jmpret(0x0044b080, LegoRR::LegoObject_SetLevelEnding);
+
+	// used by: LegoObject_TeleportUp
+	result &= hook_write_jmpret(0x0044b0a0, LegoRR::LegoObject_FUN_0044b0a0);
+
 
 	return_interop(result);
 }
@@ -1944,8 +1990,10 @@ bool interop_hook_all(void)
 	result &= interop_hook_LegoRR_AITask();
 	result &= interop_hook_LegoRR_BezierCurve();
 	result &= interop_hook_LegoRR_Credits();
+	result &= interop_hook_LegoRR_ElectricFence();
 	result &= interop_hook_LegoRR_LegoCamera();
 	result &= interop_hook_LegoRR_Messages();
+	result &= interop_hook_LegoRR_Object();
 	result &= interop_hook_LegoRR_PTL();
 	result &= interop_hook_LegoRR_Stats();
 

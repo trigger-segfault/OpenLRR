@@ -113,6 +113,7 @@ enum LiveFlags2 : uint32 // [LegoRR/LegoObject.c|flags:0x4|type:uint]
 	LIVEOBJ2_UNK_10               = 0x10,
 	LIVEOBJ2_UNK_20               = 0x20,
 	LIVEOBJ2_UNK_40               = 0x40,
+	LIVEOBJ2_UNK_80               = 0x80, // Observed with Flocks
 	LIVEOBJ2_UNK_100              = 0x100,
 	LIVEOBJ2_BUILDPATH            = 0x200,
 	LIVEOBJ2_TRAINING             = 0x400,
@@ -163,7 +164,7 @@ enum LiveFlags3 : uint32 // [LegoRR/LegoObject.c|flags:0x4|type:uint]
 	LIVEOBJ3_UNK_10000      = 0x10000, // Seen when an object starts ticking down, but also seen in a ton of other activities.
 	LIVEOBJ3_SIMPLEOBJECT   = 0x20000, // Guess at usage, for resources or other objects that don't do anything on their own.
 	LIVEOBJ3_UNK_40000      = 0x40000,
-	LIVEOBJ3_IGNOREME_UNK   = 0x80000, // When running through the list of all LegoObjects, this flag states to ignore this object.
+	LIVEOBJ3_UPGRADEPART    = 0x80000, // When running through the list of all LegoObjects, this flag states to ignore this object.
 	                                   // (99% of the calls to Run through lists use this flag).
 	LIVEOBJ3_UNK_100000     = 0x100000,
 	LIVEOBJ3_UNK_200000     = 0x200000,
@@ -186,6 +187,7 @@ enum LiveFlags4 : uint32 // [LegoRR/LegoObject.c|flags:0x4|type:uint]
 	LIVEOBJ4_NONE          = 0,
 	LIVEOBJ4_LASERTRACKER  = 0x1, // ???
 	LIVEOBJ4_UNK_2         = 0x2,
+	LIVEOBJ4_UNK_4         = 0x4,
 	LIVEOBJ4_UNK_8         = 0x8,
 	LIVEOBJ4_UNK_10        = 0x10,
 	LIVEOBJ4_CALLTOARMS_20 = 0x20,
@@ -201,8 +203,8 @@ enum LiveFlags4 : uint32 // [LegoRR/LegoObject.c|flags:0x4|type:uint]
 	LIVEOBJ4_UNK_10000     = 0x10000,
 	LIVEOBJ4_UNK_20000     = 0x20000,
 	LIVEOBJ4_UNK_40000     = 0x40000,
-	LIVEOBJ4_UNK_80000     = 0x80000,
-	LIVEOBJ4_UNK_100000    = 0x100000,
+	LIVEOBJ4_ENGINESOUNDPLAYING = 0x80000,
+	LIVEOBJ4_DRILLSOUNDPLAYING  = 0x100000,
 	LIVEOBJ4_UNK_200000    = 0x200000,
 	LIVEOBJ4_UNK_400000    = 0x400000,
 };
@@ -227,9 +229,17 @@ flags_end(LiveFlags5, 0x4);
 
 flags_scoped(LegoObject_GlobFlags) : uint32 // [LegoRR/LegoObject.c|flags:0x4|type:uint] LegoObject_GlobFlags, ReservedPool LiveObject INITFLAGS
 {
-	OBJECT_GLOB_FLAG_NONE        = 0,
-	OBJECT_GLOB_FLAG_INITIALISED = 0x1,
-	OBJECT_GLOB_FLAG_UNK_20      = 0x20,
+	OBJECT_GLOB_FLAG_NONE             = 0,
+	OBJECT_GLOB_FLAG_INITIALISED      = 0x1,
+	OBJECT_GLOB_FLAG_REMOVING         = 0x2,  // Currently in the object update loop.
+	OBJECT_GLOB_FLAG_POWERUPDATING    = 0x4,  // Currently in the PowerGrid update loop.
+	OBJECT_GLOB_FLAG_POWERNEEDSUPDATE = 0x8,  // The PowerGrid has requested an object, but we're currently in the update loop (`OBJECT_GLOB_FLAG_UPDATING`).
+	OBJECT_GLOB_FLAG_UPDATING         = 0x10, // Used by LegoObject_UpdateAll.
+	OBJECT_GLOB_FLAG_LEVELENDING      = 0x20, // set/unset by LegoObject_SetGlobFlag20, which is called by:
+	                                          //   set(false) by Lego_LoadLevel
+										      //   set(true)  by Lego_SetLoadFlag_StartTeleporter (for objective crystals failed)
+										      //   set(true)  by Objective_SetCompleteStatus
+	OBJECT_GLOB_FLAG_CYCLEUNITS       = 0x40, // Units have been cycled at least once since start of level.
 };
 flags_scoped_end(LegoObject_GlobFlags, 0x4);
 
@@ -308,7 +318,7 @@ struct LegoObject // [LegoRR/LegoObject.c|struct:0x40c|tags:LISTSET]
 	/*2e4,4*/       Gods98::Container* contMiniTeleportUp;
 	/*2e8,4*/       const char* activityName1;
 	/*2ec,4*/       const char* activityName2; // Seems to be used with related objects like driven, swapped with activityName1.
-	/*2f0,4*/       AITask* aiTask;
+	/*2f0,4*/       AITask* aiTask; // Linked list of tasks (or null). Linked using the `AITask::next` field.
 	/*2f4,8*/       Point2F point_2f4; // (init: -1.0f, -1.0f)
 	/*2fc,4*/       LegoObject* routeToObject; // other half of object_300
 	/*300,4*/       LegoObject* interactObject; // Used in combination with routeToObject for Upgrade station and RM boulders.
@@ -347,7 +357,7 @@ struct LegoObject // [LegoRR/LegoObject.c|struct:0x40c|tags:LISTSET]
 	/*3c0,4*/       LegoObject* throwObject; // (bi-directional link between thrower and thrown)
 	/*3c4,4*/       LegoObject* projectileObject; // Projectile fired from weapon.
 	/*3c8,4*/       undefined4 field_3c8; // (unused?)
-	/*3cc,4*/       LegoObject* teleportDownObj;
+	/*3cc,4*/       LegoObject* teleportDownObject;
 	/*3d0,4*/       real32 damageNumbers; // Used to display damage text over objects.
 	/*3d4,4*/       real32 elapsedTime1; // elapsed time counter 1
 	/*3d8,4*/       real32 elapsedTime2; // elapsed time counter 2
@@ -400,7 +410,7 @@ struct LegoObject_Globs // [LegoRR/LegoObject.c|struct:0xc644|tags:GLOBS]
 	/*c5cc,4*/      uint32 uintCount_c5cc;
 	/*c5d0,18*/     const char* abilityName[LegoObject_AbilityType_Count]; // [abilityType:6]
 	/*c5e8,18*/     Gods98::Image* ToolTipIcons_Abilities[LegoObject_AbilityType_Count]; // [abilityType:6]
-	/*c600,2c*/     Gods98::Image* ToolTipIcons_Tools_TABLE[LegoObject_ToolType_Count]; // [toolType:11]
+	/*c600,2c*/     Gods98::Image* ToolTipIcons_Tools[LegoObject_ToolType_Count]; // [toolType:11]
 	/*c62c,4*/      Gods98::Image* ToolTipIcon_Blank;
 	/*c630,4*/      Gods98::Image* ToolTipIcon_Ore;
 	/*c634,4*/      uint32 BuildingsTeleported;
@@ -412,7 +422,37 @@ struct LegoObject_Globs // [LegoRR/LegoObject.c|struct:0xc644|tags:GLOBS]
 assert_sizeof(LegoObject_Globs, 0xc644);
 
 
-using LegoObject_ListSet = ListSet::WrapperCollection<LegoObject_Globs>;
+//using LegoObject_ListSet = ListSet::WrapperCollection<LegoObject_Globs>;
+
+#pragma endregion
+
+/**********************************************************************************
+ ******** Classes
+ **********************************************************************************/
+
+#pragma region Classes
+
+class LegoObject_ListSet : public ListSet::WrapperCollection<LegoObject_Globs>
+{
+public:
+	LegoObject_ListSet(LegoObject_Globs& cont)
+		: ListSet::WrapperCollection<LegoObject_Globs>(cont)
+	{
+	}
+
+private:
+	static bool FilterSkipUpgradeParts(const LegoObject* liveObj);
+	/*{
+		return ListSet::IsAlive(liveObj) && !(liveObj->flags3 & LIVEOBJ3_UPGRADEPART);
+	}*/
+
+public:
+	LegoObject_ListSet::enumerable<FilterSkipUpgradeParts> EnumerateSkipUpgradeParts();
+	/*{
+		return this->EnumerateWhere<FilterSkipUpgradeParts>();
+		//return LegoObject_ListSet::enumerable<FilterSkipUpgradeParts>(this->m_cont);
+	}*/
+};
 
 #pragma endregion
 
@@ -447,12 +487,12 @@ extern LegoObject_ListSet objectListSet;
 #pragma region Functions
 
 // <LegoRR.exe @00436ee0>
-#define LegoObject_Initialise ((void (__cdecl* )(void))0x00436ee0)
-//void __cdecl LegoObject_Initialise(void);
+//#define LegoObject_Initialise ((void (__cdecl* )(void))0x00436ee0)
+void __cdecl LegoObject_Initialise(void);
 
 // <LegoRR.exe @00437310>
-#define LegoObject_Shutdown ((void (__cdecl* )(void))0x00437310)
-//void __cdecl LegoObject_Shutdown(void);
+//#define LegoObject_Shutdown ((void (__cdecl* )(void))0x00437310)
+void __cdecl LegoObject_Shutdown(void);
 
 // <LegoRR.exe @00437370>
 #define Object_Save_CopyStruct18 ((void (__cdecl* )(SaveStruct_18* out_saveStruct18))0x00437370)
@@ -488,20 +528,27 @@ extern LegoObject_ListSet objectListSet;
 // <LegoRR.exe @00437790>
 #define LegoObject_IncLevelPathsBuilt ((void (__cdecl* )(bool32 incCurrent))0x00437790)
 
+// Removes all route-to references that match the specified object.
+// Does nothing if routeToObj is a Boulder type.
 // <LegoRR.exe @004377b0>
-#define LegoObject_FUN_004377b0 ((void (__cdecl* )(LegoObject* liveObj))0x004377b0)
+#define LegoObject_RemoveRouteToReferences ((void (__cdecl* )(LegoObject* routeToObj))0x004377b0)
 
+// Removes the route-to reference if it matches the specified object.
+// DATA: LegoObject* routeToObj
 // <LegoRR.exe @004377d0>
-#define LegoObject_Callback_UnkDoRouting_IfObject2FC ((bool32 (__cdecl* )(LegoObject* liveObj1, LegoObject* liveObj2))0x004377d0)
+#define LegoObject_Callback_RemoveRouteToReference ((bool32 (__cdecl* )(LegoObject* liveObj, void* routeToObj))0x004377d0)
 
 // <LegoRR.exe @00437800>
-#define LegoObject_Remove ((bool32 (__cdecl* )(LegoObject* liveObj))0x00437800)
+//#define LegoObject_Remove ((bool32 (__cdecl* )(LegoObject* liveObj))0x00437800)
+bool32 __cdecl LegoObject_Remove(LegoObject* liveObj);
 
 // <LegoRR.exe @00437a70>
-#define LegoObject_RunThroughListsSkipIgnoreMes ((bool32 (__cdecl* )(LegoObject_RunThroughListsCallback callback, void* search))0x00437a70)
+//#define LegoObject_RunThroughListsSkipUpgradeParts ((bool32 (__cdecl* )(LegoObject_RunThroughListsCallback callback, void* data))0x00437a70)
+bool32 __cdecl LegoObject_RunThroughListsSkipUpgradeParts(LegoObject_RunThroughListsCallback callback, void* data);
 
 // <LegoRR.exe @00437a90>
-#define LegoObject_RunThroughLists ((bool32 (__cdecl* )(LegoObject_RunThroughListsCallback callback, void* search, bool32 skipIgnoreMeObjs))0x00437a90)
+//#define LegoObject_RunThroughLists ((bool32 (__cdecl* )(LegoObject_RunThroughListsCallback callback, void* data, bool32 skipIgnoreMeObjs))0x00437a90)
+bool32 __cdecl LegoObject_RunThroughLists(LegoObject_RunThroughListsCallback callback, void* data, bool32 skipUpgradeParts);
 
 // <LegoRR.exe @00437b40>
 #define LegoObject_SetCustomName ((void (__cdecl* )(LegoObject* liveObj, OPTIONAL const char* customName))0x00437b40)
@@ -522,10 +569,12 @@ extern LegoObject_ListSet objectListSet;
 #define LegoObject_Create ((LegoObject* (__cdecl* )(sint32** objModel, LegoObject_Type objType, LegoObject_ID objID))0x00437fc0)
 
 // <LegoRR.exe @00438580>
-#define LegoObject_Create_internal ((LegoObject* (__cdecl* )(void))0x00438580)
+//#define LegoObject_Create_internal ((LegoObject* (__cdecl* )(void))0x00438580)
+LegoObject* __cdecl LegoObject_Create_internal(void);
 
 // <LegoRR.exe @004385d0>
-#define LegoObject_AddList ((void (__cdecl* )(void))0x004385d0)
+//#define LegoObject_AddList ((void (__cdecl* )(void))0x004385d0)
+void __cdecl LegoObject_AddList(void);
 
 // <LegoRR.exe @00438650>
 #define LegoObject_GetNumBuildingsTeleported ((sint32 (__cdecl* )(sint32* stack))0x00438650)
@@ -648,7 +697,8 @@ extern LegoObject_ListSet objectListSet;
 #define Object_LoadToolNames ((void (__cdecl* )(const Gods98::Config* config, const char* gameName))0x00439c10)
 
 // <LegoRR.exe @00439c50>
-#define LegoObject_RequestPowerGridUpdate ((void (__cdecl* )(void))0x00439c50)
+//#define LegoObject_RequestPowerGridUpdate ((void (__cdecl* )(void))0x00439c50)
+void __cdecl LegoObject_RequestPowerGridUpdate(void);
 
 // <LegoRR.exe @00439c80>
 #define LegoObject_VehicleMaxCarryChecksTime_FUN_00439c80 ((bool32 (__cdecl* )(LegoObject* liveObj))0x00439c80)
@@ -745,13 +795,17 @@ extern LegoObject_ListSet objectListSet;
 #define LegoObject_TryGenerateRMonster ((LegoObject* (__cdecl* )(CreatureModel* objModel, LegoObject_Type objType, LegoObject_ID objID, uint32 bx, uint32 by))0x0043b1f0)
 
 // <LegoRR.exe @0043b530>
-#define LegoObject_UpdateAll ((void (__cdecl* )(real32 elapsedGame))0x0043b530)
+//#define LegoObject_UpdateAll ((void (__cdecl* )(real32 elapsedGame))0x0043b530)
+void __cdecl LegoObject_UpdateAll(real32 elapsedGame);
 
 // <LegoRR.exe @0043b5e0>
-#define LegoObject_RemoveAll ((void (__cdecl* )(void))0x0043b5e0)
+//#define LegoObject_RemoveAll ((void (__cdecl* )(void))0x0043b5e0)
+void __cdecl LegoObject_RemoveAll(void);
 
+// RunThroughLists wrapper for LegoObject_Remove.
 // <LegoRR.exe @0043b610>
-#define LegoObject_Callback_Remove ((bool32 (__cdecl* )(LegoObject* liveObj, void* data_unused))0x0043b610)
+//#define LegoObject_Callback_Remove ((bool32 (__cdecl* )(LegoObject* liveObj, void* unused))0x0043b610)
+bool32 __cdecl LegoObject_Callback_Remove(LegoObject* liveObj, void* unused);
 
 // <LegoRR.exe @0043b620>
 #define LegoObject_DoPickSphereSelection ((bool32 (__cdecl* )(uint32 mouseX, uint32 mouseY, LegoObject** selectedObj))0x0043b620)
@@ -806,11 +860,11 @@ extern LegoObject_ListSet objectListSet;
 #define LegoObject_FUN_0043c6a0 ((bool32 (__cdecl* )(LegoObject* liveObj))0x0043c6a0)
 
 // <LegoRR.exe @0043c700>
-#define LegoObject_GetEquippedBeam ((uint32 (__cdecl* )(LegoObject* liveObj))0x0043c700)
+#define LegoObject_GetEquippedBeam ((WeaponKnownType (__cdecl* )(LegoObject* liveObj))0x0043c700)
 
 // Function cannot return true unless param_3 is non-zero.
 // <LegoRR.exe @0043c750>
-#define LegoObject_FUN_0043c750 ((bool32 (__cdecl* )(LegoObject* liveObj, LegoObject* routeToObject, bool32 param_3))0x0043c750)
+#define LegoObject_FUN_0043c750 ((bool32 (__cdecl* )(LegoObject* liveObj, LegoObject* routeToObject, WeaponKnownType knownWeapon))0x0043c750)
 
 // <LegoRR.exe @0043c780>
 #define LegoObject_Proc_FUN_0043c780 ((void (__cdecl* )(LegoObject* liveObj))0x0043c780)
@@ -827,8 +881,9 @@ extern LegoObject_ListSet objectListSet;
 // <LegoRR.exe @0043c970>
 #define LegoObject_FUN_0043c970 ((void (__cdecl* )(LegoObject* liveObj, real32 elapsed))0x0043c970)
 
+// DATA: real32* pElapsed
 // <LegoRR.exe @0043cad0>
-#define LegoObject_Callback_Update ((bool32 (__cdecl* )(LegoObject* liveObj, real32* lpElapsed))0x0043cad0)
+#define LegoObject_Callback_Update ((bool32 (__cdecl* )(LegoObject* liveObj, real32* pElapsed))0x0043cad0)
 
 // <LegoRR.exe @0043f160>
 #define LegoObject_ProcCarriedObjects_FUN_0043f160 ((void (__cdecl* )(LegoObject* liveObj))0x0043f160)
@@ -845,11 +900,14 @@ extern LegoObject_ListSet objectListSet;
 // <LegoRR.exe @0043f450>
 #define LegoObject_FUN_0043f450 ((void (__cdecl* )(LegoObject* liveObj))0x0043f450)
 
+// Removes the first teleport-down reference that matches the specified object.
 // <LegoRR.exe @0043f820>
-#define LegoObject_RemoveObject3CC ((bool32 (__cdecl* )(LegoObject* liveObj))0x0043f820)
+#define LegoObject_RemoveTeleportDownReference ((bool32 (__cdecl* )(LegoObject* teleportDownObj))0x0043f820)
 
+// Removes the teleport-down reference if it matches the specified object. Returns true on match.
+// DATA: LegoObject* teleportDownObj
 // <LegoRR.exe @0043f840>
-#define LegoObject_CallbackRemoveObject3CC ((bool32 (__cdecl* )(LegoObject* liveObj, LegoObject* otherObj))0x0043f840)
+#define LegoObject_Callback_RemoveTeleportDownReference ((bool32 (__cdecl* )(LegoObject* liveObj, void* teleportDownObj))0x0043f840)
 
 // <LegoRR.exe @0043f870>
 #define LegoObject_TrainMiniFigure_instantunk ((void (__cdecl* )(LegoObject* liveObj, LegoObject_AbilityFlags trainFlags))0x0043f870)
@@ -919,7 +977,7 @@ extern LegoObject_ListSet objectListSet;
 #define LegoObject_Route_AllocPtr_FUN_004419c0 ((bool32 (__cdecl* )(LegoObject* liveObj, uint32 count, real32* param_3, real32* param_4, real32* param_5))0x004419c0)
 
 // <LegoRR.exe @00441c00>
-#define LegoObject_Route_UnkDoRouting_FUN_00441c00 ((void (__cdecl* )(LegoObject* liveObj, bool32 param_2))0x00441c00)
+#define LegoObject_Route_End ((void (__cdecl* )(LegoObject* liveObj, bool32 completed))0x00441c00)
 
 // <LegoRR.exe @00441df0>
 #define LegoObject_Interrupt ((void (__cdecl* )(LegoObject* liveObj, bool32 actStand, bool32 dropCarried))0x00441df0)
@@ -928,7 +986,7 @@ extern LegoObject_ListSet objectListSet;
 #define LegoObject_DestroyBoulder_AndCreateExplode ((void (__cdecl* )(LegoObject* liveObj))0x00442160)
 
 // <LegoRR.exe @00442190>
-#define LegoObject_Proc_FUN_00442190 ((bool32 (__cdecl* )(LegoObject* liveObj, LegoObject* targetObj, sint32 param_3))0x00442190)
+#define LegoObject_Proc_FUN_00442190 ((bool32 (__cdecl* )(LegoObject* liveObj, LegoObject* targetObj, WeaponKnownType knownWeapon))0x00442190)
 
 // <LegoRR.exe @00442390>
 #define LegoObject_GetWeaponUnk ((void (__cdecl* )(LegoObject* liveObj, WeaponKnownType knownWeapon))0x00442390)
@@ -954,11 +1012,13 @@ extern LegoObject_ListSet objectListSet;
 // <LegoRR.exe @00442800>
 #define LegoObject_GetWorldZCallback ((real32 (__cdecl* )(real32 xPos, real32 yPos, Map3D* map))0x00442800)
 
+// The same as `LegoObject_GetWorldZCallback`, but returns a lower Z value with over Lake terrain.
+// Objects wading in a lake (aka, not sailing) will have their Z lowered a bit, and have it at the lowest near the center of a lake BLOCK.
 // <LegoRR.exe @00442820>
 #define LegoObject_GetWorldZCallback_Lake ((real32 (__cdecl* )(real32 xPos, real32 yPos, Map3D* map))0x00442820)
 
 // <LegoRR.exe @004428b0>
-#define LegoObject_FUN_004428b0 ((void (__cdecl* )(LegoObject* liveObj, real32 xDir, real32 yDir))0x004428b0)
+#define LegoObject_UpdateRoutingVectors_FUN_004428b0 ((void (__cdecl* )(LegoObject* liveObj, real32 xDir, real32 yDir))0x004428b0)
 
 // <LegoRR.exe @00442b60>
 #define LegoObject_SetPositionAndHeading ((void (__cdecl* )(LegoObject* liveObj, real32 xPos, real32 yPos, real32 theta, bool32 assignHeading))0x00442b60)
@@ -966,11 +1026,16 @@ extern LegoObject_ListSet objectListSet;
 // <LegoRR.exe @00442dd0>
 #define LegoObject_FP_UpdateMovement ((sint32 (__cdecl* )(LegoObject* liveObj, real32 elapsed, OUT real32* transSpeed))0x00442dd0)
 
+// Recalculates the "sticky" position (and sometimes orientation) of an object based on the world.
+// This refers to behaviours that have objects snap to certain planes and face certain directions.
+// Example: All units' Z positions try to match the world's surface Z position.
 // <LegoRR.exe @00443240>
-#define LegoObject_RockFall_FUN_00443240 ((void (__cdecl* )(LegoObject* liveObj, real32 param_2))0x00443240)
+#define LegoObject_UpdateWorldStickyPosition ((void (__cdecl* )(LegoObject* liveObj, real32 elapsed))0x00443240)
 
+// Updates the sticky position/orientation of a vehicle's driver to match that of the vehicle.
+// REQUIRES: liveObj->vehicle != NULL and liveObj->driveObject != NULL
 // <LegoRR.exe @004437d0>
-#define LegoObject_UpdateDriverObjectPositions_FUN_004437d0 ((void (__cdecl* )(LegoObject* liveObj))0x004437d0)
+#define LegoObject_UpdateDriverStickyPosition ((void (__cdecl* )(LegoObject* drivenVehicleObj))0x004437d0)
 
 // <LegoRR.exe @00443930>
 #define LegoObject_TryWaiting ((bool32 (__cdecl* )(LegoObject* liveObj))0x00443930)
@@ -988,7 +1053,7 @@ extern LegoObject_ListSet objectListSet;
 #define LegoObject_CheckBlock_FUN_00443b00 ((bool32 (__cdecl* )(LegoObject* liveObj, const Point2I* blockPos, bool32* pAllowWall))0x00443b00)
 
 // <LegoRR.exe @00443b70>
-#define LegoObject_LargeFlagsSwitch_FUN_00443b70 ((void (__cdecl* )(LegoObject* liveObj, real32 param_2))0x00443b70)
+#define LegoObject_Route_UpdateMovement ((void (__cdecl* )(LegoObject* liveObj, real32 elapsed))0x00443b70)
 
 // <LegoRR.exe @00444360>
 #define LegoObject_TryDock_AtObject2FC ((void (__cdecl* )(LegoObject* liveObj))0x00444360)
@@ -1006,20 +1071,22 @@ extern LegoObject_ListSet objectListSet;
 #define LegoObject_DoSlip ((void (__cdecl* )(LegoObject* liveObj))0x004448e0)
 
 // <LegoRR.exe @00444940>
-#define LegoObject_RoutingUnk_FUN_00444940 ((bool32 (__cdecl* )(LegoObject* liveObj, sint32 param_2, sint32 param_3, sint32 param_4))0x00444940)
+#define LegoObject_RoutingUnk_FUN_00444940 ((bool32 (__cdecl* )(LegoObject* liveObj, bool32 useRoutingPos, bool32 flags3_8, bool32 notFlags1_10000))0x00444940)
 
 // <LegoRR.exe @00445270>
-#define LegoObject_FUN_00445270 ((void (__cdecl* )(LegoObject* liveObj, const Point2F* worldPos))0x00445270)
+#define LegoObject_FaceTowardsCamera ((void (__cdecl* )(LegoObject* liveObj, const Point2F* worldPos))0x00445270)
 
 // <LegoRR.exe @004454a0>
-#define LegoObject_FUN_004454a0 ((void (__cdecl* )(LegoObject* liveObj))0x004454a0)
+#define LegoObject_Route_CurveSolid_FUN_004454a0 ((void (__cdecl* )(LegoObject* liveObj))0x004454a0)
 
+// DATA: LegoObject** pOtherObj
 // <LegoRR.exe @00445600>
-#define LegoObject_Callback_FUN_00445600 ((bool32 (__cdecl* )(LegoObject* liveObj1, LegoObject** param_2))0x00445600)
+#define LegoObject_Callback_CurveSolidCollRadius_FUN_00445600 ((bool32 (__cdecl* )(LegoObject* liveObj1, void* pOtherObj))0x00445600)
 
 // <LegoRR.exe @00445860>
-#define LegoObject_FUN_00445860 ((bool32 (__cdecl* )(LegoObject* liveObj))0x00445860)
+#define LegoObject_Route_SolidBlockCheck_FUN_00445860 ((bool32 (__cdecl* )(LegoObject* liveObj))0x00445860)
 
+// Update scaring?
 // <LegoRR.exe @004459a0>
 #define LegoObject_FUN_004459a0 ((void (__cdecl* )(LegoObject* liveObj, real32 elapsed))0x004459a0)
 
@@ -1096,7 +1163,7 @@ extern LegoObject_ListSet objectListSet;
 #define LegoObject_MoveAnimation ((real32 (__cdecl* )(LegoObject* liveObj, real32 elapsed))0x00447df0)
 
 // <LegoRR.exe @00447f00>
-#define LegoObject_Container_ActivityUpdate_Check ((bool32 (__cdecl* )(LegoObject* liveObj))0x00447f00)
+#define LegoObject_UpdateActivityChange ((bool32 (__cdecl* )(LegoObject* liveObj))0x00447f00)
 
 // <LegoRR.exe @00448160>
 #define LegoObject_SimpleObject_FUN_00448160 ((void (__cdecl* )(LegoObject* liveObj, real32 elapsed))0x00448160)
@@ -1165,7 +1232,8 @@ extern LegoObject_ListSet objectListSet;
 #define LegoObject_TryGoEat_FUN_00449d80 ((bool32 (__cdecl* )(LegoObject* liveObj1, LegoObject* liveObj2))0x00449d80)
 
 // <LegoRR.exe @00449ec0>
-#define LegoObject_HideAllCertainObjects ((void (__cdecl* )(void))0x00449ec0)
+//#define LegoObject_HideAllCertainObjects ((void (__cdecl* )(void))0x00449ec0)
+void __cdecl LegoObject_HideAllCertainObjects(void);
 
 // <LegoRR.exe @00449ee0>
 #define LegoObject_FlocksCallback_FUN_00449ee0 ((void (__cdecl* )(Flocks* flockData, FlocksItem* subdata, void* data))0x00449ee0)
@@ -1223,13 +1291,15 @@ extern LegoObject_ListSet objectListSet;
 #define LegoObject_LoadObjTtsSFX ((void (__cdecl* )(const Gods98::Config* config, const char* gameName))0x0044af80)
 
 // <LegoRR.exe @0044b040>
-#define LegoObject_GetObjTtSFX ((sint32 (__cdecl* )(LegoObject* liveObj))0x0044b040)
+#define LegoObject_GetObjTtSFX ((SFX_ID (__cdecl* )(LegoObject* liveObj))0x0044b040)
 
 // <LegoRR.exe @0044b080>
-#define LegoObject_SetLevelEnding ((void (__cdecl* )(bool32 ending))0x0044b080)
+//#define LegoObject_SetLevelEnding ((void (__cdecl* )(bool32 ending))0x0044b080)
+void __cdecl LegoObject_SetLevelEnding(bool32 ending);
 
 // <LegoRR.exe @0044b0a0>
-#define LegoObject_FUN_0044b0a0 ((void (__cdecl* )(LegoObject* liveObj))0x0044b0a0)
+//#define LegoObject_FUN_0044b0a0 ((void (__cdecl* )(LegoObject* liveObj))0x0044b0a0)
+void __cdecl LegoObject_FUN_0044b0a0(LegoObject* liveObj);
 
 // <LegoRR.exe @0044b110>
 #define LegoObject_SpawnDropCrystals_FUN_0044b110 ((void (__cdecl* )(LegoObject* liveObj, sint32 crystalCount, bool32 param_3))0x0044b110)
@@ -1304,7 +1374,7 @@ extern LegoObject_ListSet objectListSet;
 #define LegoObject_UpdatePushing ((void (__cdecl* )(LegoObject* liveObj, real32 elapsed))0x0044c470)
 
 // <LegoRR.exe @0044c760>
-#define LegoObject_FUN_0044c760 ((void (__cdecl* )(LegoObject* liveObj))0x0044c760)
+#define LegoObject_TryEnterLaserTrackerMode ((void (__cdecl* )(LegoObject* liveObj))0x0044c760)
 
 // <LegoRR.exe @0044c7c0>
 #define LegoObject_Callback_UnkLaserTrackerToggleUnset_FUN_0044c7c0 ((bool32 (__cdecl* )(LegoObject* liveObj, void* unused))0x0044c7c0)

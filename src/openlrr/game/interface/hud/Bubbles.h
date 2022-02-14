@@ -109,8 +109,9 @@ extern Bubble_Globs & bubbleGlobs;
 // <LegoRR.exe @004072a0>
 #define Bubble_LiveObject_UpdateBubbleImage ((void (__cdecl* )(LegoObject* liveObj))0x004072a0)
 
+// Remove references from the bubble tables that match the specified object.
 // <LegoRR.exe @004072d0>
-#define Bubble_LiveObject_FUN_004072d0 ((void (__cdecl* )(LegoObject* liveObj))0x004072d0)
+#define Bubble_RemoveObjectReferences ((void (__cdecl* )(LegoObject* liveObj))0x004072d0)
 
 // <LegoRR.exe @00407340>
 #define Bubble_LiveObject_FUN_00407340 ((void (__cdecl* )(LegoObject* liveObj))0x00407340)

@@ -44,6 +44,13 @@ typedef void (__cdecl* FlocksCallback)(Flocks* flocks, FlocksItem*, void* data);
 
 #pragma region Enums
 
+enum FlocksFlags : uint32
+{
+	FLOCKS_FLAG_NONE  = 0,
+	FLOCKS_FLAG_UNK_1 = 0x1,
+};
+flags_end(FlocksFlags, 0x4);
+
 #pragma endregion
 
 /**********************************************************************************
@@ -89,7 +96,7 @@ struct Flocks // [LegoRR/Flocks.c|struct:0x28] The singular flocks unit, which h
 	/*18,4*/	undefined4 field_18;
 	/*1c,4*/	undefined4 field_1c;
 	/*20,4*/	undefined4 field_20;
-	/*24,4*/	undefined4 field_24;
+	/*24,4*/	FlocksFlags flags;
 	/*28*/
 };
 assert_sizeof(Flocks, 0x28);
@@ -185,7 +192,7 @@ extern Flocks_Globs & flocksGlobs;
 #define Flocks_Callback_FUN_0040fe00 ((void (__cdecl* )(Flocks* flocksData, FlocksItem* subdata, real32* param_3))0x0040fe00)
 
 // <LegoRR.exe @0040fe80>
-#define Flocks_FUN_0040fe80 ((void (__cdecl* )(Flocks* flocksData, real32 param_2))0x0040fe80)
+#define Flocks_FUN_0040fe80 ((void (__cdecl* )(Flocks* flocksData, real32 randomness))0x0040fe80)
 
 // <LegoRR.exe @0040fea0>
 #define Flocks_SetParameters1 ((void (__cdecl* )(Flocks* flocksData, real32 turn, real32 speed, real32 tightness))0x0040fea0)

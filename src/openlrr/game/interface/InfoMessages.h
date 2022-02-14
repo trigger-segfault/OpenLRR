@@ -199,12 +199,14 @@ __inline bool32 Info_IsAutoGameSpeed(void) { return (infoGlobs.flags & INFO_GLOB
 // <LegoRR.exe @004196e0>
 #define Info_RemoveMessageInstance ((InfoMessageInstance* (__cdecl* )(sint32 handle, sint32 instanceIndex))0x004196e0)
 
+// Finds the index of the InfoMessageInstance that references the specified object.
 // DATA: SearchInfoObject_8*
 // <LegoRR.exe @00419740>
-#define Info_LiveObject_Release_internal_FUN_00419740 ((bool32 (__cdecl* )(InfoMessageInstance* instance, void* search))0x00419740)
+#define Info_Callback_FindObjectReference ((bool32 (__cdecl* )(InfoMessageInstance* instance, void* search))0x00419740)
 
+// Removes all info messages referencing the specified object.
 // <LegoRR.exe @00419760>
-#define Info_RemoveAllForObject ((void (__cdecl* )(LegoObject* liveObj))0x00419760)
+#define Info_RemoveObjectReferences ((void (__cdecl* )(LegoObject* liveObj))0x00419760)
 
 // DATA: SearchInfoBlockPos_8*
 // <LegoRR.exe @004197f0>

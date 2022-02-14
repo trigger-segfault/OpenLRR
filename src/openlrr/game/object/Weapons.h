@@ -28,6 +28,9 @@ namespace LegoRR
 #define WEAPON_MAXWEAPONS			3
 #define WEAPON_MAXFIRES				2
 
+#define WEAPON_MAXLAZERS			10
+#define WEAPON_MAXPROJECTILES		10
+
 #pragma endregion
 
 /**********************************************************************************
@@ -35,16 +38,6 @@ namespace LegoRR
  **********************************************************************************/
 
 #pragma region Enums
-
-enum WeaponKnownType : uint32
-{
-	WEAPONKNOWN_UNK_0   = 0,
-	WEAPONKNOWN_LAZER_1 = 1,
-	WEAPONKNOWN_PUSHER  = 2,
-	WEAPONKNOWN_FREEZER = 3,
-	WEAPONKNOWN_LAZER_4 = 4,
-};
-assert_sizeof(WeaponKnownType, 0x4);
 
 #pragma endregion
 
@@ -139,8 +132,8 @@ struct Weapon_Globs // [LegoRR/Weapons.c|struct:0x1b90|tags:GLOBS]
 	/*0000,4*/	uint32 weaponCount;
 	/*0004,4*/	char** weaponNameList;
 	/*0008,4*/	WeaponStats* weaponStatsList;
-	/*000c,a0*/	Weapon_Lazer lazerList[10];
-	/*00ac,1ae0*/	Weapon_Projectile projectileList[10];
+	/*000c,a0*/	Weapon_Lazer lazerList[WEAPON_MAXLAZERS];
+	/*00ac,1ae0*/	Weapon_Projectile projectileList[WEAPON_MAXPROJECTILES];
 	/*1b8c,4*/	Gods98::Config* config;
 	/*1b90*/
 };
@@ -317,8 +310,10 @@ extern Weapon_Globs & weaponGlobs;
 // <LegoRR.exe @00472280>
 #define Weapon_LegoObject_UpdateTracker ((bool32 (__cdecl* )(LegoObject* liveObj, real32 elapsed))0x00472280)
 
+// Removes the projectile reference if it matches the specified object.
+// DATA: LegoObject* projectileObj
 // <LegoRR.exe @00472320>
-#define Weapon_LegoObject_ClearProjectileObjectIfMatch ((bool32 (__cdecl* )(LegoObject* liveObj, LegoObject* projectileObj))0x00472320)
+#define Weapon_Callback_RemoveProjectileReference ((bool32 (__cdecl* )(LegoObject* liveObj, void* projectileObj))0x00472320)
 
 // <LegoRR.exe @00472340>
 #define Weapon_LegoObject_WithinWeaponRange ((bool32 (__cdecl* )(LegoObject* liveObj, LegoObject* otherObj))0x00472340)

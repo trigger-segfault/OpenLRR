@@ -185,8 +185,9 @@ void __cdecl LegoRR::Message_AddMessageAction(Message_Type messageType, LegoObje
 //void __cdecl LegoRR::Message_PTL_PickRandomFloor(LegoObject* liveObj);
 
 // <LegoRR.exe @00452770>
-//void __cdecl LegoRR::Message_LiveObject_FUN_00452770(LegoObject* liveObj);
+//void __cdecl LegoRR::Message_RemoveObjectReference(LegoObject* liveObj);
 
+// Allocates and outputs a copied list of all currently selected units.
 // <LegoRR.exe @004527e0>
 bool32 __cdecl LegoRR::Message_CopySelectedUnits(OUT LegoObject*** unitsList, OUT uint32* unitsCount)
 {
@@ -263,10 +264,10 @@ bool32 __cdecl LegoRR::Message_FindIndexOfObject(LegoObject** objsTable, uint32 
 //bool32 __cdecl LegoRR::Message_LiveObject_Check_FUN_00452950(LegoObject* liveObj);
 
 // <LegoRR.exe @00452980>
-//bool32 __cdecl LegoRR::Message_PTL_Select_LiveObject(LegoObject* liveObj, sint32 param_2);
+//bool32 __cdecl LegoRR::Message_PTL_Select_LiveObject(LegoObject* liveObj, bool32 noDoubleSelect);
 
 // <LegoRR.exe @004529a0>
-//bool32 __cdecl LegoRR::Message_LiveObject_DoSelect_FUN_004529a0(LegoObject* liveObj, bool32 param_2, bool32 param_3);
+//bool32 __cdecl LegoRR::Message_LiveObject_DoSelect_FUN_004529a0(LegoObject* liveObj, bool32 noDoubleSelect, bool32 interrupt);
 
 // <LegoRR.exe @00452b30>
 //bool32 __cdecl LegoRR::Message_LiveObject_Check_FUN_00452b30(LegoObject* liveObj);

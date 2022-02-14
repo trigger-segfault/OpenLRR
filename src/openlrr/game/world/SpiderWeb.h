@@ -98,7 +98,7 @@ extern SpiderWeb_Globs & spiderwebGlobs;
 #define SpiderWeb_Shutdown ((void (__cdecl* )(void))0x004664d0)
 
 // <LegoRR.exe @004664f0>
-#define SpiderWeb_ResetAll ((void (__cdecl* )(Lego_Level* level))0x004664f0)
+#define SpiderWeb_Restart ((void (__cdecl* )(Lego_Level* level))0x004664f0)
 
 // <LegoRR.exe @00466510>
 #define SpiderWeb_SpawnAt ((bool32 (__cdecl* )(uint32 bx, uint32 by))0x00466510)

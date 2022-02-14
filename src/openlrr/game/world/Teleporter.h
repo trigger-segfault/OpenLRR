@@ -123,13 +123,13 @@ extern bool32 & g_Teleporter_BOOL_00504188;
 
 #pragma region Functions
 
-// Previously named Teleporter_Free (old name conflict with "Teleporter_RemoveAll", now ResetAll).
+// Previously named Teleporter_Free (old name conflict with "Teleporter_RemoveAll", now Restart).
 // <LegoRR.exe @0046a630>
 #define Teleporter_RemoveAll ((void (__cdecl* )(TeleporterService* teleporter))0x0046a630)
 
 // Previously named Teleporter_RemoveAll (old name conflict with "Teleporter_Free", now RemoveAll).
 // <LegoRR.exe @0046a650>
-#define Teleporter_ResetAll ((void (__cdecl* )(void))0x0046a650)
+#define Teleporter_Restart ((void (__cdecl* )(void))0x0046a650)
 
 // DATA: SearchTeleporter_10*
 // <LegoRR.exe @0046a680>

@@ -94,24 +94,24 @@ bool32 __cdecl LegoRR::Lego_Initialise(void)
 
 	legoGlobs.DragBoxRGB = ColourRGBF { 0.2f, 0.7f, 1.0f }; // { 51, 178.5, 255 }
 
-	Lego_RegisterSurfaceName(Lego_SurfaceType_Tunnel);
-	Lego_RegisterSurfaceName(Lego_SurfaceType_Immovable);
-	Lego_RegisterSurfaceName(Lego_SurfaceType_Hard);
-	Lego_RegisterSurfaceName(Lego_SurfaceType_Medium);
-	Lego_RegisterSurfaceName(Lego_SurfaceType_Loose);
-	Lego_RegisterSurfaceName(Lego_SurfaceType_Soil);
-	Lego_RegisterSurfaceName(Lego_SurfaceType_Lava);
-	Lego_RegisterSurfaceName(Lego_SurfaceType_Water);
-	Lego_RegisterSurfaceName(Lego_SurfaceType_OreSeam);
-	Lego_RegisterSurfaceName(Lego_SurfaceType_Lake);
-	Lego_RegisterSurfaceName(Lego_SurfaceType_CrystalSeam);
-	Lego_RegisterSurfaceName(Lego_SurfaceType_RechargeSeam);
-	Lego_RegisterSurfaceName(Lego_SurfaceType_Rubble);
-	Lego_RegisterSurfaceName(Lego_SurfaceType_Reinforcement);
-	Lego_RegisterSurfaceName(Lego_SurfaceType_Path);
-	Lego_RegisterSurfaceName(Lego_SurfaceType_SlugHole);
-	Lego_RegisterSurfaceName(Lego_SurfaceType_Undiscovered);
-	Lego_RegisterSurfaceName(Lego_SurfaceType_Cavern);
+	SurfaceType_RegisterName(Lego_SurfaceType_Tunnel);
+	SurfaceType_RegisterName(Lego_SurfaceType_Immovable);
+	SurfaceType_RegisterName(Lego_SurfaceType_Hard);
+	SurfaceType_RegisterName(Lego_SurfaceType_Medium);
+	SurfaceType_RegisterName(Lego_SurfaceType_Loose);
+	SurfaceType_RegisterName(Lego_SurfaceType_Soil);
+	SurfaceType_RegisterName(Lego_SurfaceType_Lava);
+	SurfaceType_RegisterName(Lego_SurfaceType_Water);
+	SurfaceType_RegisterName(Lego_SurfaceType_OreSeam);
+	SurfaceType_RegisterName(Lego_SurfaceType_Lake);
+	SurfaceType_RegisterName(Lego_SurfaceType_CrystalSeam);
+	SurfaceType_RegisterName(Lego_SurfaceType_RechargeSeam);
+	SurfaceType_RegisterName(Lego_SurfaceType_Rubble);
+	SurfaceType_RegisterName(Lego_SurfaceType_Reinforcement);
+	SurfaceType_RegisterName(Lego_SurfaceType_Path);
+	SurfaceType_RegisterName(Lego_SurfaceType_SlugHole);
+	SurfaceType_RegisterName(Lego_SurfaceType_Undiscovered);
+	SurfaceType_RegisterName(Lego_SurfaceType_Cavern);
 
 	for (uint32 surfaceIdx_unused = 0; surfaceIdx_unused < Lego_SurfaceType_Count; surfaceIdx_unused++) {
 		// Debug checks (can be found in Fallin/RockFall(?) beta)
@@ -127,8 +127,7 @@ bool32 __cdecl LegoRR::Lego_Initialise(void)
 
 	Gods98::Image_Initialise();
 
-	// No argument actually passed, just problem with variadic functions not allowing zero args.
-	//util::logf_removed();
+	//Gods98::TextWindow_Initialise(); // Determined using RockFall beta (function does nothing).
 
 	RadarMap_Initialise();
 	Panel_Initialise();
@@ -500,6 +499,8 @@ bool32 __cdecl LegoRR::Lego_Initialise(void)
 		Encyclopedia_Initialise(legoConfig, legoGlobs.gameName);
 		LegoObject_LoadObjTtsSFX(legoConfig, legoGlobs.gameName);
 		Weapon_Initialise(legoConfig, legoGlobs.gameName);
+
+		//Editor_OpenHelpTextFile(); // RockFall beta @004101a0, opens file "Information\\Help\\EditorHelp.txt"
 
 		legoGlobs.viewMode = ViewMode_Top;
 		
@@ -1681,7 +1682,7 @@ void __cdecl LegoRR::Lego_Shutdown_Full(void)
 	}
 	Loader_Shutdown(loaderProfileName);
 
-	//util::logf_removed(); // Probably an empty module Shutdown function (like Font?)
+	//Gods98::TextWindow_Shutdown(); // Determined using RockFall beta (function does nothing).
 
 	Gods98::Image_Shutdown();
 	Gods98::Lws_Shutdown();

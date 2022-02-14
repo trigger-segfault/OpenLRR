@@ -128,10 +128,14 @@ void __cdecl Message_AddMessageAction(Message_Type messageType, LegoObject* argu
 #define Message_PTL_PickRandomFloor ((void (__cdecl* )(LegoObject* liveObj))0x004526f0)
 //void __cdecl Message_PTL_PickRandomFloor(LegoObject* liveObj);
 
+// Remove object from selection.
+// Cancel first-person view if this is the objectFP.
+// And clear the camera tracker reference to this object.
 // <LegoRR.exe @00452770>
-#define Message_LiveObject_FUN_00452770 ((void (__cdecl* )(LegoObject* liveObj))0x00452770)
-//void __cdecl Message_LiveObject_FUN_00452770(LegoObject* liveObj);
+#define Message_RemoveObjectReference ((void (__cdecl* )(LegoObject* liveObj))0x00452770)
+//void __cdecl Message_RemoveObjectReference(LegoObject* liveObj);
 
+// Allocates and outputs a copied list of all currently selected units.
 // <LegoRR.exe @004527e0>
 bool32 __cdecl Message_CopySelectedUnits(OUT LegoObject*** unitsList, OUT uint32* unitsCount);
 
@@ -160,17 +164,20 @@ void __cdecl Message_CleanupSelectedUnitsCount(void);
 // <LegoRR.exe @00452910>
 bool32 __cdecl Message_FindIndexOfObject(LegoObject** objsTable, uint32 objsCount, LegoObject* thisObj, OPTIONAL OUT uint32* index);
 
+// Used to check for double-selection of unit to enter laser tracker mode.
 // <LegoRR.exe @00452950>
 #define Message_LiveObject_Check_FUN_00452950 ((bool32 (__cdecl* )(LegoObject* liveObj))0x00452950)
 //bool32 __cdecl Message_LiveObject_Check_FUN_00452950(LegoObject* liveObj);
 
+// Used to check for double-selection of unit to enter laser tracker mode.
 // <LegoRR.exe @00452980>
-#define Message_PTL_Select_LiveObject ((bool32 (__cdecl* )(LegoObject* liveObj, sint32 param_2))0x00452980)
-//bool32 __cdecl Message_PTL_Select_LiveObject(LegoObject* liveObj, sint32 param_2);
+#define Message_PTL_Select_LiveObject ((bool32 (__cdecl* )(LegoObject* liveObj, bool32 noDoubleSelect))0x00452980)
+//bool32 __cdecl Message_PTL_Select_LiveObject(LegoObject* liveObj, bool32 noDoubleSelect);
 
+// When noDoubleSelect is false, it's possible to double-click and enter laser tracker mode.
 // <LegoRR.exe @004529a0>
-#define Message_LiveObject_DoSelect_FUN_004529a0 ((bool32 (__cdecl* )(LegoObject* liveObj, bool32 param_2, bool32 param_3))0x004529a0)
-//bool32 __cdecl Message_LiveObject_DoSelect_FUN_004529a0(LegoObject* liveObj, bool32 param_2, bool32 param_3);
+#define Message_LiveObject_DoSelect_FUN_004529a0 ((bool32 (__cdecl* )(LegoObject* liveObj, bool32 noDoubleSelect, bool32 interrupt))0x004529a0)
+//bool32 __cdecl Message_LiveObject_DoSelect_FUN_004529a0(LegoObject* liveObj, bool32 noDoubleSelect, bool32 interrupt);
 
 // <LegoRR.exe @00452b30>
 #define Message_LiveObject_Check_FUN_00452b30 ((bool32 (__cdecl* )(LegoObject* liveObj))0x00452b30)

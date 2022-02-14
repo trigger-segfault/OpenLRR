@@ -399,7 +399,7 @@ real32 __cdecl StatsObject_GetAttackRadius(LegoObject* liveObj);
 real32 __cdecl StatsObject_GetStampRadius(LegoObject* liveObj);
 
 // <LegoRR.exe @0046a320>
-sint32 __cdecl StatsObject_GetNumOfToolsCanCarry(LegoObject* liveObj);
+uint32 __cdecl StatsObject_GetNumOfToolsCanCarry(LegoObject* liveObj);
 
 // <LegoRR.exe @0046a340>
 real32 __cdecl StatsObject_GetUpgradeTime(LegoObject* liveObj);

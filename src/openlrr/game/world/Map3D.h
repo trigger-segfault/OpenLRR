@@ -158,12 +158,11 @@ extern Point2I (& s_SurfaceMap_Points10)[10];
 /**
  * @brief Gets the 1D index of a map's block3D at the specified 2D coordinates.
  */
-#define mapBlockIndex(m, bx, by)		(((m)->gridWidth*(uint32)(by))+(uint32)(bx))
+#define mapBlockIndex(m, bx, by)		(((m)->gridWidth*(by))+(bx))
 /**
  * @brief Gets the map's block3D at the specified 2D coordinates.
  */
 #define mapBlockValue(m, bx, by)		((m)->blocks3D[mapBlockIndex((m),(bx),(by))])
-//#define mapBlockValue(m, bx, by)		((m)->blocks3D[((m)->gridWidth * (uint32)(by)) + (uint32)(bx)])
 
 #pragma endregion
 

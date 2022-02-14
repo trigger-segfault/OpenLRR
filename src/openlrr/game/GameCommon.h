@@ -908,13 +908,26 @@ enum LegoObject_ToolType : sint32
 	LegoObject_ToolType_PusherGun   = 5,
 	LegoObject_ToolType_BirdScarer  = 6,
 	LegoObject_ToolType_FreezerGun  = 7,
-	//LegoObject_ToolType_unused_8    = 8,
-	//LegoObject_ToolType_unused_9    = 9,
-	//LegoObject_ToolType_unused_10   = 10,
+	
+	// Special tool types that are carried but not equipped
+	LegoObject_ToolType_Barrier     = 8,
+	LegoObject_ToolType_Dynamite    = 9,
+	LegoObject_ToolType_CryOre      = 10, // PowerCrystals and Ore
 
-	LegoObject_ToolType_Count = 11, // true max count
+	LegoObject_ToolType_Count, // = 11,
 };
 assert_sizeof(LegoObject_ToolType, 0x4);
+
+
+enum WeaponKnownType : uint32
+{
+	WEAPONKNOWN_UNK_0   = 0,
+	WEAPONKNOWN_LAZER_1 = 1,
+	WEAPONKNOWN_PUSHER  = 2,
+	WEAPONKNOWN_FREEZER = 3,
+	WEAPONKNOWN_LAZER_4 = 4,
+};
+assert_sizeof(WeaponKnownType, 0x4);
 
 
 enum LegoObject_AbilityType : sint32

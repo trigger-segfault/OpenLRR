@@ -97,8 +97,9 @@ extern Encyclopedia_Globs & encyclopediaGlobs;
 // <LegoRR.exe @0040e800>
 #define Encyclopedia_DrawSelectBox ((void (__cdecl* )(Gods98::Viewport* viewMain))0x0040e800)
 
+// Removes the current encyclopedia object if it matches the specified object.
 // <LegoRR.exe @0040e840>
-#define Encyclopedia_LiveObject_ClearPtr_004c8ea4_IfEqual ((void (__cdecl* )(LegoObject* liveObj))0x0040e840)
+#define Encyclopedia_RemoveCurrentReference ((void (__cdecl* )(LegoObject* liveObj))0x0040e840)
 
 #pragma endregion
 

@@ -515,7 +515,7 @@ struct Lego_Globs // [LegoRR/Lego.c|struct:0xf00|tags:GLOBS]
 	/*130,4*/       char** rockMonsterName;
 	/*134,4*/       char** buildingName;
 	/*138,4*/       char** upgradeName;
-	/*13c,2c*/      char* toolName[LegoObject_ToolType_Count];
+	/*13c,2c*/      const char* toolName[LegoObject_ToolType_Count];
 	/*168,2c*/      char* langTool_name[LegoObject_ToolType_Count];
 	/*194,4*/       char** langVehicle_name;
 	/*198,4*/       char** langMiniFigure_name;
@@ -724,16 +724,15 @@ extern Lego_Globs & legoGlobs;
 /**
  * @brief Gets the 1D index of a level's block at the specified 2D coordinates.
  */
-#define blockIndex(l, bx, by)			(((l)->width*(uint32)(by))+(uint32)(bx))
+#define blockIndex(l, bx, by)			(((l)->width*(by))+(bx))
 /**
  * @brief Gets the level's block at the specified 2D coordinates.
  */
 #define blockValue(l, bx, by)			((l)->blocks[blockIndex((l),(bx),(by))])
-//#define blockValue(l, bx, by)			((l)->blocks[((l)->width*(uint32)(by))+(uint32)(bx)])
 
 
-#define Lego_RegisterSurfaceName(n)		(legoGlobs.surfaceName[n]=#n)
-#define Lego_RegisterToolName(n)		(legoGlobs.toolName[n]=#n)
+#define SurfaceType_RegisterName(n)		(legoGlobs.surfaceName[n]=#n)
+#define ToolType_RegisterName(n)		(legoGlobs.toolName[n]=#n)
 
 #define Lego_ID(...) Config_ID(legoGlobs.gameName, __VA_ARGS__ )
 #define Main_ID(...) Config_ID(legoGlobs.gameName, "Main", __VA_ARGS__ )
@@ -947,10 +946,12 @@ __inline void __cdecl Lego_GetMouseWorldPosition(OUT Vector3F* vector) { *vector
 #define Lego_LoadUpgradeNames ((void (__cdecl* )(const Gods98::Config* config))0x00427eb0)
 
 // <LegoRR.exe @00427f50>
-#define Lego_ShowObjectToolTip ((void (__cdecl* )(LegoObject* liveObj))0x00427f50)
+//#define Lego_ShowObjectToolTip ((void (__cdecl* )(LegoObject* liveObj))0x00427f50)
+void __cdecl Lego_ShowObjectToolTip(LegoObject* liveObj);
 
 // <LegoRR.exe @00428260>
 #define Lego_ShowBlockToolTip ((void (__cdecl* )(const Point2I* mouseBlockPos, bool32 showConstruction, bool32 silent, bool32 showCavern))0x00428260)
+//void __cdecl Lego_ShowBlockToolTip(const Point2I* mouseBlockPos, bool32 showConstruction, bool32 silent, bool32 showCavern);
 
 // <LegoRR.exe @004286b0>
 #define Level_BlockPointerCheck ((bool32 (__cdecl* )(const Point2I* blockPos))0x004286b0)
@@ -1225,7 +1226,7 @@ __inline Map3D* Lego_GetMap(void) { return Lego_GetLevel()->map; }
 #define Level_BlockCheck_SelectPlace_FUN_00431a50 ((bool32 (__cdecl* )(sint32 bx, sint32 by, bool32 param_3, bool32 param_4))0x00431a50)
 
 // <LegoRR.exe @00431ba0>
-#define LiveObject_FUN_00431ba0 ((bool32 (__cdecl* )(LegoObject* liveObj, const Point2I* param_2, OUT Point2I* point, bool32 param_4))0x00431ba0)
+#define LiveObject_FUN_00431ba0 ((bool32 (__cdecl* )(LegoObject* liveObj, const Point2I* blockPos, OUT Point2I* blockOffPos, bool32 param_4))0x00431ba0)
 
 // <LegoRR.exe @00431cd0>
 #define Lego_GetCrossTerrainType ((sint32 (__cdecl* )(LegoObject* liveObj, sint32 bx1, sint32 by1, sint32 bx2, sint32 by2, bool32 param_6))0x00431cd0)
@@ -1285,7 +1286,7 @@ __inline Map3D* Lego_GetMap(void) { return Lego_GetLevel()->map; }
 #define Level_Block_SetPath ((bool32 (__cdecl* )(const Point2I* blockPos))0x00432530)
 
 // <LegoRR.exe @00432640>
-#define Level_Block_SetFlags1_80000 ((void (__cdecl* )(const Point2I* blockPos, bool32 condition))0x00432640)
+#define Level_Block_SetBusyFloor ((void (__cdecl* )(const Point2I* blockPos, bool32 busyFloor))0x00432640)
 
 // <LegoRR.exe @004326a0>
 #define LiveObject_BlockCheck_FUN_004326a0 ((bool32 (__cdecl* )(LegoObject* liveObj, uint32 bx, uint32 by, bool32 param_4, bool32 param_5))0x004326a0)
