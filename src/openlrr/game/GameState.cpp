@@ -954,6 +954,34 @@ bool32 __cdecl LegoRR::Lego_MainLoop(real32 elapsed)
 		elapsedWorld = 1.0f;
 	}*/
 
+
+	/// BETA: RockFall. Restore FPS and Memory monitors.
+	static uint32 sMonitorFramesCountUp = 0;
+	static uint32 sFpsTimeGet = 0;
+
+	/// FIX APPLY: Respect the firstTick flag, rather than rely on yet another static variable.
+	if (firstTick) {
+		sMonitorFramesCountUp = 0;
+		sFpsTimeGet = Gods98::Main_GetTime();
+	}
+	if (++sMonitorFramesCountUp >= 200) {
+		const real32 timeDiff = (real32)(Gods98::Main_GetTime() - sFpsTimeGet);
+		if (legoGlobs.flags1 & GAME1_SHOWFPS) {
+			Gods98::TextWindow_PrintF(legoGlobs.textWnd_80, "\nFPS: %f", (double)(1.0f / ((timeDiff / 1000.0f) / 200.0f)));
+		}
+
+		if (legoGlobs.flags1 & GAME1_SHOWMEMORY) {
+			uint32 totalMem, freeMem;
+			if (Gods98::DirectDraw_GetAvailTextureMem(&totalMem, &freeMem)) {
+				Gods98::TextWindow_PrintF(legoGlobs.textWnd_80, "\nTexture mem: %i avail: %i used: %i", totalMem, freeMem, totalMem - freeMem);
+			}
+		}
+
+		sMonitorFramesCountUp = 0;
+		sFpsTimeGet = Gods98::Main_GetTime();
+	}
+
+
 	// Output keyDown* parameters are later used by `Lego_unkGameLoop_FUN_00426450`.
 	bool32 dontExit = Lego_HandleKeys(elapsedWorld, elapsedInterface, &keyDownT, &keyDownR, &keyDownAnyShift);
 	if (!dontExit)
@@ -1563,6 +1591,32 @@ bool32 __cdecl LegoRR::Lego_MainLoop(real32 elapsed)
 		}
 
 		Panel_AirMeter_SetOxygenLow(true);
+	}
+
+	/// BETA: RockFall. Show listset counts using the F8 key.
+	/// CHANGE: Instead of holding F8, F8 is now a toggle.
+	static bool sShowListSets = false;
+	if (legoGlobs.flags2 & GAME2_ALLOWDEBUGKEYS) {
+		if (Input_IsKeyPressed(Keys::KEY_F8)) {
+			sShowListSets = !sShowListSets;
+		}
+		if (sShowListSets) {
+			uint32 row = 0;
+			const uint32 r = 12;
+			Gods98::Font_PrintF(legoGlobs.bmpToolTipFont, 100, 100+r*(row++), "AITasks %i", (sint32)aiListSet.EnumerateAlive().Count());
+			Gods98::Font_PrintF(legoGlobs.bmpToolTipFont, 100, 100+r*(row++), "EFences %i", (sint32)efenceListSet.EnumerateAlive().Count());
+			Gods98::Font_PrintF(legoGlobs.bmpToolTipFont, 100, 100+r*(row++), "Objects %i", (sint32)objectListSet.EnumerateAlive().Count());
+			// `CountAlive()` can only be used when we are SURE we've hooked
+			// and replaced all functions creating and removing listset items.
+			// Keeping the game module functions as `EnumerateAlive().Count()`, will
+			//  allow hooking and unhooking them without having to go back and change this.
+			Gods98::Font_PrintF(legoGlobs.bmpToolTipFont, 100, 100+r*(row++), "Configs %i", (sint32)Gods98::configListSet.CountAlive());
+			Gods98::Font_PrintF(legoGlobs.bmpToolTipFont, 100, 100+r*(row++), "Containers %i", (sint32)Gods98::containerListSet.CountAlive());
+			Gods98::Font_PrintF(legoGlobs.bmpToolTipFont, 100, 100+r*(row++), "Fonts %i", (sint32)Gods98::fontListSet.CountAlive());
+			Gods98::Font_PrintF(legoGlobs.bmpToolTipFont, 100, 100+r*(row++), "Images %i", (sint32)Gods98::imageListSet.CountAlive());
+			Gods98::Font_PrintF(legoGlobs.bmpToolTipFont, 100, 100+r*(row++), "Meshes %i", (sint32)Gods98::meshListSet.CountAlive());
+			Gods98::Font_PrintF(legoGlobs.bmpToolTipFont, 100, 100+r*(row++), "Viewports %i", (sint32)Gods98::viewportListSet.CountAlive());
+		}
 	}
 
 
