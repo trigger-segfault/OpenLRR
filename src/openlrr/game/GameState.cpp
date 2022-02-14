@@ -964,7 +964,7 @@ bool32 __cdecl LegoRR::Lego_MainLoop(real32 elapsed)
 	}
 
 
-	AITask_Update(elapsedWorld);
+	AITask_UpdateAll(elapsedWorld);
 	Level_UpdateEffects(legoGlobs.currLevel, elapsedWorld);
 
 	DamageFont_UpdateAll(elapsedInterface);

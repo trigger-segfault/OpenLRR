@@ -44,6 +44,7 @@
 #include "game/front/FrontEnd.h"
 #include "game/interface/Advisor.h"
 #include "game/interface/Messages.h"
+#include "game/object/AITask.h"
 #include "game/object/BezierCurve.h"
 #include "game/object/Object.h"
 #include "game/object/Stats.h"
@@ -1513,6 +1514,36 @@ bool interop_hook_LegoRR_Advisor(void)
 	return_interop(result);
 }
 
+bool interop_hook_LegoRR_AITask(void)
+{   bool result = true;
+
+	// used by: Priorities_LoadImages, Priorities_LoadLevel
+	result &= hook_write_jmpret(0x00401bf0, LegoRR::AIPriority_GetType);
+
+	// used by: Lego_Initialise
+	result &= hook_write_jmpret(0x00401c30, LegoRR::AITask_Initialise);
+
+	// used by: Lego_Shutdown_Full
+	result &= hook_write_jmpret(0x00402000, LegoRR::AITask_Shutdown);
+
+	// internal, no need to hook these
+	// used by: AITask_Remove
+	//result &= hook_write_jmpret(0x00402c00, LegoRR::AITask_RemoveGetToolReferences);
+
+	// used by: AITask
+	result &= hook_write_jmpret(0x00406330, LegoRR::AITask_Clone);
+	result &= hook_write_jmpret(0x00406370, LegoRR::AITask_Create);
+	result &= hook_write_jmpret(0x004063b0, LegoRR::AITask_Remove);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x004063f0, LegoRR::AITask_AddList);
+
+	// used by: AITask
+	result &= hook_write_jmpret(0x00406470, LegoRR::AITask_RunThroughLists);
+	
+	return_interop(result);
+}
+
 bool interop_hook_LegoRR_Credits(void)
 {   bool result = true;
 
@@ -1877,6 +1908,7 @@ bool interop_hook_all(void)
 
 
 	result &= interop_hook_LegoRR_Advisor();
+	result &= interop_hook_LegoRR_AITask();
 	result &= interop_hook_LegoRR_BezierCurve();
 	result &= interop_hook_LegoRR_Credits();
 	result &= interop_hook_LegoRR_LegoCamera();
