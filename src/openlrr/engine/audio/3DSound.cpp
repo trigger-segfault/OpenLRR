@@ -61,6 +61,7 @@ bool32 __cdecl Gods98::Sound3D_Initialise(HWND hwndParent)
 				// Create a primary buffer so we can query for a 3D Listener interface
 				std::memset( &dsbd, 0, sizeof(DSBUFFERDESC) );
 				dsbd.dwSize = sizeof(DSBUFFERDESC);
+				// Don't use `DSBCAPS_GLOBALFOCUS` here, it disables all sound output.
 				dsbd.dwFlags = DSBCAPS_PRIMARYBUFFER | DSBCAPS_CTRL3D | DSBCAPS_CTRLVOLUME;
 				if( lpDSnd()->CreateSoundBuffer(&dsbd, &sound3DGlobs.lpDSBuff, nullptr) == DS_OK)
 				{					
@@ -988,7 +989,9 @@ bool32 __cdecl Gods98::Sound3D_CreateSoundBuffer(Sound3D_SoundData* sound, bool3
 
 	std::memset( &dsbuf, 0, sizeof(DSBUFFERDESC) );
 	dsbuf.dwSize = sizeof(DSBUFFERDESC);
-	dsbuf.dwFlags = DSBCAPS_CTRLPAN | DSBCAPS_CTRLVOLUME | DSBCAPS_CTRLFREQUENCY | DSBCAPS_CTRL3D | DSBCAPS_STATIC | DSBCAPS_MUTE3DATMAXDISTANCE;
+	// FIX APPLY: Use `DSBCAPS_GLOBALFOCUS` so that non-streamed sounds can play without window focus.
+	dsbuf.dwFlags = DSBCAPS_CTRLPAN | DSBCAPS_CTRLVOLUME | DSBCAPS_CTRLFREQUENCY | DSBCAPS_CTRL3D |
+					DSBCAPS_STATIC | DSBCAPS_MUTE3DATMAXDISTANCE | DSBCAPS_GLOBALFOCUS;
 	dsbuf.dwBufferBytes = sound->size;
 	dsbuf.lpwfxFormat = sound->pwf;
 
@@ -1192,7 +1195,9 @@ bool32 __cdecl Gods98::Sound3D_Stream_BufferSetup(const char* waveFName, bool32 
     std::memset( &dsbd, 0, sizeof( DSBUFFERDESC ));
     dsbd.dwSize = sizeof( DSBUFFERDESC );
     // Use new GetCurrentPosition() accuracy (DirectX 2 feature)
-    dsbd.dwFlags = DSBCAPS_CTRLPAN | DSBCAPS_CTRLVOLUME | DSBCAPS_CTRLFREQUENCY | DSBCAPS_GETCURRENTPOSITION2;
+	// FIX APPLY: Use `DSBCAPS_GLOBALFOCUS` so that streamed sounds can play without window focus.
+	dsbd.dwFlags = DSBCAPS_CTRLPAN | DSBCAPS_CTRLVOLUME | DSBCAPS_CTRLFREQUENCY |
+				   DSBCAPS_GETCURRENTPOSITION2 | DSBCAPS_GLOBALFOCUS;
     dsbd.dwBufferBytes = streamData->wiWave.dwBufferSize;
 
     //Set Format properties according to the WAVE file we just opened
