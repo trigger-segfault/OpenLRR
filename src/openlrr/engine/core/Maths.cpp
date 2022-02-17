@@ -3,9 +3,6 @@
 
 #include "../../platform/d3drm.h"
 
-#include "../../legacy.h"
-
-#include "../Demo.hpp"
 #include "Maths.h"
 
 
