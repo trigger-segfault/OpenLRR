@@ -1271,7 +1271,8 @@ void __cdecl Gods98::Mesh_Hide(Mesh* mesh, bool32 hide)
 }
 
 // <LegoRR.exe @00482ab0>
-BOOL __cdecl Gods98::Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOID lpArg, D3DRMUSERVISUALREASON lpD3DRMUVreason, LPDIRECT3DRMDEVICE lpD3DRMDev, LPDIRECT3DRMVIEWPORT lpD3DRMview)
+BOOL __cdecl Gods98::Mesh_RenderCallback(IDirect3DRMUserVisual* lpD3DRMUV, void* lpArg, D3DRMUSERVISUALREASON lpD3DRMUVreason,
+										 IDirect3DRMDevice* lpD3DRMDev, IDirect3DRMViewport* lpD3DRMview)
 {
 	Mesh* mesh = (Mesh*)lpArg;
 

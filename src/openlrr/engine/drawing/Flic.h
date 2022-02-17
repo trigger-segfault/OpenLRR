@@ -19,7 +19,7 @@ namespace Gods98
 
 #pragma region Forward Declarations
 
-struct File;
+struct File; // from `engine/core/Files.h`
 
 #pragma endregion
 
@@ -35,7 +35,6 @@ struct File;
 #define FLICERRORSTART			3000
 
 #define DIRECTVIDEOPORTAL		(-2)
-
 
 // flic variables
 #define FLIC_FIRSTBUFFER		0

@@ -33,7 +33,7 @@ namespace Gods98
 
 #pragma region Forward Declarations
 
-struct Container;
+struct Container; // from `engine/gfx/Containers.h`
 
 #pragma endregion
 

@@ -32,14 +32,14 @@ typedef void (__cdecl* WadProgressUpdate)(sint32 percent, bool32 debug, const ch
 
 #pragma region Constants
 
-#define MAX_WADS 10
+#define MAX_WADS						10
 
 // Number of WADS you can have at one time
-#define MAX_OPEN_FILES 100
-#define MAX_FILE_COMPRESSION_SIZE (1024*1024)
+#define MAX_OPEN_FILES					100
+#define MAX_FILE_COMPRESSION_SIZE		(1024*1024)
 
 #ifndef WAD_ERROR
-#define WAD_ERROR ((Wad_HandleValue) -1)
+#define WAD_ERROR						(static_cast<Wad_HandleValue>(-1))
 #endif
 
 #pragma endregion

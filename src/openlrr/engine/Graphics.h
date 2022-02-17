@@ -41,7 +41,7 @@ namespace Gods98
 
 #pragma region Forward Declarations
 
-struct Graphics_Device; // from `engine/drawing/DrawingCommon.h`
+struct Graphics_Device; // from `engine/drawing/DirectDraw.h`
 
 #pragma endregion
 

@@ -12,6 +12,7 @@
 #include "engine/Graphics.h"
 #include "engine/Main.h"
 #include "game/Game.h"
+#include "game/world/Map3D.h"
 
 
 /**********************************************************************************

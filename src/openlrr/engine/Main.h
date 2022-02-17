@@ -37,8 +37,6 @@ namespace Gods98
 
 #pragma region Forward Declarations
 
-//struct Graphics_Device;
-
 #pragma endregion
 
 /**********************************************************************************

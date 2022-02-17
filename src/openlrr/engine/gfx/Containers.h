@@ -49,9 +49,9 @@ namespace Gods98
 
 struct Container;
 struct Container_CloneData;
-struct AnimClone;
-struct Mesh;
-struct Sound3D_SoundFrameRecord;
+struct AnimClone;                // from `engine/gfx/AnimClone.h`
+struct Mesh;                     // from `engine/gfx/Mesh.h`
+struct Sound3D_SoundFrameRecord; // from `engine/audio/3DSound.h`
 
 #pragma endregion
 
@@ -82,7 +82,7 @@ typedef bool32 (__cdecl* ContainerWalkTreeCallback)(IDirect3DRMFrame3* frame, vo
 #define CONTAINER_ACTIVITYFRAMEPREFIX	"ActFrame"
 #define CONTAINER_SCALESTRING			"SCALE"
 
-#define CONTAINER_MAXLISTS				20			// Maximum of 2^20 - 1 containers
+#define CONTAINER_MAXLISTS				20			// 2^20 - 1 possible containers...
 #define CONTAINER_MAXTEXTURES			1000
 #define CONTAINER_MESHGROUPBLOCKSIZE	20
 //#define CONTAINER_MAXROTATION			100
@@ -97,7 +97,7 @@ typedef bool32 (__cdecl* ContainerWalkTreeCallback)(IDirect3DRMFrame3* frame, vo
 #define CONTAINER_LWONOTEXTURESTRING	"LWO:NOTEXTURE"
 #define CONTAINER_ACTIVITYSTRING		"ACT"
 
-#define CONTAINER_ULONG_NULL			-1
+#define CONTAINER_ULONG_NULL			(-1)
 
 #define CONTAINER_TRASHVALUE			0xdeaddead
 
@@ -766,7 +766,7 @@ void __cdecl Container_FreeTypeData(Container* cont);
 bool32 __cdecl Container_AddActivity2(Container* cont, const char* filename, const char* actname, real32 transCo, uint32 trigger, const char* sample, AnimClone* origClone, bool32 lws, bool32 looping);
 
 // <LegoRR.exe @004760d0>
-void __cdecl Container_Frame_ReferenceDestroyCallback(LPDIRECT3DRMOBJECT lpD3DRMobj, LPVOID lpArg);
+void __cdecl Container_Frame_ReferenceDestroyCallback(IDirect3DRMObject* lpD3DRMobj, void* lpArg);
 
 // <LegoRR.exe @00476100>
 IDirect3DRMFrame3* __cdecl Container_Frame_Find(Container* cont, const char* findName, bool32 /*uint32*/ hidden);
@@ -837,7 +837,7 @@ bool32 __cdecl Container_FrameLoad(const char* fname, IDirect3DRMFrame3* frame);
 IDirect3DRMMesh* __cdecl Container_MeshLoad(void* file_data, uint32 file_size, const char* file_name, IDirect3DRMFrame3* frame, bool32 noTexture);
 
 // <LegoRR.exe @00476bc0>
-HRESULT __cdecl Container_TextureLoadCallback(char* name, void* data, LPDIRECT3DRMTEXTURE3* texture);
+HRESULT __cdecl Container_TextureLoadCallback(char* name, void* data, IDirect3DRMTexture3** texture);
 
 // <LegoRR.exe @00476eb0>
 void __cdecl Container_YFlipTexture(IDirect3DRMTexture3* texture);
@@ -847,7 +847,7 @@ void __cdecl Container_YFlipTexture(IDirect3DRMTexture3* texture);
 int __cdecl Container_TextureSetSort(const void* a, const void* b);
 
 // <LegoRR.exe @00476fd0>
-void __cdecl Container_TextureDestroyCallback(LPDIRECT3DRMOBJECT lpD3DRMobj, LPVOID lpArg);
+void __cdecl Container_TextureDestroyCallback(IDirect3DRMObject* lpD3DRMobj, void* lpArg);
 
 #pragma endregion
 

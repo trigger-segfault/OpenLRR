@@ -26,9 +26,9 @@ struct IDirectDraw4;
 struct IDirectDrawSurface4;
 struct IDirectDrawClipper;
 struct _D3DDeviceDesc;
-typedef struct _D3DDeviceDesc			* LPD3DDEVICEDESC;
+typedef struct _D3DDeviceDesc			D3DDEVICEDESC, * LPD3DDEVICEDESC;
 struct _DDSURFACEDESC2;
-typedef struct _DDSURFACEDESC2          FAR* LPDDSURFACEDESC2;
+typedef struct _DDSURFACEDESC2			DDSURFACEDESC2, FAR* LPDDSURFACEDESC2;
 
 #pragma endregion
 
@@ -42,7 +42,7 @@ namespace Gods98
 
 #pragma region Forward Declarations
 
-struct BMP_PaletteEntry;
+struct BMP_PaletteEntry; // from `engine/drawing/Bmp.h`
 
 #pragma endregion
 
@@ -52,9 +52,9 @@ struct BMP_PaletteEntry;
 
 #pragma region Constants
 
-#define DIRECTDRAW_MAXDRIVERS			20
-#define DIRECTDRAW_MAXDEVICES			20
-#define DIRECTDRAW_MAXMODES				200
+#define GRAPHICS_MAXDRIVERS				20
+#define GRAPHICS_MAXDEVICES				20
+#define GRAPHICS_MAXMODES				200
 #define GRAPHICS_DRIVERSTRINGLEN		256
 #define GRAPHICS_DEVICESTRINGLEN		256
 #define GRAPHICS_MODESTRINGLEN			256
@@ -66,8 +66,6 @@ struct BMP_PaletteEntry;
  **********************************************************************************/
 
 #pragma region Enums
-
-//#define DIRECTDRAW_FLAG_VALID			0x00000001
 
 enum Graphics_DriverFlags : uint32
 {
@@ -210,10 +208,6 @@ __inline IDirectDrawSurface4* DirectDraw_fSurf(void) { return directDrawGlobs.fS
 __inline bool32 DirectDraw_FullScreen(void) { return directDrawGlobs.fullScreen; }
 
 
-//__inline bool32 DirectDraw_SetupFullScreen(lpDirectDraw_Driver driver, lpDirectDraw_Device device, lpDirectDraw_Mode mode)	{ return DirectDraw_Setup(TRUE, driver, device, mode, 0, 0, 320, 200); }
-//__inline bool32 DirectDraw_SetupWindowed(lpDirectDraw_Device device, ULONG xPos, ULONG yPos, ULONG width, ULONG height)		{ return DirectDraw_Setup(FALSE, NULL, device, NULL, xPos, yPos, width, height); }
-
-
 // <LegoRR.exe @0047c430>
 void __cdecl DirectDraw_Initialise(HWND hWnd);
 
@@ -221,21 +215,21 @@ void __cdecl DirectDraw_Initialise(HWND hWnd);
 bool32 __cdecl DirectDraw_EnumDrivers(OUT Graphics_Driver* list, OUT uint32* count);
 
 // <LegoRR.exe @0047c4b0>
-BOOL __stdcall DirectDraw_EnumDriverCallback(GUID FAR* lpGUID, LPSTR lpDriverDescription, LPSTR lpDriverName, LPVOID lpContext);
+BOOL __stdcall DirectDraw_EnumDriverCallback(GUID* lpGUID, char* lpDriverDescription, char* lpDriverName, void* lpContext);
 
 // <LegoRR.exe @0047c5a0>
 bool32 __cdecl DirectDraw_EnumDevices(const Graphics_Driver* driver, OUT Graphics_Device* list, OUT uint32* count);
 
 // <LegoRR.exe @0047c640>
-HRESULT __stdcall DirectDraw_EnumDeviceCallback(LPGUID lpGuid, LPSTR lpDeviceDescription,
-											LPSTR lpDeviceName, LPD3DDEVICEDESC lpHWDesc,
-											LPD3DDEVICEDESC lpHELDesc, LPVOID lpContext);
+HRESULT __stdcall DirectDraw_EnumDeviceCallback(GUID* lpGuid, char* lpDeviceDescription,
+												char* lpDeviceName, D3DDEVICEDESC* lpHWDesc,
+												D3DDEVICEDESC* lpHELDesc, void* lpContext);
 
 // <LegoRR.exe @0047c770>
 bool32 __cdecl DirectDraw_EnumModes(const Graphics_Driver* driver, bool32 fullScreen, OUT Graphics_Mode* list, OUT uint32* count);
 
 // <LegoRR.exe @0047c810>
-HRESULT __stdcall DirectDraw_EnumModeCallback(LPDDSURFACEDESC2 lpDDSurfaceDesc, LPVOID lpContext);
+HRESULT __stdcall DirectDraw_EnumModeCallback(DDSURFACEDESC2* lpDDSurfaceDesc, void* lpContext);
 
 // <LegoRR.exe @0047c8d0>
 bool32 __cdecl DirectDraw_Setup(bool32 fullscreen, const Graphics_Driver* driver, const Graphics_Device* device,

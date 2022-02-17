@@ -31,7 +31,7 @@ namespace Gods98
 
 #pragma region Forward Declarations
 
-struct Mesh;
+struct Mesh; // from `engine/gfx/Mesh.h`
 
 #pragma endregion
 

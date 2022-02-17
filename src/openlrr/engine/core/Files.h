@@ -30,18 +30,18 @@ typedef void (__cdecl* FileLoadCallback)(const char* filename, uint32 fileSize, 
 
 #pragma region Constants
 
-#define MAX_WAD_BASE_PATH 1024
+#define MAX_WAD_BASE_PATH				1024
 
 #define FILE_DATADIRNAME				"Data"
 #define FILE_KEYFILENAME				"cd.key"
 #define FILE_DELMEFILENAME				"delme.dat"
- //#define FILE_KEYFILENAME				"lego.cfg"
+#define FILE_CONFIGFILENAME				"lego.cfg"
 #define FILE_MAXPATH					260
 
 #define FILE_DEBUG_RLISTSIZE			2000
 
 #ifndef WAD_ERROR
-#define WAD_ERROR ((Wad_HandleValue) -1)
+#define WAD_ERROR						(static_cast<Wad_HandleValue>(-1))
 #endif
 
 #pragma endregion

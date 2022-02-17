@@ -45,7 +45,7 @@ namespace Dummy {
 
 #pragma region Constants
 
-#define OBJECT_MAXLISTS				32			// 2^32 - 1 possible tasks...
+#define OBJECT_MAXLISTS				32			// 2^32 - 1 possible objects...
 
 #pragma endregion
 

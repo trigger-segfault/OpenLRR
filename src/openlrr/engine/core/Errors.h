@@ -15,7 +15,7 @@ namespace Gods98
 
 #pragma region Forward Declarations
 
-struct File;
+struct File; // from `engine/core/Files.h`
 
 #pragma endregion
 

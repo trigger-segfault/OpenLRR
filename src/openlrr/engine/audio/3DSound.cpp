@@ -341,7 +341,7 @@ void __cdecl Gods98::Sound3D_UpdateListener(void)
 }
 
 // <LegoRR.exe @0047ae80>
-void __cdecl Gods98::Sound3D_ListenerCallback(LPDIRECT3DRMFRAME3 obj, void* arg, D3DVALUE delta)
+void __cdecl Gods98::Sound3D_ListenerCallback(IDirect3DRMFrame3* obj, void* arg, real32 delta)
 {
 	log_firstcall();
 
@@ -798,7 +798,7 @@ void __cdecl Gods98::Sound3D_Update(void)
 }
 
 // <LegoRR.exe @0047b6d0>
-void __cdecl Gods98::Sound3D_SoundCallback(LPDIRECT3DRMFRAME3 tFrame, void* arg, D3DVALUE delay)
+void __cdecl Gods98::Sound3D_SoundCallback(IDirect3DRMFrame3* tFrame, void* arg, real32 delay)
 {
 	log_firstcall();
 

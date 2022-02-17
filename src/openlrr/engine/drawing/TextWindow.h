@@ -19,7 +19,7 @@ namespace Gods98
 
 #pragma region Forward Declarations
 
-struct Font;
+struct Font; // from `engine/drawing/Fonts.h`
 
 #pragma endregion
 
@@ -32,7 +32,7 @@ struct Font;
 #define TEXTWINDOW_MAXSTRINGLEN			1024
 #define TEXTWINDOW_MAXLINES				256
 
-#define	TEXTWINDOW_DISPLAYDELAY			25
+#define TEXTWINDOW_DISPLAYDELAY			25
 
 #pragma endregion
 

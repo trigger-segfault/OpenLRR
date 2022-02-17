@@ -24,7 +24,7 @@ namespace Gods98
 
 #pragma region Typedefs
 
-// dummy type definition for C wrapper around Movie C++ class
+// C wrapper typedef around G98CMovie class.
 typedef void Movie_t;
 
 #pragma endregion

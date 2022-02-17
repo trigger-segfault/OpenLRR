@@ -31,7 +31,7 @@ namespace Gods98
 
 #pragma region Forward Declarations
 
-struct Lws_Info;
+struct Lws_Info; // from `engine/gfx/Lws.h`
 
 #pragma endregion
 

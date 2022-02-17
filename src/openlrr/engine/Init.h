@@ -27,15 +27,15 @@ struct Init_Globs
 	/*00000,4*/ uint32 driverCount;
 	/*00004,4*/ uint32 deviceCount;
 	/*00008,4*/ uint32 modeCount;
-	/*0000c,1590*/ Graphics_Driver drivers[DIRECTDRAW_MAXDRIVERS];
-	/*0159c,1590*/ Graphics_Device devices[DIRECTDRAW_MAXDEVICES];
-	/*02b2c,d480*/ Graphics_Mode modes[DIRECTDRAW_MAXMODES];
+	/*0000c,1590*/ Graphics_Driver drivers[GRAPHICS_MAXDRIVERS];
+	/*0159c,1590*/ Graphics_Device devices[GRAPHICS_MAXDEVICES];
+	/*02b2c,d480*/ Graphics_Mode modes[GRAPHICS_MAXMODES];
 	/*0ffac,4*/ const Graphics_Driver* selDriver;
 	/*0ffb0,4*/ const Graphics_Device* selDevice;
 	/*0ffb4,4*/ const Graphics_Mode* selMode;
 	/*0ffb8,4*/ bool32 selFullScreen;
 	/*0ffbc,4*/ bool32 wasFullScreen;
-	/*0ffc0,d480*/ Graphics_Mode validModes[DIRECTDRAW_MAXMODES];
+	/*0ffc0,d480*/ Graphics_Mode validModes[GRAPHICS_MAXMODES];
 	/*1d440,4*/ uint32 validModeCount;
 	/*1d444*/
 };

@@ -43,8 +43,8 @@ namespace Gods98
 
 #pragma region Forward Declarations
 
-struct BMP_PaletteEntry;
-struct BMP_Image;
+struct BMP_PaletteEntry; // from `engine/drawing/Bmp.h`
+struct BMP_Image;        // from `engine/drawing/Bmp.h`
 
 #pragma endregion
 

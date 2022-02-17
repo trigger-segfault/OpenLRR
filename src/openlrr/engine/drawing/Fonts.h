@@ -22,7 +22,7 @@ namespace Gods98
 #pragma region Forward Declarations
 
 struct Font;
-struct Image;
+struct Image; // from `engine/drawing/Images.h`
 
 #pragma endregion
 

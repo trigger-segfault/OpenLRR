@@ -1,8 +1,6 @@
 // Maths.cpp : 
 //
 
-#include "../../platform/d3drm.h"
-
 #include "Maths.h"
 
 

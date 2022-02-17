@@ -21,7 +21,7 @@ namespace Gods98
 
 #define MEMORY_MAXHANDLES					2000
 
-#define MEMORY_HANDLE_INVALID				((Mem_HandleValue) -1)
+#define MEMORY_HANDLE_INVALID				(static_cast<Mem_HandleValue>(-1))
 
 #pragma endregion
 

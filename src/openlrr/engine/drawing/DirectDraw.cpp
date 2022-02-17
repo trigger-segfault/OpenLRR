@@ -102,7 +102,7 @@ bool32 __cdecl Gods98::DirectDraw_EnumDrivers(OUT Graphics_Driver* list, OUT uin
 }
 
 // <LegoRR.exe @0047c4b0>
-BOOL __stdcall Gods98::DirectDraw_EnumDriverCallback(GUID FAR* lpGUID, LPSTR lpDriverDescription, LPSTR lpDriverName, LPVOID lpContext)
+BOOL __stdcall Gods98::DirectDraw_EnumDriverCallback(GUID* lpGUID, char* lpDriverDescription, char* lpDriverName, void* lpContext)
 {
 	directDrawGlobs.driverList[directDrawGlobs.driverCount].flags = Graphics_DriverFlags::GRAPHICS_DRIVER_FLAG_VALID;
 
@@ -159,9 +159,9 @@ bool32 __cdecl Gods98::DirectDraw_EnumDevices(const Graphics_Driver* driver, OUT
 }
 
 // <LegoRR.exe @0047c640>
-HRESULT __stdcall Gods98::DirectDraw_EnumDeviceCallback(LPGUID lpGuid, LPSTR lpDeviceDescription,
-											LPSTR lpDeviceName, LPD3DDEVICEDESC lpHWDesc,
-											LPD3DDEVICEDESC lpHELDesc, LPVOID lpContext)
+HRESULT __stdcall Gods98::DirectDraw_EnumDeviceCallback(GUID* lpGuid, char* lpDeviceDescription,
+														char* lpDeviceName, D3DDEVICEDESC* lpHWDesc,
+														D3DDEVICEDESC* lpHELDesc, void* lpContext)
 {
 	Graphics_Device* dev = &directDrawGlobs.deviceList[directDrawGlobs.deviceCount];
 	D3DDEVICEDESC* desc;
@@ -230,7 +230,7 @@ bool32 __cdecl Gods98::DirectDraw_EnumModes(const Graphics_Driver* driver, bool3
 }
 
 // <LegoRR.exe @0047c810>
-HRESULT __stdcall Gods98::DirectDraw_EnumModeCallback(LPDDSURFACEDESC2 lpDDSurfaceDesc, LPVOID lpContext)
+HRESULT __stdcall Gods98::DirectDraw_EnumModeCallback(DDSURFACEDESC2* lpDDSurfaceDesc, void* lpContext)
 {
 	Graphics_Mode* mode = &directDrawGlobs.modeList[directDrawGlobs.modeCount];
 	bool32 fullScreen = *(bool32*)lpContext;

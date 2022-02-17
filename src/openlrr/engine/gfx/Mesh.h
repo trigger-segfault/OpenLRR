@@ -62,9 +62,9 @@ namespace Gods98
 #pragma region Forward Declarations
 
 struct Mesh;
-struct Container_Texture;
-struct APPOBJ;
-struct Viewport;
+struct Container_Texture; // from `engine/gfx/Containers.h`
+struct APPOBJ;            // from `engine/gfx/Lwt.h`
+struct Viewport;          // from `engine/gfx/Viewports.h`
 
 #pragma endregion
 
@@ -89,7 +89,7 @@ typedef void (__cdecl* MeshRenderCallback)(Mesh* mesh, void* data, Viewport* vp)
 
 #define MESH_MAXTEXTURESEQENCE		100
 
-#define MESH_MAXLISTS				20
+#define MESH_MAXLISTS				20			// 2^20 - 1 possible meshes...
 
 #define MESH_TEXTURELISTSIZE		2048
 
@@ -204,9 +204,6 @@ assert_sizeof(Mesh_WrapType, 0x4);
  **********************************************************************************/
 
 #pragma region Typedefs
-
-//struct Container_Texture;
-//typedef struct Container_Texture *lpMesh_Texture;
 
 typedef struct Container_Texture Mesh_Texture;
 
@@ -538,7 +535,8 @@ void __cdecl Mesh_HideGroup(Mesh* mesh, uint32 groupID, bool32 hide);
 void __cdecl Mesh_Hide(Mesh* mesh, bool32 hide);
 
 // <LegoRR.exe @00482ab0>
-BOOL __cdecl Mesh_RenderCallback(LPDIRECT3DRMUSERVISUAL lpD3DRMUV, LPVOID lpArg, D3DRMUSERVISUALREASON lpD3DRMUVreason, LPDIRECT3DRMDEVICE lpD3DRMDev, LPDIRECT3DRMVIEWPORT lpD3DRMview);
+BOOL __cdecl Mesh_RenderCallback(IDirect3DRMUserVisual* lpD3DRMUV, void* lpArg, D3DRMUSERVISUALREASON lpD3DRMUVreason,
+								 IDirect3DRMDevice* lpD3DRMDev, IDirect3DRMViewport* lpD3DRMview);
 
 // <LegoRR.exe @00482d80>
 void __cdecl Mesh_SetMeshRenderDesc(Mesh* mesh, Viewport* vp, const Matrix4F* matWorld, bool32 alphaBlend);

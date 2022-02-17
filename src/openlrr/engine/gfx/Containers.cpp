@@ -3117,7 +3117,7 @@ bool32 __cdecl Gods98::Container_AddActivity2(Container* cont, const char* filen
 }
 
 // <LegoRR.exe @004760d0>
-void __cdecl Gods98::Container_Frame_ReferenceDestroyCallback(LPDIRECT3DRMOBJECT lpD3DRMobj, LPVOID lpArg)
+void __cdecl Gods98::Container_Frame_ReferenceDestroyCallback(IDirect3DRMObject* lpD3DRMobj, void* lpArg)
 {
 	IDirect3DRMFrame3* frame = (IDirect3DRMFrame3*)lpD3DRMobj;
 	Container* cont;
@@ -3614,7 +3614,7 @@ IDirect3DRMMesh* __cdecl Gods98::Container_MeshLoad(void* file_data, uint32 file
 }
 
 // <LegoRR.exe @00476bc0>
-HRESULT __cdecl Gods98::Container_TextureLoadCallback(char* name, void* data, LPDIRECT3DRMTEXTURE3* texture)
+HRESULT __cdecl Gods98::Container_TextureLoadCallback(char* name, void* data, IDirect3DRMTexture3** texture)
 {
 	Container_TextureData* textureData = (Container_TextureData*)data;
 	Container_Texture* text;
@@ -3743,7 +3743,7 @@ int __cdecl Gods98::Container_TextureSetSort(const void* a, const void* b)
 }
 
 // <LegoRR.exe @00476fd0>
-void __cdecl Gods98::Container_TextureDestroyCallback(LPDIRECT3DRMOBJECT lpD3DRMobj, LPVOID lpArg)
+void __cdecl Gods98::Container_TextureDestroyCallback(IDirect3DRMObject* lpD3DRMobj, void* lpArg)
 {
 	Container_TextureRef* textRef = (Container_TextureRef*)lpArg;
 

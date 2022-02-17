@@ -41,8 +41,7 @@ namespace Gods98
 
 #pragma region Typedefs
 
-// C wrapper typedef around actual class
-//typedef void* lpAnimation;
+// C wrapper typedef around G98CAnimation class.
 typedef void Animation_t;
 
 #pragma endregion
