@@ -119,7 +119,7 @@ struct Interface_Globs // [LegoRR/Interface.c|struct:0x14ac|tags:GLOBS]
 	/*0d7c,4*/	uint32* vehicleItemClicks;
 	/*0d80,4*/	uint32* buildingItemClicks;
 	/*0d84,128*/	bool32 menuItemUnkBools[Interface_MenuItem_Type_Count]; // (default: false)
-	/*0eac,c0*/	Interface_Menu currMenuItems[24];
+	/*0eac,c0*/	Interface_Menu menuList[24];
 	/*0f6c,8*/	Point2I selBlockPos;
 	/*0f74,4*/	Interface_MenuType currMenuType;
 	/*0f78,8*/	Point2F currMenuPosition; // (init: 565,18) Current sliding position of menu. Point2F_004decd0

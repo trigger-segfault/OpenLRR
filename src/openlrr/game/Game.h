@@ -443,7 +443,7 @@ struct Lego_Globs // [LegoRR/Lego.c|struct:0xf00|tags:GLOBS]
 	/*004,4*/       const char* gameName;
 	/*008,4*/       undefined4 field_8;
 	/*00c,4*/       undefined4 field_c;
-	/*010,4*/       Gods98::Graphics_Quality quality;
+	/*010,4*/       Gods98::Graphics_Quality quality; // (cfg: Main::Quality)
 	/*014,4*/       Lego_Level* currLevel;
 	/*018,4*/       Gods98::Container* rootCont; // containerGlobs.root
 	/*01c,4*/       Gods98::Viewport* viewMain; // Viewport area: (0.0,0.0 - 1.0x1.0)
@@ -459,8 +459,8 @@ struct Lego_Globs // [LegoRR/Lego.c|struct:0xf00|tags:GLOBS]
 	/*044,4*/       Gods98::Container* rootSpotlight;
 	/*048,4*/       Gods98::Container* rootLight;
 	/*04c,4*/       Gods98::Container* dirLightCallToArms;
-	/*050,4*/       real32 FPClipBlocks;
-	/*054,4*/       real32 TVClipDist;
+	/*050,4*/       real32 FPClipBlocks; // (cfg: Main::FPClipBlocks)
+	/*054,4*/       real32 TVClipDist; // (cfg: Main::TVClipDist)
 	/*058,4*/       undefined4 field_58;
 	/*05c,4*/       undefined4 field_5c;
 	/*060,4*/       undefined4 field_60;
@@ -487,54 +487,54 @@ struct Lego_Globs // [LegoRR/Lego.c|struct:0xf00|tags:GLOBS]
 	/*0bc,4*/       real32 float_bc;
 	/*0c0,8*/       Point2I pointi_c0;
 	/*0c8,4*/       bool32 bool_c8;
-	/*0cc,4*/       char* langPowerCrystal_name;
-	/*0d0,4*/       char* langOre_name;
-	/*0d4,4*/       char* langProcessedOre_name;
-	/*0d8,4*/       char* langDynamite_name;
-	/*0dc,4*/       char* langBarrier_name;
-	/*0e0,4*/       char* langElectricFence_name;
-	/*0e4,4*/       char* langSpiderWeb_name;
-	/*0e8,4*/       char* langOohScary_name;
-	/*0ec,4*/       char* langPath_name;
-	/*0f0,4*/       char* langPowerCrystal_theName;
-	/*0f4,4*/       char* langOre_theName;
-	/*0f8,4*/       char* langProcessedOre_theName;
-	/*0fc,4*/       char* langDynamite_theName;
-	/*100,4*/       char* langBarrier_theName;
-	/*104,4*/       char* langElectricFence_theName;
-	/*108,4*/       char* langSpiderWeb_theName;
-	/*10c,4*/       char* langOohScary_theName;
-	/*110,4*/       char* langPath_theName;
-	/*114,4*/       VehicleModel* vehicleData;
-	/*118,4*/       CreatureModel* miniFigureData;
-	/*11c,4*/       CreatureModel* rockMonsterData;
-	/*120,4*/       BuildingModel* buildingData;
-	/*124,4*/       Upgrade_PartModel* upgradeData;
-	/*128,4*/       char** vehicleName;
-	/*12c,4*/       char** miniFigureName;
-	/*130,4*/       char** rockMonsterName;
-	/*134,4*/       char** buildingName;
-	/*138,4*/       char** upgradeName;
+	/*0cc,4*/       char* langPowerCrystal_name; // (cfg: ObjectNames)
+	/*0d0,4*/       char* langOre_name; // (cfg: ObjectNames)
+	/*0d4,4*/       char* langProcessedOre_name; // (cfg: ObjectNames)
+	/*0d8,4*/       char* langDynamite_name; // (cfg: ObjectNames)
+	/*0dc,4*/       char* langBarrier_name; // (cfg: ObjectNames)
+	/*0e0,4*/       char* langElectricFence_name; // (cfg: ObjectNames)
+	/*0e4,4*/       char* langSpiderWeb_name; // (cfg: ObjectNames)
+	/*0e8,4*/       char* langOohScary_name; // (cfg: ObjectNames)
+	/*0ec,4*/       char* langPath_name; // (cfg: ObjectNames)
+	/*0f0,4*/       char* langPowerCrystal_theName; // (cfg: ObjectTheNames)
+	/*0f4,4*/       char* langOre_theName; // (cfg: ObjectTheNames)
+	/*0f8,4*/       char* langProcessedOre_theName; // (cfg: ObjectTheNames)
+	/*0fc,4*/       char* langDynamite_theName; // (cfg: ObjectTheNames)
+	/*100,4*/       char* langBarrier_theName; // (cfg: ObjectTheNames)
+	/*104,4*/       char* langElectricFence_theName; // (cfg: ObjectTheNames)
+	/*108,4*/       char* langSpiderWeb_theName; // (cfg: ObjectTheNames)
+	/*10c,4*/       char* langOohScary_theName; // (cfg: ObjectTheNames)
+	/*110,4*/       char* langPath_theName; // (cfg: ObjectTheNames)
+	/*114,4*/       VehicleModel* vehicleData; // (cfg: VehicleTypes)
+	/*118,4*/       CreatureModel* miniFigureData; // (cfg: MiniFigureTypes)
+	/*11c,4*/       CreatureModel* rockMonsterData; // (cfg: RockMonsterTypes)
+	/*120,4*/       BuildingModel* buildingData; // (cfg: BuildingTypes)
+	/*124,4*/       Upgrade_PartModel* upgradeData; // (cfg: UpgradeTypes)
+	/*128,4*/       char** vehicleName; // (cfg: VehicleTypes)
+	/*12c,4*/       char** miniFigureName; // (cfg: MiniFigureTypes)
+	/*130,4*/       char** rockMonsterName; // (cfg: RockMonsterTypes)
+	/*134,4*/       char** buildingName; // (cfg: BuildingTypes)
+	/*138,4*/       char** upgradeName; // (cfg: UpgradeTypes)
 	/*13c,2c*/      const char* toolName[LegoObject_ToolType_Count];
-	/*168,2c*/      char* langTool_name[LegoObject_ToolType_Count];
-	/*194,4*/       char** langVehicle_name;
-	/*198,4*/       char** langMiniFigure_name;
-	/*19c,4*/       char** langRockMonster_name;
-	/*1a0,4*/       char** langBuilding_name;
-	/*1a4,4*/       char** langUpgrade_name; // (never specified in Lego.cfg)
-	/*1a8,4*/       char** langVehicle_theName;
-	/*1ac,4*/       char** langMiniFigure_theName;
-	/*1b0,4*/       char** langRockMonster_theName;
-	/*1b4,4*/       char** langBuilding_theName;
-	/*1b8,4*/       char** langUpgrade_theName;
-	/*1bc,4*/       uint32 vehicleCount;
-	/*1c0,4*/       uint32 miniFigureCount;
-	/*1c4,4*/       uint32 rockMonsterCount;
-	/*1c8,4*/       uint32 buildingCount;
-	/*1cc,4*/       uint32 upgradeCount;
+	/*168,2c*/      char* langTool_name[LegoObject_ToolType_Count]; // (cfg: ToolNames)
+	/*194,4*/       char** langVehicle_name; // (cfg: ObjectNames)
+	/*198,4*/       char** langMiniFigure_name; // (cfg: ObjectNames)
+	/*19c,4*/       char** langRockMonster_name; // (cfg: ObjectNames)
+	/*1a0,4*/       char** langBuilding_name; // (cfg: ObjectNames)
+	/*1a4,4*/       char** langUpgrade_name; // (cfg: ObjectNames) never specified in Lego.cfg
+	/*1a8,4*/       char** langVehicle_theName; // (cfg: ObjectTheNames)
+	/*1ac,4*/       char** langMiniFigure_theName; // (cfg: ObjectTheNames)
+	/*1b0,4*/       char** langRockMonster_theName; // (cfg: ObjectTheNames)
+	/*1b4,4*/       char** langBuilding_theName; // (cfg: ObjectTheNames)
+	/*1b8,4*/       char** langUpgrade_theName; // (cfg: ObjectTheNames) never specified in Lego.cfg
+	/*1bc,4*/       uint32 vehicleCount; // (cfg: VehicleTypes)
+	/*1c0,4*/       uint32 miniFigureCount; // (cfg: MiniFigureTypes)
+	/*1c4,4*/       uint32 rockMonsterCount; // (cfg: RockMonsterTypes)
+	/*1c8,4*/       uint32 buildingCount; // (cfg: BuildingTypes)
+	/*1cc,4*/       uint32 upgradeCount; // (cfg: UpgradeTypes)
 	/*1d0,48*/      const char* surfaceName[Lego_SurfaceType_Count];
-	/*218,48*/      char* langSurface_name[Lego_SurfaceType_Count];
-	/*260,48*/      SFX_ID langSurface_sound[Lego_SurfaceType_Count];
+	/*218,48*/      char* langSurface_name[Lego_SurfaceType_Count]; // (cfg: SurfaceTypeDescriptions)
+	/*260,48*/      SFX_ID langSurface_sound[Lego_SurfaceType_Count]; // (cfg: SurfaceTypeDescriptions)
 	/*2a8,4*/       Gods98::Container* contBoulder;
 	/*2ac,4*/       Gods98::Container* contBoulderExplode;
 	/*2b0,4*/       Gods98::Container* contBoulderExplodeIce;
@@ -559,87 +559,87 @@ struct Lego_Globs // [LegoRR/Lego.c|struct:0xf00|tags:GLOBS]
 	/*324,10*/      Area2F radarScreenRect;
 	/*334,4*/       real32 tvTiltOrZoom_334;
 	/*338,8*/       Point2F tvFaceDirection_338;
-	/*340,4*/       real32 MedPolyRange;
-	/*344,4*/       real32 HighPolyRange;
-	/*348,4*/       sint32 HPBlocks;
-	/*34c,c*/       ColourRGBF FogColourRGB;
-	/*358,c*/       ColourRGBF HighFogColourRGB;
+	/*340,4*/       real32 MedPolyRange; // (cfg: Main::MedPolyRange)
+	/*344,4*/       real32 HighPolyRange; // (cfg: Main::HighPolyRange)
+	/*348,4*/       sint32 HPBlocks; // (cfg: Main::HPBlocks)
+	/*34c,c*/       ColourRGBF FogColourRGB; // (cfg: Level::FogColourRGB)
+	/*358,c*/       ColourRGBF HighFogColourRGB; // (cfg: Level::HighFogColourRGB)
 	/*364,4*/       real32 float_364; // level-related?
-	/*368,c*/       ColourRGBF PowerCrystalRGB;
-	/*374,c*/       ColourRGBF UnpoweredCrystalRGB;
+	/*368,c*/       ColourRGBF PowerCrystalRGB; // (cfg: Main::PowerCrystalRGB)
+	/*374,c*/       ColourRGBF UnpoweredCrystalRGB; // (cfg: Main::UnpoweredCrystalRGB)
 	/*380,4*/       LegoObject_Type placeObjType;
 	/*384,4*/       LegoObject_ID placeObjID;
 	/*388,4*/       Direction placeObjDirection;
 	/*38c,4*/       LegoObject* placeDestSmallTeleporter;
 	/*390,4*/       LegoObject* placeDestBigTeleporter;
 	/*394,4*/       LegoObject* placeDestWaterTeleporter;
-	/*398,4*/       real32 MinEnergyForEat;
-	/*39c,4*/       Gods98::Image* TutorialIcon;
+	/*398,4*/       real32 MinEnergyForEat; // (cfg: Main::MinEnergyForEat)
+	/*39c,4*/       Gods98::Image* TutorialIcon; // (cfg: Main::TutorialIcon)
 	/*3a0,4*/       undefined4 field_3a0;
-	/*3a4,4*/       real32 DynamiteDamageRadius;
-	/*3a8,4*/       real32 DynamiteMaxDamage;
-	/*3ac,4*/       real32 DynamiteWakeRadius;
-	/*3b0,4*/       real32 BirdScarerRadius;
+	/*3a4,4*/       real32 DynamiteDamageRadius; // (cfg: Main::DynamiteDamageRadius)
+	/*3a8,4*/       real32 DynamiteMaxDamage; // (cfg: Main::DynamiteMaxDamage)
+	/*3ac,4*/       real32 DynamiteWakeRadius; // (cfg: Main::DynamiteWakeRadius)
+	/*3b0,4*/       real32 BirdScarerRadius; // (cfg: Main::BirdScarerRadius)
 	/*3b4,50*/      LegoObject_Type objTeleportQueueTypes_TABLE[LegoObject_Type_Count];
 	/*404,50*/      LegoObject_ID objTeleportQueueIDs_TABLE[LegoObject_Type_Count];
 	/*454,4*/       uint32 objTeleportQueue_COUNT;
-	/*458,4*/       real32 MiniFigureRunAway;
+	/*458,4*/       real32 MiniFigureRunAway; // (cfg: Main::MiniFigureRunAway)
 	/*45c,c*/       Vector3F mouseWorldPos;
-	/*468,320*/     Point2I blockPts_468[100];
-	/*788,4*/       uint32 blockPtsCount_788;
-	/*78c,640*/     Point2I points2x100_78c[2][100];
+	/*468,320*/     Point2I powerDrainBlocks[100]; // Temporary list used during powergrid calculation.
+	/*788,4*/       uint32 powerDrainCount;
+	/*78c,640*/     Point2I points2x100_78c[2][100]; // Related to power grid calculation.
 	/*dcc,8*/       uint32 pointsCount2_dcc[2];
-	/*dd4,4*/       uint32 MaxReturnedCrystals;
-	/*dd8,4*/       sint32 MouseScrollBorder;
-	/*ddc,4*/       char* langHealth_toolTip;
-	/*de0,4*/       char* langEnergy_toolTip;
-	/*de4,4*/       char* langCrystals_toolTip;
-	/*de8,4*/       char* langOre_toolTip;
-	/*dec,4*/       char* langStuds_toolTip;
-	/*df0,4*/       char* langTools_toolTip;
-	/*df4,4*/       char* langCarryObject_toolTip;
-	/*df8,4*/       char* langDrivenBy_toolTip;
-	/*dfc,4*/       char* langOreRequired_toolTip;
-	/*e00,4*/       bool32 IsFallinsEnabled; // (not "NoFallins")
-	/*e04,4*/       real32 MinDistFor3DSoundsOnTopView;
+	/*dd4,4*/       uint32 MaxReturnedCrystals; // (cfg: Main::MaxReturnedCrystals)
+	/*dd8,4*/       sint32 MouseScrollBorder; // (cfg: Main::MouseScrollBorder)
+	/*ddc,4*/       char* langHealth_toolTip; // (cfg: ToolTipInfo::HealthText)
+	/*de0,4*/       char* langEnergy_toolTip; // (cfg: ToolTipInfo::EnergyText)
+	/*de4,4*/       char* langCrystals_toolTip; // (cfg: ToolTipInfo::CrystalsText)
+	/*de8,4*/       char* langOre_toolTip; // (cfg: ToolTipInfo::OreText)
+	/*dec,4*/       char* langStuds_toolTip; // (cfg: ToolTipInfo::StudsText)
+	/*df0,4*/       char* langTools_toolTip; // (cfg: ToolTipInfo::ToolsText)
+	/*df4,4*/       char* langCarryObject_toolTip; // (cfg: ToolTipInfo::CarryObjectText)
+	/*df8,4*/       char* langDrivenBy_toolTip; // (cfg: ToolTipInfo::DrivenByText)
+	/*dfc,4*/       char* langOreRequired_toolTip; // (cfg: ToolTipInfo::OreRequiredText)
+	/*e00,4*/       bool32 IsFallinsEnabled; // (cfg not: Level::NoFallins)
+	/*e04,4*/       real32 MinDistFor3DSoundsOnTopView; // (cfg: Main::MinDistFor3DSoundsOnTopView)
 	/*e08,4*/       ViewMode viewMode; // FirstPerson or TopDown
 	/*e0c,4*/       GameFlags1 flags1;
 	/*e10,4*/       GameFlags2 flags2;
 	/*e14,4*/       GameFlags3 flags3; // only first byte is used(?)
-	/*e18,4*/       real32 InitialSlugTime;
-	/*e1c,8*/       Point2F NextButtonPos;
-	/*e24,8*/       Point2F BackButtonPos;
-	/*e2c,4*/       Gods98::Image* NextButtonImage;
-	/*e30,4*/       Gods98::Image* BackButtonImage;
-	/*e34,4*/       Gods98::Image* BackArrowImage;
-	/*e38,4*/       real32 FogRate;
+	/*e18,4*/       real32 InitialSlugTime; // (cfg: Level::InitialSlugTime)
+	/*e1c,8*/       Point2F NextButtonPos; // (cfg: Main::NextButtonPos<WxH>)
+	/*e24,8*/       Point2F BackButtonPos; // (cfg: Main::BackButtonPos<WxH>)
+	/*e2c,4*/       Gods98::Image* NextButtonImage; // (cfg: Main::NextButton<WxH>)
+	/*e30,4*/       Gods98::Image* BackButtonImage; // (cfg: Main::BackButton<WxH>)
+	/*e34,4*/       Gods98::Image* BackArrowImage; // (cfg: Main::BackArrow<WxH>)
+	/*e38,4*/       real32 FogRate; // (cfg: Level::FogRate)
 	/*e3c,4*/       real32 timerGame_e3c;
 	/*e40,4*/       real32 elapsedAbs;
-	/*e44,4*/       real32 DrainTime;
-	/*e48,4*/       uint32 ReinforceHits;
-	/*e4c,4*/       uint32 CDStartTrack;
-	/*e50,4*/       uint32 CDTracks;
-	/*e54,4*/       uint32 FallinMultiplier;
+	/*e44,4*/       real32 DrainTime; // (cfg: Main::DrainTime)
+	/*e48,4*/       uint32 ReinforceHits; // (cfg: Main::ReinforceHits)
+	/*e4c,4*/       uint32 CDStartTrack; // (cfg: Main::CDStartTrack)
+	/*e50,4*/       uint32 CDTracks; // (cfg: Main::CDTracks)
+	/*e54,4*/       uint32 FallinMultiplier; // (cfg: Level::FallinMultiplier)
 	/*e58,4*/       bool32 hasFallins;
 	/*e5c,8*/       Point2F menuNextPoint;
 	/*e64,8*/       Point2F menuPrevPoint;
-	/*e6c,c*/       ColourRGBF DragBoxRGB;
-	/*e78,4*/       Gods98::Image* DialogImage;
-	/*e7c,4*/       Gods98::Image* DialogContrastOverlay;
-	/*e80,4*/       Gods98::TextWindow* DialogTextWndTitle;
-	/*e84,4*/       Gods98::TextWindow* DialogTextWndMessage;
-	/*e88,4*/       Gods98::TextWindow* DialogTextWndOK;
-	/*e8c,4*/       Gods98::TextWindow* DialogTextWndCancel;
-	/*e90,4*/       char* CreditsTextFile;
-	/*e94,4*/       char* CreditsBackAVI;
-	/*e98,40*/      char* langUpgradeLevel_name[OBJECT_MAXLEVELS];
-	/*ed8,4*/       sint32 BuildingUpgradeCostOre;
-	/*edc,4*/       sint32 BuildingUpgradeCostStuds;
+	/*e6c,c*/       ColourRGBF DragBoxRGB; // (cfg: Level::DragBoxRGB)
+	/*e78,4*/       Gods98::Image* DialogImage; // (cfg: Dialog::Image)
+	/*e7c,4*/       Gods98::Image* DialogContrastOverlay; // (cfg: Dialog::ContrastOverlay)
+	/*e80,4*/       Gods98::TextWindow* DialogTextWndTitle; // (cfg: Dialog::TitleWindow)
+	/*e84,4*/       Gods98::TextWindow* DialogTextWndMessage; // (cfg: Dialog::TextWindow)
+	/*e88,4*/       Gods98::TextWindow* DialogTextWndOK; // (cfg: Dialog::OKWindow)
+	/*e8c,4*/       Gods98::TextWindow* DialogTextWndCancel; // (cfg: Dialog::CancelWindow)
+	/*e90,4*/       char* CreditsTextFile; // (cfg: Main::CreditsTextFile)
+	/*e94,4*/       char* CreditsBackAVI; // (cfg: Main::CreditsBackAVI)
+	/*e98,40*/      char* langUpgradeLevel_name[OBJECT_MAXLEVELS]; // (cfg: UpgradeNames)
+	/*ed8,4*/       sint32 BuildingUpgradeCostOre; // (cfg: Main::BuildingUpgradeCostOre)
+	/*edc,4*/       sint32 BuildingUpgradeCostStuds; // (cfg: Main::BuildingUpgradeCostStuds)
 	/*ee0,4*/       char* renameInput;
 	/*ee4,8*/       Point2F renamePosition;
-	/*eec,4*/       char* RenameReplace;
-	/*ef0,4*/       char* EndGameAVI1;
-	/*ef4,4*/       char* EndGameAVI2;
+	/*eec,4*/       char* RenameReplace; // (cfg: Main::RenameReplace)
+	/*ef0,4*/       char* EndGameAVI1; // (cfg: Level::EndGameAVI1)
+	/*ef4,4*/       char* EndGameAVI2; // (cfg: Level::EndGameAVI2)
 	// [globs: end]
 	/*ef8,8*/       Point2I mouseBlockPos; // (static, Game_unkGameLoop_FUN_00426450)
 	/*f00*/

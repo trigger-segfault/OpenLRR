@@ -390,10 +390,10 @@ struct LegoObject_Globs // [LegoRR/LegoObject.c|struct:0xc644|tags:GLOBS]
 	/*067c,4*/      real32 radarElapsed_67c;
 	/*0680,4*/      uint32 listCount;
 	/*0684,4*/      LegoObject_GlobFlags flags;
-	/*0688,2c*/     sint32 toolNullIndex[LegoObject_ToolType_Count]; // [toolType:11] (tool priorities, behavior types?)
+	/*0688,2c*/     sint32 toolNullIndex[LegoObject_ToolType_Count]; // [toolType:11]
 	/*06b4,4b00*/   uint32 objectTotalLevels[LegoObject_Type_Count][LegoObject_ID_Count][OBJECT_MAXLEVELS]; // [objType:20][objID:15][objLevel:16]
 	/*51b4,4b00*/   uint32 objectPrevLevels[LegoObject_Type_Count][LegoObject_ID_Count][OBJECT_MAXLEVELS]; // [objType:20][objID:15][objLevel:16]
-	/*9cb4,4*/      uint32 NERPs_TrainFlags;
+	/*9cb4,4*/      LegoObject_AbilityFlags NERPs_TrainFlags;
 	/*9cb8,4*/      LegoObject* minifigureObj_9cb8; // MINIFIGOBJ_004e9448
 	/*9cbc,a0*/     Point2I slugHoleBlocks[20];
 	/*9d5c,50*/     Point2I rechargeSeamBlocks[10];
@@ -403,16 +403,16 @@ struct LegoObject_Globs // [LegoRR/LegoObject.c|struct:0xc644|tags:GLOBS]
 	/*c014,4*/      uint32 hiddenObjectCount;
 	/*c018,4*/      real32 float_c018; // FLOAT_004eb7a8
 	/*c01c,18*/     SaveStruct_18 savestruct18_c01c;
-	/*c034,400*/    LegoObject* liveObjArray256_c034[256]; // PTRLiveObject_ARRAY_004eb7c4
-	/*c434,4*/      uint32 count_c434; // COUNT_004ebbc4
-	/*c438,4*/      uint32 countBuildingsOnly_c438; // COUNTBuildingsOnly_004ebbc8
+	/*c034,400*/    LegoObject* cycleUnits[256]; // PTRLiveObject_ARRAY_004eb7c4
+	/*c434,4*/      uint32 cycleUnitCount; // COUNT_004ebbc4
+	/*c438,4*/      uint32 cycleBuildingCount; // COUNTBuildingsOnly_004ebbc8
 	/*c43c,190*/    LegoObject* liveObjArray100_c43c[100]; // Used for water docking vehicles?
-	/*c5cc,4*/      uint32 uintCount_c5cc;
+	/*c5cc,4*/      uint32 uintCount_c5cc; // Count for liveObjArray100_c43c
 	/*c5d0,18*/     const char* abilityName[LegoObject_AbilityType_Count]; // [abilityType:6]
-	/*c5e8,18*/     Gods98::Image* ToolTipIcons_Abilities[LegoObject_AbilityType_Count]; // [abilityType:6]
-	/*c600,2c*/     Gods98::Image* ToolTipIcons_Tools[LegoObject_ToolType_Count]; // [toolType:11]
-	/*c62c,4*/      Gods98::Image* ToolTipIcon_Blank;
-	/*c630,4*/      Gods98::Image* ToolTipIcon_Ore;
+	/*c5e8,18*/     Gods98::Image* ToolTipIcons_Abilities[LegoObject_AbilityType_Count]; // [abilityType:6] (cfg: ToolTipIcons)
+	/*c600,2c*/     Gods98::Image* ToolTipIcons_Tools[LegoObject_ToolType_Count]; // [toolType:11] (cfg: ToolTipIcons)
+	/*c62c,4*/      Gods98::Image* ToolTipIcon_Blank; // (cfg: ToolTipIcons::Blank)
+	/*c630,4*/      Gods98::Image* ToolTipIcon_Ore; // (cfg: ToolTipIcons::Ore)
 	/*c634,4*/      uint32 BuildingsTeleported;
 	/*c638,4*/      real32 LiveManager_TimerUnk;
 	/*c63c,4*/      undefined4 s_stepCounter_c63c; // (static, counter %4 for step SFX) DAT_004ebdcc
