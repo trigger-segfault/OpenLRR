@@ -11,16 +11,6 @@ namespace legacy
 {; // !<---
 
 /**********************************************************************************
- ******** Constants
- **********************************************************************************/
-
-#pragma region Constants
-
-#define LEGACY_RAND_MAX		0x7fff
-
-#pragma endregion
-
-/**********************************************************************************
  ******** Structures
  **********************************************************************************/
 
@@ -39,8 +29,9 @@ struct FILE;
 
 // Global variable for random number generation.
 
+// moved to: `engine/core/Maths.h`
 // <LegoRR.exe @004b0cc8>
-extern uint32 & g_rand;
+//extern uint32 & g_rand;
 
 // These globals are used with inlined isspace, isdigit, is*, _isctype functions
 
@@ -71,12 +62,18 @@ extern sint32 & g_pcharwidth;
 /// PRNG: MS Quick C - Linear Congruential Generator (LCG)
 // Sets the current seed without modification.
 // <LegoRR.exe @0048e420>
-void __cdecl srand(uint32 seed);
+__inline void __cdecl srand(uint32 seed)
+{
+	((void(__cdecl*)(uint32))0x0048e420)(seed);
+}
 
 /// PRNG: MS Quick C - Linear Congruential Generator (LCG)
 // Although this returns a value between [0,0x7fff], an sint32 type is still returned.
 // <LegoRR.exe @0048e430>
-sint32 __cdecl rand(void);
+__inline sint32 __cdecl rand(void)
+{
+	return ((sint32(__cdecl*)(void))0x0048e430)();
+}
 
 #pragma endregion
 

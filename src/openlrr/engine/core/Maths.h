@@ -10,6 +10,12 @@
 
 #include "../../common.h"
 #include "../geometry.h"
+#include "Random.hpp"
+
+
+// When defined, D3DRMVectorRandom will use the same `legacy::rand` function that the rest of the codebase is intended to use.
+// This simplifies controlling randomness by only having one source to rely on.
+#define D3DRM_USE_PRIMARY_RAND
 
 
 /**********************************************************************************
@@ -51,6 +57,27 @@ real32 __cdecl Maths_RandRange(real32 low, real32 high);
 #define M_PI			3.14159265358979323846f
 #define M_EPSILON		1.0e-5f                 // Tolerance for REALs
 
+#define MATHS_RAND_MAX	(Random::LCGEngine::rand_max)
+
+#pragma endregion
+
+/**********************************************************************************
+ ******** Globals
+ **********************************************************************************/
+
+#pragma region Globals
+
+// State of LCG engine used by LRR's C runtime `sint32 std::rand()` and `void std::srand(uint32)`.
+// <LegoRR.exe @004b0cc8>
+extern uint32 & gLCGState;
+
+// Random number generator replacement for `sint32 std::rand()` and `void std::srand(uint32)`.
+extern Random::WrapperLCGEngine gRandom;
+
+// Random number generator replacement for `D3DRMVectorRandom`.
+// NOTE: Only for when `D3DRM_USE_PRIMARY_RAND` is not being used. Otherwise `gRandom` is used.
+extern Random::LCGEngine gD3DRMRandom;
+
 #pragma endregion
 
 /**********************************************************************************
@@ -60,7 +87,7 @@ real32 __cdecl Maths_RandRange(real32 low, real32 high);
 #pragma region Macros
 
 #define Colour_RGB(r,g,b)		(0xff000000L|(((sint32)((r)*255))<<16)|(((sint32)((g)*255))<<8)|(sint32)((b)*255))
-#define Colour_RGBA(r,g,b,a)	((((sint32)((a)*255))<<24)|(((sint32)((r)*255))<<16)|(((sint32)((g) * 255))<<8)|(sint32)((b)*255))
+#define Colour_RGBA(r,g,b,a)	((((sint32)((a)*255))<<24)|(((sint32)((r)*255))<<16)|(((sint32)((g)*255))<<8)|(sint32)((b)*255))
 
 // British spelling rename defines included in Gods98 (unless "Normalise" is the English U.S. spelling...).
 #define Maths_Vector3DNormalise(r)			Maths_Vector3DNormalize((r))
@@ -75,6 +102,29 @@ real32 __cdecl Maths_RandRange(real32 low, real32 high);
 #define Maths_ACos(a)						(real32)std::acos((double)(a))
 #define Maths_ASin(a)						(real32)std::asin((double)(a))
 #define Maths_ATan(a)						(real32)std::atan((double)(a))
+
+#pragma endregion
+
+/**********************************************************************************
+ ******** D3DRMVector Functions
+ **********************************************************************************/
+
+#pragma region D3DRMVector Functions
+
+// Replacements for D3DRM function calls used in Maths module.
+
+// Unlike Maths_Vector3DNormalize, this performs sanity zero checks. LRR probably enjoys Dividing by zero...
+// <D3DRM.DLL @6dda8b04>
+Vector3F* __stdcall mathsD3DRMVectorNormalize(IN OUT Vector3F* v);
+
+// <D3DRM.DLL @6dda8d54>
+Vector3F* __stdcall mathsD3DRMVectorRandom(OUT Vector3F* d);
+
+// <D3DRM.DLL @6dda8c47>
+Vector3F* __stdcall mathsD3DRMVectorRotate(OUT Vector3F* r, const Vector3F* v, IN OUT Vector3F* axis, real32 theta);
+
+// <D3DRM.DLL @6dda82ab>
+Vector3F* __stdcall mathsD3DRMVectorReflect(OUT Vector3F* d, const Vector3F* ray, const Vector3F* norm);
 
 #pragma endregion
 
@@ -183,8 +233,9 @@ Vector3F* __cdecl Maths_Vector3DRandom(OUT Vector3F* r);
 Vector3F* __cdecl Maths_Vector3DReflect(OUT Vector3F* d, const Vector3F* ray, const Vector3F* norm);
 
 
+// SIDE EFFECTS: This function normalizes the input axis vector.
 // <LegoRR.exe @004797d0>
-Vector3F* __cdecl Maths_Vector3DRotate(OUT Vector3F* r, const Vector3F* v, const Vector3F* axis, real32 theta);
+Vector3F* __cdecl Maths_Vector3DRotate(OUT Vector3F* r, const Vector3F* v, IN OUT Vector3F* axis, real32 theta);
 
 // <LegoRR.exe @004797f0>
 Vector3F* __cdecl Maths_PlaneNormal(OUT Vector3F* n, const Vector3F* p1, const Vector3F* p2, const Vector3F* p3);
@@ -192,7 +243,14 @@ Vector3F* __cdecl Maths_PlaneNormal(OUT Vector3F* n, const Vector3F* p1, const V
 // <LegoRR.exe @004798f0>
 real32 __cdecl Maths_TriangleAreaZ(const Vector3F* p1, const Vector3F* p2, const Vector3F* p3, bool32 bfc);
 
-// Legacy `uint16 std::rand();`
+/// CUSTOM: Legacy `void std::srand(uint32 seed);`
+void __cdecl Maths_SeedRand(uint32 seed);
+
+// We have this version as an alternative to `Maths_Rand`, since a 32-bit integer is expected to be
+// returned. Which is important for the logic of functions using `std::rand` vs. `Maths_Rand`.
+/// CUSTOM: Legacy `sint32 std::rand();`
+sint32 __cdecl Maths_RandInt32(void);
+
 // <LegoRR.exe @00479b60>
 sint16 __cdecl Maths_Rand(void);
 

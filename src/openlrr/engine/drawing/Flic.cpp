@@ -1188,7 +1188,7 @@ uint16 __cdecl Gods98::getFlicCol(uint8 n, Flic* fsp)
 //  type:Flic (Flic_GetWidth)  -> FUN_004120e0  <@004120f7>
 //                                      Panel_FUN_0045a9f0  <@0045ab17>
 //                                      Pointer_DrawPointer  <@0045cfc8>
-//  type:FlocksData (Flocks_???)     -> LiveObject_Flocks_FUN_0044bef0  <@0044bfc3>
+//  type:FlocksData (Flocks_???)     -> LegoObject_Flocks_FUN_0044bef0  <@0044bfc3>
 //  type:AnimClone (AnimClone_IsLws) -> Container_FormatPartName  <@00473f60>
 // <called @004120f7, 0045ab17, 0045cfc8>
 // <LegoRR.exe @00489a90>

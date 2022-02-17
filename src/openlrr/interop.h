@@ -3,11 +3,23 @@
 #include "common.h"
 
 
-bool interop_hook_WinMain_call(void);
-bool interop_hook_Gods98_WinMain(void);
+constexpr const uint32 PROCESS_EIP       = 0x0048f2c0; // LegoRR.exe!entry
+constexpr const uint32 PROCESS_WINMAIN   = 0x00477a60; // LegoRR.exe!WinMain
 
+
+#pragma region DLL Import Hooks
+bool interop_hook_calls_WINMM_timeGetTime(void);
+#pragma endregion
+
+#pragma region C Runtime Hooks
+bool interop_hook_CRT_rand(void);
+#pragma endregion
+
+#pragma region Gods98 Engine Hooks
+bool interop_hook_WinMain(void);
 bool interop_hook_Gods98_3DSound(void);
 bool interop_hook_Gods98_Animation(void);
+bool interop_hook_calls_Gods98_AnimClone(void);
 bool interop_hook_Gods98_AnimClone(void);
 bool interop_hook_Gods98_Bmp(void);
 bool interop_hook_Gods98_Compress(void);
@@ -18,6 +30,7 @@ bool interop_hook_Gods98_Draw(void);
 bool interop_hook_Gods98_Dxbug(void);
 bool interop_hook_Gods98_Errors(void);
 bool interop_hook_Gods98_Files(void);
+bool interop_hook_calls_Gods98_Flic(void);
 bool interop_hook_Gods98_Flic(void);
 bool interop_hook_Gods98_Fonts(void);
 bool interop_hook_Gods98_Images(void);
@@ -38,7 +51,9 @@ bool interop_hook_Gods98_Utils(void);
 bool interop_hook_Gods98_Viewports(void);
 bool interop_hook_Gods98_Wad(void);
 bool interop_hook_Gods98_Init(void);
+#pragma endregion
 
+#pragma region LegoRR Game Hooks
 bool interop_hook_LegoRR_Advisor(void);
 bool interop_hook_LegoRR_AITask(void);
 bool interop_hook_LegoRR_BezierCurve(void);
@@ -53,6 +68,9 @@ bool interop_hook_LegoRR_PTL(void);
 bool interop_hook_LegoRR_SFX(void);
 bool interop_hook_LegoRR_Smoke(void);
 bool interop_hook_LegoRR_Stats(void);
+#pragma endregion
 
+#pragma region Hook All
 bool interop_hook_all(void);
+#pragma endregion
 

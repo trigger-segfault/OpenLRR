@@ -107,7 +107,7 @@ void __cdecl AnimClone_Remove(AnimClone* dead);
 //  type:Flic (Flic_GetWidth)  -> FUN_004120e0  <@004120f7>
 //                                      Panel_FUN_0045a9f0  <@0045ab17>
 //                                      Pointer_DrawPointer  <@0045cfc8>
-//  type:FlocksData (Flocks_GetNumSubdata) -> LiveObject_Flocks_FUN_0044bef0  <@0044bfc3>
+//  type:FlocksData (Flocks_GetNumSubdata) -> LegoObject_Flocks_FUN_0044bef0  <@0044bfc3>
 //  type:AnimClone (AnimClone_IsLws) -> Container_FormatPartName  <@00473f60>
 // 
 // Only called by Container_FormatPartName

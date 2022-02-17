@@ -5,8 +5,198 @@
 
 #include "../../legacy.h"
 
+#include "../Demo.hpp"
 #include "Maths.h"
 
+
+// When defined, D3DRMVector functions implemented here will use the
+//  EXACT math needed to produce identical floating point results.
+// Otherwise, the functions will use cleaner, easier-to-read implementations
+//  that produce nearly-the-same results without excessive float10 casting.
+#define D3DRM_USE_IDENTICAL_FLOATMATH
+
+
+#ifndef DEFINED_FLOAT10
+// We don't want to define this typedef outside of source files.
+// Ghidra treats all floating function returns as `float10` (since they *are* returned in the ST* registers).
+// So keeping it undefined in headers will prevent function signatures from mistakenly using this return type
+// instead of the return type `real32`.
+
+// NOTE: `long double` is identical to `double` for MSVC compilers.
+//       Yet casting with it we can still can produce identical results to stored register values...(?)
+typedef long double float10;
+#endif
+
+
+/**********************************************************************************
+ ******** Globals
+ **********************************************************************************/
+
+#pragma region Globals
+
+// State of LCG engine used by LRR's C runtime `sint32 std::rand()` and `void std::srand(uint32)`.
+// <LegoRR.exe @004b0cc8>
+uint32 & Gods98::gLCGState = *(uint32*)0x004b0cc8; // = 1;
+
+// Random number generator replacement for `sint32 std::rand()` and `void std::srand(uint32)`.
+Random::WrapperLCGEngine Gods98::gRandom = Random::WrapperLCGEngine(gLCGState);
+
+// Random number generator replacement for `D3DRMVectorRandom`.
+// NOTE: Only for when `D3DRM_USE_PRIMARY_RAND` is not being used. Otherwise `gRandom` is used.
+Random::LCGEngine gD3DRMRandom = Random::LCGEngine();
+
+#pragma endregion
+
+/**********************************************************************************
+ ******** D3DRMVector Functions
+ **********************************************************************************/
+
+#pragma region D3DRMVector Functions
+
+// Replacements for D3DRM function calls used in Maths module.
+
+#ifdef D3DRM_USE_PRIMARY_RAND
+#define mathsD3DRM_Rand()					Gods98::gRandom.Next()
+#else
+//static Random::LCGEngine _d3drmRandom = Random::LCGEngine();
+
+#define mathsD3DRM_Rand()					Gods98::gD3DRMRandom.Next() //_d3drmRandom.Next()
+#endif
+
+
+// Unlike Maths_Vector3DNormalize, this performs sanity zero checks. LRR probably enjoys Dividing by zero...
+// <D3DRM.DLL @6dda8b04>
+Vector3F* __stdcall Gods98::mathsD3DRMVectorNormalize(IN OUT Vector3F* v)
+{
+	if ((v->x != 0.0f) || (v->y != 0.0f) || (v->z != 0.0f)) {
+
+#ifdef D3DRM_USE_IDENTICAL_FLOATMATH
+		const real32 m = std::sqrt((((float10)v->x * v->x) + ((float10)v->y * v->y) + ((float10)v->z * v->z))); // (stored as float)
+		if (m != 0.0f) {
+			const float10 n = 1.0L / m;
+			v->x *= n;
+			v->y *= n;
+			v->z *= n;
+			return v;
+		}
+#else
+		const real32 m = std::sqrt(((v->x * v->x) + (v->y * v->y) + (v->z * v->z)));
+		if (m != 0.0f) {
+			const real32 n = 1.0f / m;
+			v->x *= n;
+			v->y *= n;
+			v->z *= n;
+			return v;
+		}
+#endif
+	}
+	v->x = 1.0f;
+	v->y = 0.0f;
+	v->z = 0.0f;
+	return v;
+}
+
+// <D3DRM.DLL @6dda8d54>
+Vector3F* __stdcall Gods98::mathsD3DRMVectorRandom(OUT Vector3F* d)
+{
+#ifdef D3DRM_USE_IDENTICAL_FLOATMATH
+	// (1.0 / 0x7fff) float hex: 0x38000100
+	static_assert((1.0f / MATHS_RAND_MAX) == 3.051851e-05f, "Divisor is not identical for exact D3DRM math");
+
+	// D3DRM uses MSVCRT.DLL::rand, which has an identical implementation to what's used in LRR's runtime.
+	// So we're using a second copy of the same function.
+	//  (though really, this could be joined, so that setting the level seed has more meaning than just seeding randomness fields).
+	do {
+		d->x = ((float10)mathsD3DRM_Rand() * (1.0f / MATHS_RAND_MAX)) - 0.5f;
+		d->y = ((float10)mathsD3DRM_Rand() * (1.0f / MATHS_RAND_MAX)) - 0.5f;
+		d->z = ((float10)mathsD3DRM_Rand() * (1.0f / MATHS_RAND_MAX)) - 0.5f;
+
+	//} while (D3DRMVectorModulus(d) == 0.0f);
+	} while (std::sqrt(((float10)d->x*d->x)+((float10)d->y*d->y)+((float10)d->z*d->z)) == 0.0f);
+#else
+	do {
+		d->x = (mathsD3DRM_Rand() * (1.0f / MATHS_RAND_MAX)) - 0.5f;
+		d->y = (mathsD3DRM_Rand() * (1.0f / MATHS_RAND_MAX)) - 0.5f;
+		d->z = (mathsD3DRM_Rand() * (1.0f / MATHS_RAND_MAX)) - 0.5f;
+
+	} while (std::sqrt((d->x*d->x)+(d->y*d->y)+(d->z*d->z)) == 0.0f);
+#endif
+
+	mathsD3DRMVectorNormalize(d);
+	return d;
+}
+
+// <D3DRM.DLL @6dda8c47>
+Vector3F* __stdcall Gods98::mathsD3DRMVectorRotate(OUT Vector3F* r, const Vector3F* pV, IN OUT Vector3F* pAxis, real32 theta)
+{
+	// Original function has a null check for the return value of the first `D3DRMVectorNormalize`.
+	// But it should not be possible to to reach this, because `D3DRMVectorNormalize` has no null-checks.
+	// Making these pointer checks... *pointless*
+	/*Vector3F* result =*/ mathsD3DRMVectorNormalize(pAxis);
+
+	const Vector3F v = *pV;
+	const Vector3F axis = *pAxis;
+
+#ifdef D3DRM_USE_IDENTICAL_FLOATMATH
+	const real32 sinmt = (real32)(float10)std::sin((float10)(real32)-(float10)theta); // asm FSIN (stored as float), (theta passed as float10)
+	const float10 cosmt = (float10)std::cos(-(float10)theta); // asm FCOS (stored as float10), (theta passed as float10)
+	const float10 cos1_mt = 1.0L - cosmt; // (stored as float10)
+
+	// Minimal casts to reproduce the output of `D3DRMVectorRotate` floating point math, down to the bit.
+	r->y = ((real32)(axis.y * cos1_mt * axis.x) - (float10)(axis.z * sinmt)) * v.x +
+		   ((real32)(axis.y * cos1_mt * axis.z) + (float10)(axis.x * sinmt)) * v.z +
+		   ((real32)(axis.y * cos1_mt) *          (float10) axis.y + cosmt)  * v.y;
+
+	r->x = ((real32)(axis.x * cos1_mt * axis.z) - (float10)(axis.y * sinmt)) * v.z +
+		   ((real32)(axis.x * cos1_mt * axis.y) + (float10)(axis.z * sinmt)) * v.y +
+		   ((real32)(axis.x * cos1_mt) *          (float10) axis.x + cosmt)  * v.x;
+
+	r->z = ((real32)(axis.z * cos1_mt * axis.x) + (float10)(axis.y * sinmt)) * v.x +
+		   ((real32)(axis.z * cos1_mt * axis.y) - (float10)(axis.x * sinmt)) * v.y +
+		   ((float10)axis.z * cos1_mt *                     axis.z + cosmt)  * v.z;
+#else
+	const real32 cosmt = std::cos(-theta);
+	const real32 sinmt = std::sin(-theta);
+	const real32 cos1_mt = 1.0f - cosmt;
+
+	r->y = ((axis.y * cos1_mt * axis.x) - (axis.z * sinmt)) * v.x +
+		   ((axis.y * cos1_mt * axis.z) + (axis.x * sinmt)) * v.z +
+		   ((axis.y * cos1_mt * axis.y) +          (cosmt)) * v.y;
+
+	r->x = ((axis.x * cos1_mt * axis.z) - (axis.y * sinmt)) * v.z +
+		   ((axis.x * cos1_mt * axis.y) + (axis.z * sinmt)) * v.y +
+		   ((axis.x * cos1_mt * axis.x) +          (cosmt)) * v.x;
+
+	r->z = ((axis.z * cos1_mt * axis.y) - (axis.x * sinmt)) * v.y +
+		   ((axis.z * cos1_mt * axis.x) + (axis.y * sinmt)) * v.x +
+		   ((axis.z * cos1_mt * axis.z) +          (cosmt)) * v.z;
+#endif
+
+	mathsD3DRMVectorNormalize(r);
+	return r;
+}
+
+// <D3DRM.DLL @6dda82ab>
+Vector3F* __stdcall Gods98::mathsD3DRMVectorReflect(OUT Vector3F* d, const Vector3F* pRay, const Vector3F* pNorm)
+{
+	const Vector3F ray = *pRay;
+	const Vector3F norm = *pNorm;
+
+#ifdef D3DRM_USE_IDENTICAL_FLOATMATH
+	const float10 dotProduct = ((float10)norm.x * ray.x) + ((float10)norm.y * ray.y) + ((float10)norm.z * ray.z); // (stored as float)
+	const float10 dotProduct2 = dotProduct + dotProduct; // (stored as float)
+#else
+	const real32 dotProduct = (norm.x * ray.x) + (norm.y * ray.y) + (norm.z * ray.z);
+	const real32 dotProduct2 = dotProduct + dotProduct;
+#endif
+
+	d->x = (dotProduct2 * norm.x) - ray.x;
+	d->y = (dotProduct2 * norm.y) - ray.y;
+	d->z = (dotProduct2 * norm.z) - ray.z;
+	return d;
+}
+
+#pragma endregion
 
 /**********************************************************************************
  ******** Vector and Misc Functions
@@ -154,7 +344,9 @@ Vector3F* __cdecl Gods98::Maths_Vector3DRandom(OUT Vector3F* r)
 {
 	log_firstcall();
 
-	return reinterpret_cast<Vector3F*>(::D3DRMVectorRandom(reinterpret_cast<D3DVECTOR*>(r)));
+	return mathsD3DRMVectorRandom(r);
+
+	//return reinterpret_cast<Vector3F*>(::D3DRMVectorRandom(reinterpret_cast<D3DVECTOR*>(r)));
 }
 
 
@@ -163,21 +355,28 @@ Vector3F* __cdecl Gods98::Maths_Vector3DReflect(OUT Vector3F* d, const Vector3F*
 {
 	log_firstcall();
 
-	return reinterpret_cast<Vector3F*>(::D3DRMVectorReflect(reinterpret_cast<D3DVECTOR*>(d),
-															reinterpret_cast<D3DVECTOR*>(const_cast<Vector3F*>(ray)),
-															reinterpret_cast<D3DVECTOR*>(const_cast<Vector3F*>(norm))));
+	return mathsD3DRMVectorReflect(d, ray, norm);
+
+	//return reinterpret_cast<Vector3F*>(::D3DRMVectorReflect(reinterpret_cast<D3DVECTOR*>(d),
+	//														reinterpret_cast<D3DVECTOR*>(const_cast<Vector3F*>(ray)),
+	//														reinterpret_cast<D3DVECTOR*>(const_cast<Vector3F*>(norm))));
 }
 
 
+// SIDE EFFECTS: This function normalizes the input axis vector.
 // <LegoRR.exe @004797d0>
-Vector3F* __cdecl Gods98::Maths_Vector3DRotate(OUT Vector3F* r, const Vector3F* v, const Vector3F* axis, real32 theta)
+Vector3F* __cdecl Gods98::Maths_Vector3DRotate(OUT Vector3F* r, const Vector3F* v, IN OUT Vector3F* axis, real32 theta)
 {
 	log_firstcall();
 
-	return reinterpret_cast<Vector3F*>(::D3DRMVectorRotate(reinterpret_cast<D3DVECTOR*>(r),
-														   reinterpret_cast<D3DVECTOR*>(const_cast<Vector3F*>(v)),
-														   reinterpret_cast<D3DVECTOR*>(const_cast<Vector3F*>(axis)),
-														   theta));
+	/// TODO: Consider isolating axis so that's not normalized as a side effect of `D3DRMVectorRandom`.
+	///       First needs research into whether any existing functions rely on these side effects.
+	return mathsD3DRMVectorRotate(r, v, axis, theta);
+
+	//return reinterpret_cast<Vector3F*>(::D3DRMVectorRotate(reinterpret_cast<D3DVECTOR*>(r),
+	//													   reinterpret_cast<D3DVECTOR*>(const_cast<Vector3F*>(v)),
+	//													   reinterpret_cast<D3DVECTOR*>(axis), //const_cast<Vector3F*>(axis)),
+	//													   theta));
 }
 
 // <LegoRR.exe @004797f0>
@@ -254,13 +453,36 @@ real32 __cdecl Gods98::Maths_TriangleAreaZ(const Vector3F* p1, const Vector3F* p
 	return area;
 }
 
+
+/// CUSTOM: Legacy `void std::srand(uint32 seed);`
+void __cdecl Gods98::Maths_SeedRand(uint32 seed)
+{
+	log_firstcall();
+
+	gRandom.Seed(seed);
+	//legacy::srand(seed);
+}
+
+// We have this version as an alternative to `Maths_Rand`, since a 32-bit integer is expected to be
+// returned. Which is important for the logic of functions using `std::rand` vs. `Maths_Rand`.
+/// CUSTOM: Legacy `sint32 std::rand();`
+sint32 __cdecl Gods98::Maths_RandInt32(void)
+{
+	log_firstcall();
+
+	return gRandom.Next();
+	//return legacy::rand();
+}
+
+
 // Uses legacy `sint32 std::rand();`
 // <LegoRR.exe @00479b60>
 sint16 __cdecl Gods98::Maths_Rand(void)
 {
 	log_firstcall();
 
-	return (sint16)legacy::rand();
+	return (sint16)Maths_RandInt32();
+	//return (sint16)legacy::rand();
 }
 
 // <LegoRR.exe @00479b70>
@@ -269,7 +491,7 @@ real32 __cdecl Gods98::Maths_RandRange(real32 low, real32 high)
 	log_firstcall();
 
 	real32 val = (real32)Maths_Rand();
-	val /= LEGACY_RAND_MAX; // 0x7fff
+	val /= MATHS_RAND_MAX; // 0x7fff
 
 	val *= (high-low);
 	return low + val;

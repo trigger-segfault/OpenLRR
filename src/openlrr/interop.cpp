@@ -51,30 +51,105 @@
 #include "game/mission/NERPsFile.h"
 #include "game/mission/PTL.h"
 #include "game/world/Camera.h"
+#include "game/world/Construction.h"
+#include "game/world/Detail.h"
 #include "game/world/ElectricFence.h"
+#include "game/world/Roof.h"
 #include "game/Game.h"
 
 
 #define return_interop(result) { std::printf("%s %s\n", __FUNCTION__, (result?"OK":"failed")); } return result;
 
 
-bool interop_hook_WinMain_call(void)
-{   bool result = true;
-	result &= hook_write_call(0x0048f3fa, StartOpenLRRInjected, nullptr);
+#pragma region DLL Import Hooks
+
+// NOTE: Unthunked calls to DLL functions use an absolute pointer to a function pointer.
+//       So we need to write the absolute *address of an address* to the function we're replacing.
+
+// Stdcall wrapper around `Main_GetTime`.
+static uint32 __stdcall _wrapTimeGetTime() { return Gods98::Main_GetTime(); }
+// Hooks need to point to this instead of the actual function.
+static decltype(_wrapTimeGetTime)* _importTimeGetTime = _wrapTimeGetTime;
+
+bool interop_hook_calls_WINMM_timeGetTime(void)
+{
+	bool result = true;
+
+	// currently hooked, don't replace these
+	// calls in: Credits_Play:
+	//result &= hook_write_addr(0x0040a004 + 2, &_importTimeGetTime);
+	//result &= hook_write_addr(0x0040a190 + 2, &_importTimeGetTime);
+	//result &= hook_write_addr(0x0040a1da + 2, &_importTimeGetTime);
+	//result &= hook_write_addr(0x0040a1e4 + 2, &_importTimeGetTime);
+
+
+	// calls in: Front_ScreenMenuLoop:
+	result &= hook_write_addr(0x00413b1f + 2, &_importTimeGetTime);
+	result &= hook_write_addr(0x00413bb9 + 2, &_importTimeGetTime);
+
+	// currently hooked, don't replace these
+	// calls in: Front_PlayIntroSplash:
+	//result &= hook_write_addr(0x00415777 + 2, &_importTimeGetTime);
+
+
+	// currently hooked, don't replace these
+	// calls in: Main_WinMain:
+	//result &= hook_write_addr(0x00477d3a + 2, &_importTimeGetTime);
+	
+	// timeGetTime is also called by Main_GetTime.
+	// But we can't be hooking the call that we're replacing the call with.
+
+
+	// currently hooked, don't replace these
+	// calls in: G98CAnimation___ctor:
+	//result &= hook_write_addr(0x0047eb87 + 2, &_importTimeGetTime);
+
+	// calls in: G98CAnimation__Update:
+	//result &= hook_write_addr(0x0047ee23 + 2, &_importTimeGetTime);
+
+	// calls in: G98CAnimation__SetTime:
+	//result &= hook_write_addr(0x0047eec9 + 2, &_importTimeGetTime);
+
+
+	// currently hooked, don't replace these
+	// calls in: Sound_Update:
+	//result &= hook_write_addr(0x00488eca + 2, &_importTimeGetTime);
+
 	return_interop(result);
 }
 
-bool interop_hook_Gods98_WinMain(void)
-{   bool result = true;
-	//result &= hook_write_jmpret(0x00477a60, Gods98::Main_WinMain);
-	result &= hook_write_jmpret(0x00477a60, StartOpenLRRInjected);
-	//return_interop(result);
-	return result;
+#pragma endregion
+
+
+#pragma region C Runtime Hooks
+
+bool interop_hook_CRT_rand(void)
+{
+	bool result = true;
+	
+	// Hook random calls, so that we can have full control over I/O.
+	//result &= hook_write_jmpret(0x0048e420, legacy::srand);
+	//result &= hook_write_jmpret(0x0048e430, legacy::rand);
+	result &= hook_write_jmpret(0x0048e420, Gods98::Maths_SeedRand);
+	result &= hook_write_jmpret(0x0048e430, Gods98::Maths_RandInt32);
+
+	return_interop(result);
 }
 
+#pragma endregion
+
+
+#pragma region Gods98 Engine Hooks
+
+bool interop_hook_WinMain(void)
+{
+	bool result = hook_write_jmpret(PROCESS_WINMAIN, StartOpenLRRInjected);
+	return_interop(result);
+}
 
 bool interop_hook_Gods98_3DSound(void)
-{   bool result = true;
+{
+	bool result = true;
 	// used by: Sound_Initialise
 	result &= hook_write_jmpret(0x0047a900, Gods98::Sound3D_Initialise);
 
@@ -177,7 +252,8 @@ bool interop_hook_Gods98_3DSound(void)
 }
 
 bool interop_hook_Gods98_Animation(void)
-{   bool result = true;
+{
+	bool result = true;
 	// Only the C wrapper API's need to be hooked
 
 	// used by: WinMain
@@ -196,8 +272,27 @@ bool interop_hook_Gods98_Animation(void)
 	return_interop(result);
 }
 
+bool interop_hook_calls_Gods98_AnimClone(void)
+{
+	bool result = true;
+
+	// (shared) "AnimClone_IsLws__Flic_GetWidth"
+	// THIS FUNCTION MUST BE HOOKED ON AN INDIVIDUAL BASIS
+	// There are 5 calls made to this:
+	//  type:Flic (Flic_GetWidth)  -> FUN_004120e0  <@004120f7>
+	//                                      Panel_FUN_0045a9f0  <@0045ab17>
+	//                                      Pointer_DrawPointer  <@0045cfc8>
+	//  type:FlocksData (Flocks_???)     -> LegoObject_Flocks_FUN_0044bef0  <@0044bfc3>
+	//  type:AnimClone (AnimClone_IsLws) -> Container_FormatPartName  <@00473f60>
+	// <called @00473f60>
+	result &= hook_write_call(0x00473f60, Gods98::AnimClone_IsLws);
+
+	return result;
+}
+
 bool interop_hook_Gods98_AnimClone(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	// used by: Container_LoadAnimSet
 	result &= hook_write_jmpret(0x004897e0, Gods98::AnimClone_Register);
@@ -207,16 +302,10 @@ bool interop_hook_Gods98_AnimClone(void)
 	// used by: Container_Remove2
 	result &= hook_write_jmpret(0x00489a10, Gods98::AnimClone_Remove);
 
-	// (shared) "AnimClone_IsLws__Flic_GetWidth"
-	// THIS FUNCTION MUST BE HOOKED ON AN INDIVIDUAL BASIS
-	// There are 5 calls made to this:
-	//  type:Flic (Flic_GetWidth)  -> FUN_004120e0  <@004120f7>
-	//                                      Panel_FUN_0045a9f0  <@0045ab17>
-	//                                      Pointer_DrawPointer  <@0045cfc8>
-	//  type:FlocksData (Flocks_???)     -> LiveObject_Flocks_FUN_0044bef0  <@0044bfc3>
-	//  type:AnimClone (AnimClone_IsLws) -> Container_FormatPartName  <@00473f60>
-	// <called @00473f60>
-	result &= hook_write_jmpret(0x00473f60, Gods98::AnimClone_IsLws);
+
+	// merged call: Gods98::AnimClone_IsLws must be hooked individually for each call.
+	// moved to: interop_hook_calls_Gods98_AnimClone
+
 
 	// used by: Container_SetAnimationTime, Container_ForceAnimationUpdate
 	result &= hook_write_jmpret(0x00489aa0, Gods98::AnimClone_SetTime);
@@ -233,7 +322,8 @@ bool interop_hook_Gods98_AnimClone(void)
 }
 
 bool interop_hook_Gods98_Bmp(void)
-{   bool result = true;
+{
+	bool result = true;
 	// used by: Container_LoadTextureSurface, Image_LoadBMPScaled
 	result &= hook_write_jmpret(0x00489ef0, Gods98::BMP_Parse);
 	result &= hook_write_jmpret(0x0048a030, Gods98::BMP_Cleanup);
@@ -241,7 +331,8 @@ bool interop_hook_Gods98_Bmp(void)
 }
 
 bool interop_hook_Gods98_Compress(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	// this and one subfunction are implemented, but beyond that, everything is calling native code
 	result &= hook_write_jmpret(0x0049ca80, Gods98::RNC_Uncompress);
@@ -250,7 +341,8 @@ bool interop_hook_Gods98_Compress(void)
 }
 
 bool interop_hook_Gods98_Config(void)
-{   bool result = true;
+{
+	bool result = true;
 	result &= hook_write_jmpret(0x004790b0, Gods98::Config_Initialise);
 	result &= hook_write_jmpret(0x004790e0, Gods98::Config_Shutdown);
 
@@ -278,7 +370,8 @@ bool interop_hook_Gods98_Config(void)
 }
 
 bool interop_hook_Gods98_Containers(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x004729d0, Gods98::Container_Initialise);
@@ -335,7 +428,7 @@ bool interop_hook_Gods98_Containers(void)
 	result &= hook_write_jmpret(0x00473e00, Gods98::Container_Hide);
 
 	// used by: Object_IsHidden, LiveObject_IsHidden,
-	//           LiveObject_Flocks_FUN_0044bef0
+	//           LegoObject_Flocks_FUN_0044bef0
 	result &= hook_write_jmpret(0x00473e60, Gods98::Container_IsHidden);
 
 	result &= hook_write_jmpret(0x00473e80, Gods98::Container_SearchTree);
@@ -494,7 +587,8 @@ bool interop_hook_Gods98_Containers(void)
 }
 
 bool interop_hook_Gods98_Dxbug(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	// internal, no need to hook these
 	//result &= hook_write_jmpret(0x0048a050, Gods98::SE);
@@ -506,7 +600,8 @@ bool interop_hook_Gods98_Dxbug(void)
 }
 
 bool interop_hook_Gods98_DirectDraw(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	// used by: Movie_Load
 	result &= hook_write_jmpret(0x00406500, Gods98::noinline(DirectDraw));
@@ -572,7 +667,8 @@ bool interop_hook_Gods98_DirectDraw(void)
 }
 
 bool interop_hook_Gods98_Draw(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	// used by: WinMain
 	result &= hook_write_jmpret(0x00486140, Gods98::Draw_Initialise);
@@ -605,7 +701,8 @@ bool interop_hook_Gods98_Draw(void)
 }
 
 bool interop_hook_Gods98_Errors(void)
-{   bool result = true;
+{
+	bool result = true;
 	// used by: WinMain
 	//result &= hook_write_jmpret(0x0048b520, Gods98::Error_Initialise);
 	// used by: Main_SetupDisplay
@@ -617,7 +714,8 @@ bool interop_hook_Gods98_Errors(void)
 }
 
 bool interop_hook_Gods98_Files(void)
-{   bool result = true;
+{
+	bool result = true;
 	result &= hook_write_jmpret(0x0047f3f0, Gods98::File_Initialise);
 
 	// internal, no need to hook these
@@ -701,8 +799,29 @@ bool interop_hook_Gods98_Files(void)
 	return_interop(result);
 }
 
+bool interop_hook_calls_Gods98_Flic(void)
+{
+	bool result = true;
+
+	// (shared) "AnimClone_IsLws__Flic_GetWidth"
+	// THIS FUNCTION MUST BE HOOKED ON AN INDIVIDUAL BASIS
+	// There are 5 calls made to this:
+	//  type:Flic (Flic_GetWidth)  -> FUN_004120e0  <@004120f7>
+	//                                      Panel_FUN_0045a9f0  <@0045ab17>
+	//                                      Pointer_DrawPointer  <@0045cfc8>
+	//  type:FlocksData (Flocks_???)     -> LegoObject_Flocks_FUN_0044bef0  <@0044bfc3>
+	//  type:AnimClone (AnimClone_IsLws) -> Container_FormatPartName  <@00473f60>
+	// <called @004120f7, 0045ab17, 0045cfc8>
+	result &= hook_write_call(0x004120f7, Gods98::Flic_GetWidth);
+	result &= hook_write_call(0x0045ab17, Gods98::Flic_GetWidth);
+	result &= hook_write_call(0x0045cfc8, Gods98::Flic_GetWidth);
+
+	return_interop(result);
+}
+
 bool interop_hook_Gods98_Flic(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	result &= hook_write_jmpret(0x00483f40, Gods98::Flic_Setup);
 	result &= hook_write_jmpret(0x004841c0, Gods98::Flic_Close);
@@ -731,18 +850,10 @@ bool interop_hook_Gods98_Flic(void)
 	//result &= hook_write_jmpret(0x004852f0, Gods98::Flic_DeltaWord);
 	//result &= hook_write_jmpret(0x00485380, Gods98::getFlicCol);
 
-	// (shared) "AnimClone_IsLws__Flic_GetWidth"
-	// THIS FUNCTION MUST BE HOOKED ON AN INDIVIDUAL BASIS
-	// There are 5 calls made to this:
-	//  type:Flic (Flic_GetWidth)  -> FUN_004120e0  <@004120f7>
-	//                                      Panel_FUN_0045a9f0  <@0045ab17>
-	//                                      Pointer_DrawPointer  <@0045cfc8>
-	//  type:FlocksData (Flocks_???)     -> LiveObject_Flocks_FUN_0044bef0  <@0044bfc3>
-	//  type:AnimClone (AnimClone_IsLws) -> Container_FormatPartName  <@00473f60>
-	// <called @004120f7, 0045ab17, 0045cfc8>
-	result &= hook_write_call(0x004120f7, Gods98::Flic_GetWidth);
-	result &= hook_write_call(0x0045ab17, Gods98::Flic_GetWidth);
-	result &= hook_write_call(0x0045cfc8, Gods98::Flic_GetWidth);
+
+	// merged call: Gods98::Flic_GetWidth must be hooked individually for each call.
+	// moved to: interop_hook_calls_Gods98_Flic
+
 
 	result &= hook_write_jmpret(0x004853a0, Gods98::Flic_GetHeight);
 
@@ -750,7 +861,8 @@ bool interop_hook_Gods98_Flic(void)
 }
 
 bool interop_hook_Gods98_Fonts(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	result &= hook_write_jmpret(0x00401b90, Gods98::noinline(Font_GetStringWidth));
 
@@ -789,7 +901,8 @@ bool interop_hook_Gods98_Fonts(void)
 }
 
 bool interop_hook_Gods98_Images(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	// used by: Lego_Initialise (new Gods98 calls in WinMain)
 	result &= hook_write_jmpret(0x0047d6d0, Gods98::Image_Initialise);
@@ -844,7 +957,8 @@ bool interop_hook_Gods98_Images(void)
 }
 
 bool interop_hook_Gods98_Input(void)
-{   bool result = true;
+{
+	bool result = true;
 	// used by: LiveObject_FUN_00471fe0
 	result &= hook_write_jmpret(0x00410a60, Gods98::noinline(msx));
 	result &= hook_write_jmpret(0x00410a70, Gods98::noinline(msy));
@@ -871,7 +985,8 @@ bool interop_hook_Gods98_Input(void)
 }
 
 bool interop_hook_Gods98_Keys(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x00485ce0, Gods98::Keys_Initialise);
@@ -883,7 +998,8 @@ bool interop_hook_Gods98_Keys(void)
 }
 
 bool interop_hook_Gods98_Lws(void)
-{   bool result = true;
+{
+	bool result = true;
 	// used by: Container_LoadAnimSet
 	result &= hook_write_jmpret(0x00486cb0, Gods98::Lws_Parse);
 
@@ -931,7 +1047,8 @@ bool interop_hook_Gods98_Lws(void)
 }
 
 bool interop_hook_Gods98_Lwt(void)
-{   bool result = true;
+{
+	bool result = true;
 	// internal, no need to hook these
 	//result &= hook_write_jmpret(0x0048c300, Gods98::lwExtractString);
 	//result &= hook_write_jmpret(0x0048c380, Gods98::stringAlloc);
@@ -954,7 +1071,8 @@ bool interop_hook_Gods98_Lwt(void)
 }
 
 bool interop_hook_Gods98_Main(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	// used by: Lego_Initialise, Info_Send
 	result &= hook_write_jmpret(0x00401b30, Gods98::noinline(Main_ProgrammerMode));
@@ -1036,14 +1154,16 @@ bool interop_hook_Gods98_Main(void)
 }
 
 bool interop_hook_Gods98_Materials(void)
-{   bool result = true;
+{
+	bool result = true;
 	// used by: Map3D_LoadSurfaceMap
 	result &= hook_write_jmpret(0x00489780, Gods98::Material_Create);
 	return_interop(result);
 }
 
 bool interop_hook_Gods98_Maths(void)
-{   bool result = true;
+{
+	bool result = true;
 	// used by: LiveObject_DrawSelectedBox
 	result &= hook_write_jmpret(0x00401240, Gods98::noinline(Maths_Vector2DDistance));
 	result &= hook_write_jmpret(0x004013e0, Gods98::noinline(Maths_Vector3DCrossProduct));
@@ -1097,7 +1217,8 @@ bool interop_hook_Gods98_Maths(void)
 }
 
 bool interop_hook_Gods98_Memory(void)
-{   bool result = true;
+{
+	bool result = true;
 	// used by: WinMain
 	result &= hook_write_jmpret(0x004896b0, Gods98::Mem_Initialise);
 
@@ -1114,7 +1235,8 @@ bool interop_hook_Gods98_Memory(void)
 }
 
 bool interop_hook_Gods98_Mesh(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x00480870, Gods98::Mesh_Initialise);
@@ -1239,7 +1361,8 @@ bool interop_hook_Gods98_Mesh(void)
 }
 
 bool interop_hook_Gods98_Movie(void)
-{   bool result = true;
+{
+	bool result = true;
 	// Only the C wrapper API's need to be hooked
 
 	result &= hook_write_jmpret(0x00472820, Gods98::Movie_Load);
@@ -1257,7 +1380,8 @@ bool interop_hook_Gods98_Movie(void)
 }
 
 bool interop_hook_Gods98_Registry(void)
-{   bool result = true;
+{
+	bool result = true;
 	// internal, no need to hook these
 	//result &= hook_write_jmpret(0x0048b5f0, Gods98::Registry_GetKeyFromPath);
 
@@ -1270,7 +1394,8 @@ bool interop_hook_Gods98_Registry(void)
 }
 
 bool interop_hook_Gods98_Sound(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	// used by: WinMain
 	result &= hook_write_jmpret(0x00488e10, Gods98::Sound_Initialise);
@@ -1309,7 +1434,8 @@ bool interop_hook_Gods98_Sound(void)
 }
 
 bool interop_hook_Gods98_TextWindow(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	result &= hook_write_jmpret(0x004853b0, Gods98::TextWindow_Create);
 	result &= hook_write_jmpret(0x00485420, Gods98::TextWindow_EnableCentering);
@@ -1332,7 +1458,8 @@ bool interop_hook_Gods98_TextWindow(void)
 }
 
 bool interop_hook_Gods98_Utils(void)
-{   bool result = true;
+{
+	bool result = true;
 	result &= hook_write_jmpret(0x00477700, Gods98::Util_Tokenise);
 	result &= hook_write_jmpret(0x00477770, Gods98::Util_WSTokenise);
 	result &= hook_write_jmpret(0x00477810, Gods98::Util_StrCpy);
@@ -1344,7 +1471,8 @@ bool interop_hook_Gods98_Utils(void)
 }
 
 bool interop_hook_Gods98_Viewports(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x00477010, Gods98::Viewport_Initialise);
@@ -1400,7 +1528,8 @@ bool interop_hook_Gods98_Viewports(void)
 }
 
 bool interop_hook_Gods98_Wad(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	// DO NOT HOOK: used by: Files.c (shared function call with Files.c!File_Error)
 	//result &= hook_write_jmpret(0x0047f8c0, Gods98::Wad_Error);
@@ -1444,7 +1573,8 @@ bool interop_hook_Gods98_Wad(void)
 }
 
 bool interop_hook_Gods98_Init(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	// used by: WinMain
 	result &= hook_write_jmpret(0x0049d2f0, Gods98::Init_Initialise);
@@ -1461,9 +1591,14 @@ bool interop_hook_Gods98_Init(void)
 	return_interop(result);
 }
 
+#pragma endregion
+
+
+#pragma region LegoRR Game Hooks
 
 bool interop_hook_LegoRR_Advisor(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x00401000, LegoRR::Advisor_Initialise);
@@ -1516,7 +1651,8 @@ bool interop_hook_LegoRR_Advisor(void)
 }
 
 bool interop_hook_LegoRR_AITask(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	// used by: Priorities_LoadImages, Priorities_LoadLevel
 	result &= hook_write_jmpret(0x00401bf0, LegoRR::AIPriority_GetType);
@@ -1546,7 +1682,8 @@ bool interop_hook_LegoRR_AITask(void)
 }
 
 bool interop_hook_LegoRR_Credits(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	// used by: Front_Callback_TriggerPlayCredits
 	result &= hook_write_jmpret(0x00409ff0, LegoRR::Credits_Play);
@@ -1555,7 +1692,8 @@ bool interop_hook_LegoRR_Credits(void)
 }
 
 bool interop_hook_LegoRR_BezierCurve(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	// internal, no need to hook these
 	//result &= hook_write_jmpret(0x00406520, LegoRR::BezierCurve_Curve);
@@ -1571,7 +1709,8 @@ bool interop_hook_LegoRR_BezierCurve(void)
 }
 
 bool interop_hook_LegoRR_FrontEnd(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	// QoL apply for always-skippable splash screens and movies
 	result &= hook_write_jmpret(0x00415630, LegoRR::Front_PlayMovie);
@@ -1582,7 +1721,8 @@ bool interop_hook_LegoRR_FrontEnd(void)
 }
 
 bool interop_hook_LegoRR_ElectricFence(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	// internal, no need to hook these
 	// used by: ElectricFence_Restart
@@ -1614,7 +1754,8 @@ bool interop_hook_LegoRR_ElectricFence(void)
 }
 
 bool interop_hook_LegoRR_LegoCamera(void)
-{   bool result = true;
+{
+	bool result = true;
 	
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x00435a50, LegoRR::Camera_Create);
@@ -1679,7 +1820,8 @@ bool interop_hook_LegoRR_LegoCamera(void)
 }
 
 bool interop_hook_LegoRR_Messages(void)
-{   bool result = true;
+{
+	bool result = true;
 	
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x00451f90, LegoRR::Message_Initialise);
@@ -1729,7 +1871,8 @@ bool interop_hook_LegoRR_Messages(void)
 }
 
 bool interop_hook_LegoRR_NERPsFile(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	// NERPs interpreter functions (except for GetMessageLine)
 
@@ -1749,7 +1892,8 @@ bool interop_hook_LegoRR_NERPsFile(void)
 }
 
 bool interop_hook_LegoRR_Object(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x00436ee0, LegoRR::LegoObject_Initialise);
@@ -1795,7 +1939,8 @@ bool interop_hook_LegoRR_Object(void)
 }
 
 bool interop_hook_LegoRR_PTL(void)
-{   bool result = true;
+{
+	bool result = true;
 	
 	// used by: Lego_LoadLevel
 	result &= hook_write_jmpret(0x0045daa0, LegoRR::PTL_Initialise);
@@ -1807,7 +1952,8 @@ bool interop_hook_LegoRR_PTL(void)
 }
 
 bool interop_hook_LegoRR_SFX(void)
-{   bool result = true;
+{
+	bool result = true;
 
 	// Ensure data is initialized to zero, testing if NERPs in-game messages are using garbage data
 	result &= hook_write_jmpret(0x00464a00, LegoRR::SFX_Initialise);
@@ -1844,7 +1990,8 @@ bool interop_hook_LegoRR_SFX(void)
 }
 
 bool interop_hook_LegoRR_Smoke(void)
-{   bool result = true;
+{
+	bool result = true;
 	
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x00465640, LegoRR::Smoke_Initialise);
@@ -1878,7 +2025,8 @@ bool interop_hook_LegoRR_Smoke(void)
 }
 
 bool interop_hook_LegoRR_Stats(void)
-{   bool result = true;
+{
+	bool result = true;
 	
 	result &= hook_write_jmpret(0x00466aa0, LegoRR::Stats_Initialise);
 	result &= hook_write_jmpret(0x00469d50, LegoRR::Stats_AddToolTaskType);
@@ -1947,11 +2095,39 @@ bool interop_hook_LegoRR_Stats(void)
 	return_interop(result);
 }
 
+#pragma endregion
+
+
+#pragma region Hook All
 
 bool interop_hook_all(void)
-{   bool result = true;
+{
+	bool result = true;
+
+	// First patch in merged functions and individual calls:
+	// Do this now to prevent messing up any jmpret function hooks
+	//  (that contain calls being individually hooked).
+	
+	#pragma region Merged Calls
+	result &= interop_hook_calls_WINMM_timeGetTime();
+	result &= interop_hook_calls_Gods98_AnimClone();
+	result &= interop_hook_calls_Gods98_Flic();
+	#pragma endregion
 
 
+	// Now patch in all jmpret function hooks:
+
+
+	// Add C Runtime hooks here:
+
+	#pragma region C Runtime
+	result &= interop_hook_CRT_rand();
+	#pragma endregion
+
+
+	// Add Engine hooks here:
+
+	#pragma region Gods98 Engine
 	result &= interop_hook_Gods98_3DSound();
 	result &= interop_hook_Gods98_Animation();
 	result &= interop_hook_Gods98_AnimClone();
@@ -1984,8 +2160,12 @@ bool interop_hook_all(void)
 	result &= interop_hook_Gods98_Viewports();
 	//result &= interop_hook_Gods98_Wad(); // no need to hook, used by: Files
 	//result &= interop_hook_Gods98_Init(); // no need to hook, used by: WinMain
+	#pragma endregion
 
 
+	// Add Game hooks here:
+
+	#pragma region LegoRR Game
 	result &= interop_hook_LegoRR_Advisor();
 	result &= interop_hook_LegoRR_AITask();
 	result &= interop_hook_LegoRR_BezierCurve();
@@ -2005,8 +2185,18 @@ bool interop_hook_all(void)
 
 	// Implementation for NERPs interpreter.
 	result &= interop_hook_LegoRR_NERPsFile();
+	#pragma endregion
 
-	//result &= hook_write_jmpret(0x0042c260, LegoRR::Level_HandleEmergeTriggers);
+
+
+	// Add temporary hooks used for debugging here:
+
+	#pragma region Temporary Hooks
+	// Do not commit anything in here!
+	#pragma endregion
+
 
 	return_interop(result);
 }
+
+#pragma endregion

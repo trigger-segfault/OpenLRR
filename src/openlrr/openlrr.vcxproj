@@ -168,6 +168,7 @@
     <ClInclude Include="engine\core\ListSet.hpp" />
     <ClInclude Include="engine\core\Maths.h" />
     <ClInclude Include="engine\core\Memory.h" />
+    <ClInclude Include="engine\core\Random.hpp" />
     <ClInclude Include="engine\core\Utils.h" />
     <ClInclude Include="engine\core\Wad.h" />
     <ClInclude Include="engine\drawing\Bmp.h" />
@@ -292,6 +293,7 @@
     <ClCompile Include="engine\core\Files.cpp" />
     <ClCompile Include="engine\core\Maths.cpp" />
     <ClCompile Include="engine\core\Memory.cpp" />
+    <ClCompile Include="engine\core\Random.cpp" />
     <ClCompile Include="engine\core\Utils.cpp" />
     <ClCompile Include="engine\core\Wad.cpp" />
     <ClCompile Include="engine\drawing\Bmp.cpp" />

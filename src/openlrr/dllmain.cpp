@@ -19,7 +19,6 @@ static bool isAttached = false;
 DWORD WINAPI DllMainThread(LPVOID hModule)
 {
     InjectOpenLRR((HMODULE)hModule);
-    //interop_hook_Gods98_WinMain();
 
     return 0;
 }
@@ -42,7 +41,6 @@ BOOL APIENTRY DllMain(HMODULE hModule,
             #else
 
             InjectOpenLRR(hModule);
-            //interop_hook_Gods98_WinMain();
 
             #endif
         }

@@ -1314,7 +1314,7 @@ LRESULT __cdecl Gods98::Main_WndProc_Windowed(HWND hWnd, UINT message, WPARAM wP
 		return ::DefWindowProcA(hWnd, message, wParam, lParam);
 	}
 
-	return 0L; // default for all top-level switch breaks
+	return 0; // default for all top-level switch breaks
 }
 
 // <LegoRR.exe @00478b40>

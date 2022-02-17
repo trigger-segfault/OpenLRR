@@ -51,12 +51,10 @@ bool InjectOpenLRR(HINSTANCE hInstanceDll)
 
 
     // Determine if openlrr-injector was used to load this dll.
-    static const constexpr uint8 eipPatch[2]        = { 0xeb,0xfe }; // infinite jmp to itself
-    static const constexpr uint32 PROCESS_EIP       = 0x0048f2c0; // LegoRR.exe!entry
-    static const constexpr uint32 PROCESS_WINMAIN   = 0x00477a60; // LegoRR.exe!WinMain
+    static constexpr const uint8 eipPatch[2]        = { 0xeb,0xfe }; // infinite jmp to itself
 
 	// Determine if openlrr "Start" executable was used to load this dll.
-	static const constexpr uint8 winmainStart[6]    = { 0x55,0x8b,0xec,0xff,0x74,0x24 };
+	static constexpr const uint8 winmainStart[6]    = { 0x55,0x8b,0xec,0xff,0x74,0x24 };
 
 	if (hook_cmp(PROCESS_EIP, eipPatch, sizeof(eipPatch)) == 0) {
 		openlrrGlobs.method = InjectMethod::Injector;
@@ -68,8 +66,9 @@ bool InjectOpenLRR(HINSTANCE hInstanceDll)
 	}
 
 
-    // Redirect `LegoRR.exe!WinMain` to immediately jump to `openlrr.dll!StartOpenLRR`.
-	bool result = hook_write_jmpret(PROCESS_WINMAIN, StartOpenLRRInjected);
+	// Redirect `LegoRR.exe!WinMain` to immediately jump to `openlrr.dll!StartOpenLRR`.
+	bool result = interop_hook_WinMain();
+	//bool result = hook_write_jmpret(PROCESS_WINMAIN, StartOpenLRRInjected);
 
     return result;
 }

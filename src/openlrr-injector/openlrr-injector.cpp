@@ -258,7 +258,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 	_tprintf(_T("EIP Backup OK\n"));
 
-	static const constexpr BYTE eipPatch[2] = { 0xEB, 0xFE };    // infinite jmp to itself
+	static constexpr const BYTE eipPatch[2] = { 0xEB, 0xFE };    // infinite jmp to itself
 
 	if (!::WriteProcessMemory(ProcessInfo.hProcess, (LPVOID)PROCESS_EIP, &eipPatch, sizeof(eipPatch), NULL)) {
 		_tprintf(_T("EIP Patch failed\n"));
