@@ -69,7 +69,9 @@
 // Stdcall wrapper around `Main_GetTime`.
 static uint32 __stdcall _wrapTimeGetTime() { return Gods98::Main_GetTime(); }
 // Hooks need to point to this instead of the actual function.
-static decltype(_wrapTimeGetTime)* _importTimeGetTime = _wrapTimeGetTime;
+static decltype(_wrapTimeGetTime)* _ptrTimeGetTime = _wrapTimeGetTime;
+// Hooks need to point to this instead of the actual function.
+static decltype(_ptrTimeGetTime)* _importTimeGetTime = &_ptrTimeGetTime;
 
 bool interop_hook_calls_WINMM_timeGetTime(void)
 {
