@@ -829,8 +829,6 @@ void __cdecl Gods98::Gods_Go(const char* programName)
 
 sint32 __stdcall LaunchOpenLRR(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, sint32 nCmdShow)
 {
-    openlrrGlobs.hInstMain = hInstance;
-    openlrrGlobs.conout = MakeConsole();
 	openlrrGlobs.hInstMain = hInstance;
 	openlrrGlobs.conout = MakeConsole();
 
