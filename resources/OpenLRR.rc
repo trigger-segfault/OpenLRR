@@ -95,21 +95,28 @@ BEGIN
 
     POPUP "&Options"
     BEGIN
-#if 0  // not ready yet
+//#if 0  // not ready yet
         MENUITEM "&Music On",                   IDM_MUSICON,CHECKED
         MENUITEM "&Sound On",                   IDM_SOUNDON,CHECKED
         MENUITEM "&Help Window",                IDM_HELPWINDOW,CHECKED
         MENUITEM "&Auto Game Speed",            IDM_AUTOGAMESPEED,CHECKED
-#endif
+//#endif
         MENUITEM "&Dual Mouse",                 IDM_DUALMOUSE
-#if 0  // not ready yet
         MENUITEM "Pause When Focus &Lost",      IDM_LOSEFOCUSANDPAUSE,CHECKED
+//#if 0  // not ready yet
         MENUITEM SEPARATOR
-        MENUITEM "Show &ObjInfo",               IDM_OBJINFO
-        MENUITEM "Show &Panels",                IDM_PANELS,CHECKED
+        MENUITEM "Show &ObjInfo",               IDM_SHOWOBJINFO
+        MENUITEM "Show &Panels",                IDM_RENDERPANELS,CHECKED
         MENUITEM "&Tooltip Sound",              IDM_TOOLTIPSOUND,CHECKED
-#endif
+//#endif
         MENUITEM SEPARATOR
+        POPUP "&Scale"
+        BEGIN
+            MENUITEM "x&1",                     IDM_SCALE_X1,CHECKED
+            MENUITEM "x&2",                     IDM_SCALE_X2
+            MENUITEM "x&3",                     IDM_SCALE_X3
+            MENUITEM "x&4",                     IDM_SCALE_X4
+        END
         POPUP "&Cursor"
         BEGIN
             MENUITEM "&Never Show",             IDM_CURSOR_NEVER,CHECKED
@@ -128,12 +135,13 @@ BEGIN
         MENUITEM SEPARATOR
         POPUP "&Graphics"
         BEGIN
-#if 0  // not ready yet
-            MENUITEM "L&ight Effects",          IDM_LIGHTEFFECTS,CHECKED
-            MENUITEM "&Wall Promeshes",         IDM_WALLPROMESHES,CHECKED
+//#if 0  // not ready yet
+            MENUITEM "Spotl&ight Effects",      IDM_LIGHTEFFECTS,CHECKED
+            MENUITEM "&Wall Promeshes",         IDM_DETAILON,CHECKED
             MENUITEM "D&ynamic Promeshes",      IDM_DYNAMICPM
+//#endif
+            MENUITEM "&Topdown Fog",            IDM_TOPDOWNFOG
             MENUITEM SEPARATOR
-#endif
             POPUP "&Quality"
             BEGIN
                 MENUITEM "&Wireframe",          IDM_QUALITY_WIREFRAME
@@ -163,28 +171,28 @@ BEGIN
         MENUITEM "&Debug Complete",             IDM_DEBUGCOMPLETE
         MENUITEM "Unlock All &Levels",          IDM_LEVELSOPEN
         MENUITEM "Tester Call",                 IDM_TESTERCALL
-#if 0  // not ready yet
+//#if 0  // not ready yet
         MENUITEM SEPARATOR
         MENUITEM "AllowDebugKeys",              IDM_ALLOWDEBUGKEYS
         MENUITEM "AllowEditMode",               IDM_ALLOWEDITMODE
         MENUITEM "ShowDebugToolTips",           IDM_SHOWDEBUGTOOLTIPS
-#endif
+//#endif
         MENUITEM SEPARATOR
         POPUP "&Experimental"
         BEGIN
             MENUITEM "Block Fade",              IDM_BLOCKFADE
-#if 0  // not ready yet
-            MENUITEM "Clear",                   IDM_CLEAR,CHECKED
-#endif
+//#if 0  // not ready yet
+            MENUITEM "Clear",                   IDM_DDRAWCLEAR,CHECKED
+//#endif
             MENUITEM "Wobbly World",            IDM_WOBBLYWORLD
         END
-#if 0  // not ready yet
+//#if 0  // not ready yet
         POPUP "&Info"
         BEGIN
             MENUITEM "&FPS Monitor",            IDM_FPSMONITOR
             MENUITEM "&Memory Monitor",         IDM_MEMORYMONITOR
         END
-#endif
+//#endif
         MENUITEM SEPARATOR
         MENUITEM "Dump Mode",                   IDM_DUMPMODE
         MENUITEM "F&reeze",                     IDM_FREEZE
@@ -192,35 +200,43 @@ BEGIN
         MENUITEM "Advance 1 &Second",           IDM_ADVANCE_1SECOND,GRAYED
     END
 
-#if 0  // not ready yet
-    POPUP "&Cheats",                            GRAYED
+    POPUP "&Cheats" //,                            GRAYED
     BEGIN
         MENUITEM "No &NERPs",                   IDM_NONERPS
         MENUITEM "Free &Camera Movement",       IDM_UNLOCKCAMERA
         MENUITEM "No Build &Dependencies",      IDM_UNLOCKBUILD
+#if 0  // not ready yet
         //MENUITEM "OnlyBuildOnPaths (todo)",     IDM_ONLYBUILDONPATHS,CHECKED,GRAYED
         MENUITEM "Build Without &Paths",        IDM_BUILDWITHOUTPATHS
         MENUITEM "Build On Any &Roughness",     IDM_BUILDANYROUGHNESS
+#endif
         MENUITEM "FP N&oclip",                  IDM_FPNOCLIP
         MENUITEM "FP &Controls",                IDM_FPCONTROLS
         MENUITEM SEPARATOR
         //MENUITEM "Always Rock Fall",            IDM_ALWAYSROCKFALL
         MENUITEM "No Rock Fall",                IDM_NOROCKFALL
+#if 0  // not ready yet
         MENUITEM "No Oxygen",                   IDM_NOOXYGEN
         MENUITEM "Quick Reinforce",             IDM_QUICKREINFORCE
         MENUITEM "Peaceful",                    IDM_PEACEFUL
+#endif
         MENUITEM SEPARATOR
         POPUP "Config"
         BEGIN
             MENUITEM "Allow Rename",            IDM_ALLOWRENAME
+#if 0  // not ready yet
             MENUITEM "Disable End Teleport",    IDM_DISABLEENDTELEPORT
+#endif
             MENUITEM "Generate Spiders",        IDM_GENERATESPIDERS
             MENUITEM "No Auto Eat",             IDM_NOAUTOEAT
             MENUITEM "No Fallins",              IDM_NOFALLINS
             MENUITEM "No Multi-Select",         IDM_NOMULTISELECT
+#if 0  // not ready yet
             MENUITEM "Safe Caverns",            IDM_SAFECAVERNS
             MENUITEM "See Through Walls",       IDM_SEETHROUGHWALLS
+#endif
         END
+#if 0  // not ready yet
         MENUITEM SEPARATOR
         POPUP "Resources"
         BEGIN
@@ -249,8 +265,8 @@ BEGIN
             MENUITEM SEPARATOR
             MENUITEM "Kill All Creatures",      IDM_KILLCREATURES,GRAYED
         END
-    END
 #endif
+    END
 
     POPUP "&Help"
     BEGIN

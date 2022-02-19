@@ -121,8 +121,12 @@ extern Dependencies_Globs & dependencyGlobs;
 
 #pragma region Functions
 
+// <inlined>
+inline bool Dependencies_IsEnabled() { return !dependencyGlobs.disabled; }
+
+
 // <LegoRR.exe @0040aa40>
-#define Dependencies_Debug_SetBuildingPrerequisits ((void (__cdecl* )(bool32 on))0x0040aa40)
+#define Dependencies_SetEnabled ((void (__cdecl* )(bool32 on))0x0040aa40)
 
 // <LegoRR.exe @0040aa60>
 #define Dependencies_Reset_ClearAllLevelFlags_10c ((void (__cdecl* )(void))0x0040aa60)

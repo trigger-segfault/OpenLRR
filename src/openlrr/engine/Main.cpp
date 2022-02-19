@@ -72,6 +72,122 @@ Gods98::Main_Globs2 Gods98::mainGlobs2 = { 0 };
 
 #pragma region Functions
 
+/// CUSTOM: Checks if the scale creates a window larger than the desktop area size.
+bool Gods98::Main_IsScaleSupported(uint32 windowScale)
+{
+	// Fullscreen does not support scaling.
+	// Arbitrarily large scale cap to avoid overflow.
+	if (Main_FullScreen() || windowScale == 0 || windowScale > 0x10000) 
+		return false;
+
+	// We can't validate scaling until our display is setup.
+	// Always support the smallest scale.
+	if (!Main_IsDisplaySetup() || windowScale == 1)
+		return true;
+
+	Rect2I rectDesktop = { 0 }; // dummy init
+	HWND hWndDesktop = ::GetDesktopWindow();
+	::GetWindowRect(hWndDesktop, reinterpret_cast<RECT*>(&rectDesktop));
+
+	Rect2I rect = {
+		0,
+		0,
+		appWidth() * (sint32)windowScale,
+		appHeight() * (sint32)windowScale,
+	};
+	Main_AdjustWindowRect(&rect);
+
+
+	const sint32 maxWidth = rectDesktop.right - rectDesktop.left;
+	const sint32 maxHeight = rectDesktop.bottom - rectDesktop.top;
+
+	const sint32 scaledWidth = rect.right - rect.left;
+	const sint32 scaledHeight = rect.bottom - rect.top;
+
+	return (scaledWidth  > 0 && scaledWidth  <= maxWidth &&
+			scaledHeight > 0 && scaledHeight <= maxHeight);
+}
+
+/// CUSTOM: Changes the current game window scale.
+void Gods98::Main_SetScale(uint32 windowScale)
+{
+	if (windowScale != mainGlobs2.windowScale && Main_IsScaleSupported(windowScale)) {
+
+		if (Main_IsDisplaySetup() && !Main_FullScreen()) {
+			Rect2I appRect = { 0 }; // dummy init
+			::GetWindowRect(Main_hWnd(), reinterpret_cast<RECT*>(&appRect));
+
+			Rect2I rect = {
+				0,
+				0,
+				appWidth() * (sint32)windowScale,
+				appHeight() * (sint32)windowScale,
+			};
+			Main_AdjustWindowRect(&rect);
+
+			const sint32 scaledWidth = rect.right - rect.left;
+			const sint32 scaledHeight = rect.bottom - rect.top;
+
+			// Change the x,y position of our rect to that of appRect.
+			rect.right -= rect.left;
+			rect.bottom -= rect.top;
+			rect.right += appRect.left;
+			rect.bottom += appRect.top;
+			rect.left = appRect.left;
+			rect.top = appRect.top;
+
+			// If we're increasing the window scale, then move the x/y position back a bit if we're going outside the window bounds.
+			// This is probably really broken if used on a secondary monitor... >.>
+			if (windowScale > mainGlobs2.windowScale) {
+				Main_AdjustWindowPosition(&rect);
+			}
+
+			::SetWindowPos(Main_hWnd(), nullptr, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER | SWP_NOACTIVATE);
+		}
+
+		mainGlobs2.windowScale = (sint32)windowScale;
+	}
+}
+
+
+
+/// CUSTOM: Adjust rect x,y position so that the bottom,right isn't going off the screen. (Only checks desktop size!!)
+void Gods98::Main_AdjustWindowPosition(IN OUT Rect2I* rect)
+{
+	if (!Main_FullScreen() && Main_hWnd() != nullptr) {
+		Rect2I rectDesktop = { 0 }; // dummy init
+		HWND hWndDesktop = ::GetDesktopWindow();
+		::GetWindowRect(hWndDesktop, reinterpret_cast<RECT*>(&rectDesktop));
+
+		//const sint32 taskBarHeight = 40;
+
+		const sint32 xDiff1 = rect->right - (rectDesktop.right);// -taskBarHeight);
+		const sint32 yDiff1 = rect->bottom - (rectDesktop.bottom);// - taskBarHeight);
+
+
+		if (rect->left > 0 && xDiff1 > 0) {
+			rect->left   -= xDiff1;
+			rect->right  -= xDiff1;
+		}
+		if (rect->top  > 0 && yDiff1 > 0) {
+			rect->top    -= yDiff1;
+			rect->bottom -= yDiff1;
+		}
+
+		const sint32 xDiff2 = rect->left;
+		const sint32 yDiff2 = rect->top;
+		if (xDiff2 < 0) {
+			rect->left   -= xDiff2;
+			rect->right  -= xDiff2;
+		}
+		if (yDiff2 < 0) {
+			rect->top    -= yDiff2;
+			rect->bottom -= yDiff2;
+		}
+	}
+}
+
+
 /// CUSTOM: A wrapper for the WINAPI Sleep function.
 void __cdecl Gods98::Main_Sleep(uint32 milliseconds)
 {
@@ -320,6 +436,7 @@ sint32 __stdcall Gods98::Main_WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTAN
 	mainGlobs.hInst = hInstance;
 	mainGlobs.fixedFrameTiming = 0.0f;
 	mainGlobs.flags = MainFlags::MAIN_FLAG_NONE;
+	mainGlobs2.windowScale = 1;
 
 	{
 		char commandLine[1024];
@@ -824,12 +941,13 @@ void __cdecl Gods98::Main_SetupDisplay(bool32 fullScreen, uint32 xPos, uint32 yP
 		Rect2I rect = { // sint32 casts to stop compiler from complaining
 			(sint32) xPos,
 			(sint32) yPos,
-			(sint32) (xPos + width),
-			(sint32) (yPos + height),
+			(sint32) (xPos + width * Main_Scale()),
+			(sint32) (yPos + height * Main_Scale()),
 		};
 		mainGlobs.style = WS_POPUP | WS_SYSMENU | WS_CAPTION;
 		
 		Main_AdjustWindowRect(&rect);
+		Main_AdjustWindowPosition(&rect);
 		
 		::SetWindowLongA(mainGlobs.hWnd, GWL_STYLE, mainGlobs.style);
 		::SetWindowPos(mainGlobs.hWnd, nullptr, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
@@ -839,11 +957,12 @@ void __cdecl Gods98::Main_SetupDisplay(bool32 fullScreen, uint32 xPos, uint32 yP
 		///  The fix is then handled with the Main_WndProc message WM_SETCURSOR.
 		//::ShowCursor(false);
 
-	} else {
+	}
+	else {
 		HWND hWndDesktop = ::GetDesktopWindow();
 
 		Rect2I rect = { 0 }; // dummy init
-		::GetWindowRect(hWndDesktop, (RECT*)&rect);
+		::GetWindowRect(hWndDesktop, reinterpret_cast<RECT*>(&rect));
 
 		::SetWindowPos(mainGlobs.hWnd, nullptr, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
 
@@ -867,9 +986,9 @@ void __cdecl Gods98::Main_AdjustWindowRect(IN OUT Rect2I* rect)
 
 	if (!(mainGlobs.flags & MainFlags::MAIN_FLAG_FULLSCREEN)) {
 		/// CUSTOM: Added menu
-		::AdjustWindowRect((RECT*)rect, mainGlobs.style, Main_GetMenu() != nullptr);// false);
+		::AdjustWindowRect(reinterpret_cast<RECT*>(rect), mainGlobs.style, Main_GetMenu() != nullptr);// false);
 
-		//::AdjustWindowRect((RECT*)rect, mainGlobs.style, false);
+		//::AdjustWindowRect(reinterpret_cast<RECT*>(rect), mainGlobs.style, false);
 	}
 }
 
@@ -1600,10 +1719,11 @@ void __cdecl Gods98::Main_SetMenu(HMENU newMenu, bool32 owner)
 
 				Rect2I rect = { 0 }; // dummy init
 				::GetWindowRect(Main_hWnd(), reinterpret_cast<RECT*>(&rect));
-				rect.right  = rect.left + appWidth();
-				rect.bottom = rect.top + appHeight();
+				rect.right  = rect.left + appWidth() * Main_Scale();
+				rect.bottom = rect.top + appHeight() * Main_Scale();
 
 				Main_AdjustWindowRect(&rect);
+				Main_AdjustWindowPosition(&rect);
 				// Don't pass position, since we're not modifying that.
 				::SetWindowPos(Main_hWnd(), nullptr, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
 			}

@@ -250,6 +250,8 @@ struct Main_Globs2
 
 	/// CONTROL:
 	sint32				advanceFrames;	// Number of frames to advance when in the Main_IsPaused state
+
+	uint32				windowScale;
 };
 
 #pragma endregion
@@ -289,6 +291,19 @@ void __cdecl Gods_Go(const char* programName);
  **********************************************************************************/
 
 #pragma region Functions
+
+/// CUSTOM: Scaling for game window (nearest neighbour)
+inline sint32 Main_Scale() { return static_cast<sint32>(mainGlobs2.windowScale); }
+
+/// CUSTOM: Checks if the scale creates a window larger than the desktop area size.
+bool Main_IsScaleSupported(uint32 windowScale);
+
+/// CUSTOM: Changes the current game window scale.
+void Main_SetScale(uint32 windowScale);
+
+/// CUSTOM: Adjust rect x,y position so that the bottom,right isn't going off the screen. (Only checks desktop size!!)
+void Main_AdjustWindowPosition(IN OUT Rect2I* rect);
+
 
 /// CUSTOM:
 __inline HACCEL Main_GetAccel(void) { return mainGlobs.accels; }

@@ -771,6 +771,11 @@ bool32 __cdecl LegoRR::Lego_Initialise(void)
 			Lego_SetSoundOn(true);
 		}
 
+
+		/// CUSTOM: Track completion of Lego_Initialise, so that we know what modifications can be made to global variables.
+		legoGlobs2.legoInit = true;
+
+
 		const char* startLevelName;
 		/// ALTERATION: allow -startlevel command line option to ALWAYS boot directly into a level.
 		// Programmer modes >= 3 also disable the front end.
@@ -915,7 +920,7 @@ bool32 __cdecl LegoRR::Lego_MainLoop(real32 elapsed)
 			// Consider if smoothSpeed was multiplied by 2.0f instead of 5.0f.
 			// In this case, then we would travel 1/2 distance towards targetPos every full tick.
 			// Basically we would be calculating the midpoint `(A + B) / 2`, then.
-			
+
 			// smoothSpeed * camPos
 			Gods98::Maths_Vector2DScale(&legoGlobs.gotoNewPos, reinterpret_cast<Point2F*>(&camPos), smoothSpeed);
 			// (... + legoGlobs.gotoNewPos)
@@ -936,7 +941,6 @@ bool32 __cdecl LegoRR::Lego_MainLoop(real32 elapsed)
 			const real32 gotoDistance = Gods98::Maths_Vector2DDistance(&legoGlobs.gotoNewPos, reinterpret_cast<Point2F*>(&camPos));
 
 			if (gotoDistance < 2.0f) {
-			//if (std::sqrt(gotoDist.y * gotoDist.y + gotoDist.x * gotoDist.x) < 2.0f) {
 				// We're close enough to treat as having reached gotoTargetPos.
 				legoGlobs.gotoSmooth = false;
 			}
@@ -979,6 +983,54 @@ bool32 __cdecl LegoRR::Lego_MainLoop(real32 elapsed)
 
 		sMonitorFramesCountUp = 0;
 		sFpsTimeGet = Gods98::Main_GetTime();
+	}
+
+
+	/// CUSTOM: FP controls in topdown view.
+	if (legoGlobs2.topdownFPControlsOn && !(legoGlobs.flags1 & (GAME1_FREEZEINTERFACE|GAME1_LEVELENDING))) {
+
+		LegoObject* fpUnit = Message_GetPrimarySelectedUnit();
+		if (fpUnit != nullptr && Message_GetNumSelectedUnits() == 1 && Lego_GetViewMode() == ViewMode_Top) {
+			// Input_ClearKey is used on success so that we don't influence the Camera movement.
+
+			// First person view controls
+			// IsKeyDown(KEY_CURSORUP) (200)
+			//  "First person view: Move forward."
+			if (Input_IsKeyDown(Keys::KEY_CURSORUP)) {
+				LegoObject_FP_Move(fpUnit, 1, 0, 0.0f);
+				Input_ClearKey(Keys::KEY_CURSORUP);
+			}
+			// IsKeyDown(KEY_CURSORDOWN) (208)
+			//  "First person view: Move back."
+			if (Input_IsKeyDown(Keys::KEY_CURSORDOWN)) {
+				LegoObject_FP_Move(fpUnit, -1, 0, 0.0f);
+				Input_ClearKey(Keys::KEY_CURSORDOWN);
+			}
+			// IsKeyDown(KEY_CURSORLEFT) (203)
+			//  "First person view: Turn left."
+			if (Input_IsKeyDown(Keys::KEY_CURSORLEFT)) {
+				LegoObject_FP_Move(fpUnit, 0, 0, -0.05f);
+				Input_ClearKey(Keys::KEY_CURSORLEFT);
+			}
+			// IsKeyDown(KEY_CURSORRIGHT) (205)
+			//  "First person view: Turn right."
+			if (Input_IsKeyDown(Keys::KEY_CURSORRIGHT)) {
+				LegoObject_FP_Move(fpUnit, 0, 0, 0.05f);
+				Input_ClearKey(Keys::KEY_CURSORRIGHT);
+			}
+			// IsKeyDown(KEY_Z) (44)
+			//  "First person view: Strafe left."
+			if (Input_IsKeyDown(Keys::KEY_Z)) {
+				LegoObject_FP_Move(fpUnit, 0, -1, 0.0f);
+				Input_ClearKey(Keys::KEY_Z);
+			}
+			// IsKeyDown(KEY_X) (45)
+			//  "First person view: Strafe right."
+			if (Input_IsKeyDown(Keys::KEY_X)) {
+				LegoObject_FP_Move(fpUnit, 0, 1, 0.0f);
+				Input_ClearKey(Keys::KEY_X);
+			}
+		}
 	}
 
 
@@ -1053,6 +1105,19 @@ bool32 __cdecl LegoRR::Lego_MainLoop(real32 elapsed)
 	// PREPARE: ambientLight is the only container shared by FP and Topdown rendering.
 	Gods98::Container_Hide(legoGlobs.ambientLight, false);
 	if (legoGlobs.viewMode == ViewMode_Top) {
+
+		/// CUSTOM: Render fog used in FP view when in topdown view.
+		if (Lego_IsTopdownFogOn()) {
+			//Roof_Hide(false);
+			//Roof_Update();
+
+			//LegoObject_FP_SetRanges(legoGlobs.objectFP, (legoGlobs.cameraMain)->contCam, legoGlobs.MedPolyRange, legoGlobs.HighPolyRange, true);
+			//LegoObject_SwapPolyFP(legoGlobs.objectFP, Camera_GetFPCameraFrame(legoGlobs.cameraMain), true);
+
+			Lego_UpdateSceneFog(true, elapsedWorld); // Turn ON fog for rendering.
+		}
+
+
 		// PREPARE: And unhide everything for rendering.
 		if (!(legoGlobs.flags1 & GAME1_FREEZEINTERFACE)) {
 			Gods98::Container_Hide(legoGlobs.rootSpotlight, false);
@@ -1066,6 +1131,20 @@ bool32 __cdecl LegoRR::Lego_MainLoop(real32 elapsed)
 		// CLEANUP: And hide everything again.
 		Gods98::Container_Hide(legoGlobs.spotlightTop, true);
 		Gods98::Container_Hide(legoGlobs.rootSpotlight, true);
+
+
+		/// CUSTOM: Render fog used in FP view when in topdown view.
+		if (Lego_IsTopdownFogOn()) {
+			Lego_UpdateSceneFog(false, elapsedWorld); // Turn OFF fog for rendering.
+
+			//LegoObject_SwapPolyFP(legoGlobs.objectFP, Camera_GetFPCameraFrame(legoGlobs.cameraMain), false);
+			//LegoObject_FP_SetRanges(legoGlobs.objectFP, nullptr, 0.0f, 0.0f, false);
+
+			//Roof_HideAllVisibleBlocks();
+			//Roof_Hide(true);
+
+			//Level_RemoveAll_ProMeshes();
+		}
 	}
 	else if (legoGlobs.viewMode == ViewMode_FP) {
 		// PREPARE: And unhide everything for rendering.

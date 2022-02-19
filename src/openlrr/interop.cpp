@@ -1755,6 +1755,25 @@ bool interop_hook_LegoRR_ElectricFence(void)
 	return_interop(result);
 }
 
+bool interop_hook_LegoRR_Game(void)
+{
+	bool result = true;
+
+	// used by: Lego_MainLoop
+	result &= hook_write_jmpret(0x00424660, LegoRR::Lego_UpdateSceneFog);
+
+	// Restore debug tooltip support.
+	// used by: Lego_HandleWorld
+	result &= hook_write_jmpret(0x00427f50, LegoRR::Lego_ShowObjectToolTip);
+	// used by: Lego_HandleRadarInput, Lego_HandleWorld
+	result &= hook_write_jmpret(0x00428260, LegoRR::Lego_ShowBlockToolTip);
+
+	// used by: Debug_ProgrammerMode11_LoadLevel, Lego_Shutdown_Full, Lego_EndLevel
+	result &= hook_write_jmpret(0x0042eff0, LegoRR::Level_Free);
+
+	return_interop(result);
+}
+
 bool interop_hook_LegoRR_LegoCamera(void)
 {
 	bool result = true;
@@ -2173,6 +2192,7 @@ bool interop_hook_all(void)
 	result &= interop_hook_LegoRR_BezierCurve();
 	result &= interop_hook_LegoRR_Credits();
 	result &= interop_hook_LegoRR_ElectricFence();
+	result &= interop_hook_LegoRR_Game();
 	result &= interop_hook_LegoRR_LegoCamera();
 	result &= interop_hook_LegoRR_Messages();
 	result &= interop_hook_LegoRR_Object();

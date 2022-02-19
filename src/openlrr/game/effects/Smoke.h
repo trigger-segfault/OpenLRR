@@ -9,6 +9,7 @@
 #include "../../engine/undefined.h"
 
 #include "../../engine/gfx/Containers.h"
+#include "../../engine/gfx/Mesh.h"
 #include "../../engine/drawing/Images.h"
 
 #include "../GameCommon.h"

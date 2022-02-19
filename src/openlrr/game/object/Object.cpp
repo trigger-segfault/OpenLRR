@@ -279,6 +279,10 @@ bool32 __cdecl LegoRR::LegoObject_Remove(LegoObject* deadObj)
 	LegoObject_RemoveRouteToReferences(deadObj);
 
 	Lego_RemoveRecordObject(deadObj);
+
+
+	/// FIX APPLY: Remove object references created by K register/get in vehicle debug key.
+	if (gamectrlGlobs.dbgGetInVehicle == deadObj) gamectrlGlobs.dbgGetInVehicle = nullptr;
 	
 
 	// Remove the model, and other object type-specific cleanup.

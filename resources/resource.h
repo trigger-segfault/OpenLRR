@@ -53,10 +53,15 @@
 #define IDM_DUALMOUSE					505
 #define IDM_LOSEFOCUSANDPAUSE		    506
 // --------------
-#define IDM_OBJINFO						511
-#define IDM_PANELS						512
+#define IDM_SHOWOBJINFO					511
+#define IDM_RENDERPANELS				512
 #define IDM_TOOLTIPSOUND				513
 // --------------
+// &Options > Scale (Radio Group)
+#define IDM_SCALE_X1					521
+#define IDM_SCALE_X2					522
+#define IDM_SCALE_X3					523
+#define IDM_SCALE_X4					524
 // &Options > Cursor (Radio Group)
 #define IDM_CURSOR_NEVER				531
 #define IDM_CURSOR_TITLEBAR				532
@@ -71,8 +76,9 @@
 // --------------
 // &Options > Graphics
 #define IDM_LIGHTEFFECTS				551
-#define IDM_WALLPROMESHES				552
+#define IDM_DETAILON					552
 #define IDM_DYNAMICPM					553
+#define IDM_TOPDOWNFOG					554
 // &Options > Graphics > Quality (Radio Group)
 #define IDM_QUALITY_WIREFRAME			561
 #define IDM_QUALITY_UNLITFLAT			562
@@ -104,7 +110,7 @@
 // --------------
 // &Debug > Experimental
 #define IDM_BLOCKFADE					321
-#define IDM_CLEAR						322
+#define IDM_DDRAWCLEAR					322
 #define IDM_WOBBLYWORLD					323
 // &Debug > Info
 #define IDM_FPSMONITOR					331

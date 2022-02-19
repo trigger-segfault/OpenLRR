@@ -458,8 +458,8 @@ void __cdecl Gods98::DirectDraw_BlitBuffers(void)
 	POINT pt = { 0, 0 };
 	RECT dest = { // sint32 casts to stop compiler from complaining
 		0, 0,
-		(sint32) directDrawGlobs.width,
-		(sint32) directDrawGlobs.height,
+		(sint32) directDrawGlobs.width * Main_Scale(),
+		(sint32) directDrawGlobs.height * Main_Scale(),
 	};
 	::ClientToScreen(directDrawGlobs.hWnd, &pt);
 	::OffsetRect(&dest, pt.x, pt.y);

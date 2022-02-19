@@ -60,6 +60,7 @@ bool interop_hook_LegoRR_BezierCurve(void);
 bool interop_hook_LegoRR_Credits(void);
 bool interop_hook_LegoRR_ElectricFence(void);
 bool interop_hook_LegoRR_FrontEnd(void);
+bool interop_hook_LegoRR_Game(void);
 bool interop_hook_LegoRR_LegoCamera(void);
 bool interop_hook_LegoRR_Messages(void);
 bool interop_hook_LegoRR_NERPsFile(void);

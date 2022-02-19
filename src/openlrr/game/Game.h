@@ -123,7 +123,7 @@ enum GameFlags1 : uint32 // [LegoRR/Lego.c|flags:0x4|type:uint]
 	GAME1_DEBUG_NONERPS         = 0x1000000,
 	GAME1_PAUSED                = 0x2000000,
 	GAME1_STREAMNERPSSPEACH     = 0x4000000,
-	GAME1_UNK_8000000           = 0x8000000,
+	GAME1_LEVELENDING           = 0x8000000,
 	GAME1_LASERTRACKER          = 0x10000000,
 	GAME1_DEBUG_SHOWVERTEXMODE  = 0x20000000,
 	GAME1_DEBUG_NOCLIP_FPS      = 0x40000000,
@@ -323,10 +323,10 @@ struct Lego_Block // [LegoRR/Lego.c|struct:0x48|pack:1]
 	/*03,1*/	uint8 direction; // clockwise (does not determine corner/wall type)
 	/*04,1*/	uint8 blockpointer;
 	/*05,1*/	Lego_CryOreType cryOre;
-	/*06,1*/	Lego_ErodeType erodeSpeed;
+	/*06,1*/	uint8 erodeSpeed; // (Lego_ErodeType >> 1, 0 = v.slow, 1 = slow, 2 = med, 3 = fast, 4 = v.fast)
 	/*07,1*/	uint8 erodeLevel; // 0 = low, 1 = med, 2 = high, 3 = max, 4 = lava
-	/*08,4*/	/*BlockFlags1*/ uint32 flags1;
-	/*0c,4*/	/*BlockFlags2*/ uint32 flags2;
+	/*08,4*/	BlockFlags1 flags1;
+	/*0c,4*/	BlockFlags2 flags2;
 	/*10,4*/	Construction_Zone* construct;
 	/*14,4*/	real32 damage; // drill damage [0.0-1.0]
 	/*18,4*/	Lego_BlockActivity* activity;
@@ -660,7 +660,7 @@ struct GameControl_Globs // [LegoRR/???|struct:0x180|tags:GLOBS]
 	/*120,4*/	real32 dbgUpgradeChangeTimer;
 	/*124,4*/	real32 dbgSpeedChangeTimer;
 	/*128,4*/	real32 dbgRollOffChangeTimer;
-	/*12c,4*/	real32 float_12c;
+	/*12c,4*/	real32 sceneFogDelta; // Delta value used in Lego_UpdateSceneFog ((M_PI*2)/fogRate * elapsed).
 	/*130,4*/	sint32 msbl_last_2_unknum;
 	/*134,4*/	real32 dbgCursorLightLevel;
 	/*138,4*/	bool32 isGameSpeedLocked; // When this is TRUE, game speed can only be lowered when calling `Game_SetGameSpeed`.
@@ -673,7 +673,7 @@ struct GameControl_Globs // [LegoRR/???|struct:0x180|tags:GLOBS]
 	/*158,4*/	bool32 mslr_Last_0;
 	/*15c,4*/	real32 elapsed_15c;
 	/*160,4*/	bool32 bool_160;
-	/*164,4*/	LegoObject* object_164;
+	/*164,4*/	LegoObject* toolTipObject;
 	/*168,4*/	bool32 dbgF10InvertLighting;
 	/*16c,4*/	bool32 dbgF9DisableLightEffects;
 	/*170,4*/	undefined4 reserved3;
@@ -696,6 +696,15 @@ struct LegoUpdate_Globs // [LegoRR/Lego.c|struct:0x14|tags:GLOBS] (miscellaneous
 };
 assert_sizeof(LegoUpdate_Globs, 0x14);
 
+
+/// CUSTOM: Extension of `Lego_Globs` for OpenLRR-exclusive globals
+struct Lego_Globs2
+{
+	bool legoInit; // Lego_Initialise has finished (up to the FrontEnd UI loop).
+	bool topdownFogOn; // Render the same fog used in FP view while in Topdown view.
+	bool topdownFPControlsOn; // Allow controling the primary unit with FP controls while in topdown view.
+};
+
 #pragma endregion
 
 /**********************************************************************************
@@ -707,11 +716,18 @@ assert_sizeof(LegoUpdate_Globs, 0x14);
 // <LegoRR.exe @004a4558>
 extern LegoUpdate_Globs & updateGlobs;
 
+// Only used by Lego_ShowBlockToolTip
+// <LegoRR.exe @004df208>
+extern Point2I & s_ShowBlockToolTip_MousePos;
+
 // <LegoRR.exe @004df410>
 extern GameControl_Globs & gamectrlGlobs;
 
 // <LegoRR.exe @005570c0>
 extern Lego_Globs & legoGlobs;
+
+/// CUSTOM: Extension of `Lego_Globs` for OpenLRR-exclusive globals
+extern Lego_Globs2 legoGlobs2;
 
 #pragma endregion
 
@@ -744,6 +760,114 @@ extern Lego_Globs & legoGlobs;
  **********************************************************************************/
 
 #pragma region Functions
+
+/// CUSTOM: Check if Lego_Initialise has finished (up to the FrontEnd UI loop).
+inline bool Lego_IsInit() { return legoGlobs2.legoInit; }
+
+/// CUSTOM: Check if we're currently in a level that has already started, and is not ending.
+inline bool Lego_IsInLevel() { return Lego_IsInit() && legoGlobs.currLevel != nullptr && !(legoGlobs.flags1 & (GAME1_LEVELSTART|GAME1_LEVELENDING)); }
+
+
+/// <inline>
+inline bool Lego_IsFreezeInterface() { return (legoGlobs.flags1 & GAME1_FREEZEINTERFACE); }
+
+/// CUSTOM: SceneFog in topdown view
+inline bool Lego_IsTopdownFogOn() { return legoGlobs2.topdownFogOn; }
+/// CUSTOM: SceneFog in topdown view
+inline void Lego_SetTopdownFogOn(bool on) { legoGlobs2.topdownFogOn = on; }
+
+/// CUSTOM: FP controls for units all the time.
+inline bool Lego_IsTopdownFPControlsOn() { return legoGlobs2.topdownFPControlsOn; }
+/// CUSTOM: FP controls for units all the time.
+inline void Lego_SetTopdownFPControlsOn(bool on) { legoGlobs2.topdownFPControlsOn = on; }
+
+/// CUSTOM: cfg: Main::ShowDebugToolTips
+inline bool Lego_IsShowDebugToolTips() { return (legoGlobs.flags2 & GAME2_SHOWDEBUGTOOLTIPS); }
+void Lego_SetShowDebugToolTips(bool on);
+
+/// CUSTOM: cfg: Main::AllowDebugKeys
+inline bool Lego_IsAllowDebugKeys() { return (legoGlobs.flags2 & GAME2_ALLOWDEBUGKEYS); }
+void Lego_SetAllowDebugKeys(bool on);
+
+/// CUSTOM: cfg: Main::AllowEditMode
+inline bool Lego_IsAllowEditMode() { return (legoGlobs.flags2 & GAME2_ALLOWEDITMODE); }
+void Lego_SetAllowEditMode(bool on);
+
+/// REQUIRES: Replacing `Lego_HandleKeys`, since this is always checked by CFG lookup.
+/// CUSTOM: cfg: Main::LoseFocusAndPause
+bool Lego_IsLoseFocusAndPause();
+void Lego_SetLoseFocusAndPause(bool on);
+
+/// CUSTOM: cfg: Main::DisableToolTipSound
+inline bool Lego_IsDisableToolTipSound() { return (legoGlobs.flags2 & GAME2_DISABLETOOLTIPSOUND); }
+void Lego_SetDisableToolTipSound(bool disabled);
+
+/// CUSTOM: cfg: Main::Panels
+inline bool Lego_IsRenderPanels() { return (legoGlobs.flags1 & GAME1_RENDERPANELS); }
+void Lego_SetRenderPanels(bool on);
+
+/// CUSTOM: cfg: Main::Clear
+inline bool Lego_IsDDrawClear() { return (legoGlobs.flags1 & GAME1_DDRAWCLEAR); }
+void Lego_SetDDrawClear(bool on);
+
+// <inlined>
+inline bool Lego_IsMusicOn() { return (legoGlobs.flags1 & GAME1_USEMUSIC); }
+
+// <inlined>
+inline bool Lego_IsSoundOn() { return (legoGlobs.flags1 & GAME1_USESFX); }
+
+// <inlined>
+inline bool Lego_IsDetailOn() { return (legoGlobs.flags1 & GAME1_USEDETAIL); }
+void Lego_SetDetailOn(bool on);
+
+// <inlined>
+inline bool Lego_IsDynamicPM() { return (legoGlobs.flags1 & GAME1_DYNAMICPM); }
+void Lego_SetDynamicPM(bool on);
+
+// <inlined>
+inline bool Lego_IsFPSMonitorOn() { return (legoGlobs.flags1 & GAME1_SHOWFPS); }
+void Lego_SetFPSMonitorOn(bool on);
+
+// <inlined>
+inline bool Lego_IsMemoryMonitorOn() { return (legoGlobs.flags1 & GAME1_SHOWMEMORY); }
+void Lego_SetMemoryMonitorOn(bool on);
+
+// <inlined>
+inline bool Lego_IsNoNERPs() { return (legoGlobs.flags1 & GAME1_DEBUG_NONERPS); }
+void Lego_SetNoNERPs(bool on);
+
+// <inlined>
+inline bool Lego_IsOnlyBuildOnPaths() { return (legoGlobs.flags1 & GAME1_ONLYBUILDONPATHS); }
+void Lego_SetOnlyBuildOnPaths(bool on);
+
+// <inlined>
+void Lego_SetNoclipOn(bool on);
+
+// <inlined>
+inline bool Lego_IsAlwaysRockFall() { return (legoGlobs.flags1 & GAME1_ALWAYSROCKFALL); }
+void Lego_SetAlwaysRockFall(bool on);
+
+// <inlined>
+inline bool Lego_IsAllowRename() { return (legoGlobs.flags2 & GAME2_ALLOWRENAME); }
+void Lego_SetAllowRename(bool on);
+
+// <inlined>
+inline bool Lego_IsGenerateSpiders() { return (legoGlobs.flags2 & GAME2_GENERATESPIDERS); }
+void Lego_SetGenerateSpiders(bool on);
+
+// <inlined>
+inline bool Lego_IsNoAutoEat() { return (legoGlobs.flags2 & GAME2_NOAUTOEAT); }
+void Lego_SetNoAutoEat(bool on);
+
+// <inlined>
+inline bool Lego_IsNoMultiSelect() { return (legoGlobs.flags2 & GAME2_NOMULTISELECT); }
+void Lego_SetNoMultiSelect(bool on);
+
+// <inlined>
+inline bool Lego_IsFallinsOn() { return legoGlobs.IsFallinsEnabled; }
+inline void Lego_SetFallinsOn(bool on) { legoGlobs.IsFallinsEnabled = on; }
+
+
 
 // <inlined>
 __inline const Gods98::Config* Lego_Config(void) { return legoGlobs.config; }
@@ -836,7 +960,8 @@ bool32 __cdecl Lego_MainLoop(real32 elapsed);
 #define Level_UpdateEffects ((void (__cdecl* )(Lego_Level* level, real32 elapsedGame))0x00424530)
 
 // <LegoRR.exe @00424660>
-#define Lego_UpdateSceneFog ((void (__cdecl* )(bool32 isFogEnabled, real32 elapsed))0x00424660)
+//#define Lego_UpdateSceneFog ((void (__cdecl* )(bool32 fogEnabled, real32 elapsed))0x00424660)
+void __cdecl Lego_UpdateSceneFog(bool32 fogEnabled, real32 elapsed);
 
 // <LegoRR.exe @00424700>
 #define Lego_DrawObjectLaserTrackerBox ((bool32 (__cdecl* )(LegoObject* liveObj, Gods98::Viewport* viewMain))0x00424700)
@@ -945,13 +1070,29 @@ __inline void __cdecl Lego_GetMouseWorldPosition(OUT Vector3F* vector) { *vector
 // <LegoRR.exe @00427eb0>
 #define Lego_LoadUpgradeNames ((void (__cdecl* )(const Gods98::Config* config))0x00427eb0)
 
+
+/// CUSTOM: Subfunction of Lego_ShowBlockToolTip.
+ToolTip_Type Lego_PrepareObjectToolTip(LegoObject* liveObj);
+
+
 // <LegoRR.exe @00427f50>
 //#define Lego_ShowObjectToolTip ((void (__cdecl* )(LegoObject* liveObj))0x00427f50)
 void __cdecl Lego_ShowObjectToolTip(LegoObject* liveObj);
 
+
+/// CUSTOM: Subfunction of Lego_PrepareBlockToolTip.
+ToolTip_Type Lego_PrepareConstructionToolTip(const Point2I* blockPos, bool32 showConstruction);
+
+/// CUSTOM: Subfunction of Lego_PrepareBlockToolTip.
+ToolTip_Type Lego_PrepareMapBlockToolTip(const Point2I* blockPos, bool32 playSound, bool32 showCavern);
+
+/// CUSTOM: Subfunction of Lego_ShowBlockToolTip.
+ToolTip_Type Lego_PrepareBlockToolTip(const Point2I* blockPos, bool32 showConstruction, bool32 playSound, bool32 showCavern);
+
 // <LegoRR.exe @00428260>
-#define Lego_ShowBlockToolTip ((void (__cdecl* )(const Point2I* mouseBlockPos, bool32 showConstruction, bool32 silent, bool32 showCavern))0x00428260)
-//void __cdecl Lego_ShowBlockToolTip(const Point2I* mouseBlockPos, bool32 showConstruction, bool32 silent, bool32 showCavern);
+//#define Lego_ShowBlockToolTip ((void (__cdecl* )(const Point2I* blockPos, bool32 showConstruction, bool32 playSound, bool32 showCavern))0x00428260)
+void __cdecl Lego_ShowBlockToolTip(const Point2I* blockPos, bool32 showConstruction, bool32 playSound, bool32 showCavern);
+
 
 // <LegoRR.exe @004286b0>
 #define Level_BlockPointerCheck ((bool32 (__cdecl* )(const Point2I* blockPos))0x004286b0)
@@ -1063,7 +1204,7 @@ bool32 __cdecl Level_HandleEmergeTriggers(Lego_Level* level, const Point2I* bloc
 #define Lego_LoadTerrainMap ((bool32 (__cdecl* )(Lego_Level* level, const char* filename, sint32 modifier))0x0042c3b0)
 
 // <LegoRR.exe @0042c4e0>
-#define Lego_GetBlockCryOre ((bool32 (__cdecl* )(const Point2I* blockPos, OUT sint32* crystalLv0, OUT sint32* oreLv0, OUT sint32* crystalLv1, OUT sint32* oreLv1))0x0042c4e0)
+#define Lego_GetBlockCryOre ((bool32 (__cdecl* )(const Point2I* blockPos, OUT uint32* crystalLv0, OUT uint32* crystalLv1, OUT uint32* oreLv0, OUT uint32* oreLv1))0x0042c4e0)
 
 // <LegoRR.exe @0042c5d0>
 #define Lego_LoadCryOreMap ((bool32 (__cdecl* )(Lego_Level* level, const char* filename, sint8 modifier))0x0042c5d0)
@@ -1137,7 +1278,8 @@ bool32 __cdecl Level_HandleEmergeTriggers(Lego_Level* level, const Point2I* bloc
 #define Lego_PlayMovie_old ((void (__cdecl* )(const char* fName, OPTIONAL const Point2F* screenPt))0x0042eef0)
 
 // <LegoRR.exe @0042eff0>
-#define Level_Free ((char* (__cdecl* )(void))0x0042eff0)
+//#define Level_Free ((char* (__cdecl* )(void))0x0042eff0)
+const char* __cdecl Level_Free(void);
 
 // <LegoRR.exe @0042f210>
 #define Level_Block_SetFlags1_200_AndUpdateSurface_LevelStruct428 ((void (__cdecl* )(Lego_Level* level, uint32 bx, uint32 by, bool32 setFlag200))0x0042f210)

@@ -185,6 +185,13 @@ typedef uint32			colour32;
 
 #define assert_sizeof(type, size) static_assert(sizeof(type) == (size), "Improper type size for " nameof(type))
 
+// Flags helpers
+#define hasFlagValue(flags, f)		((flags) & (f))
+#define setFlagValue(flags, f, on)	((flags) = ((on) ? ((flags) | (f)) : ((flags) & ~(f))))
+#define toggleFlagValue(flags, f)	setFlagValue((flags), (f), ((flags) & (f))) // Could also use ^= here (but that doesn't gurantee success with multi-bit flag values)
+#define allFlagValues(flags, f)		(((flags) & (f)) == (f))
+
+
 // Shorthand cast to unsigned character for GODS string comparisons
 #define uchr(c) ((uansi)(c))
 #define ustr(c) ((uansi_str)(c))

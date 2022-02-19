@@ -215,13 +215,16 @@ void __cdecl Gods98::Input_ReadMouse2(void)
 	RECT dummy; // dummy so we can check return value of GetClientRect
 	if (::GetClientRect(Main_hWnd(), &dummy)){
 
-		POINT cursorPos;
+		Point2I cursorPos = { 0, 0 }; // dummy init
 		POINT clientPos = { 0, 0 };
 		::ClientToScreen(Main_hWnd(), &clientPos);
-		::GetCursorPos(&cursorPos);
+		::GetCursorPos(reinterpret_cast<POINT*>(&cursorPos));
 
 		cursorPos.x -= clientPos.x;
 		cursorPos.y -= clientPos.y;
+
+		cursorPos.x /= Main_Scale();
+		cursorPos.y /= Main_Scale();
 	
 		if (cursorPos.x >= appWidth()) cursorPos.x = appWidth() - 1;
 		if (cursorPos.y >= appHeight()) cursorPos.y = appHeight() - 1;
@@ -242,12 +245,15 @@ BOOL __cdecl Gods98::Input_SetCursorPos(sint32 x, sint32 y)
 	log_firstcall();
 
 	POINT clientPos = { 0, 0 };
-	::ClientToScreen(Main_hWnd(), &clientPos );
+	::ClientToScreen(Main_hWnd(), &clientPos);
 
 	INPUT.msx = x;
 	INPUT.msy = y;
 	INPUT.diffx = 0;
 	INPUT.diffy = 0;
+
+	x *= Main_Scale();
+	y *= Main_Scale();
 
 	x += clientPos.x;
 	y += clientPos.y;

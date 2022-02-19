@@ -12,6 +12,13 @@
 #include "engine/Graphics.h"
 #include "engine/Main.h"
 #include "game/Game.h"
+#include "game/effects/LightEffects.h"
+#include "game/front/FrontEnd.h"
+#include "game/interface/hud/Bubbles.h"
+#include "game/interface/HelpWindow.h"
+#include "game/interface/InfoMessages.h"
+#include "game/object/Dependencies.h"
+#include "game/world/Camera.h"
 #include "game/world/Map3D.h"
 
 
@@ -97,11 +104,24 @@ bool InjectOpenLRR(HINSTANCE hInstanceDll)
 #define Menu_CheckRadioButtonsArray(menuIDs, index) Menu_CheckRadioButtons(menuIDs, _countof(menuIDs), index)
 
 
+static const uint32 Menu_ScaleIDs[] = { IDM_SCALE_X1, IDM_SCALE_X2, IDM_SCALE_X3, IDM_SCALE_X4 };
 static const uint32 Menu_IconIDs[] = { IDM_ICON_NONE, IDM_ICON_NATIVE, IDM_ICON_OPENLRR, IDM_ICON_TEAL, IDM_ICON_GOLD, IDM_ICON_CDROM };
 static const uint32 Menu_CursorIDs[] = { IDM_CURSOR_NEVER, IDM_CURSOR_TITLEBAR, IDM_CURSOR_ALWAYS };
 static const uint32 Menu_QualityIDs[] = { IDM_QUALITY_WIREFRAME, IDM_QUALITY_UNLITFLAT, IDM_QUALITY_FLAT, IDM_QUALITY_GOURAUD, IDM_QUALITY_PHONG };
 static const uint32 Menu_AdvanceFrameIDs[] = { IDM_ADVANCE_1FRAME, IDM_ADVANCE_1SECOND };
 static const uint32 Menu_InitCommandLineIDs[] = { IDM_DUALMOUSE, IDM_PROGRAMMER, IDM_DEBUGMODE, IDM_DEBUGCOMPLETE, IDM_LEVELSOPEN, IDM_TESTERCALL, IDM_BLOCKFADE, IDM_DUMPMODE, IDM_FREEZE };
+
+static uint32 Menu_LegoInitIDs[] = { IDM_MUSICON, IDM_SOUNDON, IDM_HELPWINDOW, IDM_AUTOGAMESPEED, IDM_LOSEFOCUSANDPAUSE,
+	IDM_SHOWOBJINFO, IDM_RENDERPANELS, IDM_TOOLTIPSOUND, IDM_LIGHTEFFECTS, IDM_DETAILON, IDM_DYNAMICPM, IDM_ALLOWDEBUGKEYS,
+	IDM_ALLOWEDITMODE, IDM_SHOWDEBUGTOOLTIPS, IDM_DDRAWCLEAR, IDM_FPSMONITOR, IDM_MEMORYMONITOR, IDM_NONERPS, IDM_UNLOCKCAMERA,
+	IDM_UNLOCKBUILD, IDM_BUILDWITHOUTPATHS, IDM_FPNOCLIP, IDM_NOROCKFALL, IDM_QUICKREINFORCE };
+
+static uint32 Menu_InLevelIDs[] = { IDM_BUILDANYROUGHNESS, IDM_NOOXYGEN, IDM_PEACEFUL, IDM_ALLOWRENAME, IDM_DISABLEENDTELEPORT,
+	IDM_GENERATESPIDERS, IDM_NOAUTOEAT, IDM_NOFALLINS, IDM_NOMULTISELECT, IDM_SAFECAVERNS, IDM_SEETHROUGHWALLS,
+	IDM_ADDCRYSTALS, IDM_SUBCRYSTALS, IDM_ADDORE, IDM_SUBORE, IDM_ADDOXYGEN, IDM_SUBOXYGEN,
+
+	IDM_SELECTEDLEVELUP, IDM_SELECTEDHEAL, IDM_SELECTEDTRAIN,
+};
 
 // Update menu item enabled/checked states.
 void __cdecl OpenLRR_UpdateMenuItems(void)
@@ -118,8 +138,22 @@ void __cdecl OpenLRR_UpdateMenuItems(void)
 
 
     ////// &Options //////
+	
+	Menu_CheckButton(IDM_MUSICON,			(LegoRR::Lego_IsInit() && LegoRR::Lego_IsMusicOn()));
+	Menu_CheckButton(IDM_SOUNDON,			(LegoRR::Lego_IsInit() && LegoRR::Lego_IsSoundOn()));
+	Menu_CheckButton(IDM_HELPWINDOW,		(LegoRR::Lego_IsInit() && HelpWindow_IsEnabled()));
+	Menu_CheckButton(IDM_AUTOGAMESPEED,		(LegoRR::Lego_IsInit() && LegoRR::Info_IsAutoGameSpeed()));
+	Menu_CheckButton(IDM_DUALMOUSE,			Gods98::Main_IsDualMouse());
+	Menu_CheckButton(IDM_LOSEFOCUSANDPAUSE,	(LegoRR::Lego_IsInit() && LegoRR::Lego_IsLoseFocusAndPause()));
 
-	Menu_CheckButton(IDM_DUALMOUSE, Gods98::Main_IsDualMouse());
+	Menu_CheckButton(IDM_SHOWOBJINFO,	(LegoRR::Lego_IsInit() && Bubble_GetObjectUIsAlwaysVisible()));
+	Menu_CheckButton(IDM_RENDERPANELS,	(LegoRR::Lego_IsInit() && LegoRR::Lego_IsRenderPanels()));
+	Menu_CheckButton(IDM_TOOLTIPSOUND,	(LegoRR::Lego_IsInit() && !LegoRR::Lego_IsDisableToolTipSound()));
+
+	Menu_CheckButton(IDM_LIGHTEFFECTS,	(LegoRR::Lego_IsInit() && !LegoRR::gamectrlGlobs.dbgF9DisableLightEffects));
+	Menu_CheckButton(IDM_DETAILON,		(LegoRR::Lego_IsInit() && LegoRR::Lego_IsDetailOn()));
+	Menu_CheckButton(IDM_DYNAMICPM,		(LegoRR::Lego_IsInit() && LegoRR::Lego_IsDynamicPM()));
+	Menu_CheckButton(IDM_TOPDOWNFOG,	(LegoRR::Lego_IsInit() && LegoRR::Lego_IsTopdownFogOn()));
 
     // This can safely be out of range, beacuse of how the Buttons macros function
     sint32 curCursor = (sint32)Gods98::Main_GetCursorVisibility();
@@ -144,6 +178,11 @@ void __cdecl OpenLRR_UpdateMenuItems(void)
     }
     Menu_CheckRadioButtonsArray(Menu_IconIDs, curIcon);
 
+	for (uint32 i = 0; i < 4; i++) {
+		Menu_EnableButton((IDM_SCALE_X1 + i), Gods98::Main_IsScaleSupported(i + 1)); // scale is "1-indexed"
+	}
+	Menu_CheckRadioButtonsArray(Menu_ScaleIDs, (Gods98::Main_Scale() - 1)); // scale is "1-indexed"
+
 
     ////// &Debug //////
 	Menu_CheckButton(IDM_PROGRAMMER,    (Gods98::Main_ProgrammerMode() != 0));
@@ -152,13 +191,37 @@ void __cdecl OpenLRR_UpdateMenuItems(void)
 	Menu_CheckButton(IDM_LEVELSOPEN,    Gods98::Main_IsLevelsOpen());
 	Menu_CheckButton(IDM_TESTERCALL,    Gods98::Main_IsTesterCall());
 
+	Menu_CheckButton(IDM_ALLOWDEBUGKEYS,	(LegoRR::Lego_IsInit() && LegoRR::Lego_IsAllowDebugKeys()));
+	Menu_CheckButton(IDM_ALLOWEDITMODE,		(LegoRR::Lego_IsInit() && LegoRR::Lego_IsAllowEditMode()));
+	Menu_CheckButton(IDM_SHOWDEBUGTOOLTIPS,	(LegoRR::Lego_IsInit() && LegoRR::Lego_IsShowDebugToolTips()));
+
 	Menu_CheckButton(IDM_BLOCKFADE,     Gods98::Main_IsCLBlockFade());
+	Menu_CheckButton(IDM_DDRAWCLEAR,	(LegoRR::Lego_IsInit() && LegoRR::Lego_IsDDrawClear()));
 	Menu_CheckButton(IDM_WOBBLYWORLD,   OpenLRR_IsWobblyWorld());
+
+	Menu_CheckButton(IDM_FPSMONITOR,	(LegoRR::Lego_IsInit() && LegoRR::Lego_IsFPSMonitorOn()));
+	Menu_CheckButton(IDM_MEMORYMONITOR,	(LegoRR::Lego_IsInit() && LegoRR::Lego_IsMemoryMonitorOn()));
 
 	Menu_CheckButton(IDM_DUMPMODE,      Gods98::Main_IsDumpMode());
 	Menu_CheckButton(IDM_FREEZE,        Gods98::Main_IsPaused());
 	// These are only useful while paused
 	Menu_EnableButtonsArray(Menu_AdvanceFrameIDs, Gods98::Main_IsPaused());
+
+
+	////// &Cheats //////
+	Menu_CheckButton(IDM_NONERPS,		(LegoRR::Lego_IsInit() && LegoRR::Lego_IsNoNERPs()));
+	Menu_CheckButton(IDM_UNLOCKCAMERA,	(LegoRR::Lego_IsInit() && LegoRR::Camera_IsFreeMovement(LegoRR::legoGlobs.cameraMain)));
+	Menu_CheckButton(IDM_UNLOCKBUILD,	(LegoRR::Lego_IsInit() && !LegoRR::Dependencies_IsEnabled()));
+	//Menu_CheckButton(IDM_BUILDWITHOUTPATHS,	(LegoRR::Lego_IsInit() && !LegoRR::Lego_IsOnlyBuildOnPaths()));
+	Menu_CheckButton(IDM_FPNOCLIP,		(LegoRR::Lego_IsInit() && LegoRR::Lego_IsNoclipOn()));
+	Menu_CheckButton(IDM_FPCONTROLS,	(LegoRR::Lego_IsInit() && LegoRR::Lego_IsTopdownFPControlsOn()));
+	Menu_CheckButton(IDM_NOROCKFALL,	(LegoRR::Lego_IsInit() && !LegoRR::Lego_IsAlwaysRockFall()));
+
+	Menu_CheckButton(IDM_ALLOWRENAME,		(LegoRR::Lego_IsInLevel() && LegoRR::Lego_IsAllowRename()));
+	Menu_CheckButton(IDM_GENERATESPIDERS,	(LegoRR::Lego_IsInLevel() && LegoRR::Lego_IsGenerateSpiders()));
+	Menu_CheckButton(IDM_NOAUTOEAT,			(LegoRR::Lego_IsInLevel() && LegoRR::Lego_IsNoAutoEat()));
+	Menu_CheckButton(IDM_NOFALLINS,			(LegoRR::Lego_IsInLevel() && !LegoRR::Lego_IsFallinsOn()));
+	Menu_CheckButton(IDM_NOMULTISELECT,		(LegoRR::Lego_IsInLevel() && LegoRR::Lego_IsNoMultiSelect()));
 
 }
 
@@ -166,6 +229,22 @@ void __cdecl OpenLRR_UpdateMenuItems(void)
 
 
 #pragma region OpenLRR_HandleCommand
+
+static void updateOptionsMenuCycles(void)
+{
+	LegoRR::frontGlobs.cycleWallDetail		= (LegoRR::Lego_IsDetailOn()      ? 0 : 1); // cycle: [High,Low]
+	LegoRR::frontGlobs.cycleMusicOn			= (LegoRR::Lego_IsMusicOn()       ? 0 : 1); // cycle: [On,Off]
+	LegoRR::frontGlobs.cycleSFXOn			= (LegoRR::Lego_IsSoundOn()       ? 0 : 1); // cycle: [On,Off]
+	LegoRR::frontGlobs.cycleHelpWindow		= (HelpWindow_IsEnabled()         ? 1 : 0); // cycle: [Off,On]
+	LegoRR::frontGlobs.cycleAutoGameSpeed	= (LegoRR::Info_IsAutoGameSpeed() ? 0 : 1); // cycle: [On,Off]
+	
+	LegoRR::Front_UpdateSliderGameSpeed();
+
+	// Not handled yet.
+	//LegoRR::frontGlobs.sliderBrightness;
+	//LegoRR::frontGlobs.sliderMusicVolume;
+	//LegoRR::frontGlobs.sliderSFXVolume;
+}
 
 // Message handler for about box dialog.
 INT_PTR CALLBACK OpenLRR_About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
@@ -220,10 +299,69 @@ void __cdecl OpenLRR_HandleCommand(HWND hWnd, uint16 wmId, uint16 wmSrc)
 
         ////// &Options //////
 
+	case IDM_MUSICON:
+		//std::printf("IDM_MUSICON\n");
+		Lego_SetMusicOn(!LegoRR::Lego_IsMusicOn());
+		updateOptionsMenuCycles();
+		break;
+
+	case IDM_SOUNDON:
+		//std::printf("IDM_SOUNDON\n");
+		Lego_SetSoundOn(!LegoRR::Lego_IsSoundOn());
+		updateOptionsMenuCycles();
+		break;
+
+	case IDM_HELPWINDOW:
+		//std::printf("IDM_HELPWINDOW\n");
+		/// TODO: Come back here and figure out why this is the opposite of toggling.
+		HelpWindow_SetEnabled(false, HelpWindow_IsEnabled());
+		//HelpWindow_SetEnabled(false, !HelpWindow_IsEnabled());
+		updateOptionsMenuCycles();
+		break;
+
+	case IDM_AUTOGAMESPEED:
+		//std::printf("IDM_AUTOGAMESPEED\n");
+		Info_SetAutoGameSpeed(!LegoRR::Info_IsAutoGameSpeed());
+		updateOptionsMenuCycles();
+		break;
+
     case IDM_DUALMOUSE:
         //std::printf("IDM_DUALMOUSE\n");
 		Gods98::Main_SetDualMouse(!Gods98::Main_IsDualMouse());
         break;
+
+	case IDM_LOSEFOCUSANDPAUSE:
+		//std::printf("IDM_LOSEFOCUSANDPAUSE\n");
+		LegoRR::Lego_SetLoseFocusAndPause(!LegoRR::Lego_IsLoseFocusAndPause());
+		break;
+
+	case IDM_SHOWOBJINFO:
+		//std::printf("IDM_SHOWOBJINFO\n");
+		Bubble_ToggleObjectUIsAlwaysVisible();
+		break;
+
+	case IDM_RENDERPANELS:
+		//std::printf("IDM_RENDERPANELS\n");
+		LegoRR::Lego_SetRenderPanels(!LegoRR::Lego_IsRenderPanels());
+		break;
+
+	case IDM_TOOLTIPSOUND:
+		//std::printf("IDM_TOOLTIPSOUND\n");
+		LegoRR::Lego_SetDisableToolTipSound(!LegoRR::Lego_IsDisableToolTipSound());
+		break;
+
+	case IDM_SCALE_X1:
+	case IDM_SCALE_X2:
+	case IDM_SCALE_X3:
+	case IDM_SCALE_X4:
+		/*switch (wmId) {
+		case IDM_SCALE_X1: std::printf("IDM_SCALE_X1\n"); break;
+		case IDM_SCALE_X2: std::printf("IDM_SCALE_X2\n"); break;
+		case IDM_SCALE_X3: std::printf("IDM_SCALE_X3\n"); break;
+		case IDM_SCALE_X4: std::printf("IDM_SCALE_X4\n"); break;
+		}*/
+		Gods98::Main_SetScale((wmId - IDM_SCALE_X1) + 1); // scale is "1-indexed"
+		break;
 
     case IDM_CURSOR_NEVER:
     case IDM_CURSOR_TITLEBAR:
@@ -252,7 +390,28 @@ void __cdecl OpenLRR_HandleCommand(HWND hWnd, uint16 wmId, uint16 wmSrc)
         }*/
         Gods98::Main_SetIcon(openlrrGlobs.iconList[(uint32)(wmId - IDM_ICON_NONE)], false);
         break;
-    
+
+	case IDM_LIGHTEFFECTS:
+		//std::printf("IDM_LIGHTEFFECTS\n");
+		LegoRR::gamectrlGlobs.dbgF9DisableLightEffects = !LegoRR::gamectrlGlobs.dbgF9DisableLightEffects;
+		LightEffects_SetDisabled(LegoRR::gamectrlGlobs.dbgF9DisableLightEffects);
+		break;
+
+	case IDM_DETAILON:
+		//std::printf("IDM_DETAILON\n");
+		LegoRR::Lego_SetDetailOn(!LegoRR::Lego_IsDetailOn());
+		break;
+
+	case IDM_DYNAMICPM:
+		//std::printf("IDM_DYNAMICPM\n");
+		LegoRR::Lego_SetDynamicPM(!LegoRR::Lego_IsDynamicPM());
+		break;
+
+	case IDM_TOPDOWNFOG:
+		//std::printf("IDM_TOPDOWNFOG\n");
+		LegoRR::Lego_SetTopdownFogOn(!LegoRR::Lego_IsTopdownFogOn());
+		break;
+
     case IDM_QUALITY_WIREFRAME:
     case IDM_QUALITY_UNLITFLAT:
     case IDM_QUALITY_FLAT:
@@ -335,15 +494,45 @@ void __cdecl OpenLRR_HandleCommand(HWND hWnd, uint16 wmId, uint16 wmSrc)
 		Gods98::Main_SetTesterCall(!Gods98::Main_IsTesterCall());
         break;
 
+	case IDM_ALLOWDEBUGKEYS:
+		//std::printf("IDM_ALLOWDEBUGKEYS\n");
+		LegoRR::Lego_SetAllowDebugKeys(!LegoRR::Lego_IsAllowDebugKeys());
+		break;
+
+	case IDM_ALLOWEDITMODE:
+		//std::printf("IDM_ALLOWEDITMODE\n");
+		LegoRR::Lego_SetAllowEditMode(!LegoRR::Lego_IsAllowEditMode());
+		break;
+
+	case IDM_SHOWDEBUGTOOLTIPS:
+		//std::printf("IDM_SHOWDEBUGTOOLTIPS\n");
+		LegoRR::Lego_SetShowDebugToolTips(!LegoRR::Lego_IsShowDebugToolTips());
+		break;
+
     case IDM_BLOCKFADE:
         //std::printf("IDM_BLOCKFADE\n");
 		Gods98::Main_SetCLBlockFade(!Gods98::Main_IsCLBlockFade());
         break;
 
+	case IDM_DDRAWCLEAR:
+		//std::printf("IDM_DDRAWCLEAR\n");
+		LegoRR::Lego_SetDDrawClear(!LegoRR::Lego_IsDDrawClear());
+		break;
+
     case IDM_WOBBLYWORLD:
         //std::printf("IDM_WOBBLYWORLD\n");
 		OpenLRR_SetWobblyWorld(!OpenLRR_IsWobblyWorld());
         break;
+
+	case IDM_FPSMONITOR:
+		//std::printf("IDM_FPSMONITOR\n");
+		LegoRR::Lego_SetFPSMonitorOn(!LegoRR::Lego_IsFPSMonitorOn());
+		break;
+
+	case IDM_MEMORYMONITOR:
+		//std::printf("IDM_MEMORYMONITOR\n");
+		LegoRR::Lego_SetMemoryMonitorOn(!LegoRR::Lego_IsMemoryMonitorOn());
+		break;
 
     case IDM_DUMPMODE:
         //std::printf("IDM_DUMPMODE\n");
@@ -367,9 +556,94 @@ void __cdecl OpenLRR_HandleCommand(HWND hWnd, uint16 wmId, uint16 wmSrc)
         break;
 
     case IDM_ADVANCE_1SECOND:
-        std::printf("IDM_ADVANCE_1SECOND\n");
+        //std::printf("IDM_ADVANCE_1SECOND\n");
         Gods98::Main_SetAdvanceFrames((uint32)STANDARD_FRAMERATE);
         break;
+
+
+		////// &Cheats //////
+
+	case IDM_NONERPS:
+		//std::printf("IDM_NONERPS\n");
+		LegoRR::Lego_SetNoNERPs(!LegoRR::Lego_IsNoNERPs());
+		break;
+
+	case IDM_UNLOCKCAMERA:
+		//std::printf("IDM_UNLOCKCAMERA\n");
+		LegoRR::Camera_EnableFreeMovement(LegoRR::legoGlobs.cameraMain, !LegoRR::Camera_IsFreeMovement(LegoRR::legoGlobs.cameraMain));
+		break;
+
+	case IDM_UNLOCKBUILD:
+		//std::printf("IDM_UNLOCKBUILD\n");
+		Dependencies_SetEnabled(!LegoRR::Dependencies_IsEnabled());
+		break;
+
+	/*case IDM_ONLYBUILDONPATHS:
+		std::printf("IDM_ONLYBUILDONPATHS\n");
+		LegoRR::Lego_SetOnlyBuildOnPaths(!LegoRR::Lego_IsOnlyBuildOnPaths());
+		break;*/
+	case IDM_BUILDWITHOUTPATHS:
+		//std::printf("IDM_BUILDWITHOUTPATHS\n");
+		LegoRR::Lego_SetOnlyBuildOnPaths(!LegoRR::Lego_IsOnlyBuildOnPaths());
+		break;
+
+	/*case IDM_BUILDANYROUGHNESS:
+		//std::printf("IDM_BUILDANYROUGHNESS\n");
+		openlrrGlobs.noBuildRoughness = !openlrrGlobs.noBuildRoughness;
+		if (openlrrGlobs.noBuildRoughness) {
+			openlrrGlobs.orig_buildingMaxVariation = LegoRR::legoGlobs.level->BuildingMaxVariation;
+			openlrrGlobs.orig_buildingTolerance = LegoRR::legoGlobs.level->BuildingTolerance;
+			LegoRR::legoGlobs.level->BuildingMaxVariation = 1000.0; // arbitrarily high, no clue what value is good
+			LegoRR::legoGlobs.level->BuildingTolerance = 1000.0;
+		}
+		else { // restore values
+			LegoRR::legoGlobs.level->BuildingMaxVariation = openlrrGlobs.orig_buildingMaxVariation;
+			LegoRR::legoGlobs.level->BuildingTolerance = openlrrGlobs.orig_buildingTolerance;
+		}
+		break;*/
+
+	case IDM_FPNOCLIP:
+		//std::printf("IDM_FPNOCLIP\n");
+		LegoRR::Lego_SetNoclipOn(!LegoRR::Lego_IsNoclipOn());
+		break;
+
+	case IDM_FPCONTROLS:
+		//std::printf("IDM_FPCONTROLS\n");
+		LegoRR::Lego_SetTopdownFPControlsOn(!LegoRR::Lego_IsTopdownFPControlsOn());
+		break;
+
+
+	/*case IDM_ALWAYSROCKFALL:
+		std::printf("IDM_ALWAYSROCKFALL\n");
+		LegoRR::Lego_SetAlwaysRockFall(!LegoRR::Lego_IsAlwaysRockFall());
+		break;*/
+	case IDM_NOROCKFALL:
+		//std::printf("IDM_NOROCKFALL\n");
+		LegoRR::Lego_SetAlwaysRockFall(!LegoRR::Lego_IsAlwaysRockFall());
+		break;
+
+
+	case IDM_ALLOWRENAME:
+		//std::printf("IDM_ALLOWRENAME\n");
+		LegoRR::Lego_SetAllowRename(!LegoRR::Lego_IsAllowRename());
+		break;
+
+	case IDM_GENERATESPIDERS:
+		//std::printf("IDM_GENERATESPIDERS\n");
+		LegoRR::Lego_SetGenerateSpiders(!LegoRR::Lego_IsGenerateSpiders());
+		break;
+	case IDM_NOAUTOEAT:
+		//std::printf("IDM_NOAUTOEAT\n");
+		LegoRR::Lego_SetNoAutoEat(!LegoRR::Lego_IsNoAutoEat());
+		break;
+	case IDM_NOFALLINS:
+		//std::printf("IDM_NOFALLINS\n");
+		LegoRR::Lego_SetFallinsOn(!LegoRR::Lego_IsFallinsOn());
+		break;
+	case IDM_NOMULTISELECT:
+		//std::printf("IDM_NOMULTISELECT\n");
+		LegoRR::Lego_SetNoMultiSelect(!LegoRR::Lego_IsNoMultiSelect());
+		break;
     }
 }
 
@@ -557,6 +831,8 @@ sint32 __stdcall LaunchOpenLRR(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPS
 {
     openlrrGlobs.hInstMain = hInstance;
     openlrrGlobs.conout = MakeConsole();
+	openlrrGlobs.hInstMain = hInstance;
+	openlrrGlobs.conout = MakeConsole();
 
     const char* methodName;
     switch (openlrrGlobs.method) {
