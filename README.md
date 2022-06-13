@@ -19,9 +19,11 @@ Running OpenLRR requires a working installation of LEGO Rock Raiders, and buildi
 OpenLRR is still missing documentation to aid in contribution, but submittions and/or help is still encouraged.
 
 * [Decompilation and research][Wiki_Decompiling]
-* Pull Requests can be submitted for changes made outside the **game/** folder.
+* Implementing functions and modules in the **game/** folder.
+* Improving and refactoring **engine/** code.
+* Fixing bugs or implementing new features (please create an Issue if one doesn't exist).
 
-Submitting decompiled functions for game code is still a problem. Most game module functions, structures, and enums are still going through heavy refactoring and renaming. And organizing everything has been a very slow process.
+Submitting decompiled functions for game code is a very involved process. Most game module functions, structures, and enums are still going through heavy refactoring and renaming, with most names not accurately describing their purpose. However, assigning more-accurate names is **not required**.
 
 
 
