@@ -1,6 +1,7 @@
 // Config.cpp : 
 //
 
+#include "../drawing/Fonts.h"	// For language conversion.
 #include "../input/Keys.h"
 #include "Files.h"
 #include "Errors.h"
@@ -98,7 +99,9 @@ Gods98::Config* __cdecl Gods98::Config_Load2(const char* filename, FileFlags fil
 		}
 
 		// Replace the semi-colons that were removed by the language converter...
-		//for (loop = 0; loop < fileSize; loop++) if (FONT_LASTCHARACTER + 1 == rootConf->fileData[loop]) rootConf->fileData[loop] = ';';
+		//for (s = rootConf->fileData, loop = 0; loop < fileSize; loop++) {
+		//	if (*s == FONT_SPECIALCHARACTER) *s = ';';
+		//}
 
 		// Run through the file data and point in the config structures
 

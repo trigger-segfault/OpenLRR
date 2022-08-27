@@ -869,20 +869,22 @@ bool interop_hook_Gods98_Fonts(void)
 {
 	bool result = true;
 
-	result &= hook_write_jmpret(0x00401b90, Gods98::noinline(Font_GetStringWidth));
+	//result &= hook_write_jmpret(0x00401b90, Gods98::noinline(Font_GetStringWidth));
+	result &= hook_write_jmpret(0x00401b90, Gods98::Font_GDI_GetStringWidth_White);
 
 	// used by: Loader_Initialise, ToolTip_SetText
-	result &= hook_write_jmpret(0x00401bc0, Gods98::noinline(Font_GetStringInfo));
+	//result &= hook_write_jmpret(0x00401bc0, Gods98::noinline(Font_GetStringInfo));
+	result &= hook_write_jmpret(0x00401bc0, Gods98::Font_GDI_GetStringInfo_White);
 
 	result &= hook_write_jmpret(0x0047a1a0, Gods98::Font_Load);
 
 	// used by: Panel_PrintF
-	result &= hook_write_jmpret(0x0047a410, Gods98::Font_VGetStringInfo);
+	result &= hook_write_jmpret(0x0047a410, Gods98::Font_GDI_VGetStringInfo_White);
 
-	result &= hook_write_jmpret(0x0047a440, Gods98::Font_PrintF);
+	result &= hook_write_jmpret(0x0047a440, Gods98::Font_GDI_PrintF_White);
 
 	// used by: Panel_PrintF
-	result &= hook_write_jmpret(0x0047a470, Gods98::Font_VPrintF);
+	result &= hook_write_jmpret(0x0047a470, Gods98::Font_GDI_VPrintF_White);
 
 	// internal, no need to hook these
 	//result &= hook_write_jmpret(0x0047a4a0, Gods98::Font_VPrintF2);
@@ -1451,10 +1453,13 @@ bool interop_hook_Gods98_TextWindow(void)
 	result &= hook_write_jmpret(0x004854f0, Gods98::TextWindow_PrintF);
 	result &= hook_write_jmpret(0x00485510, Gods98::TextWindow_VPrintF);
 	result &= hook_write_jmpret(0x004855c0, Gods98::TextWindow_PrintFOverlay);
-	result &= hook_write_jmpret(0x00485650, Gods98::TextWindow_Update);
+
+	//result &= hook_write_jmpret(0x00485650, Gods98::TextWindow_Update);
+	result &= hook_write_jmpret(0x00485650, Gods98::TextWindow_GDI_Update_Green);
 
 	// internal, no need to hook these
 	//result &= hook_write_jmpret(0x004859d0, Gods98::TextWindow_UpdateOverlay);
+	//result &= hook_write_jmpret(0x004859d0, Gods98::TextWindow_GDI_UpdateOverlay_Green);
 
 	result &= hook_write_jmpret(0x00485c70, Gods98::TextWindow_Clear);
 	result &= hook_write_jmpret(0x00485cc0, Gods98::TextWindow_GetInfo);

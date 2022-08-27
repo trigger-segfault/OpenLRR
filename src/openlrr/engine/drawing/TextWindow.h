@@ -20,6 +20,7 @@ namespace Gods98
 #pragma region Forward Declarations
 
 struct Font; // from `engine/drawing/Fonts.h`
+struct Font_TT; // from `engine/drawing/Fonts.h`
 
 #pragma endregion
 
@@ -77,6 +78,13 @@ struct TextWindow
 };
 assert_sizeof(TextWindow, 0x830);
 
+
+struct TextWindow_TT
+{
+	TextWindow* window;
+	Font_TT* fontTT;
+};
+
 #pragma endregion
 
 /**********************************************************************************
@@ -133,6 +141,19 @@ sint32 __cdecl TextWindow_GetRow(TextWindow* window, sint32 chrPos, sint32 dir);
 
 // <unused>
 void __cdecl TextWindow_SetFont(TextWindow* window, Font* font);
+
+
+void __cdecl TextWindow_GDI_Init(OUT TextWindow_TT* windowTT, OUT Font_TT* fontTT, TextWindow* window);
+
+bool32 __cdecl TextWindow_GDI_Update(TextWindow_TT* windowTT, uint32 posFromEnd, real32 time, OUT sint32* lpLowestPoint);
+
+
+bool32 __cdecl TextWindow_GDI_UpdateOverlay(TextWindow_TT* windowTT, real32 time, OUT sint32* lpLowestPoint);
+
+
+bool32 __cdecl TextWindow_GDI_Update_Green(TextWindow* window, uint32 posFromEnd, real32 time, OUT sint32* lpLowestPoint);
+
+bool32 __cdecl TextWindow_GDI_UpdateOverlay_Green(TextWindow* window, real32 time, OUT sint32* lpLowestPoint);
 
 #pragma endregion
 

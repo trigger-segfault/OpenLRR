@@ -44,8 +44,8 @@ typedef void (__cdecl* Font_RunThroughListsCallback)(Font* font, void* data);
 
 #define FONT_MAXLISTS			32			// 2^32 - 1 possible fonts...
 
-#define FONT_LASTCHARACTER		202			// Last character in the font image.
-
+#define FONT_LASTCHARACTER		((char)202)			// Last character in the font image.
+#define FONT_SPECIALCHARACTER	((char)((uchar8)FONT_LASTCHARACTER + 1))
 
 #define FONT_GRIDWIDTH			10
 #define FONT_GRIDHEIGHT			19
@@ -77,6 +77,17 @@ flags_scoped(FontFlags) : uint32
 };
 flags_scoped_end(FontFlags, 0x4);
 
+
+flags_scoped(Font_TTFlags) : uint32
+{
+	FONT_TT_FLAG_NONE           = 0,
+
+	FONT_TT_FLAG_TRUETYPE       = 0x10, // Uses a GDI TrueType font for unsupported characters.
+	FONT_TT_FLAG_BITMAPFALLBACK = 0x20, // Supported characters will use the underlying bitmap font.
+	FONT_TT_FLAG_VARIABLEWIDTH  = 0x40, // Character widths will be determined on a per-character basis, instead of using tt.fixedWidth.
+};
+flags_scoped_end(Font_TTFlags, 0x4);
+
 #pragma endregion
 
 /**********************************************************************************
@@ -98,6 +109,45 @@ struct Font
 assert_sizeof(Font, 0xbf4);
 
 
+struct Font_TT : public Font
+{
+	const Font* bitmapFont;
+	Font_TTFlags flags;
+
+	uint32 fixedWidth; // When not FONT_TT_FLAG_VARIABLEWIDTH
+
+	bool useBackColour;
+	colour32 foreColour;
+	colour32 backColour;
+	Point2I backOffset;
+
+	const char* faceName;
+	sint32 height;
+	sint32 width;
+	sint32 escapement;
+	sint32 orientation;
+	sint32 weight;
+	bool italic;
+	bool underline;
+	bool strikethrough;
+	uint32 charset;
+	uint32 codePage;
+	uint32 outPrecision;
+	uint32 clipPrecision;
+	uint32 quality;
+	uint32 pitchAndFamily;
+
+	// Internal use only:
+	void* hFont;
+	sint32 fontRefCount;
+	void* hDC;
+	void* hSelect;
+	sint32 dcRefCount;
+
+	Font_TT* nextFree; // listSet field
+};
+
+
 struct Font_Globs
 {
 	/*00,80*/ Font* listSet[FONT_MAXLISTS];		// Fonts list
@@ -109,7 +159,29 @@ struct Font_Globs
 assert_sizeof(Font_Globs, 0x8c);
 
 
+struct Font_TT_Globs
+{
+	/*00,80*/ Font_TT* listSet[FONT_MAXLISTS];		// Fonts list
+	/*80,4*/ Font_TT* freeList;
+	/*84,4*/ uint32 listCount;						// number of lists.
+	/*88,4*/ Font_GlobFlags flags;
+	/*8c*/
+};
+assert_sizeof(Font_TT_Globs, 0x8c);
+
+
 using Font_ListSet = ListSet::WrapperCollection<Gods98::Font_Globs>;
+
+using Font_TT_ListSet = ListSet::WrapperCollection<Gods98::Font_TT_Globs>;
+//using Font_TT_ListSet = ListSet::Collection<Gods98::Font_TT, FONT_MAXLISTS>;
+
+#pragma endregion
+
+/**********************************************************************************
+ ******** Classes
+ **********************************************************************************/
+
+#pragma region Classes
 
 #pragma endregion
 
@@ -123,6 +195,10 @@ using Font_ListSet = ListSet::WrapperCollection<Gods98::Font_Globs>;
 extern Font_Globs & fontGlobs;
 
 extern Font_ListSet fontListSet;
+
+extern Font_TT_Globs fontTTGlobs;
+
+extern Font_TT_ListSet fontTTListSet;
 
 #pragma endregion
 
@@ -231,6 +307,99 @@ __inline void Font_GetStringInfo(const Font* font, OPTIONAL OUT uint32* width,
 	std::va_list args;
 	va_start(args, msg);
 	Font_VGetStringInfo(font, width, lineCount, msg, args);
+	va_end(args);
+}
+
+
+bool Font_GDI_HasUnsupportedChars(const Font_TT* fontTT, const char* text);
+bool Font_GDI_HasUnsupportedChars(const Font_TT* fontTT, const char* text, size_t size);
+
+bool Font_GDI_IsLeadByteChar(const Font_TT* fontTT, char c);
+bool Font_GDI_IsSupportedChar(const Font_TT* fontTT, char c);
+
+void Font_GDI_Init(OUT Font_TT* fontTT, const Font* bitmapFont);
+
+// Handling for hFont
+bool Font_GDI_CreateFont(Font_TT* fontTT);
+
+bool Font_GDI_DestroyFont(Font_TT* fontTT);
+
+bool Font_GDI_IsFontReady(const Font_TT* fontTT);
+
+// Handling for locking(?) the surface for drawing.
+bool Font_GDI_LockSurface(Font_TT* fontTT);
+
+bool Font_GDI_UnlockSurface(Font_TT* fontTT);
+
+bool Font_GDI_IsLocked(const Font_TT* fontTT);
+
+Font_TT* Font_TT_Find(const Font* bitmapFont);
+
+uint32 __cdecl Font_GDI_VPrintF2(Font_TT* fontTT, sint32 x, sint32 y, bool32 render,
+								 OPTIONAL OUT uint32* lineCount, const char* msg, std::va_list args);
+
+uint32 __cdecl Font_GDI_VPrintF2_White(const Font* font, sint32 x, sint32 y, bool32 render,
+									   OPTIONAL OUT uint32* lineCount, const char* msg, std::va_list args);
+
+uint32 __cdecl Font_GDI_VPrintF2_Green(const Font* font, sint32 x, sint32 y, bool32 render, bool32 darkOrBright,
+									   OPTIONAL OUT uint32* lineCount, const char* msg, std::va_list args);
+
+uint32 __cdecl Font_GDI_VPrintF2_Large(const Font* font, sint32 x, sint32 y, bool32 render, bool32 cyanOrYellow,
+									   OPTIONAL OUT uint32* lineCount, const char* msg, std::va_list args);
+
+//bool32 __cdecl Font_OutputChar_GDI(HFONT hGDIFont, const char* codePoint, sint32 x, sint32 y, colour32 foreColour,
+//								  OPTIONAL const colour32* backColour, OPTIONAL const Point2I* backOffset);
+
+uint32 __cdecl Font_GDI_OutputCodePoint(Font_TT* fontTT, sint32 x, sint32 y, const char* codePoint, bool32 render);
+
+
+
+void __cdecl Font_GDI_VGetStringInfo_White(const Font* font, OPTIONAL OUT uint32* width,
+										   OPTIONAL OUT uint32* lineCount, const char* msg, std::va_list args);
+
+
+uint32 __cdecl Font_GDI_PrintF_White(const Font* font, sint32 x, sint32 y, const char* msg, ...);
+
+uint32 __cdecl Font_GDI_VPrintF_White(const Font* font, sint32 x, sint32 y, const char* msg, std::va_list args);
+
+uint32 __cdecl Font_GDI_GetStringWidth_White(const Font* font, const char* msg, ...);
+
+void __cdecl Font_GDI_GetStringInfo_White(const Font* font, OPTIONAL OUT uint32* width,
+										  OPTIONAL OUT uint32* lineCount, const char* msg, ...);
+
+inline uint32 __cdecl Font_GDI_PrintF(Font_TT* fontTT, sint32 x, sint32 y, bool32 render,
+									  OPTIONAL OUT uint32* lineCount, const char* msg, ...)
+{
+	std::va_list args;
+	va_start(args, msg);
+	uint32 result = Font_GDI_VPrintF2(fontTT, x, y, render, lineCount, msg, args);
+	va_end(args);
+}
+
+/*inline uint32 __cdecl Font_GDI_PrintF_White(const Font* font, sint32 x, sint32 y, bool32 render,
+											OPTIONAL OUT uint32* lineCount, const char* msg, ...)
+{
+	std::va_list args;
+	va_start(args, msg);
+	uint32 result = Font_GDI_VPrintF2_White(font, x, y, render, lineCount, msg, args);
+	va_end(args);
+}*/
+
+inline uint32 __cdecl Font_GDI_PrintF_Green(const Font* font, sint32 x, sint32 y, bool32 render, bool32 darkOrBright,
+											OPTIONAL OUT uint32* lineCount, const char* msg, ...)
+{
+	std::va_list args;
+	va_start(args, msg);
+	uint32 result = Font_GDI_VPrintF2_Green(font, x, y, render, darkOrBright, lineCount, msg, args);
+	va_end(args);
+}
+
+inline uint32 __cdecl Font_GDI_PrintF_Large(const Font* font, sint32 x, sint32 y, bool32 render, bool32 cyanOrYellow,
+											OPTIONAL OUT uint32* lineCount, const char* msg, ...)
+{
+	std::va_list args;
+	va_start(args, msg);
+	uint32 result = Font_GDI_VPrintF2_Large(font, x, y, render, cyanOrYellow, lineCount, msg, args);
 	va_end(args);
 }
 

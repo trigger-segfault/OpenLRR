@@ -167,8 +167,10 @@ bool32 __cdecl Gods98::TextWindow_Update(TextWindow* window, uint32 posFromEnd, 
 
 	window->maxLines = (uint32) window->windowSize.height / window->font->fontHeight;
 
-	if (!(window->flags & TextWindowFlags::TEXTWINDOW_FLAG_OVERLAY)) {
-
+	if (window->flags & TextWindowFlags::TEXTWINDOW_FLAG_OVERLAY) {
+		return TextWindow_UpdateOverlay(window, time, lpLowestPoint);
+	}
+	else {
 		maxOver = window->windowBufferSize;
 
 		if (window->flags & TextWindowFlags::TEXTWINDOW_FLAG_WINDOWWRAPPED){
@@ -198,13 +200,13 @@ bool32 __cdecl Gods98::TextWindow_Update(TextWindow* window, uint32 posFromEnd, 
 				currWidth = 0;
 				wordWidth = 0;
 			} else {
-				if (std::isspace((uint8)c)) {
+				if (std::isspace((uchar8)c)) {
 					window->lineList[window->usedLines] = loop + 1;
 					lineWidthList[window->usedLines-1] = currWidth;
 					wordWidth = 0;
 				}
 				charWidth = Font_GetCharWidth(window->font, c);
-				if ((uint8)c == 203) charWidth = 0;
+				if (c == FONT_SPECIALCHARACTER) charWidth = 0;
 				currWidth += charWidth;
 				wordWidth += charWidth;
 				if (currWidth >= window->windowSize.width) {
@@ -261,7 +263,7 @@ bool32 __cdecl Gods98::TextWindow_Update(TextWindow* window, uint32 posFromEnd, 
 					char c = window->windowBuffer[sub];
 
 					// errrrkkk!  crowbar some code in here so we can ignore the caret till the next char
-					if ((uchar8)c == 203) 
+					if (c == FONT_SPECIALCHARACTER)
 					{
 						// if we're at the caret position flag it and carry on
 						caretFlag = true;
@@ -275,7 +277,7 @@ bool32 __cdecl Gods98::TextWindow_Update(TextWindow* window, uint32 posFromEnd, 
 							int temp;
 							// reset the caretFlag
 							temp = Font_OutputChar(window->font, currWidth, currHeight, c, true);
-							Font_OutputChar(window->font, currWidth-4, currHeight, (char)203, true);
+							Font_OutputChar(window->font, currWidth-4, currHeight, FONT_SPECIALCHARACTER, true);
 							currWidth+=temp;
 							caretFlag = false;
 						}
@@ -291,7 +293,7 @@ bool32 __cdecl Gods98::TextWindow_Update(TextWindow* window, uint32 posFromEnd, 
 					/// FIX APPLY: == true BAAAAAAAD
 					if ((sub == window->lineList[loop+1]) && caretFlag)
 					{
-						Font_OutputChar(window->font, currWidth-4, currHeight, (char)203, true);
+						Font_OutputChar(window->font, currWidth-4, currHeight, FONT_SPECIALCHARACTER, true);
 						caretFlag = false;
 					}
 
@@ -306,7 +308,7 @@ bool32 __cdecl Gods98::TextWindow_Update(TextWindow* window, uint32 posFromEnd, 
 		//A NON OVERLAY TEXT WINDOW CANNOT OVER RUN, IT JUST WRAPS. SO RETURN FALSE
 		return false;
 
-	} else return TextWindow_UpdateOverlay( window, time, lpLowestPoint );
+	}
 
 	//return posFromEnd;
 	//return lowestPoint + window->font->fontHeight;
@@ -511,6 +513,500 @@ void __cdecl Gods98::TextWindow_SetFont(TextWindow* window, Font* font)
 	// will need  TextWindow_Update for it to take affect
 	if (font == nullptr)	return;
 	window->font = font;
+}
+
+
+bool32 __cdecl Gods98::TextWindow_GDI_Update(TextWindow_TT* windowTT, uint32 posFromEnd, real32 time, OUT sint32* lpLowestPoint)
+{
+	log_firstcall();
+	//Error_Info("TextWindow_GDI_Update");
+
+	TextWindow* window = windowTT->window;
+	Font_TT* fontTT = windowTT->fontTT;
+
+	const bool trueType = (fontTT->flags & Font_TTFlags::FONT_TT_FLAG_TRUETYPE);
+	const bool variableWidth = (fontTT->flags & Font_TTFlags::FONT_TT_FLAG_VARIABLEWIDTH);
+
+	uint32 loop, firstLine=0, sub;
+	sint32 currWidth=0, currHeight;
+	sint32 over, maxOver;
+	char c;
+	uint32 charWidth, wordWidth = 0;
+	uint32 lineWidthList[TEXTWINDOW_MAXLINES];
+	/// FIX APPLY: dummy init
+	bool32  caretFlag = false;
+
+	if (lpLowestPoint) *lpLowestPoint = 0;
+
+#pragma message( "  Slightly rarer crash bug? - to do with buffer wrap and going over buffer end?" )
+	// This may be fixed, it was caused if the text size was EXACTLY 1024 bytes
+	// this was messing up because it would slip past one of the == checks below.
+	//  (the above is a note from Gods98, not from OpenLRR)
+
+	window->maxLines = (uint32) window->windowSize.height / window->font->fontHeight;
+	if (window->flags & TextWindowFlags::TEXTWINDOW_FLAG_OVERLAY) {
+		return TextWindow_GDI_UpdateOverlay(windowTT, time, lpLowestPoint);
+	}
+	else {
+		char codePoint[3] = { '\0' }; // dummy init
+		bool useGDI = false;
+		
+		
+
+		maxOver = window->windowBufferSize;
+
+		if (window->flags & TextWindowFlags::TEXTWINDOW_FLAG_WINDOWWRAPPED){
+			// Find the first line after the buffer end...
+			for (loop = 0; loop < window->usedLines; loop++){
+				over = window->lineList[loop] - window->windowBufferEnd;
+				if (over > 0 && over < maxOver) {
+					firstLine = window->lineList[loop];
+					maxOver = over;
+				}
+			}
+		}
+
+		// Rebuild the line list from the new start point...
+		window->usedLines = 0;
+		window->lineList[window->usedLines++] = loop = firstLine;
+
+		while (loop != window->windowBufferEnd) {
+			c = window->windowBuffer[loop];
+			
+			if (c == '\a') {			// use \a as a page end.
+				break;
+			}
+			else if (c == '\n') {
+				window->lineList[window->usedLines] = loop + 1;
+				lineWidthList[window->usedLines-1] = currWidth;
+				window->usedLines++;
+				currWidth = 0;
+				wordWidth = 0;
+			}
+			else if (!useGDI && Font_GDI_IsLeadByteChar(fontTT, c)) {
+				useGDI = true;
+				codePoint[0] = c;
+				codePoint[1] = '\0';
+			}
+			else {
+				if (std::isspace((uchar8)c)) {
+					window->lineList[window->usedLines] = loop + 1;
+					lineWidthList[window->usedLines-1] = currWidth;
+					wordWidth = 0;
+				}
+
+				if (useGDI || !Font_GDI_IsSupportedChar(fontTT, c)) {
+					// Flush multi-byte / non-ASCII characters.
+					const uint32 idx = (useGDI ? 1 : 0);
+					useGDI = false;
+					codePoint[idx+0] = c;
+					codePoint[idx+1] = '\0';
+					if (variableWidth && !Font_GDI_IsFontReady(fontTT)) Font_GDI_CreateFont(fontTT);
+					if (variableWidth && !Font_GDI_IsLocked(fontTT)) Font_GDI_LockSurface(fontTT);
+					charWidth = Font_GDI_OutputCodePoint(fontTT, 0, 0, codePoint, false);
+				}
+				else {
+					charWidth = Font_GetCharWidth(window->font, c);
+
+					if (c == FONT_SPECIALCHARACTER) charWidth = 0;
+				}
+
+
+				currWidth += charWidth;
+				wordWidth += charWidth;
+				if (currWidth >= window->windowSize.width) {
+					// Check to see if the word is longer than the line
+					if (wordWidth >= window->windowSize.width) {
+						// If so, split the word onto the next line
+						window->lineList[window->usedLines] = loop;
+						lineWidthList[window->usedLines-1] = currWidth-charWidth;
+						window->usedLines++;
+						currWidth = charWidth;
+						wordWidth = charWidth;
+					}
+					else {
+						currWidth = wordWidth;
+						window->usedLines++;
+					}
+				}
+			}
+
+			if (++loop >= window->windowBufferSize) loop = 0;
+		}
+
+		window->lineList[window->usedLines] = loop;
+		lineWidthList[window->usedLines-1] = currWidth;
+
+		// Display the required lines...
+		if ((window->usedLines - window->maxLines + 1) > 0) posFromEnd = posFromEnd % ( window->usedLines - window->maxLines + 1 );
+		else posFromEnd = 0;
+
+		useGDI = false;
+		std::memset(codePoint, 0, sizeof(codePoint));
+
+		//bool useTT = Font_GDI_NeedsGDI(window->windowBuffer, window->windowBufferSize);// false;
+		bool useTT = false;
+		for (loop = 0; loop < window->usedLines; loop++) {
+			if (Font_GDI_HasUnsupportedChars(fontTT, &window->windowBuffer[window->lineList[loop]], window->lineList[loop+1])) {
+				useTT = true;
+				break;
+			}
+		}
+		if (useTT) {
+			if (!Font_GDI_IsFontReady(fontTT)) Font_GDI_CreateFont(fontTT);
+			//Font_GDI_LockSurface(fontTT);
+		}
+
+		for (loop = 0; loop < window->usedLines; loop++) {
+
+			currWidth = (sint32)window->windowSize.x;
+
+			if (window->flags & TextWindowFlags::TEXTWINDOW_FLAG_CENTERED) {
+				currWidth += (sint32)((window->windowSize.width - lineWidthList[loop]) / 2);
+			}
+
+			if (window->usedLines > window->maxLines && 
+				loop >= (window->usedLines - window->maxLines - posFromEnd) &&
+				loop < (window->usedLines - posFromEnd))
+			{
+				currHeight = (sint32)window->windowSize.y + ((loop - (window->usedLines - window->maxLines - posFromEnd)) * window->font->fontHeight);
+			}
+			else if (window->usedLines <= window->maxLines) {
+				currHeight = (sint32)window->windowSize.y + (loop * window->font->fontHeight);
+			}
+			else {
+				currHeight = 0;
+			}
+
+			if (lpLowestPoint) {
+				if (currHeight > *lpLowestPoint)
+					*lpLowestPoint = currHeight;
+			}
+
+			if (currHeight) {
+			
+				sub = window->lineList[loop];
+				while (sub != window->lineList[loop+1]) {
+					char c = window->windowBuffer[sub];
+
+					// errrrkkk!  crowbar some code in here so we can ignore the caret till the next char
+					
+					if (useTT && !useGDI && Font_GDI_IsLeadByteChar(fontTT, c)) {
+						useGDI = true;
+						codePoint[0] = c;
+						codePoint[1] = '\0';
+					}
+					else if (useTT && (useGDI || !Font_GDI_IsSupportedChar(fontTT, c))) {
+						// Flush multi-byte / non-ASCII characters.
+						const uint32 idx = (useGDI ? 1 : 0);
+						useGDI = false;
+						codePoint[idx+0] = c;
+						codePoint[idx+1] = '\0';
+						if (!Font_GDI_IsLocked(fontTT)) Font_GDI_LockSurface(fontTT);
+
+						currWidth += Font_GDI_OutputCodePoint(fontTT, currWidth, currHeight, codePoint, true);
+					}
+					/*else if ((uchar8)c & 0x80) {
+						codePoint[0] = c;
+						codePoint[1] = '\0';
+						if (!Font_GDI_IsLocked(fontTT)) Font_GDI_LockSurface(fontTT);
+
+						currWidth += Font_GDI_OutputCodePoint(fontTT, currWidth, currHeight, codePoint, true);
+					}*/
+					/*else if (((uchar8)c & 0x80) || true) {
+						useGDI = true;
+						codePoint[0] = c;
+						codePoint[1] = '\0';
+						if (!Font_GDI_IsLocked(fontTT)) Font_GDI_LockSurface(fontTT);
+					}*/
+					else if (c == FONT_SPECIALCHARACTER) {
+						// if we're at the caret position flag it and carry on
+						caretFlag = true;
+					}
+					else {
+						if (Font_GDI_IsLocked(fontTT)) Font_GDI_UnlockSurface(fontTT);
+
+						// if caretFlag is TRUE then the char before was the caret, safe to draw it now
+						/// FIX APPLY: == true BAAAD
+						if (caretFlag) {
+							int temp;
+							// reset the caretFlag
+							temp = Font_OutputChar(window->font, currWidth, currHeight, c, true);
+							Font_OutputChar(window->font, currWidth-4, currHeight, FONT_SPECIALCHARACTER, true);
+							currWidth += temp;
+							caretFlag = false;
+						}
+						else {
+							// output our normal char
+							currWidth += Font_OutputChar(window->font, currWidth, currHeight, c, true);
+						}
+					}
+
+					if (++sub == (window->windowBufferSize + 1)) sub = 0;
+
+					/// FIX APPLY: == true BAAAAAAAD
+					if ((sub == window->lineList[loop+1]) && caretFlag)
+					{
+						if (Font_GDI_IsLocked(fontTT)) Font_GDI_UnlockSurface(fontTT);
+
+						Font_OutputChar(window->font, currWidth-4, currHeight, FONT_SPECIALCHARACTER, true);
+						caretFlag = false;
+					}
+
+				}
+
+			}
+
+			if (Font_GDI_IsLocked(fontTT)) Font_GDI_UnlockSurface(fontTT);
+		}
+		if (Font_GDI_IsLocked(fontTT)) Font_GDI_UnlockSurface(fontTT);
+
+		if (useTT) {
+			//Font_GDI_UnlockSurface(fontTT);
+			Error_Fatal(Font_GDI_IsLocked(fontTT), "Font_TT finished with selected reference count greater than zero.");
+			Font_GDI_DestroyFont(fontTT);
+			Error_Fatal(Font_GDI_IsFontReady(fontTT), "Font_TT font not destroyed.");
+		}
+
+		if (lpLowestPoint) *lpLowestPoint += window->font->fontHeight;
+
+		//A NON OVERLAY TEXT WINDOW CANNOT OVER RUN, IT JUST WRAPS. SO RETURN FALSE
+		return false;
+	}
+
+	//return posFromEnd;
+	//return lowestPoint + window->font->fontHeight;
+}
+
+
+bool32 __cdecl Gods98::TextWindow_GDI_UpdateOverlay(TextWindow_TT* windowTT, real32 time, OUT sint32* lpLowestPoint)
+{
+	log_firstcall();
+	//Error_Info("TextWindow_GDI_UpdateOverlay");
+
+	TextWindow* window = windowTT->window;
+	Font_TT* fontTT = windowTT->fontTT;
+
+	const bool trueType = (fontTT->flags & Font_TTFlags::FONT_TT_FLAG_TRUETYPE);
+	const bool variableWidth = (fontTT->flags & Font_TTFlags::FONT_TT_FLAG_VARIABLEWIDTH);
+
+	char codePoint[3] = { '\0' }; // dummy init
+	bool useGDI = false;
+
+	uint32 sub, loop = 0, usedLines = 0;
+	uint32 lineList[TEXTWINDOW_MAXLINES]; // (shouldn't never overrun, don't init?)
+	char c;
+	sint32 currWidth = 0, currHeight;
+	uint32 charWidth, wordWidth = 0;
+	bool32 overRun = false;
+	uint32 lineWidthList[TEXTWINDOW_MAXLINES]; // (shouldn't never overrun, don't init?)
+
+	lineList[usedLines++] = loop;
+
+	while ( (c = window->secondaryBuffer[loop]) != '\0' ) {
+
+		if (c == '\n') {
+			lineWidthList[usedLines-1] = currWidth;
+			lineList[usedLines] = loop + 1;
+			usedLines++;
+			currWidth = 0;
+			wordWidth = 0;
+		}
+		else if (!useGDI && Font_GDI_IsLeadByteChar(fontTT, c)) {
+			useGDI = true;
+			codePoint[0] = c;
+			codePoint[1] = '\0';
+		}
+		else {
+			if (std::isspace((uchar8)c)) {
+				lineWidthList[usedLines-1] = currWidth;
+				lineList[usedLines] = loop + 1;
+				wordWidth = 0;
+			}
+
+			if (useGDI || !Font_GDI_IsSupportedChar(fontTT, c)) {
+				// Flush multi-byte / non-ASCII characters.
+				const uint32 idx = (useGDI ? 1 : 0);
+				useGDI = false;
+				codePoint[idx+0] = c;
+				codePoint[idx+1] = '\0';
+				if (variableWidth && !Font_GDI_IsFontReady(fontTT)) Font_GDI_CreateFont(fontTT);
+				if (variableWidth && !Font_GDI_IsLocked(fontTT)) Font_GDI_LockSurface(fontTT);
+				charWidth = Font_GDI_OutputCodePoint(fontTT, 0, 0, codePoint, false);
+			}
+			else {
+				charWidth = Font_GetCharWidth(window->font, c);
+			}
+
+			currWidth += charWidth;
+			wordWidth += charWidth;
+			if (currWidth > window->windowSize.width) {
+				currWidth = wordWidth;
+				usedLines++;
+			}
+		}
+
+		loop++;
+	}
+
+	lineWidthList[usedLines-1] = currWidth;
+	lineList[usedLines] = loop;
+
+	//bool useTT = Font_GDI_NeedsGDI(window->windowBuffer, window->windowBufferSize);// false;
+	bool useTT = false;
+	for (loop = 0; loop < usedLines; loop++) {
+		if (Font_GDI_HasUnsupportedChars(fontTT, &window->windowBuffer[window->lineList[loop]], window->lineList[loop+1])) {
+			useTT = true;
+			break;
+		}
+	}
+	if (useTT) {
+		if (!Font_GDI_IsFontReady(fontTT)) Font_GDI_CreateFont(fontTT);
+		//Font_GDI_LockSurface(fontTT);
+	}
+
+	for (loop = 0; loop < usedLines; loop++){
+
+		currWidth = (sint32)window->windowSize.x;
+		if (window->flags & TextWindowFlags::TEXTWINDOW_FLAG_CENTERED) {
+			currWidth += (sint32)((window->windowSize.width - lineWidthList[loop]) / 2);
+		}
+
+		if (usedLines > window->maxLines && 
+			loop >= (usedLines - window->maxLines) &&
+			loop < usedLines)
+		{
+			currHeight = (sint32) window->windowSize.y + ((loop - (usedLines - window->maxLines)) * window->font->fontHeight);
+			overRun = true;
+		}
+		else if (usedLines <= window->maxLines) {
+			currHeight = (sint32)window->windowSize.y + (loop * window->font->fontHeight);
+		}
+		else {
+			currHeight = 0;
+		}
+
+		if (lpLowestPoint)
+		{
+			if (currHeight > *lpLowestPoint)
+				*lpLowestPoint = currHeight;
+		}
+
+		if (currHeight) {
+			useGDI = false;
+			std::memset(codePoint, 0, sizeof(codePoint));
+		
+			sub = lineList[loop];
+			while (sub != lineList[loop+1]) {
+				c = window->secondaryBuffer[sub++];
+
+				if (useTT && !useGDI && Font_GDI_IsLeadByteChar(fontTT, c)) {
+					useGDI = true;
+					codePoint[0] = c;
+					codePoint[1] = '\0';
+				}
+				else if (useTT && (useGDI || !Font_GDI_IsSupportedChar(fontTT, c))) {
+					// Flush multi-byte / non-ASCII characters.
+					const uint32 idx = (useGDI ? 1 : 0);
+					useGDI = false;
+					codePoint[idx+0] = c;
+					codePoint[idx+1] = '\0';
+					if (!Font_GDI_IsLocked(fontTT)) Font_GDI_LockSurface(fontTT);
+
+					currWidth += Font_GDI_OutputCodePoint(fontTT, currWidth, currHeight, codePoint, true);
+				}
+				/*else if ((uchar8)c & 0x80) {
+					useGDI = true;
+					codePoint[0] = c;
+					codePoint[1] = '\0';
+						if (!Font_GDI_IsLocked(fontTT)) Font_GDI_LockSurface(fontTT);
+				}*/
+				else {
+					if (Font_GDI_IsLocked(fontTT)) Font_GDI_UnlockSurface(fontTT);
+
+					currWidth += Font_OutputChar(window->font, currWidth, currHeight, c, true);
+				}
+			}
+
+		}
+
+	}
+	if (Font_GDI_IsLocked(fontTT)) Font_GDI_UnlockSurface(fontTT);
+
+	if (useTT) {
+		//Font_GDI_UnlockSurface(fontTT);
+		Error_Fatal(Font_GDI_IsLocked(fontTT), "Font_TT finished with selected reference count greater than zero.");
+		Font_GDI_DestroyFont(fontTT);
+		Error_Fatal(Font_GDI_IsFontReady(fontTT), "Font_TT font not destroyed.");
+	}
+
+	if ((window->displayDelay -= time) < 0)
+		window->flags &= ~TextWindowFlags::TEXTWINDOW_FLAG_OVERLAY;
+
+	return overRun;
+}
+void __cdecl Gods98::TextWindow_GDI_Init(OUT TextWindow_TT* windowTT, OUT Font_TT* fontTT, TextWindow* window)
+{
+	//std::memset(windowTT, 0, sizeof(TextWindow_TT));
+
+	windowTT->window = window;
+	windowTT->fontTT = fontTT;
+	Font_GDI_Init(windowTT->fontTT, window->font);
+}
+
+bool32 __cdecl Gods98::TextWindow_GDI_Update_Green(TextWindow* window, uint32 posFromEnd, real32 time, OUT sint32* lpLowestPoint)
+{
+	log_firstcall();
+
+	/*if (lpLowestPoint) *lpLowestPoint = 0;
+
+	if (window->flags & TextWindowFlags::TEXTWINDOW_FLAG_OVERLAY) {
+		return TextWindow_GDI_UpdateOverlay_Green(window, time, lpLowestPoint);
+	}*/
+
+
+	Font_TT* fontTT = Font_TT_Find(window->font);
+	if (fontTT == nullptr) {
+		return TextWindow_Update(window, posFromEnd, time, lpLowestPoint);
+	}
+
+	TextWindow_TT windowTT = { window, fontTT };
+	return TextWindow_GDI_Update(&windowTT, posFromEnd, time, lpLowestPoint);
+
+	//return TextWindow_Update(window, posFromEnd, time, lpLowestPoint);
+
+	/*Font_TT* fontTT = fontTTListSet.Add();
+	TextWindow_TT windowTT;
+	TextWindow_GDI_Init(&windowTT, fontTT, window);
+	fontTT->flags = (Font_TTFlags::FONT_TT_FLAG_TRUETYPE|Font_TTFlags::FONT_TT_FLAG_BITMAPFALLBACK);
+	fontTT->weight = FW_NORMAL;
+	fontTT->height = -13;
+	fontTT->fixedWidth = 12;
+	fontTT->foreColour = 0x007500; // dark green
+
+	bool32 r = TextWindow_GDI_Update(&windowTT, posFromEnd, time, lpLowestPoint);
+	fontTTListSet.Remove(fontTT);
+	return r;*/
+}
+
+bool32 __cdecl Gods98::TextWindow_GDI_UpdateOverlay_Green(TextWindow* window, real32 time, OUT sint32* lpLowestPoint)
+{
+	log_firstcall();
+
+	Font_TT* fontTT = fontTTListSet.Add();
+	TextWindow_TT windowTT;
+	TextWindow_GDI_Init(&windowTT, fontTT, window);
+	//fontTT->flags = (Font_TTFlags::FONT_TT_FLAG_TRUETYPE|Font_TTFlags::FONT_TT_FLAG_BITMAPFALLBACK);
+	fontTT->flags = (Font_TTFlags::FONT_TT_FLAG_TRUETYPE);
+	fontTT->weight = FW_NORMAL;
+	fontTT->height = -13;
+	fontTT->fixedWidth = 12;
+	fontTT->foreColour = 0xbdfb6b; // faded bright lime green
+
+	bool32 r = TextWindow_GDI_UpdateOverlay(&windowTT, time, lpLowestPoint);
+	fontTTListSet.Remove(fontTT);
+	return r;
+
 }
 
 #pragma endregion

@@ -165,7 +165,8 @@ bool32 __cdecl LegoRR::Lego_Initialise(void)
 
 	Gods98::Container_SetTriggerFrameCallback(LegoObject_TriggerFrameCallback, nullptr);
 
-	legoGlobs.config = Gods98::Config_Load("Lego.cfg");
+	legoGlobs.config = Gods98::Config_Load2("Lego.cfg", Gods98::FileFlags::FILE_FLAG_DATADIR|Gods98::FileFlags::FILE_FLAG_NOWAD);
+	if (!legoGlobs.config) legoGlobs.config = Gods98::Config_Load2("Lego.cfg", Gods98::FileFlags::FILE_FLAG_DATADIR|Gods98::FileFlags::FILE_FLAG_NOSTD|Gods98::FileFlags::FILE_FLAG_NOCD);
 	Gods98::Config* legoConfig = legoGlobs.config;
 	if (legoGlobs.config == nullptr) {
 		//goto LAB_0042274b;

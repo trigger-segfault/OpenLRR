@@ -60,6 +60,15 @@ typedef void ObjectModel;
 
 typedef uint8 DirectionByte;
 
+#define Font_GetStringWidth Font_GDI_GetStringWidth_White
+#define Font_GetStringInfo Font_GDI_GetStringInfo_White
+#define Font_VGetStringInfo Font_GDI_VGetStringInfo_White
+#define Font_PrintF Font_GDI_PrintF_White
+#define Font_VPrintF Font_GDI_VPrintF_White
+
+#define TextWindow_Update TextWindow_GDI_Update_Green
+#define TextWindow_UpdateOverlay TextWindow_GDI_UpdateOverlay_Green
+
 #pragma endregion
 
 /**********************************************************************************

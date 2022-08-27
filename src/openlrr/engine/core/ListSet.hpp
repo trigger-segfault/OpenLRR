@@ -837,6 +837,32 @@ protected:
 	size_t m_aliveCount; // Fast tracking for number of items loaned out, without having to recount.
 };
 
+template <typename TItem, const size_t N>
+struct BasicContainer
+{
+	TItem* listSet[N];
+	TItem* freeList;
+	uint32 listCount;
+};
+
+/**
+ * @brief Template class for managing a standalone listSet collection.
+ * @param TItem The item type of the a listSet.
+ */
+template <typename TItem, const size_t N>
+class Collection : public WrapperCollection<BasicContainer<TItem, N>>
+{
+private:
+	BasicContainer<TItem, N> m_basicCont;
+
+public:
+	Collection()
+		: WrapperCollection<BasicContainer<TItem, N>>(m_basicCont)
+	{
+		std::memset(&m_basicCont, 0, sizeof(m_basicCont));
+	}
+};
+
 #pragma endregion
 
 }

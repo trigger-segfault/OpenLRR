@@ -3,6 +3,7 @@
 
 # Solution build directory
 /bin
+/bin-*
 
 
 # Lazy method of hiding work-in-progress or local-only files with common extensions
