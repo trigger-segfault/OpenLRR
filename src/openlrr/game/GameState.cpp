@@ -2311,11 +2311,19 @@ bool32 __cdecl LegoRR::Lego_HandleKeys(real32 elapsedGame, real32 elapsedInterfa
 			LegoObject* primaryUnit = Message_GetPrimarySelectedUnit();
 
 			if (primaryUnit != nullptr && !(primaryUnit->flags4 & LIVEOBJ4_LASERTRACKERMODE) &&
-				(StatsObject_GetStatsFlags2(primaryUnit) & STATS2_CANDOUBLESELECT))
+				((StatsObject_GetStatsFlags2(primaryUnit) & STATS2_CANDOUBLESELECT) ||
+				 (primaryUnit->type == LegoObject_MiniFigure && primaryUnit->driveObject == nullptr)))
 			{
 				// It's necessary to clear selected units before entering laser tracker mode.
 				Message_ClearSelectedUnits();
-				LegoObject_TryEnterLaserTrackerMode(primaryUnit);
+				if (primaryUnit->type == LegoObject_MiniFigure && primaryUnit->driveObject == nullptr) {
+					primaryUnit->flags4 |= LIVEOBJ4_LASERTRACKERMODE;
+					legoGlobs.flags1 |= GAME1_LASERTRACKER;
+					Interface_BackToMain();
+				}
+				else {
+					LegoObject_TryEnterLaserTrackerMode(primaryUnit);
+				}
 			}
 			else {
 				// Exit mode for all objects, then reselect the object originally in the mode.

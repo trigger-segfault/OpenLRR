@@ -1260,6 +1260,9 @@ bool32 __cdecl LegoRR::Weapon_LegoObject_GetCollCenterPosition(LegoObject* liveO
 // <LegoRR.exe @00471fa0>
 bool32 __cdecl LegoRR::Weapon_LegoObject_IsActiveWithTracker(LegoObject* liveObj)
 {
+	if (liveObj->type == LegoObject_MiniFigure) {
+		return LegoObject_IsActive(liveObj, true) && (liveObj->flags4 & LIVEOBJ4_LASERTRACKERMODE);
+	}
 	if (StatsObject_GetStatsFlags2(liveObj) & STATS2_TRACKER) {
 		return LegoObject_IsActive(liveObj, (liveObj->type != LegoObject_Building)); // Check powered state for buildings only.
 	}
@@ -1351,15 +1354,68 @@ bool32 __cdecl LegoRR::Weapon_LegoObject_UpdateUnselectedTracker(LegoObject* liv
 // <LegoRR.exe @00472280>
 bool32 __cdecl LegoRR::Weapon_LegoObject_UpdateTracker(LegoObject* liveObj, real32 elapsed)
 {
-	const WeaponsModel* weapons = Weapon_LegoObject_GetWeaponsModel(liveObj);
-	if (liveObj->flags4 & LIVEOBJ4_LASERTRACKERMODE) {
-		for (uint32 frameNo = 0; frameNo < weapons->weaponCount; frameNo++) {
-			Weapon_LegoObject_UpdateSelectedTracker(liveObj, elapsed, frameNo);
+	if (liveObj->type == LegoObject_MiniFigure) {
+		if (liveObj->flags4 & LIVEOBJ4_LASERTRACKERMODE) {
+
+			Vector3F unitPos = { 0.0f };
+			Gods98::Container_GetPosition(LegoObject_GetActivityContainer(liveObj), nullptr, &unitPos);
+			//LegoObject_GetPosition(liveObj, &unitPos.x, &unitPos.y);
+
+			Vector3F mouseWorldPos;
+			Lego_GetMouseWorldPosition(&mouseWorldPos);
+
+			Vector3F dir;
+			Gods98::Maths_Vector3DSubtract(&dir, &mouseWorldPos, &unitPos);
+			
+			if (legoGlobs.flags2 & GAME2_MOUSE_INSIDEGAMEVIEW) {
+				if (dir.x != 0.0f || dir.y != 0.0f) {
+					//real32 theta = std::atan2(dir.y, dir.x);
+					//LegoObject_SetPositionAndHeading(liveObj, unitPos.x, unitPos.y, theta, true);
+
+					if (liveObj->activityName1 != objectGlobs.activityName[Activity_FireLaser]) {
+						Gods98::Maths_Vector3DNormalize(&dir);
+						LegoObject_UnkUpdateOrientation(liveObj, 0.0, &dir);
+
+						if (Gods98::mslb() && !(liveObj->flags2 & (LIVEOBJ2_FIRINGLASER|LIVEOBJ2_FIRINGPUSHER|LIVEOBJ2_FIRINGFREEZER))) {
+							switch (LegoObject_GetEquippedBeam(liveObj)) {
+							case Weapon_KnownType_Laser:
+								LegoObject_SetActivity(liveObj, Activity_FireLaser, 1);
+								LegoObject_UpdateActivityChange(liveObj);
+								liveObj->flags2 |= LIVEOBJ2_FIRINGLASER;
+								break;
+							case Weapon_KnownType_Pusher:
+								LegoObject_SetActivity(liveObj, Activity_FireLaser, 1);
+								LegoObject_UpdateActivityChange(liveObj);
+								liveObj->flags2 |= LIVEOBJ2_FIRINGPUSHER;
+								break;
+							case Weapon_KnownType_Freezer:
+								LegoObject_SetActivity(liveObj, Activity_FireLaser, 1);
+								LegoObject_UpdateActivityChange(liveObj);
+								liveObj->flags2 |= LIVEOBJ2_FIRINGFREEZER;
+								break;
+							default:
+								return true;
+							}
+
+							liveObj->weaponVector_3a8 = mouseWorldPos;
+							liveObj->beamVector_39c = dir;
+						}
+					}
+				}
+			}
 		}
 	}
 	else {
-		for (uint32 frameNo = 0; frameNo < weapons->weaponCount; frameNo++) {
-			Weapon_LegoObject_UpdateUnselectedTracker(liveObj, elapsed, frameNo);
+		const WeaponsModel* weapons = Weapon_LegoObject_GetWeaponsModel(liveObj);
+		if (liveObj->flags4 & LIVEOBJ4_LASERTRACKERMODE) {
+			for (uint32 frameNo = 0; frameNo < weapons->weaponCount; frameNo++) {
+				Weapon_LegoObject_UpdateSelectedTracker(liveObj, elapsed, frameNo);
+			}
+		}
+		else {
+			for (uint32 frameNo = 0; frameNo < weapons->weaponCount; frameNo++) {
+				Weapon_LegoObject_UpdateUnselectedTracker(liveObj, elapsed, frameNo);
+			}
 		}
 	}
 	return true;
