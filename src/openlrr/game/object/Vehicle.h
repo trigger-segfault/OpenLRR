@@ -142,24 +142,24 @@ void __cdecl Vehicle_SetUpgradeActivity(VehicleModel* vehicle, const char* activ
 void __cdecl Vehicle_Remove(VehicleModel* vehicle);
 
 // <LegoRR.exe @0046d190>
-#define Vehicle_SwapPolyMedium ((void (__cdecl* )(VehicleModel* vehicle, bool32 swap))0x0046d190)
-//void __cdecl Vehicle_SwapPolyMedium(VehicleModel* vehicle, bool32 swap);
+//#define Vehicle_SwapPolyMedium ((void (__cdecl* )(VehicleModel* vehicle, bool32 swap))0x0046d190)
+void __cdecl Vehicle_SwapPolyMedium(VehicleModel* vehicle, bool32 swap);
 
 // There's no stored HighPoly data, this just calls `Vehicle_SwapPolyMedium`.
 // <LegoRR.exe @0046d1e0>
-#define Vehicle_SwapPolyHigh ((void (__cdecl* )(VehicleModel* vehicle, bool32 swap))0x0046d1e0)
-//void __cdecl Vehicle_SwapPolyHigh(VehicleModel* vehicle, bool32 swap);
+//#define Vehicle_SwapPolyHigh ((void (__cdecl* )(VehicleModel* vehicle, bool32 swap))0x0046d1e0)
+void __cdecl Vehicle_SwapPolyHigh(VehicleModel* vehicle, bool32 swap);
 
 // When `current` is true, the function returns whether the object can currently get this upgrade.
 //  (AKA, has the object not gotten the upgrade yet? And does it support the upgrade type?)
 // Otherwise the function returns whether the object type supports the upgrade at all.
 // <LegoRR.exe @0046d200>
-#define Vehicle_CanUpgradeType ((bool32 (__cdecl* )(VehicleModel* vehicle, LegoObject_UpgradeType upgradeType, bool32 current))0x0046d200)
-//bool32 __cdecl Vehicle_CanUpgradeType(VehicleModel* vehicle, LegoObject_UpgradeType upgradeType, bool32 current);
+//#define Vehicle_CanUpgradeType ((bool32 (__cdecl* )(VehicleModel* vehicle, LegoObject_UpgradeType upgradeType, bool32 current))0x0046d200)
+bool32 __cdecl Vehicle_CanUpgradeType(VehicleModel* vehicle, LegoObject_UpgradeType upgradeType, bool32 current);
 
 // <LegoRR.exe @0046d240>
-#define Vehicle_GetUpgradeLevel ((uint32 (__cdecl* )(VehicleModel* vehicle))0x0046d240)
-//uint32 __cdecl Vehicle_GetUpgradeLevel(VehicleModel* vehicle);
+//#define Vehicle_GetUpgradeLevel ((uint32 (__cdecl* )(VehicleModel* vehicle))0x0046d240)
+uint32 __cdecl Vehicle_GetUpgradeLevel(VehicleModel* vehicle);
 
 // <LegoRR.exe @0046d250>
 //#define Vehicle_SetUpgradeLevel ((void (__cdecl* )(VehicleModel* vehicle, uint32 objLevel))0x0046d250)
@@ -174,72 +174,72 @@ void __cdecl Vehicle_HideWheels(VehicleModel* vehicle, bool32 hide);
 bool32 __cdecl Vehicle_Clone(IN VehicleModel* srcVehicle, OUT VehicleModel* destVehicle);
 
 // <LegoRR.exe @0046d400>
-#define Vehicle_SetOwnerObject ((void (__cdecl* )(VehicleModel* vehicle, LegoObject* liveObj))0x0046d400)
-//void __cdecl Vehicle_SetOwnerObject(VehicleModel* vehicle, LegoObject* liveObj);
+//#define Vehicle_SetOwnerObject ((void (__cdecl* )(VehicleModel* vehicle, LegoObject* liveObj))0x0046d400)
+void __cdecl Vehicle_SetOwnerObject(VehicleModel* vehicle, LegoObject* liveObj);
 
 // <LegoRR.exe @0046d460>
-#define Vehicle_GetAnimationTime ((real32 (__cdecl* )(VehicleModel* vehicle))0x0046d460)
-//real32 __cdecl Vehicle_GetAnimationTime(VehicleModel* vehicle);
+//#define Vehicle_GetAnimationTime ((real32 (__cdecl* )(VehicleModel* vehicle))0x0046d460)
+real32 __cdecl Vehicle_GetAnimationTime(VehicleModel* vehicle);
 
 // <LegoRR.exe @0046d480>
-#define Vehicle_MoveAnimation ((real32 (__cdecl* )(VehicleModel* vehicle, real32 elapsed1, real32 elapsed2, uint32 unkFrameNo))0x0046d480)
-//real32 __cdecl Vehicle_MoveAnimation(VehicleModel* vehicle, real32 elapsed1, real32 elapsed2, uint32 unkFrameNo);
+//#define Vehicle_MoveAnimation ((real32 (__cdecl* )(VehicleModel* vehicle, real32 elapsed1, real32 elapsed2, uint32 unkFrameNo))0x0046d480)
+real32 __cdecl Vehicle_MoveAnimation(VehicleModel* vehicle, real32 elapsed1, real32 elapsed2, uint32 unkFrameNo);
 
 // <LegoRR.exe @0046d520>
 //#define Vehicle_PopulateWheelNulls ((void (__cdecl* )(VehicleModel* vehicle))0x0046d520)
 void __cdecl Vehicle_PopulateWheelNulls(VehicleModel* vehicle);
 
 // <LegoRR.exe @0046d580>
-#define Vehicle_Hide ((void (__cdecl* )(VehicleModel* vehicle, bool32 hide))0x0046d580)
-//void __cdecl Vehicle_Hide(VehicleModel* vehicle, bool32 hide);
+//#define Vehicle_Hide ((void (__cdecl* )(VehicleModel* vehicle, bool32 hide))0x0046d580)
+void __cdecl Vehicle_Hide(VehicleModel* vehicle, bool32 hide);
 
 // <LegoRR.exe @0046d5f0>
-#define Vehicle_IsHidden ((bool32 (__cdecl* )(VehicleModel* vehicle))0x0046d5f0)
-//bool32 __cdecl Vehicle_IsHidden(VehicleModel* vehicle);
+//#define Vehicle_IsHidden ((bool32 (__cdecl* )(VehicleModel* vehicle))0x0046d5f0)
+bool32 __cdecl Vehicle_IsHidden(VehicleModel* vehicle);
 
 // <LegoRR.exe @0046d610>
-#define Vehicle_SetOrientation ((void (__cdecl* )(VehicleModel* vehicle, real32 xDir, real32 yDir, real32 zDir))0x0046d610)
-//void __cdecl Vehicle_SetOrientation(VehicleModel* vehicle, real32 xDir, real32 yDir, real32 zDir);
+//#define Vehicle_SetOrientation ((void (__cdecl* )(VehicleModel* vehicle, real32 xDir, real32 yDir, real32 zDir))0x0046d610)
+void __cdecl Vehicle_SetOrientation(VehicleModel* vehicle, real32 xDir, real32 yDir, real32 zDir);
 
 // <LegoRR.exe @0046d640>
-#define Vehicle_SetPosition ((void (__cdecl* )(VehicleModel* vehicle, real32 xPos, real32 yPos, GetWorldZCallback zCallback, Map3D* map))0x0046d640)
-//void __cdecl Vehicle_SetPosition(VehicleModel* vehicle, real32 xPos, real32 yPos, GetWorldZCallback zCallback, Map3D* map);
+//#define Vehicle_SetPosition ((void (__cdecl* )(VehicleModel* vehicle, real32 xPos, real32 yPos, GetWorldZCallback zCallback, Map3D* map))0x0046d640)
+void __cdecl Vehicle_SetPosition(VehicleModel* vehicle, real32 xPos, real32 yPos, GetWorldZCallback zCallback, Map3D* map);
 
 // <LegoRR.exe @0046dca0>
-#define Vehicle_GetActivityContainer ((Gods98::Container* (__cdecl* )(VehicleModel* vehicle))0x0046dca0)
-//Gods98::Container* __cdecl Vehicle_GetActivityContainer(VehicleModel* vehicle);
+//#define Vehicle_GetActivityContainer ((Gods98::Container* (__cdecl* )(VehicleModel* vehicle))0x0046dca0)
+Gods98::Container* __cdecl Vehicle_GetActivityContainer(VehicleModel* vehicle);
 
 // <LegoRR.exe @0046dcb0>
-#define Vehicle_FindNull ((Gods98::Container* (__cdecl* )(VehicleModel* vehicle, const char* name, uint32 frameNo))0x0046dcb0)
-//Gods98::Container* __cdecl Vehicle_FindNull(VehicleModel* vehicle, char* name, uint32 frameNo);
+//#define Vehicle_FindNull ((Gods98::Container* (__cdecl* )(VehicleModel* vehicle, const char* name, uint32 frameNo))0x0046dcb0)
+Gods98::Container* __cdecl Vehicle_FindNull(VehicleModel* vehicle, char* name, uint32 frameNo);
 
 // <LegoRR.exe @0046dd10>
-#define Vehicle_GetCameraNull ((Gods98::Container* (__cdecl* )(VehicleModel* vehicle, uint32 frameNo))0x0046dd10)
-//Gods98::Container* __cdecl Vehicle_GetCameraNull(VehicleModel* vehicle, uint32 frameNo);
+//#define Vehicle_GetCameraNull ((Gods98::Container* (__cdecl* )(VehicleModel* vehicle, uint32 frameNo))0x0046dd10)
+Gods98::Container* __cdecl Vehicle_GetCameraNull(VehicleModel* vehicle, uint32 frameNo);
 
 // <LegoRR.exe @0046dd50>
-#define Vehicle_GetDrillNull ((Gods98::Container* (__cdecl* )(VehicleModel* vehicle))0x0046dd50)
-//Gods98::Container* __cdecl Vehicle_GetDrillNull(VehicleModel* vehicle);
+//#define Vehicle_GetDrillNull ((Gods98::Container* (__cdecl* )(VehicleModel* vehicle))0x0046dd50)
+Gods98::Container* __cdecl Vehicle_GetDrillNull(VehicleModel* vehicle);
 
 // <LegoRR.exe @0046dd80>
-#define Vehicle_GetDepositNull ((Gods98::Container* (__cdecl* )(VehicleModel* vehicle))0x0046dd80)
-//Gods98::Container* __cdecl Vehicle_GetDepositNull(VehicleModel* vehicle);
+//#define Vehicle_GetDepositNull ((Gods98::Container* (__cdecl* )(VehicleModel* vehicle))0x0046dd80)
+Gods98::Container* __cdecl Vehicle_GetDepositNull(VehicleModel* vehicle);
 
 // <LegoRR.exe @0046ddb0>
-#define Vehicle_GetDriverNull ((Gods98::Container* (__cdecl* )(VehicleModel* vehicle))0x0046ddb0)
-//Gods98::Container* __cdecl Vehicle_GetDriverNull(VehicleModel* vehicle);
+//#define Vehicle_GetDriverNull ((Gods98::Container* (__cdecl* )(VehicleModel* vehicle))0x0046ddb0)
+Gods98::Container* __cdecl Vehicle_GetDriverNull(VehicleModel* vehicle);
 
 // <LegoRR.exe @0046dde0>
-#define Vehicle_GetCarryNull ((Gods98::Container* (__cdecl* )(VehicleModel* vehicle, uint32 frameNo))0x0046dde0)
-//Gods98::Container* __cdecl Vehicle_GetCarryNull(VehicleModel* vehicle, uint32 frameNo);
+//#define Vehicle_GetCarryNull ((Gods98::Container* (__cdecl* )(VehicleModel* vehicle, uint32 frameNo))0x0046dde0)
+Gods98::Container* __cdecl Vehicle_GetCarryNull(VehicleModel* vehicle, uint32 frameNo);
 
 // <LegoRR.exe @0046de20>
-#define Vehicle_GetCarryNullFrames ((uint32 (__cdecl* )(VehicleModel* vehicle))0x0046de20)
-//Gods98::uint32 __cdecl Vehicle_GetCarryNullFrames(VehicleModel* vehicle);
+//#define Vehicle_GetCarryNullFrames ((uint32 (__cdecl* )(VehicleModel* vehicle))0x0046de20)
+uint32 __cdecl Vehicle_GetCarryNullFrames(VehicleModel* vehicle);
 
 // <LegoRR.exe @0046de30>
-#define Vehicle_GetTransCoef ((real32 (__cdecl* )(VehicleModel* vehicle))0x0046de30)
-//real32 __cdecl Vehicle_GetTransCoef(VehicleModel* vehicle);
+//#define Vehicle_GetTransCoef ((real32 (__cdecl* )(VehicleModel* vehicle))0x0046de30)
+real32 __cdecl Vehicle_GetTransCoef(VehicleModel* vehicle);
 
 #pragma endregion
 
