@@ -1,4 +1,4 @@
-name: Compile Spark
+name: Compile Debug openlrr
 
 on:
   push:
@@ -9,7 +9,9 @@ jobs:
     name: run on windows
     runs-on: windows-latest
     steps:
+      - name: Clone repo
+        uses: actions/checkout@v3
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.1
-      - name: Build app for release
+      - name: Build app for Debug
         run: msbuild openlrr.sln /t:build /p:Configuration=Debug;Platform=x86
