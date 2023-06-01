@@ -5,8 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  windows:
-    name: Run on windows
+  stable_build:
     runs-on: windows-latest
     steps:
       - name: Clone repo
@@ -14,12 +13,21 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1
       - name: Build app for x86 Release and Debug
-        run: msbuild openlrr.sln /p:Configuration="Debug;Release" /p:Platform=x86
+        run: msbuild openlrr.sln /p:Configuration=Release /p:Platform=x86
       - name: Upload Release build
         uses: actions/upload-artifact@v3
         with:
           name: openlrr
           path: ./bin/openlrr.dll
+  debug_build:
+    runs-on: windows-latest
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v3
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1
+      - name: Build app for x86 Release and Debug
+        run: msbuild openlrr.sln /p:Configuration=Debug /p:Platform=x86
       - name: Upload Debug build
         uses: actions/upload-artifact@v3
         with:
