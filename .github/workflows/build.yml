@@ -14,4 +14,4 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.1
       - name: Build app for Debug
-        run: msbuild openlrr.sln /t:build /p:Configuration=Debug;Platform=x86
+        run: msbuild openlrr.sln /t:build /p:Configuration=Debug;PlatformTarget=x86
