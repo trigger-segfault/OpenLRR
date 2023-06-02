@@ -53,7 +53,7 @@ jobs:
       - name: Get artifacts
         uses: actions/download-artifact@v2
         with:
-          name: OpenLRR-Release
+          name: OpenLRR-Release.zip
       - name: Release public builds
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
