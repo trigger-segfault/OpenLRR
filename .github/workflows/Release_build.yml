@@ -63,6 +63,6 @@ jobs:
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "${env.RELEASE_VERSION}"
+          automatic_release_tag: $RELEASE_VERSION
           draft: true
           files: OpenLRR-Release.zip
