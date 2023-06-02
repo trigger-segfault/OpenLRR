@@ -58,11 +58,12 @@ jobs:
         with:
           name: OpenLRR-Release
       - name: Set pusht tag as a variable
+        id: tag_version
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
       - name: Release public builds
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: $RELEASE_VERSION
+          automatic_release_tag: ${{ steps.tag_version.outputs.tag }}
           draft: true
           files: OpenLRR-Release.zip
