@@ -4,10 +4,12 @@ on:
   push:
     paths:
       - src/**
+    tags:
+      - v*.*.*.*
   workflow_dispatch:
 
 jobs:
-  stable_build:
+  nightly_release_build:
     runs-on: windows-latest
     steps:
       - name: Clone repo
@@ -19,9 +21,14 @@ jobs:
       - name: Upload Release build
         uses: actions/upload-artifact@v3
         with:
-          name: openlrr
-          path: ./bin/openlrr.dll
-  debug_build:
+          name: OpenLRR-Release
+          path: |
+            ./bin/openlrr.dll
+            ./OpenLRR.exe
+            ./data/Data/**
+            ./data/Settings/**
+
+  nightly_debug_build:
     runs-on: windows-latest
     steps:
       - name: Clone repo
@@ -33,5 +40,29 @@ jobs:
       - name: Upload Debug build
         uses: actions/upload-artifact@v3
         with:
-          name: openlrr-d
-          path: ./bin/openlrr-d.dll
+          name: OpenLRR-Debug
+          path: |
+            ./bin/openlrr-d.dll
+            ./OpenLRR-d.exe
+            ./data/Data/**
+            ./data/Settings/**
+  
+  prepare_release:
+    runs-on: windows-latest
+    needs: nightly_release_build
+    # Instead of creating a new workflow file, instead we use trigger this job only if there's a new tag, we'll download the release artefact to save time aswell
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/') 
+    steps:
+      - name: Get artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: OpenLRR-Release
+      - name: Set pusht tag as a variable
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      - name: Release public builds
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "${env.RELEASE_VERSION}"
+          draft: true
+          files: OpenLRR-Release.zip
