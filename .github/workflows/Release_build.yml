@@ -2,11 +2,8 @@ name: Compile Debug and Release openlrr
 
 on:
   push:
-    paths:
-      - src/**
-    tags:
-      - v*.*.*.*
-  workflow_dispatch:
+    paths: src/**
+    tags: v*
 
 jobs:
   nightly_release_build:
@@ -48,7 +45,7 @@ jobs:
             ./data/Settings/**
   
   prepare_release:
-    runs-on: windows-latest
+    runs-on: "ubuntu-latest"
     needs: nightly_release_build
     # Instead of creating a new workflow file, instead we use trigger this job only if there's a new tag, we'll download the release artefact to save time aswell
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/') 
@@ -57,13 +54,10 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: OpenLRR-Release
-      - name: Set pusht tag as a variable
-        id: tag_version
-        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
       - name: Release public builds
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          #automatic_release_tag: "${env.RELEASE_VERSION}"
+          title: "Release ${{ github.event.release.tag_name }}"
           draft: true
           files: OpenLRR-Release.zip
