@@ -53,7 +53,7 @@ jobs:
     runs-on: "ubuntu-latest" # Zip action only works on Ubuntu
     needs: nightly_release_build
     # Instead of creating a new workflow file, we trigger this job only if there's a new tag
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/') 
+    if: startsWith(github.ref, 'refs/tags/') 
     steps:
       - name: Set tag in env # Extract the pusht tag into a variable for later use
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
@@ -66,9 +66,8 @@ jobs:
         with:
           args: zip -qq -r OpenLRR-${{ env.RELEASE_VERSION }}.zip OpenLRR.exe bin/ data/
       - name: Release public builds
-        uses: "marvinpinto/action-automatic-releases@latest"
+        uses: "softprops/action-gh-release@v1"
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          title: "Draft Release ${{ env.RELEASE_VERSION }}"
+          name: "Draft Release ${{ env.RELEASE_VERSION }}"
           draft: true
           files: OpenLRR-${{ env.RELEASE_VERSION }}.zip
