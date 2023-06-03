@@ -62,6 +62,11 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: OpenLRR-Release
+      - name: debug again
+        run: |
+          ls -al
+          ../
+          ls -al
       - name: Zip artifact
         uses: montudor/action-zip@v1
         with:
