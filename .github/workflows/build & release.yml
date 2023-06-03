@@ -50,14 +50,14 @@ jobs:
             ./data/Settings/**
   
   prepare_release:
-    runs-on: "ubuntu-latest"
+    runs-on: "ubuntu-latest" # Zip action only works on Ubuntu
     needs: nightly_release_build
-    # Instead of creating a new workflow file, instead we use trigger this job only if there's a new tag, we'll download the release artefact to save time aswell
+    # Instead of creating a new workflow file, we trigger this job only if there's a new tag
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/') 
     steps:
-      - name: Set tag in env
+      - name: Set tag in env # Extract the pusht tag into a variable for later use
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-      - name: Get artifact
+      - name: Get artifact # It's faster to download the artifact then to recompile
         uses: actions/download-artifact@v2
         with:
           name: OpenLRR-Release
@@ -69,6 +69,6 @@ jobs:
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          title: "Release ${{ env.RELEASE_VERSION }}"
+          title: "Draft Release ${{ env.RELEASE_VERSION }}"
           draft: true
           files: OpenLRR-${{ env.RELEASE_VERSION }}.zip
