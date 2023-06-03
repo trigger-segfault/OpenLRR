@@ -62,16 +62,14 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: OpenLRR-Release
-      - name: debug again
+      - name: Repackage
         run: |
-          pwd
-          ls -al
-          cd ../
-          ls -al
+          mkdir OpenLRR
+          mv -r * OpenLRR
       - name: Zip artifact
         uses: montudor/action-zip@v1
         with:
-          args: zip -qq -r OpenLRR-${{ env.RELEASE_VERSION }}.zip ../*
+          args: zip -qq -r OpenLRR-${{ env.RELEASE_VERSION }}.zip OpenLRR/
       - name: Draft Public Release
         uses: "softprops/action-gh-release@v1"
         with:
