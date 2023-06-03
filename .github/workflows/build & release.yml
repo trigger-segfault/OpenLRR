@@ -34,6 +34,11 @@ jobs:
         uses: microsoft/setup-msbuild@v1
       - name: Build OpenLRR for x86 Debug
         run: msbuild openlrr.sln /p:Configuration=Debug /p:Platform=x86
+      #- name: Move some files around
+      #  run: |
+      #    Move-Item ./bin/openlrr-d.dll ./openlrr-d.dll
+      #    Move-Item
+      #    Move-Item
       - name: Upload OpenLRR Debug build
         uses: actions/upload-artifact@v3
         with:
