@@ -55,6 +55,8 @@ jobs:
     # Instead of creating a new workflow file, instead we use trigger this job only if there's a new tag, we'll download the release artefact to save time aswell
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/') 
     steps:
+      - name: Set tag in env
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
       - name: Get artifact
         uses: actions/download-artifact@v2
         with:
@@ -62,11 +64,11 @@ jobs:
       - name: Zip artifact
         uses: montudor/action-zip@v1
         with:
-          args: zip -qq -r OpenLRR-Release.zip OpenLRR.exe bin/ data/
+          args: zip -qq -r OpenLRR-${{ env.RELEASE_VERSION }}.zip OpenLRR.exe bin/ data/
       - name: Release public builds
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          title: "Release ${{ github.event.release.tag_name }}"
+          title: "Release ${{ env.RELEASE_VERSION }}"
           draft: true
-          files: OpenLRR-Release.zip
+          files: OpenLRR-${{ env.RELEASE_VERSION }}.zip
