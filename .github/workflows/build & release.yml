@@ -40,7 +40,7 @@ jobs:
       - name: Rerrange files to easily use OpenLRR
         run: |
           mkdir OpenLRR/
-          Move-Item bin/openlrr.dll OpenLRR/
+          Move-Item bin/openlrr-d.dll OpenLRR/
           Move-Item OpenLRR.exe OpenLRR/
           Move-Item data/* OpenLRR/
       - name: Upload OpenLRR Debug build
@@ -62,6 +62,11 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: OpenLRR-Release
+      - name: debug whats in here
+        run: |
+          ls -al
+          cd OpenLRR/
+          ls -al
       - name: Zip artifact
         uses: montudor/action-zip@v1
         with:
