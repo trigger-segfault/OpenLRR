@@ -1,4 +1,4 @@
-name: Compile Debug and Release openlrr
+name: Compile Debug and Release OpenLRR
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
     tags: v*
 
 jobs:
-  nightly_release_build:
+  Nightly_release_build:
     runs-on: windows-latest
     steps:
       - name: Clone repo
@@ -15,6 +15,12 @@ jobs:
         uses: microsoft/setup-msbuild@v1
       - name: Build OpenLRR for x86 Release
         run: msbuild openlrr.sln /p:Configuration=Release /p:Platform=x86
+      - name: Rerrange files to easily use OpenLRR
+        run: |
+          mkdir OpenLRR/
+          Move-Item bin/openlrr.dll OpenLRR/
+          Move-Item OpenLRR.exe OpenLRR/
+          Move-Item data/* OpenLRR/
       - name: Upload OpenLRR Release build
         uses: actions/upload-artifact@v3
         with:
@@ -25,7 +31,7 @@ jobs:
             ./data/Data/**
             ./data/Settings/**
 
-  nightly_debug_build:
+  Nightly_debug_build:
     runs-on: windows-latest
     steps:
       - name: Clone repo
@@ -34,11 +40,12 @@ jobs:
         uses: microsoft/setup-msbuild@v1
       - name: Build OpenLRR for x86 Debug
         run: msbuild openlrr.sln /p:Configuration=Debug /p:Platform=x86
-      #- name: Move some files around
-      #  run: |
-      #    Move-Item ./bin/openlrr-d.dll ./openlrr-d.dll
-      #    Move-Item
-      #    Move-Item
+      - name: Rerrange files to easily use OpenLRR
+        run: |
+          mkdir OpenLRR/
+          Move-Item bin/openlrr.dll OpenLRR/
+          Move-Item OpenLRR.exe OpenLRR/
+          Move-Item data/* OpenLRR/
       - name: Upload OpenLRR Debug build
         uses: actions/upload-artifact@v3
         with:
@@ -51,7 +58,7 @@ jobs:
   
   prepare_release:
     runs-on: "ubuntu-latest" # Zip action only works on Ubuntu
-    needs: nightly_release_build
+    needs: Nightly_release_build
     # Instead of creating a new workflow file, we trigger this job only if there's a new tag
     if: startsWith(github.ref, 'refs/tags/') 
     steps:
