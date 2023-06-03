@@ -26,10 +26,7 @@ jobs:
         with:
           name: OpenLRR-Release
           path: |
-            ./bin/openlrr.dll
-            ./OpenLRR.exe
-            ./data/Data/**
-            ./data/Settings/**
+            OpenLRR/
 
   Nightly_debug_build:
     runs-on: windows-latest
@@ -51,10 +48,7 @@ jobs:
         with:
           name: OpenLRR-Debug
           path: |
-            ./bin/openlrr-d.dll
-            ./OpenLRR-d.exe
-            ./data/Data/**
-            ./data/Settings/**
+            OpenLRR/
   
   prepare_release:
     runs-on: "ubuntu-latest" # Zip action only works on Ubuntu
@@ -71,7 +65,7 @@ jobs:
       - name: Zip artifact
         uses: montudor/action-zip@v1
         with:
-          args: zip -qq -r OpenLRR-${{ env.RELEASE_VERSION }}.zip OpenLRR.exe bin/ data/
+          args: zip -qq -r OpenLRR-${{ env.RELEASE_VERSION }}.zip OpenLRR/
       - name: Release public builds
         uses: "softprops/action-gh-release@v1"
         with:
