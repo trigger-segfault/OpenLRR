@@ -55,7 +55,7 @@ jobs:
         with:
           name: OpenLRR-Release
       - name: show artefact location
-        run: ls -al
+        run: cd /home/runner/work/OpenLRR/OpenLRR && ls -al
       - name: Release public builds
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
