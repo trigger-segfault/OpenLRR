@@ -70,7 +70,7 @@ jobs:
       - name: Zip artifact
         uses: montudor/action-zip@v1
         with:
-          args: zip -qq -r OpenLRR-${{ env.RELEASE_VERSION }}.zip OpenLRR/
+          args: zip -qq -r OpenLRR-${{ env.RELEASE_VERSION }}.zip ../OpenLRR/
       - name: Release public builds
         uses: "softprops/action-gh-release@v1"
         with:
