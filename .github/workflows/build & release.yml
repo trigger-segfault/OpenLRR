@@ -64,8 +64,9 @@ jobs:
           name: OpenLRR-Release
       - name: debug again
         run: |
+          pwd
           ls -al
-          ../
+          cd ../
           ls -al
       - name: Zip artifact
         uses: montudor/action-zip@v1
