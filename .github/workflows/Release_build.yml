@@ -54,8 +54,9 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: OpenLRR-Release
+          path: artefact/
       - name: show artefact location
-        run: cd /home/runner/work/OpenLRR/OpenLRR && ls -al
+        run: ls -al && tree
       - name: Release public builds
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
