@@ -65,7 +65,7 @@ jobs:
       - name: Repackage
         run: |
           mkdir OpenLRR
-          mv openlrr.dll OpenLRR.exe Data/* OpenLRR/
+          mv openlrr.dll OpenLRR.exe Data/ Settings/ OpenLRR/
       - name: Zip artifact
         uses: montudor/action-zip@v1
         with:
