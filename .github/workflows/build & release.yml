@@ -65,7 +65,7 @@ jobs:
       - name: Repackage
         run: |
           mkdir OpenLRR
-          mv -r * OpenLRR
+          mv * OpenLRR
       - name: Zip artifact
         uses: montudor/action-zip@v1
         with:
