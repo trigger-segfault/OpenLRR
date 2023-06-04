@@ -2,7 +2,9 @@ name: Compile Debug and Release OpenLRR
 
 on:
   push:
-    paths: src/**
+    paths:
+      - src/openlrr/**
+      - resources/**
     tags: v*
 
 jobs:
@@ -14,7 +16,7 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1
       - name: Build OpenLRR for x86 Release
-        run: msbuild openlrr.sln /p:Configuration=Release /p:Platform=x86
+        run: msbuild openlrr.sln /t:openlrr /p:Configuration=Release /p:Platform=x86
       - name: Rerrange files to easily use OpenLRR
         run: |
           mkdir OpenLRR/
@@ -36,7 +38,7 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1
       - name: Build OpenLRR for x86 Debug
-        run: msbuild openlrr.sln /p:Configuration=Debug /p:Platform=x86
+        run: msbuild openlrr.sln /t:openlrr /p:Configuration=Debug /p:Platform=x86
       - name: Rerrange files to easily use OpenLRR
         run: |
           mkdir OpenLRR/
