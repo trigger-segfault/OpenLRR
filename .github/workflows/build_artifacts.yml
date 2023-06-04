@@ -52,22 +52,18 @@ jobs:
           path: |
             OpenLRR/
   
-  prepare_release:
+  Prepare_release:
     runs-on: "ubuntu-latest" # Zip action only works on Ubuntu
     needs: Nightly_release_build
-    # Instead of creating a new workflow file, we trigger this job only if there's a new tag
-    if: startsWith(github.ref, 'refs/tags/') 
+    # Trigger when a new tag is pusht
+    if: startsWith(github.ref, 'refs/tags/')
     steps:
       - name: Set tag in env # Extract the pusht tag into a variable for later use
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-      - name: Get artifact # It's faster to download the artifact then to recompile
+      - name: Get artifact # Faster to download instead of recompile
         uses: actions/download-artifact@v2
         with:
           name: OpenLRR-Release
-      #- name: Repackage
-      #  run: |
-      #    mkdir OpenLRR
-      #    mv openlrr.dll OpenLRR.exe Data/ Settings/ OpenLRR/
       - name: Zip artifact
         uses: montudor/action-zip@v1
         with:
