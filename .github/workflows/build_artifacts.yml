@@ -19,10 +19,10 @@ jobs:
         run: msbuild openlrr.sln /t:openlrr /p:Configuration=Release /p:Platform=x86
       - name: Rerrange files to easily use OpenLRR
         run: |
-          mkdir OpenLRR/
-          Move-Item bin/openlrr.dll OpenLRR/
-          Move-Item OpenLRR.exe OpenLRR/
-          Move-Item data/* OpenLRR/
+          mkdir OpenLRR/OpenLRR/
+          Move-Item bin/openlrr.dll OpenLRR/OpenLRR/
+          Move-Item OpenLRR.exe OpenLRR/OpenLRR/
+          Move-Item data/* OpenLRR/OpenLRR/
       - name: Upload OpenLRR Release build
         uses: actions/upload-artifact@v3
         with:
@@ -41,10 +41,10 @@ jobs:
         run: msbuild openlrr.sln /t:openlrr /p:Configuration=Debug /p:Platform=x86
       - name: Rerrange files to easily use OpenLRR
         run: |
-          mkdir OpenLRR/
-          Move-Item bin/openlrr-d.dll OpenLRR/
-          Move-Item OpenLRR.exe OpenLRR/
-          Move-Item data/* OpenLRR/
+          mkdir OpenLRR/OpenLRR/
+          Move-Item bin/openlrr-d.dll OpenLRR/OpenLRR/
+          Move-Item OpenLRR.exe OpenLRR/OpenLRR/
+          Move-Item data/* OpenLRR/OpenLRR/
       - name: Upload OpenLRR Debug build
         uses: actions/upload-artifact@v3
         with:
@@ -64,10 +64,10 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: OpenLRR-Release
-      - name: Repackage
-        run: |
-          mkdir OpenLRR
-          mv openlrr.dll OpenLRR.exe Data/ Settings/ OpenLRR/
+      #- name: Repackage
+      #  run: |
+      #    mkdir OpenLRR
+      #    mv openlrr.dll OpenLRR.exe Data/ Settings/ OpenLRR/
       - name: Zip artifact
         uses: montudor/action-zip@v1
         with:
