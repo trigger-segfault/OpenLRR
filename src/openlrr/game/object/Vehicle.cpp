@@ -504,7 +504,7 @@ real32 __cdecl LegoRR::Vehicle_MoveAnimation(VehicleModel* vehicle, real32 elaps
 		animationTime = Gods98::Container_MoveAnimation(vehicle->contAct1, elapsed1);
 	}
 
-	if (vehicle->contAct2)
+	if (vehicle->contAct2 != nullptr)
 	{
 		animationTime = Gods98::Container_MoveAnimation(vehicle->contAct2, elapsed2);
 	}
