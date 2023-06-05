@@ -89,6 +89,11 @@ static real64 _mainAccumulatorMS = 0.0f;
 static real32 _mainMaxFrameTiming = 0.0f;
 static bool _mainLowPriority = false;
 
+// Time returned by timeGetTime() on startup.
+// This is then subtracted so that Main_GetTime() returns OpenLRR's runtime in milliseconds,
+//  instead of the computer's runtime.
+static uint32 _mainStartTime = 0;
+
 #pragma endregion
 
 /**********************************************************************************
@@ -506,6 +511,10 @@ bool Gods98::Main_Initialise(_In_ HINSTANCE hInstanceDll,
 							 _In_ LPSTR     lpCmdLine, _In_     sint32    nCmdShow)
 {
 	log_firstcall();
+
+	// Make sure this is the same time function as used in Main_GetTime().
+	// Or we can just call Main_GetTime() first, since _mainStartTime will be 0 then.
+	_mainStartTime = legacy::timeGetTime();
 
 	//bool32 setup = false, nosound = false, insistOnCD = false;
 	const char* productName = nullptr;
@@ -1598,7 +1607,8 @@ uint32 __cdecl Gods98::Main_GetTime(void)
 {
 	log_firstcall();
 
-	return legacy::timeGetTime();
+	// Return OpenLRR's runtime instead of the computer's runtime.
+	return legacy::timeGetTime() - _mainStartTime;
 }
 
 

@@ -301,9 +301,9 @@ bool32 __cdecl LegoRR::Objective_HandleKeys(bool32 nextKeyPressed, bool32 leftBu
 	                       (Gods98::msx() >= nextPos.x && Gods98::msx() < nextPos.x + (sint32)Gods98::Image_GetWidth(legoGlobs.NextButtonImage)) &&
 	                       (Gods98::msy() >= nextPos.y && Gods98::msy() < nextPos.y + (sint32)Gods98::Image_GetHeight(legoGlobs.NextButtonImage)));
 	
-	const bool overPrev = (legoGlobs.BackButtonImage != nullptr && (legoGlobs.flags2 & GAME2_MENU_HASPREVIOUS) &&
-	                       (Gods98::msx() >= prevPos.x && Gods98::msx() < prevPos.x + (sint32)Gods98::Image_GetWidth(legoGlobs.BackButtonImage)) &&
-	                       (Gods98::msy() >= prevPos.y && Gods98::msy() < prevPos.y + (sint32)Gods98::Image_GetHeight(legoGlobs.BackButtonImage)));
+	const bool overPrev = (legoGlobs.RepeatButtonImage != nullptr && (legoGlobs.flags2 & GAME2_MENU_HASPREVIOUS) &&
+	                       (Gods98::msx() >= prevPos.x && Gods98::msx() < prevPos.x + (sint32)Gods98::Image_GetWidth(legoGlobs.RepeatButtonImage)) &&
+	                       (Gods98::msy() >= prevPos.y && Gods98::msy() < prevPos.y + (sint32)Gods98::Image_GetHeight(legoGlobs.RepeatButtonImage)));
 
 	// Press detection for last page:
 	// Pressing space or clicking anywhere (except over the previous button) will act as the end of the message.

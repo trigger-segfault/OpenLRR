@@ -21,6 +21,7 @@
 #include "../audio/SFX.h"
 #include "../interface/HelpWindow.h"
 #include "../interface/InfoMessages.h"
+#include "../interface/Pointers.h"
 #include "../interface/ToolTip.h"
 #include "../object/ObjectRecall.h"
 #include "../mission/Objective.h"
@@ -104,7 +105,7 @@ bool32 & LegoRR::g_FrontBool_004dc8d4 = *(bool32*)0x004dc8d4;
 
 
 // <LegoRR.exe @004dc8dc>
-sint32 & LegoRR::g_FrontCount_004dc8dc = *(sint32*)0x004dc8dc;
+sint32 & LegoRR::s_frontTextInputCaretBlinker = *(sint32*)0x004dc8dc;
 
 // <LegoRR.exe @004dc8e0>
 LegoRR::Menu* (& LegoRR::s_FrontOptionsMenu) = *(LegoRR::Menu**)0x004dc8e0;
@@ -116,6 +117,9 @@ LegoRR::MenuSet* (& LegoRR::s_FrontOptionsMenuSet) = *(LegoRR::MenuSet**)0x004dc
 // <LegoRR.exe @00557fc0>
 LegoRR::Front_Globs & LegoRR::frontGlobs = *(LegoRR::Front_Globs*)0x00557fc0;
 
+// Replacement for frontGlobs.rockWipLastUpdateTime, because it stores Main_GetTime() as a float.
+static uint32 _rockWipeLastUpdateTimeFixed = 0;
+
 #pragma endregion
 
 /**********************************************************************************
@@ -124,7 +128,7 @@ LegoRR::Front_Globs & LegoRR::frontGlobs = *(LegoRR::Front_Globs*)0x00557fc0;
 
 #pragma region Functions
 
-// Returns a temporary string buffer.
+ // Returns a temporary string buffer. Or str if the temporary buffer is too small.
 // <LegoRR.exe @004101e0>
 const char* __cdecl LegoRR::Front_Util_ReplaceTextSpaces(const char* str)
 {
@@ -179,12 +183,13 @@ void __cdecl LegoRR::Front_Callback_TriggerPlayCredits(void)
 void __cdecl LegoRR::Front_RockWipe_Play(void)
 {
 	if (frontGlobs.rockWipeAnim != nullptr) {
-		frontGlobs.rockWipeSFXTimer = 0.0f;
+		frontGlobs.rockWipeFlags |= (ROCKWIPE_FLAG_ANIMATING|ROCKWIPE_FLAG_NOINPUT);
 
-		//frontGlobs.rockWipeFlags |= (ROCKWIPE_FLAG_ANIMATING|ROCKWIPE_FLAG_NOINPUT);
-		frontGlobs.rockWipeFlags |= (ROCKWIPE_FLAG_UNK_1|ROCKWIPE_FLAG_UNK_2);
-
-		frontGlobs.rockWipeSFXStartTime = (real32)Gods98::Main_GetTime();
+		frontGlobs.rockWipeTimer = 0.0f;
+		/// FIX APPLY: Store rockWipeLastUpdateTime in uint32 instead of float.
+		_rockWipeLastUpdateTimeFixed = Gods98::Main_GetTime();
+		// This variable has been replaced with _rockWipeLastUpdateTimeFixed in Front_Menu_Update.
+		frontGlobs.rockWipeLastUpdateTime = (real32)_rockWipeLastUpdateTimeFixed;
 
 		SFX_AddToQueue(SFX_RockWipe, Gods98::SoundMode::Once);
 	}
@@ -193,8 +198,7 @@ void __cdecl LegoRR::Front_RockWipe_Play(void)
 // <LegoRR.exe @00410370>
 void __cdecl LegoRR::Front_RockWipe_Stop(void)
 {
-	//frontGlobs.rockWipeFlags &=  ~(ROCKWIPE_FLAG_ANIMATING|ROCKWIPE_FLAG_NOINPUT);
-	frontGlobs.rockWipeFlags &= ~(ROCKWIPE_FLAG_UNK_1|ROCKWIPE_FLAG_UNK_2);
+	frontGlobs.rockWipeFlags &= ~(ROCKWIPE_FLAG_ANIMATING|ROCKWIPE_FLAG_NOINPUT);
 }
 
 // <LegoRR.exe @00410380>
@@ -268,12 +272,11 @@ char* __cdecl LegoRR::Front_Util_StrCpy(const char* str)
 }
 
 // <LegoRR.exe @00410520>
-LegoRR::MenuItem_SelectData* __cdecl LegoRR::Front_MenuItem_CreateSelect(IN sint32* valuePtr, const char* string1, const char* string2, sint32 x1, sint32 y1,
-																		 sint32 width1, sint32 height1, sint32 x2, sint32 y2, sint32 width2,
-																		 sint32 height2, sint32 field50, MenuItem_SelectCallback callback,
+LegoRR::MenuItem_SelectData* __cdecl LegoRR::Front_MenuItem_CreateSelect(IN sint32* valuePtr, const char* string1, const char* string2, sint32 x2, sint32 y2,
+																		 sint32 selItemHeight, sint32 scrollCount, sint32 xString1, sint32 yString1, sint32 xString2,
+																		 sint32 yString2, sint32 field50, MenuItem_SelectCallback callback,
 																		 OPTIONAL Menu* nextMenu)
 {
-
 	MenuItem_SelectData* selectData = (MenuItem_SelectData*)Gods98::Mem_Alloc(sizeof(MenuItem_SelectData));
 	std::memset(selectData, 0, sizeof(MenuItem_SelectData));
 
@@ -282,19 +285,19 @@ LegoRR::MenuItem_SelectData* __cdecl LegoRR::Front_MenuItem_CreateSelect(IN sint
 
 	selectData->valuePtr = valuePtr;
 
-	// Not actually sure if these are rects...
-	selectData->rect1.x = x1;
-	selectData->rect1.y = y1;
-	selectData->rect1.height = height1;
-	selectData->rect1.width = width1;
-	selectData->rect2.x = x2;
-	selectData->rect2.width = width2;
-	selectData->rect2.y = y2;
-	selectData->rect2.height = height2;
+	selectData->x2 = x2;
+	selectData->y2 = y2;
+	selectData->xString1 = xString1;
+	selectData->yString1 = yString1;
+	selectData->xString2 = xString2;
+	selectData->yString2 = yString2;
+
+	selectData->selItemHeight = selItemHeight;
+	selectData->scrollCount = scrollCount;
+	selectData->scrollStart = 0;
 
 	selectData->callback = callback;
 	selectData->field_50 = field50;
-	selectData->int_4c = 0;
 	selectData->nextMenu = nextMenu;
 	return selectData;
 }
@@ -607,6 +610,8 @@ void __cdecl LegoRR::Front_MenuItem_FreeMenuItem(MenuItem* menuItem)
 			break;
 		}
 
+		/// FIXME: Remove imageLo and imageHi if non-null.
+
 		Gods98::Mem_Free(menuItem);
 	}
 }
@@ -687,8 +692,8 @@ LegoRR::MenuItem* __cdecl LegoRR::Front_MenuItem_CreateImageItem(const char* ban
 		}
 
 		if (centered && menuItem->imageLo != nullptr && menuItem->imageHi != nullptr) {
-			menuItem->centerOffLo = -((sint32)menuItem->imageLo->width / 2);
-			menuItem->centerOffHi = -((sint32)menuItem->imageHi->width / 2);
+			menuItem->centerOffLo = -((sint32)Gods98::Image_GetWidth(menuItem->imageLo) / 2);
+			menuItem->centerOffHi = -((sint32)Gods98::Image_GetWidth(menuItem->imageHi) / 2);
 		}
 		else {
 			menuItem->centerOffLo = 0;
@@ -901,8 +906,8 @@ void __cdecl LegoRR::Front_MenuItem_DrawSelectItem(sint32 x, sint32 y, Gods98::F
 
 		// NOTE: > 0 used here since we're adding width/height (0 would mean everything is off-screen).
 		if (image &&
-			((x + image->width)  > 0 && x < 640) &&
-			((y + image->height) > 0 && y < 480))
+			((x + Gods98::Image_GetWidth(image))  > 0 && x < 640) &&
+			((y + Gods98::Image_GetHeight(image)) > 0 && y < 480))
 		{
 			Point2F destPos = { (real32)x, (real32)y };
 			Gods98::Image_DisplayScaled(image, nullptr, &destPos, nullptr);
@@ -923,7 +928,434 @@ void __cdecl LegoRR::Front_MenuItem_DrawSelectItem(sint32 x, sint32 y, Gods98::F
 //void __cdecl LegoRR::Front_Menu_DrawMenuImage(Menu* menu, bool32 light);
 
 // <LegoRR.exe @00412b30>
-//LegoRR::Menu* __cdecl LegoRR::Front_Menu_Update(real32 elapsed, Menu* menu, OUT bool32* unkBool);
+LegoRR::Menu* __cdecl LegoRR::Front_Menu_Update(real32 elapsed, Menu* menu, OUT bool32* optout_bool)
+{
+	/// REMOVE: This statement has no effect.
+	//Front_Save_GetCurrentSaveData();
+
+	const Pointer_Type currPointer = Pointer_GetCurrentType();
+	Pointer_SetCurrent_IfTimerFinished(Pointer_Standard);
+
+	Gods98::Viewport* view = legoGlobs.viewMain;
+	Gods98::Container* contView = Gods98::Viewport_GetCamera(view);
+
+	g_SaveMenu_INT_004a2f4c = -1;
+	menu->itemFocus = -1;
+
+	if (optout_bool != nullptr) {
+		*optout_bool = false;
+	}
+
+	Menu* currMenu = menu;
+	Menu* nextMenu = menu;
+	if (!g_FrontBool_004dc8bc && !g_FrontBool_004dc8c8) {
+		currMenu = Front_Menu_UpdateMenuItemsInput(elapsed, menu);
+	}
+	if (menu == frontGlobs.saveMenuSet->menus[0] && (g_SaveMenu_INT_004a2f4c > -1) && (g_SaveMenu_INT_004a2f58 < 0)) {
+		menu->closed = false;
+		currMenu->closed = false;
+	}
+	if (g_SaveMenu_INDEX_004a2f50 > -1) {
+		currMenu = nextMenu;
+	}
+
+	Vector3F origCamUp;
+	Vector3F origCamDir;
+	Vector3F origCamPos;
+
+	const bool hasRockWipeAnim = (frontGlobs.rockWipeAnim != nullptr && (frontGlobs.rockWipeFlags & ROCKWIPE_FLAG_ANIMATING));
+
+	if (hasRockWipeAnim) {//frontGlobs.rockWipeAnim != nullptr && (frontGlobs.rockWipeFlags & ROCKWIPE_FLAG_ANIMATING)) {
+		Gods98::Viewport_Clear(view, true);
+		// Setup camera and add rockwipe.
+		Gods98::Container_SetParent(frontGlobs.rockWipeAnim, legoGlobs.rootCont);
+		Gods98::Container_GetPosition(contView, nullptr, &origCamPos);
+		Gods98::Container_GetOrientation(contView, nullptr, &origCamDir, &origCamUp);
+		Gods98::Container_SetPosition(contView, nullptr, 0.0f, 0.0f, 5.0f);
+		Gods98::Container_SetOrientation(contView, nullptr, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f);
+		Gods98::Container_SetAnimationTime(frontGlobs.rockWipeAnim, frontGlobs.rockWipeTimer);
+	}
+
+	Front_Menu_DrawMenuImage(menu, true);
+	if (menu != frontGlobs.saveMenuSet->menus[0]) {
+		Front_Menu_UpdateOverlays(menu);
+	}
+	// Something tells me these arguments aren't actually bools, and are really menus.
+	// These arguments are only checked for zero/non-zero.
+	Front_Menu_DrawLoadSaveText(&menu, (bool32*)&currMenu, (bool32*)&nextMenu);
+
+	const sint32 xPos = menu->position.x;
+	const sint32 yPos = menu->position.y;
+
+	if (menu->displayTitle) {
+		/// REFACTOR: Don't generate the string twice.
+		const char* str = Front_Util_ReplaceTextSpaces(menu->fullName);
+		const uint32 strWidth = Gods98::Font_GetStringWidth(menu->menuFont, str);
+		const sint32 yAnchor = menu->anchoredPosition.y;
+		const sint32 screenCenter = Gods98::appWidth() / 2;
+		//const char* str = Front_Util_ReplaceTextSpaces(menu->fullName);
+		Gods98::Font_PrintF(menu->menuFont, screenCenter - (strWidth / 2), yAnchor + yPos, str);
+	}
+
+	// Later changed by MenuItem_Type_Select switch cases.
+	g_SaveMenu_INDEX_004a2f48 = -1;
+
+	for (sint32 i = 0; i < menu->itemCount; i++) {
+		MenuItem* item = menu->items[i];
+		const sint32 y1 = item->y1;
+		const sint32 x1 = item->x1;
+
+		if (menu->itemFocus == i && !g_FrontBool_004dc8bc && !Front_MenuItem_CheckNotInTutoAnyTutorialFlags(item)) {
+			const sint32 centerOffHi = item->centerOffHi;
+
+			if (item->fontHi != nullptr) {
+				const char* str = Front_Util_ReplaceTextSpaces(item->banner);
+				Gods98::Font_PrintF(item->fontHi, x1 + xPos + centerOffHi, y1 + yPos, "%s", str);
+			}
+
+			switch (item->itemType) {
+			case MenuItem_Type_Cycle:
+				{
+					MenuItem_CycleData* cycle = item->itemData.cycle;
+					if (item->fontHi != nullptr) {
+						const char* str = Front_Util_ReplaceTextSpaces(cycle->nameList[*cycle->valuePtr]);
+						Gods98::Font_PrintF(item->fontHi,
+											(cycle->x2 + x1 + xPos + centerOffHi), 
+											(cycle->y2 + y1 + yPos), str);
+					}
+				}
+				break;
+			case MenuItem_Type_TextInput:
+				{
+					MenuItem_TextInputData* textInput = item->itemData.textInput;
+
+					/// FIXME: Timer should update based on elapsed time.
+					//static sint32 s_frontTextInputCaretBlinker = 0;
+					s_frontTextInputCaretBlinker++;
+					const bool showCaret = ((s_frontTextInputCaretBlinker / 2) % 2 != 0);
+
+					const char origChar = textInput->valuePtr[textInput->caretPos];
+
+					if (showCaret) {
+						/// FIXME: Caret underscore is overwritten by a space in Front_Util_ReplaceTextSpaces.
+						textInput->valuePtr[textInput->caretPos] = '_';
+					}
+					if (item->fontHi != nullptr) {
+						const char* str = Front_Util_ReplaceTextSpaces(textInput->valuePtr);
+						Gods98::Font_PrintF(item->fontHi,
+											(textInput->x2 + x1 + xPos + centerOffHi),
+											(textInput->y2 + y1 + yPos), "%s", str);
+					}
+					if (showCaret) {
+						textInput->valuePtr[textInput->caretPos] = origChar;
+					}
+				}
+				break;
+			case MenuItem_Type_Slider:
+				{
+					MenuItem_SliderData* slider = item->itemData.slider;
+					Front_MenuItem_DrawSlider(slider,
+											  (slider->x2 + x1 + xPos),
+											  (slider->y2 + y1 + yPos),
+											  *slider->valuePtr - slider->valueMin, slider->valueMax - slider->valueMin);
+				}
+				break;
+			case MenuItem_Type_RealSlider:
+				{
+					MenuItem_RealSliderData* realSlider = item->itemData.realSlider;
+					if (item->fontHi != nullptr) {
+						Gods98::Font_PrintF(item->fontHi,
+											(realSlider->x2 + x1 + xPos + centerOffHi),
+											(realSlider->y2 + y1 + yPos), "%.2f", (double)*realSlider->valuePtr);
+					}
+				}
+				break;
+			case MenuItem_Type_Select:
+				{
+					MenuItem_SelectData* select = item->itemData.select;
+
+					const uint32 selIndex = Front_MenuItem_Select_CollisionCheck_FUN_00411290(menu, item, select);
+					g_SaveMenu_INDEX_004a2f48 = selIndex;
+
+					for (sint32 i = 0; i < select->scrollCount; i++) {
+						const sint32 currIndex = select->scrollStart + i;
+						if ((sint32)currIndex >= (sint32)select->selItemCount) {
+							break;
+						}
+
+						MenuItem_SelectItem* selectItem = &select->selItemList[currIndex];
+						const bool isSelected = (currIndex == selIndex);
+
+						MenuItem_SelectImageType imageType = MenuItem_SelectImage_Light;
+						if (!(selectItem->flags & SELECTITEM_FLAG_ENABLED)) {
+							imageType = MenuItem_SelectImage_Locked;
+						}
+						else if (!isSelected) {
+							imageType = MenuItem_SelectImage_Dark;
+						}
+
+						sint32 centerOff = 0;
+						if (menu->autoCenter) {
+							centerOff = -((sint32)select->widths[MenuItem_SelectImage_Light][currIndex] / 2);
+						}
+
+						const sint32 selItemX = select->x2 + x1 + xPos + centerOff +
+							selectItem->frontEndX + frontGlobs.scrollOffset.x;
+						const sint32 selItemY = select->y2 + y1 + yPos + (select->selItemHeight * i) +
+							selectItem->frontEndY + frontGlobs.scrollOffset.y;
+
+						if (isSelected) {
+							Front_MenuItem_DrawSelectItem(selItemX, selItemY, item->fontHi, select, currIndex, imageType);
+
+							if (select->callback != nullptr) {
+								select->callback(elapsed, selIndex);
+							}
+						}
+						else {
+
+							Front_MenuItem_DrawSelectItem(selItemX, selItemY, item->fontLo, select, currIndex, imageType);
+						}
+						Front_MenuItem_DrawSaveImage(menu, currIndex, select, isSelected);
+					}
+
+					if (select->scrollStart < (sint32)(select->selItemCount - select->scrollCount)) {
+
+						Gods98::Font* font = ((selIndex == -2) ? item->fontHi : item->fontLo);
+						if (font != nullptr) {
+							Gods98::Font_PrintF(font,
+												(select->xString1 + xPos),
+												(select->yString1 + yPos), select->string1);
+						}
+					}
+
+					if (select->scrollStart > 0) {
+						Gods98::Font* font = ((selIndex == -3) ? item->fontHi : item->fontLo);
+						if (font != nullptr) {
+							Gods98::Font_PrintF(font,
+												(select->xString2 + xPos),
+												(select->yString2 + yPos), select->string2);
+						}
+					}
+				}
+				break;
+			}
+
+		}
+		else {
+			const sint32 centerOffLo = item->centerOffLo;
+
+			if (item->fontLo != nullptr) {
+				const char* str = Front_Util_ReplaceTextSpaces(item->banner);
+				Gods98::Font_PrintF(item->fontLo, x1 + xPos + centerOffLo, y1 + yPos, "%s", str);
+			}
+
+			switch (item->itemType) {
+			case MenuItem_Type_Cycle:
+				{
+					MenuItem_CycleData* cycle = item->itemData.cycle;
+					if (item->fontLo != nullptr) {
+						const char* str = Front_Util_ReplaceTextSpaces(cycle->nameList[*cycle->valuePtr]);
+						Gods98::Font_PrintF(item->fontLo,
+											(cycle->x2 + x1 + xPos + centerOffLo),
+											(cycle->y2 + y1 + yPos), str);
+					}
+				}
+				break;
+			case MenuItem_Type_TextInput:
+				{
+					MenuItem_TextInputData* textInput = item->itemData.textInput;
+					if (item->fontLo != nullptr) {
+						const char* str = Front_Util_ReplaceTextSpaces(textInput->valuePtr);
+						Gods98::Font_PrintF(item->fontLo,
+											(textInput->x2 + x1 + xPos + centerOffLo),
+											(textInput->y2 + y1 + yPos), "%s", str);
+					}
+				}
+				break;
+			case MenuItem_Type_Slider:
+				{
+					MenuItem_SliderData* slider = item->itemData.slider;
+					Front_MenuItem_DrawSlider(slider,
+											  (slider->x2 + x1 + xPos),
+											  (slider->y2 + y1 + yPos),
+											  *slider->valuePtr - slider->valueMin, slider->valueMax - slider->valueMin);
+				}
+				break;
+			case MenuItem_Type_RealSlider:
+				{
+					MenuItem_RealSliderData* realSlider = item->itemData.realSlider;
+					if (item->fontLo != nullptr) {
+						Gods98::Font_PrintF(item->fontLo,
+											(realSlider->x2 + x1 + xPos + centerOffLo),
+											(realSlider->y2 + y1 + yPos), "%.2f", (double)*realSlider->valuePtr);
+					}
+				}
+				break;
+			case MenuItem_Type_Select:
+				{
+					MenuItem_SelectData* select = item->itemData.select;
+
+					for (sint32 i = 0; i < select->scrollCount; i++) {
+						const sint32 currIndex = select->scrollStart + i;
+						if ((sint32)currIndex >= (sint32)select->selItemCount) {
+							break;
+						}
+
+						MenuItem_SelectItem* selectItem = &select->selItemList[currIndex];
+
+						MenuItem_SelectImageType imageType = MenuItem_SelectImage_Dark;
+						if (!(selectItem->flags & SELECTITEM_FLAG_ENABLED)) {
+							imageType = MenuItem_SelectImage_Locked;
+						}
+
+						sint32 centerOff = 0;
+						if (menu->autoCenter) {
+							centerOff = -((sint32)select->widths[MenuItem_SelectImage_Light][currIndex] / 2);
+						}
+
+						const sint32 selItemX = select->x2 + x1 + xPos + centerOff +
+							selectItem->frontEndX + frontGlobs.scrollOffset.x;
+						const sint32 selItemY = select->y2 + y1 + yPos + (select->selItemHeight * i) +
+							selectItem->frontEndY + frontGlobs.scrollOffset.y;
+						
+						Front_MenuItem_DrawSelectItem(selItemX, selItemY, item->fontLo, select, currIndex, imageType);
+
+						Front_MenuItem_DrawSaveImage(menu, currIndex, select, false);
+					}
+
+					if (select->scrollStart < (sint32)(select->selItemCount - select->scrollCount)) {
+						if (item->fontLo != nullptr) {
+							Gods98::Font_PrintF(item->fontLo,
+												(select->xString1 + xPos),
+												(select->yString1 + yPos), select->string1);
+						}
+					}
+
+					if (select->scrollStart > 0) {
+						if (item->fontLo != nullptr) {
+							Gods98::Font_PrintF(item->fontLo,
+												(select->xString2 + xPos),
+												(select->yString2 + yPos), select->string2);
+						}
+					}
+				}
+				break;
+			}
+
+		}
+	}
+
+
+	Front_MenuItem_DrawSelectTextWindow(&menu);
+
+	for (sint32 i = 0; i < menu->itemCount; i++) {
+		const MenuItem* item = menu->items[i];
+		if (item->isImageItem) {
+			if (menu->itemFocus == i) {
+				if (item->imageHi != nullptr) {
+					const Point2F destPos = {
+						static_cast<real32>(item->x1 + menu->position.x),
+						static_cast<real32>(item->y1 + menu->position.y),
+					};
+					Gods98::Image_DisplayScaled(item->imageHi, nullptr, &destPos, nullptr);
+				}
+				ToolTip_Activate(item->toolTipType);
+			}
+			else {
+				if (item->imageLo != nullptr) {
+					const Point2F destPos = {
+						static_cast<real32>(item->x1 + menu->position.x),
+						static_cast<real32>(item->y1 + menu->position.y),
+					};
+					Gods98::Image_DisplayScaled(item->imageLo, nullptr, &destPos, nullptr);
+				}
+			}
+		}
+	}
+
+	if ((Gods98::Main_GetFlags() & Gods98::MainFlags::MAIN_FLAG_SHOWVERSION) && (Gods98::Main_ProgrammerMode() != 0) &&
+		frontGlobs.versionFont != nullptr && frontGlobs.versionString != nullptr)
+	{
+		Gods98::Font_PrintF(frontGlobs.versionFont, 545, 450, frontGlobs.versionString);
+	}
+
+	Front_LevelSelect_LevelNamePrintF(nullptr, 0, 0, nullptr);
+
+	if (menu == frontGlobs.saveMenuSet->menus[0] && g_FrontBool_004dc8bc) {
+		char buff[2048];
+		std::sprintf(buff, frontGlobs.langOverwriteMessage, (g_SaveMenu_OutNumber + 1)); // +1 since save numbers aren't 0-indexed.
+
+		g_SaveMenu_INT_004a2f58 = Lego_SaveMenu_ConfirmMessage_FUN_004354f0(frontGlobs.langOverwriteTitle, buff, frontGlobs.langOverwriteOK, frontGlobs.langOverwriteCancel);
+		if (g_SaveMenu_INT_004a2f58 == 0) {
+			menu->closed = true;
+			frontGlobs.saveBool_548 = true;
+			g_FrontBool_004dc8bc = false;
+			g_SaveMenu_OutNumber = -1;
+		}
+		else if (g_SaveMenu_INT_004a2f58 == 1) {
+			menu->closed = true;
+			frontGlobs.saveBool_548 = false;
+			g_FrontBool_004dc8bc = false;
+		}
+	}
+
+	/// REFACTOR: Only update rockWipe anim if we previously setup the camera (add hasRockWipeAnim check).
+	if (hasRockWipeAnim && frontGlobs.rockWipeAnim != nullptr && (frontGlobs.rockWipeFlags & ROCKWIPE_FLAG_ANIMATING)) {
+		Gods98::Container_Hide(frontGlobs.rockWipeLight, false);
+		Gods98::Viewport_Render(view, legoGlobs.rootCont, 0.0f);
+		Gods98::Container_Hide(frontGlobs.rockWipeLight, true);
+		// Restore camera and remove rockwipe.
+		Gods98::Container_SetPosition(contView, nullptr, origCamPos.x, origCamPos.y, origCamPos.z);
+		Gods98::Container_SetOrientation(contView, nullptr, origCamDir.x, origCamDir.y, origCamDir.z, origCamUp.x, origCamUp.y, origCamUp.z);
+		Gods98::Container_SetParent(frontGlobs.rockWipeAnim, nullptr);
+
+		// Update rockwipe animation, and handle transition logic.
+		const uint32 animFrames = Gods98::Container_GetAnimationFrames(frontGlobs.rockWipeAnim);
+		
+		const uint32 time = Gods98::Main_GetTime();
+		
+		/// FIX APPLY: Store rockWipeLastUpdateTime in uint32 instead of float.
+		real32 delta = (real32)(time - _rockWipeLastUpdateTimeFixed);
+		delta *= 0.001f * STANDARD_FRAMERATE; // Milliseconds to standard units.
+		delta *= 2.0f; // Animation runs at 2 frames per standard unit.
+		// Cap animation speed to at most 3 frames per tick.
+		if (delta > 3.0f) delta = 3.0f;
+
+		// When half of the animation is finished, switch to the next menu screen.
+		const real32 halfAnimFrames = (real32)animFrames * 0.5f;
+		if (frontGlobs.rockWipeTimer <= halfAnimFrames && frontGlobs.rockWipeTimer + delta >= halfAnimFrames) {
+			/// FIXME: It seems menu transition logic requires the rockWipe animation to exist.
+			///        This should be changed so transitions are instant otherwise.
+			if (optout_bool != nullptr) {
+				*optout_bool = true;
+			}
+			g_SaveMenu_INDEX_004a2f50 = -1;
+			g_SaveMenu_INT_004a2f4c = -1;
+			g_FrontBool_004dc8c8 = 0;
+			g_FrontBool_004dc8c0 = 0;
+			if (frontGlobs.overlayImageOrFlic.data != nullptr) {
+				frontGlobs.overlayStartTime = 0;
+				frontGlobs.overlayCurrTime = 0;
+			}
+		}
+		else if (frontGlobs.rockWipeTimer > (real32)animFrames) {
+			// This condition could be refactored to before Main_GetTime(),
+			//  and remaining logic could be skipped in that case.
+			Front_RockWipe_Stop();
+		}
+
+		frontGlobs.rockWipeTimer += delta;
+		/// FIX APPLY: Store rockWipeLastUpdateTime in uint32 instead of float.
+		_rockWipeLastUpdateTimeFixed = time;
+		// This variable has been replaced by _rockWipeLastUpdateTimeFixed.
+		frontGlobs.rockWipeLastUpdateTime = (real32)_rockWipeLastUpdateTimeFixed;
+	}
+
+	Pointer_DrawPointer(Gods98::msx(), Gods98::msy());
+	Pointer_SetCurrent_IfTimerFinished(currPointer);
+
+	return currMenu;
+}
 
 // <LegoRR.exe @004138a0>
 void __cdecl LegoRR::Front_Menu_UpdateMousePosition(Menu* menu)
@@ -939,12 +1371,13 @@ void __cdecl LegoRR::Front_Menu_UpdateMousePosition(Menu* menu)
 		// If mouseY is not between 200.0f and 280.0f.
 		if (mouseY < 200.0f || mouseY > 280.0f) {
 
-			uint32 imageHeight = Gods98::Image_GetHeight(menu->menuImage);
+			sint32 imageHeight = Gods98::Image_GetHeight(menu->menuImage);
 			if (mouseY < 480.0f && !Gods98::mslb() && !Gods98::msrb()) {
+				/// FIXME: Fixed timing for scroll speed.
 				//real32 fVar3 = (real32)Gods98::msy() * 0.2083333f - 50.0f;
-				real32 fVar3 = (real32)Gods98::msy() * (480.0f / 100.0f) - 50.0f;
+				real32 fVar3 = (real32)Gods98::msy() * (100.0f / 480.0f) - 50.0f;
 				fVar3 *= fVar3 * 0.02f; // squared * 0.02f
-				if (mouseY < 240.0f) {
+				if (mouseY < (480.0f / 2.0f)) {
 					fVar3 = -fVar3;
 				}
 				fVar3 *= -(STANDARD_FRAMERATE / 100.0f); // * -0.25f
@@ -954,8 +1387,8 @@ void __cdecl LegoRR::Front_Menu_UpdateMousePosition(Menu* menu)
 			if (frontGlobs.scrollOffset.y > 0) {
 				frontGlobs.scrollOffset.y = 0;
 			}
-			if (frontGlobs.scrollOffset.y < (480 - (sint32)imageHeight)) {
-				frontGlobs.scrollOffset.y = (480 - (sint32)imageHeight);
+			if (frontGlobs.scrollOffset.y < (480 - imageHeight)) {
+				frontGlobs.scrollOffset.y = (480 - imageHeight);
 			}
 		}
 	}
@@ -990,6 +1423,7 @@ void __cdecl LegoRR::Front_LoadSaveSlotImages(void)
 		Front_Save_ReadSaveFile(i, &saveData, true);
 
 		g_SaveSlotPtrs_TABLE[i] = 0;
+		// Hardcoded tutorial count (8).
 		for (uint32 j = 0; j < (saveData.missionsCount - 8); j++) {
 			real32 scorePercent = saveData.missionsTable[8 + j].reward.items[Reward_Score].percentFloat;
 			g_SaveSlotPtrs_TABLE[i] += (scorePercent != 0.0f ? 4 : 0); // Yeah... no clue what's with the 4 -or- 0.
@@ -1006,7 +1440,7 @@ void __cdecl LegoRR::Front_FreeSaveSlotImages(void)
 	for (uint32 i = 0; i < _countof(g_SaveSlotImages_TABLE); i++) {
 		if (g_SaveSlotImages_TABLE[i] != nullptr) {
 			Gods98::Image_Remove(g_SaveSlotImages_TABLE[i]);
-			// FIX APPLY: Set to null.
+			/// FIX APPLY: Set to null.
 			g_SaveSlotImages_TABLE[i] = nullptr;
 		}
 	}
@@ -1058,17 +1492,18 @@ char* __cdecl LegoRR::Front_Util_StringReplaceChar(char* str, char origChar, cha
 LegoRR::MenuOverlay_Type __cdecl LegoRR::Front_Menu_GetOverlayType(MenuOverlay* menuOverlay)
 {
 	// Find extension in filename.
-	// FIXME: Memory access violation if there's no '.' extension.
+	/// FIX APPLY: Memory access violation if there's no '.' extension.
 	char* ext = menuOverlay->filename;
-	while (*ext != '.') ext++;
+	while (*ext != '.' && *ext != '\0') ext++;
+	//while (*ext != '.') ext++;
 
-	if (::_stricmp(".avi", ext) == 0)
+	if (::_stricmp(ext, ".avi") == 0)
 		return MenuOverlay_Type_Animation;
 
-	else if (::_stricmp(".bmp", ext) == 0)
+	else if (::_stricmp(ext, ".bmp") == 0)
 		return MenuOverlay_Type_Image;
 
-	else if (::_stricmp(".lws", ext) == 0)
+	else if (::_stricmp(ext, ".lws") == 0)
 		return MenuOverlay_Type_Lws;
 
 	else
@@ -1081,7 +1516,7 @@ LegoRR::MenuOverlay* __cdecl LegoRR::Front_Menu_CreateOverlay(const char* filena
 	MenuOverlay* menuOverlay = (MenuOverlay*)Gods98::Mem_Alloc(sizeof(MenuOverlay));
 	std::memset(menuOverlay, 0, sizeof(MenuOverlay));
 	
-	// Okay... so don't use a filename that STARTS with "null"...?
+	/// FIXME: Okay... so don't use a filename that STARTS with "null"...?
 	if (::_strnicmp(filename, "Null", 4) != 0) {
 		if (filename != nullptr) {
 			menuOverlay->filename = Front_Util_StrCpy(filename);
@@ -1121,7 +1556,7 @@ void __cdecl LegoRR::Front_Menu_LoadSliderImages(sint32 numParts, IN char** stri
 // <LegoRR.exe @00413fa0>
 LegoRR::MenuSet* __cdecl LegoRR::Front_CreateMenuSet(uint32 menuCount)
 {
-	MenuSet*  menuSet = (MenuSet*)Gods98::Mem_Alloc(sizeof(MenuSet));
+	MenuSet* menuSet = (MenuSet*)Gods98::Mem_Alloc(sizeof(MenuSet));
 	//menuSet->menus = nullptr;
 	//menuSet->menuCount = 0;
 
@@ -1692,7 +2127,7 @@ void __cdecl LegoRR::Front_LoadLevels(MenuSet* unused_mainMenuFull)
 	// NOTE: This DOES NOT loop through the last index [5] in the array.
 	for (uint32 i = 0; i < 5; i++) {
 		const char* saveGameText = Gods98::Config_GetTempStringValue(legoGlobs.config, Config_ID(legoGlobs.gameName, "Menu", "Save_Game"));
-		std::sprintf(buff, "%s %i", saveGameText, i);
+		std::sprintf(buff, "%s %i", saveGameText, (i + 1));
 		Front_Util_StringReplaceChar(buff, '_', ' ');
 		Front_Save_GetLevelCompleteWithPoints(&frontGlobs.saveData[i], buff);
 
@@ -1871,7 +2306,7 @@ const char* __cdecl LegoRR::Front_GetSelectedLevel(void)
 }
 
 // <LegoRR.exe @00416d00>
-sint32 __cdecl LegoRR::Front_IsTriggerAppQuit(void)
+bool32 __cdecl LegoRR::Front_IsTriggerAppQuit(void)
 {
 	return (bool)frontGlobs.triggerQuitApp;
 }
@@ -1899,7 +2334,8 @@ sint32 __cdecl LegoRR::Front_LevelSet_IndexOf(LevelSet* levelSet, const char* le
 {
 	for (sint32 i = 0; i < levelSet->count; i++) {
 
-		if (::_stricmp(levelName, levelSet->idNames[i]) == 0)
+		/// TODO: Case-insensitive comparison here, but case-sensitive comparisons are used by all other functions.
+		if (::_stricmp(levelSet->idNames[i], levelName) == 0)
 			return i;
 	}
 	return -1;
@@ -1927,12 +2363,12 @@ void __cdecl LegoRR::Front_Levels_ResetVisited(void)
 }
 
 // <LegoRR.exe @00416e00>
-void __cdecl LegoRR::Front_LevelSet_SetLinkVisited(LevelSet* levelSet, const char* levelName, bool32 linked)
+void __cdecl LegoRR::Front_LevelSet_SetLinkVisited(LevelSet* levelSet, const char* levelName, bool32 visited)
 {
 	for (sint32 i = 0; i < levelSet->count; i++) {
 
 		if (std::strcmp(levelSet->idNames[i], levelName) == 0) {
-			levelSet->visitedList[i] = linked;
+			levelSet->visitedList[i] = visited;
 		}
 	}
 }
@@ -2033,7 +2469,7 @@ LegoRR::LevelLink* __cdecl LegoRR::Front_LevelSet_LoadLevelLinks(LevelSet* level
 // <LegoRR.exe @004170f0>
 bool32 __cdecl LegoRR::Front_LevelLink_RunThroughLinks(LevelLink* startLink, LevelLink_RunThroughLinksCallback callback, void* data)
 {
-	if ((startLink != nullptr) && (startLink->visited == 0)) {
+	if (startLink != nullptr && !startLink->visited) {
 		startLink->visited = true;
 
 		if (callback(startLink, data)) {
@@ -2078,7 +2514,7 @@ bool32 __cdecl LegoRR::Front_LevelLink_Callback_FindByLinkIndex(LevelLink* link,
 // <LegoRR.exe @004171b0>
 LegoRR::LevelLink* __cdecl LegoRR::Front_LevelLink_FindByLinkIndex(LevelLink* startLink, sint32 linkIndex)
 {
-	SearchLevelIdentifier_10 search;
+	SearchLevelIdentifier_10 search = { 0 };
 	search.resultLink = nullptr;
 	search.currentIndex = 0;
 	search.resultIndex = 0;
@@ -2118,7 +2554,7 @@ void __cdecl LegoRR::Front_Levels_UpdateAvailable_Recursive(LevelLink* link, Sea
 			/// REMOVED: Field `keepLocked` had no extra effect since the above condition always forces unlocking.
 			///          In the original code, the above condition was was checked again with `!search->saveReward`
 			///          to assign `completed = !search->keepLocked;`
-			//search->keepLocked = false;
+			search->keepLocked = false;
 
 			completed = true;
 		}
@@ -2135,7 +2571,7 @@ void __cdecl LegoRR::Front_Levels_UpdateAvailable_Recursive(LevelLink* link, Sea
 		// are not unlocked automatically just from this level existing.
 		MenuItem_SelectItem* selItem = &search->selectData->selItemList[search->index];
 		if (completed || unlocked || selItem->frontEndOpen) {
-			selItem->flags | SELECTITEM_FLAG_ENABLED; // unlocked
+			selItem->flags |= SELECTITEM_FLAG_ENABLED; // unlocked
 		}
 		else {
 			selItem->flags &= ~SELECTITEM_FLAG_ENABLED; // locked
@@ -2325,7 +2761,7 @@ bool32 __cdecl LegoRR::Front_LevelInfo_Callback_AddItem(LevelLink* link, void* d
 // <LegoRR.exe @00417d80>
 LegoRR::SaveData* __cdecl LegoRR::Front_Save_GetSaveDataAt(sint32 saveIndex)
 {
-	if (saveIndex < 6 && saveIndex >= 0) {
+	if (saveIndex >= 0 && saveIndex < 6) {
 		return &frontGlobs.saveData[saveIndex];
 	}
 	return nullptr;

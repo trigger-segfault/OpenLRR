@@ -645,11 +645,11 @@ void __cdecl LegoRR::NERPs_SetHasNextButton(bool32 hasNextButton)
 }
 
 // <LegoRR.exe @00453bd0>
-void __cdecl LegoRR::NERPs_PlayUnkSampleIndex_IfDat_004a773c(void)
+void __cdecl LegoRR::NERPsRuntime_RepeatMessage(void)
 {
 	// (global)
 	if (nerpsHasNextButton) {
-		NERPs_PlayUnkSampleIndex();
+		NERPs_RestartMessageSample();
 	}
 }
 

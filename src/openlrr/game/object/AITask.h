@@ -49,27 +49,29 @@ typedef bool32 (__cdecl* AITask_RunThroughListsCallback)(AITask* aiTask, void* d
 
 enum AITaskFlags : uint32 // [LegoRR/AITask.c|flags:0x4|type:uint]
 {
-	AITASK_FLAG_NONE          = 0,
-	AITASK_FLAG_UNK_1         = 0x1,
-	AITASK_FLAG_UNK_4         = 0x4,
-	AITASK_FLAG_DIGCONNECTION = 0x8, // Related to SingleWidthDig and Vertex mode dig (see: debug key to destroy wall connections).
-	AITASK_FLAG_UNK_10        = 0x10,
-	AITASK_FLAG_REMOVING      = 0x20,
-	AITASK_FLAG_UNK_40        = 0x40,
-	AITASK_FLAG_UNK_80        = 0x80,
-	AITASK_FLAG_UNK_100       = 0x100,
-	AITASK_FLAG_CLONED        = 0x200, // When set, unitList will not be freed during `AITask_Remove`. Set by `AITask_Clone`.
-	AITASK_FLAG_UNK_400       = 0x800,
-	AITASK_FLAG_UNK_800       = 0x400,
-	AITASK_FLAG_UNK_1000      = 0x1000,
-	AITASK_FLAG_UNK_2000      = 0x2000, // Only set by `AITask_DoCollect_Target`.
-	AITASK_FLAG_UNK_8000      = 0x8000,
-	AITASK_FLAG_UNK_10000     = 0x10000,
-	AITASK_FLAG_UNK_20000     = 0x20000,
-	AITASK_FLAG_UNK_40000     = 0x40000,
-	AITASK_FLAG_UNK_80000     = 0x80000,
-	AITASK_FLAG_UNK_100000    = 0x100000,
-	AITASK_FLAG_UNK_200000    = 0x200000,
+	AITASK_FLAG_NONE = 0,
+	AITASK_FLAG_PERFORMING         = 0x1,
+	AITASK_FLAG_UPDATED            = 0x2,
+	AITASK_FLAG_VOLATILE           = 0x4,
+	AITASK_FLAG_DIGCONNECTION      = 0x8, // (orig: AITASK_FLAG_VERTEXDIG) Related to SingleWidthDig and Vertex mode dig (see: debug key to destroy wall connections).
+	AITASK_FLAG_REALLOCATE         = 0x10,
+	AITASK_FLAG_REMOVING           = 0x20, // (orig: AITASK_FLAG_ELIMINATE)
+	AITASK_FLAG_DUPLICATE          = 0x40,
+	AITASK_FLAG_NOTIMELIMIT        = 0x80,
+	AITASK_FLAG_IMMEDIATESELECTION = 0x100,
+	AITASK_FLAG_CLONED             = 0x200, // (orig: AITASK_FLAG_ISDUPLICATE) When set, unitList will not be freed during `AITask_Remove`. Set by `AITask_Clone`.
+	AITASK_FLAG_CARRYTASK          = 0x400,
+	AITASK_FLAG_FACEOUT            = 0x800,
+	AITASK_FLAG_WAITINGFORTOOL     = 0x1000,
+	AITASK_FLAG_CREATUREREALLOCATE = 0x2000, // Only set by `AITask_DoCollect_Target`.
+	AITASK_FLAG_FALLINCLEAR        = 0x4000,
+	AITASK_FLAG_WAITINGFORTRAIN    = 0x8000,
+	AITASK_FLAG_MAXIMUMPRIORITY    = 0x10000,
+	AITASK_FLAG_MANUALYSELECTED    = 0x20000,
+	AITASK_FLAG_PAUSEDDUPLICATION  = 0x40000,
+	AITASK_FLAG_DISABLED           = 0x80000,
+	AITASK_FLAG_ACCEPTCARRYING     = 0x100000,
+	AITASK_FLAG_UPGRADEBUILDING    = 0x200000,
 };
 flags_end(AITaskFlags, 0x4);
 
@@ -81,6 +83,7 @@ enum AITask_GlobFlags : uint32 // [LegoRR/AITask.c|flags:0x4|type:uint]
 	AITASK_GLOB_FLAG_REMOVING       = 0x2, // Cleanup stage during Level_Free, this is true during LegoObject_CleanupLevel, and Construction_RemoveAll.
 	AITASK_GLOB_FLAG_UPDATINGOBJECT = 0x4, // Always Set at the start of `AITask_Callback_UpdateObject`
 	                                       // Always unset at the end of `AITask_Callback_UpdateObject`.
+										   // (orig: AI_GLOB_FLAG_DISABLEROUTECANCELATION)
 
 	AITASK_GLOB_FLAG_DISABLEUPDATES = 0x80000000, // Disables update behaviour in AITask_UpdateAll.
 	                                              // Flag only observed being set in RockFall beta during editor mode.
@@ -102,25 +105,25 @@ struct AITask // [LegoRR/AITask.c|struct:0x68|tags:LISTSET]
 	/*04,4*/	AITask* referrerTask; // Unused field, that's only passed along by certain Message_Events.
 	/*08,8*/	Point2I blockPos;
 	/*10,4*/	LegoObject* targetObject;
-	/*14,4*/	real32 unkExpiryTime; // Count-down timer.
-	/*18,4*/	real32 float_18; // Count-down timer.
+	/*14,4*/	real32 time; // Count-down timer.
+	/*18,4*/	real32 timeIn; // Count-down timer.
 	/*1c,4*/	sint32 priorityValue; // Field is known to be signed (range: 0,99).
 	/*20,4*/	LegoObject_Type objType;
 	/*24,4*/	LegoObject_ID objID;
 	/*28,4*/	uint32 objLevel;
 	/*2c,4*/	uint32 constructHandle;
-	/*30,8*/	Point2F pointf_30;
+	/*30,8*/	Point2F blockOffset;
 	/*38,4*/	LegoObject_ToolType toolType;
 	/*3c,4*/	LegoObject_AbilityType trainFlags;
 	/*40,4*/	LegoObject** unitList;
 	/*44,4*/	uint32 unitListCount;
-	/*48,4*/	LegoObject* object_48; // Likely related to tasks with a two-object relation. Like training at a building.
+	/*48,4*/	LegoObject* assignedToObject; // Likely related to tasks with a two-object relation. Like training at a building.
 	/*4c,4*/	AI_Priority priorityType;
 	/*50,4*/	uint32 creationTime; // Timestamp of task creation in `AITask_Create`, obtained from `Main_GetTime()`.
 	/*54,4*/	Message_Type completeAction;
 	/*58,4*/	AITask* getToolTask; // (bi-directional link between GetTool and GetTool_FromText)
 	/*5c,4*/	AITaskFlags flags;
-	/*60,4*/	AITask* next; // Next in linked lists for `aiGlobs.AITaskUnkPtr`, `aiGlobs.AITaskDataNext`, and `LegoObject::aiTask`.
+	/*60,4*/	AITask* next; // Next in linked lists for `aiGlobs.pendingTaskList`, `aiGlobs.creatureTaskList`, and `LegoObject::aiTask`.
 	/*64,4*/	AITask* nextFree; // (for listSet)
 	/*68*/
 };
@@ -135,12 +138,12 @@ struct AITask_Globs // [LegoRR/AITask.c|struct:0x4e9c|tags:GLOBS]
 	/*0038,7c*/	const char* taskName[AITask_Type_Count];
 	/*00b4,6c*/	const char* priorityName[AI_Priority_Count];
 	/*0120,6c*/	sint32 priorityValues[AI_Priority_Count];
-	/*018c,4*/	AITask* AITaskUnkPtr;
-	/*0190,4*/	AITask* AITaskDataNext;
-	/*0194,c8*/	LegoObject* liveObjsTable_1[50];
-	/*025c,4*/	uint32 liveObjsCount_1;
-	/*0260,c8*/	LegoObject* liveObjsTable_2[50];
-	/*0328,4*/	uint32 liveObjsCount_2;
+	/*018c,4*/	AITask* pendingTaskList;
+	/*0190,4*/	AITask* creatureTaskList;
+	/*0194,c8*/	LegoObject* freeUnitList[50];
+	/*025c,4*/	uint32 freeUnitCount;
+	/*0260,c8*/	LegoObject* freeCreatureList[50];
+	/*0328,4*/	uint32 freeCreatureCount;
 	/*032c,4b00*/	uint32 requestObjCounts[LegoObject_Type_Count][LegoObject_ID_Count][OBJECT_MAXLEVELS];
 	/*4e2c,6c*/	bool32 disabledPriorities[AI_Priority_Count];
 	/*4e98,4*/	AITask_GlobFlags flags;
@@ -538,9 +541,9 @@ void __cdecl AITask_RemoveGetToolReferences(AITask* aiTask);
 // <LegoRR.exe @00406290>
 #define AITask_FUN_00406290 ((void (__cdecl* )(AITask* aiTask1, AITask* aiTask2, LegoObject* liveObj))0x00406290)
 
-// Removes references to object_48. But only from the `aiGlobs.AITaskUnkPtr` linked list.
+// Removes references to assignedToObject. But only from the `aiGlobs.pendingTaskList` linked list.
 // <LegoRR.exe @00406310>
-#define AITask_RemoveObject48References ((void (__cdecl* )(LegoObject* obj48))0x00406310)
+#define AITask_RemoveAssignedToObjectReferences ((void (__cdecl* )(LegoObject* assignedToObj))0x00406310)
 
 // <LegoRR.exe @00406330>
 //#define AITask_Clone ((AITask* (__cdecl* )(AITask* aiTask))0x00406330)

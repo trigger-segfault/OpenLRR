@@ -107,7 +107,7 @@ enum GameFlags1 : uint32 // [LegoRR/Lego.c|flags:0x4|type:uint]
 	GAME1_SHOWFPS               = 0x40,
 	GAME1_SHOWMEMORY            = 0x80,
 	GAME1_MULTISELECTING        = 0x100,
-	GAME1_UNK_200               = 0x200,
+	GAME1_MOUSEBUSY             = 0x200, // Related to panel interaction and used a lot together with GAME1_MULTISELECTING.
 	GAME1_DDRAWCLEAR            = 0x400,
 	GAME1_RENDERPANELS          = 0x800,
 	GAME1_RADAR_MAPVIEW         = 0x1000,
@@ -143,8 +143,8 @@ enum GameFlags2 : uint32 // [LegoRR/Lego.c|flags:0x4|type:uint]
 	GAME2_SHOWDEBUGTOOLTIPS    = 0x8,
 	GAME2_ALLOWDEBUGKEYS       = 0x10,
 	GAME2_ALLOWEDITMODE        = 0x20,
-	GAME2_UNK_40               = 0x40,
-	GAME2_UNK_80               = 0x80,
+	GAME2_MESSAGE_HASNEXT      = 0x40,
+	GAME2_MESSAGE_HASREPEAT    = 0x80,
 	GAME2_INOPTIONSMENU        = 0x100,
 	GAME2_CAMERAMOVING         = 0x200,
 	GAME2_MOUSE_INSIDEGAMEVIEW = 0x400,
@@ -163,16 +163,17 @@ enum GameFlags2 : uint32 // [LegoRR/Lego.c|flags:0x4|type:uint]
 flags_end(GameFlags2, 0x4);
 
 
+// Flags for the current user action.
 enum GameFlags3 : uint32 // [LegoRR/Lego.c|flags:0x4|type:uint]
 {
 	GAME3_NONE          = 0,
-	GAME3_UNK_1         = 0x1,
-	GAME3_UNK_2         = 0x2,
-	GAME3_UNK_4         = 0x4,
+	GAME3_ENCYCLOPEDIA  = 0x1,
+	GAME3_LEGOMANGOTO   = 0x2,
+	GAME3_VEHICLEGOTO   = 0x4,
 	GAME3_PICKUPOBJECT  = 0x8,
 	GAME3_LOADVEHICLE   = 0x10,
-	GAME3_UNK_20        = 0x20,
-	GAME3_UNK_40        = 0x40,
+	GAME3_LEGOMANDIG    = 0x20,
+	GAME3_VEHICLEDIG    = 0x40,
 	GAME3_PLACEBUILDING = 0x80,
 };
 flags_end(GameFlags3, 0x4);
@@ -622,9 +623,9 @@ struct Lego_Globs // [LegoRR/Lego.c|struct:0xf00|tags:GLOBS]
 	/*e14,4*/       GameFlags3 flags3; // only first byte is used(?)
 	/*e18,4*/       real32 InitialSlugTime; // (cfg: Level::InitialSlugTime)
 	/*e1c,8*/       Point2F NextButtonPos; // (cfg: Main::NextButtonPos<WxH>)
-	/*e24,8*/       Point2F BackButtonPos; // (cfg: Main::BackButtonPos<WxH>)
+	/*e24,8*/       Point2F RepeatButtonPos; // (cfg: Main::BackButtonPos<WxH>)
 	/*e2c,4*/       Gods98::Image* NextButtonImage; // (cfg: Main::NextButton<WxH>)
-	/*e30,4*/       Gods98::Image* BackButtonImage; // (cfg: Main::BackButton<WxH>)
+	/*e30,4*/       Gods98::Image* RepeatButtonImage; // (cfg: Main::BackButton<WxH>)
 	/*e34,4*/       Gods98::Image* BackArrowImage; // (cfg: Main::BackArrow<WxH>)
 	/*e38,4*/       real32 FogRate; // (cfg: Level::FogRate)
 	/*e3c,4*/       real32 timerGame_e3c;
@@ -1803,14 +1804,14 @@ __inline SFX_ID __cdecl Lego_GetSurfaceTypeSFX(Lego_SurfaceType surfaceType) { r
 #define Lego_DrawDialogContrastOverlay ((bool32 (__cdecl* )(void))0x004354b0)
 
 // <LegoRR.exe @004354f0>
-#define Lego_SaveMenu_ConfirmMessage_FUN_004354f0 ((sint32 (__cdecl* )(const char* titleText, const char* message, const char* okText, const har* cancelText))0x004354f0)
+#define Lego_SaveMenu_ConfirmMessage_FUN_004354f0 ((sint32 (__cdecl* )(const char* titleText, const char* message, const char* okText, const char* cancelText))0x004354f0)
 
 // <LegoRR.exe @00435870>
 //#define Lego_EndLevel ((bool32 (__cdecl* )(void))0x00435870)
 bool32 __cdecl Lego_EndLevel(void);
 
 // <LegoRR.exe @00435950>
-#define Lego_ClearSomeFlags3_FUN_00435950 ((void (__cdecl* )(void))0x00435950)
+#define Lego_StopUserAction ((void (__cdecl* )(void))0x00435950)
 
 // <LegoRR.exe @00435980>
 #define Lego_UnkTeleporterInit_FUN_00435980 ((void (__cdecl* )(void))0x00435980)

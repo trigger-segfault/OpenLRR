@@ -33,12 +33,28 @@ namespace LegoRR
 
 #pragma region Enums
 
+enum PanelButtonFlags : uint32
+{
+	PANELBUTTON_FLAG_NONE = 0,
+
+	PANELBUTTON_FLAG_HOVER      = 0x2, // The button is being hovered over.
+	PANELBUTTON_FLAG_DOWN       = 0x4, // The button is down due to mouse interaction.
+	PANELBUTTON_FLAG_TOGGLED    = 0x8, // The button is down due to being toggled.
+	PANELBUTTON_FLAG_HIDDEN     = 0x10, // The button is not drawn (but can still be interacted with, which is kind of jank).
+	PANELBUTTON_FLAG_TOGGLEABLE = 0x20, // The button state can be toggled when pressed or toggled programmatically.
+	PANELBUTTON_FLAG_UNUSED_HOVERFLASH = 0x40, // Drawing behaviour for FlashingState.
+};
+flags_end(PanelButtonFlags, 0x4);
+
+
 enum PanelDataFlags : uint32
 {
-	PANELTYPE_FLAG_NONE = 0,
+	PANEL_FLAG_NONE = 0,
 
-	PANELTYPE_FLAG_UNK_2 = 0x2
-	// Todo...
+	PANEL_FLAG_HASIMAGE = 0x1, // Panel successfully loaded an image or flic.
+	PANEL_FLAG_OPEN     = 0x2, // Use xyOut for position during Panel_SetSlidingPositions.
+	PANEL_FLAG_CLOSED   = 0x4, // Use xyIn for position during Panel_Draw.
+	PANEL_FLAG_SLIDING  = 0x8, // Panel is transitioning between open or closed state.
 };
 flags_end(PanelDataFlags, 0x4);
 
@@ -47,8 +63,14 @@ enum Panel_GlobFlags : uint32
 {
 	PANEL_GLOB_FLAG_NONE = 0,
 
-	PANEL_GLOB_FLAG_UNK_1 = 0x1,
-	// Todo...
+	PANEL_GLOB_FLAG_ROTATECONTROL_ACTIVE = 0x1,
+	PANEL_GLOB_FLAG_PRIORITIES_TOP       = 0x2,
+	PANEL_GLOB_FLAG_PRIORITIES_UP        = 0x4,
+
+	PANEL_GLOB_FLAG_ROTATECONTROL_UP     = 0x10,
+	PANEL_GLOB_FLAG_ROTATECONTROL_DOWN   = 0x20,
+	PANEL_GLOB_FLAG_ROTATECONTROL_LEFT   = 0x40,
+	PANEL_GLOB_FLAG_ROTATECONTROL_RIGHT  = 0x80,
 };
 flags_end(Panel_GlobFlags, 0x4);
 
@@ -60,15 +82,29 @@ flags_end(Panel_GlobFlags, 0x4);
 
 #pragma region Structs
 
+struct PanelButtonData // [LegoRR/Panels.c|struct:0x2c]
+{
+	/*00,10*/	Rect2F rect;
+	/*10,4*/	Gods98::Image* imageHover;
+	/*14,4*/	Gods98::Image* imagePressed;
+	/*18,4*/	Gods98::Image* image;
+	/*1c,4*/	undefined4 reserved1; // Unused and unset?
+	/*20,4*/	ToolTip_Type toolTipType;
+	/*24,4*/	uint32 clickCount;
+	/*28,4*/	PanelButtonFlags flags;
+};
+assert_sizeof(PanelButtonData, 0x2c);
+
+
 struct PanelData // [LegoRR/Panels.c|struct:0x30]
 {
 	/*00,4*/	Gods98::Image* imageOrFlic;
 	/*04,4*/	bool32 isFlic;
-	/*08,8*/	Point2F xyOut;
-	/*10,8*/	Point2F xyIn;
-	/*18,8*/	Point2F xyOutIn;
-	/*20,4*/	undefined4 field_20;
-	/*24,4*/	void* buttonList;
+	/*08,8*/	Point2F openPos; // (xyOut)
+	/*10,8*/	Point2F closedPos; // (xyIn)
+	/*18,8*/	Point2F position;
+	/*20,4*/	undefined4 reserved1; // Unused, but set to 0.
+	/*24,4*/	PanelButtonData* buttonList;
 	/*28,4*/	uint32 buttonCount;
 	/*2c,4*/	PanelDataFlags flags;
 	/*30*/
@@ -178,13 +214,13 @@ __inline bool32 Panel_AirMeter_IsOxygenLow(void) { return panelGlobs.airMeterOxy
 #define Panel_ResetAll ((void (__cdecl* )(void))0x0045a530)
 
 // <LegoRR.exe @0045a5a0>
-#define Panel_LoadImage ((void (__cdecl* )(const char* filename, Panel_Type panelType, uint32 flags))0x0045a5a0)
+#define Panel_LoadImage ((void (__cdecl* )(const char* filename, Panel_Type panelType, PanelDataFlags flags))0x0045a5a0)
 
 // <LegoRR.exe @0045a630>
 #define Panel_GetPanelType ((bool32 (__cdecl* )(const char* panelName, OUT Panel_Type* panelType))0x0045a630)
 
 // <LegoRR.exe @0045a670>
-#define Panel_TestScreenImageCollision ((bool32 (__cdecl* )(Panel_Type panelType, sint32 screenX, sint32 screenY))0x0045a670)
+#define Panel_TestPointInsideImage ((bool32 (__cdecl* )(Panel_Type panelType, sint32 screenX, sint32 screenY))0x0045a670)
 
 // <LegoRR.exe @0045a6d0>
 #define Panel_GetButtonType ((bool32 (__cdecl* )(Panel_Type panelType, const char* buttonName, OUT PanelButton_Type* buttonType))0x0045a6d0)
@@ -208,58 +244,69 @@ __inline bool32 Panel_AirMeter_IsOxygenLow(void) { return panelGlobs.airMeterOxy
 #define Panel_TextWindow_GetInfo ((void (__cdecl* )(PanelTextWindow* panelWnd, OUT uint32* linesCount, OUT uint32* linesCapacity))0x0045a8f0)
 
 // <LegoRR.exe @0045a910>
-#define Panel_SetArea ((void (__cdecl* )(Panel_Type panelType, sint32 xOut, sint32 yOut, sint32 xIn, sint32 yIn))0x0045a910)
+#define Panel_SetSlidingPositions ((void (__cdecl* )(Panel_Type panelType, sint32 xOpen, sint32 yOpen, sint32 xClosed, sint32 yClosed))0x0045a910)
 
 // <LegoRR.exe @0045a9a0>
-#define Panel_SetXYField3 ((void (__cdecl* )(Panel_Type panelType, real32 x, real32 y))0x0045a9a0)
+#define Panel_SetPosition ((void (__cdecl* )(Panel_Type panelType, real32 x, real32 y))0x0045a9a0)
 
 // <LegoRR.exe @0045a9c0>
-#define Panel_GetXYField3 ((void (__cdecl* )(Panel_Type panelType, OUT real32* x, OUT real32* y))0x0045a9c0)
+#define Panel_GetPosition ((void (__cdecl* )(Panel_Type panelType, OUT real32* x, OUT real32* y))0x0045a9c0)
 
 // <LegoRR.exe @0045a9f0>
-#define Panel_FUN_0045a9f0 ((void (__cdecl* )(Panel_Type panelType, real32 elapsedAbs))0x0045a9f0)
+#define Panel_Draw ((void (__cdecl* )(Panel_Type panelType, real32 elapsedAbs))0x0045a9f0)
 
 // <LegoRR.exe @0045ac80>
-#define Panel_Display_FUN_0045ac80 ((void (__cdecl* )(Panel_Type panelType))0x0045ac80)
+#define Panel_DrawButtons ((void (__cdecl* )(Panel_Type panelType))0x0045ac80)
 
 // <LegoRR.exe @0045ad80>
-#define Panel_Button_SetFlags_10 ((void (__cdecl* )(Panel_Type panelType, PanelButton_Type buttonType, bool32 state))0x0045ad80)
+#define Panel_Button_Hide ((void (__cdecl* )(Panel_Type panelType, PanelButton_Type buttonType, bool32 hide))0x0045ad80)
 
 // <LegoRR.exe @0045adc0>
-#define Panel_ChangeFlags_BasedOnState ((void (__cdecl* )(Panel_Type panelType))0x0045adc0)
+#define Panel_ToggleOpenClosed ((void (__cdecl* )(Panel_Type panelType))0x0045adc0)
 
+// The panel is in its closed state and is NOT sliding.
 // <LegoRR.exe @0045adf0>
-#define Panel_IsFlags_4_Not8 ((bool32 (__cdecl* )(Panel_Type panelType))0x0045adf0)
+#define Panel_IsFullyClosed ((bool32 (__cdecl* )(Panel_Type panelType))0x0045adf0)
 
+// The panel is in its opened state and is NOT sliding.
 // <LegoRR.exe @0045ae20>
-#define Panel_IsFlags_2_Not8 ((bool32 (__cdecl* )(Panel_Type panelType))0x0045ae20)
+#define Panel_IsFullyOpen ((bool32 (__cdecl* )(Panel_Type panelType))0x0045ae20)
 
+/// CUSTOM: The panel is in its closed or closing (sliding) state.
+inline bool Panel_IsClosed(Panel_Type panelType) { return panelGlobs.panelTable[panelType].flags & PANEL_FLAG_CLOSED; };
+
+/// CUSTOM: The panel is in its opened or opening (sliding) state.
+inline bool Panel_IsOpen(Panel_Type panelType) { return panelGlobs.panelTable[panelType].flags & PANEL_FLAG_OPEN; };
+
+// The panel is sliding in or out of an open/closed state.
 // <LegoRR.exe @0045ae50>
-#define Panel_IsFlags_8 ((bool32 (__cdecl* )(Panel_Type panelType))0x0045ae50)
+#define Panel_IsSliding ((bool32 (__cdecl* )(Panel_Type panelType))0x0045ae50)
 
+// Only used for TopPanel buttons Priorities and CallToArms to keep the button indented while active.
 // <LegoRR.exe @0045ae70>
-#define Panel_Button_SetFlag_20 ((void (__cdecl* )(Panel_Type panelType, PanelButton_Type buttonType, bool32 setFlag20))0x0045ae70)
+#define Panel_Button_SetToggleable ((void (__cdecl* )(Panel_Type panelType, PanelButton_Type buttonType, bool32 toggleable))0x0045ae70)
 
+// Requires Panel_Button_SetToggleable to set the toggleable flag to true.
 // <LegoRR.exe @0045aeb0>
-#define Panel_Button_SetFlag_8_OrUnset_c ((void (__cdecl* )(Panel_Type panelType, PanelButton_Type buttonType, bool32 setFlag8))0x0045aeb0)
+#define Panel_Button_SetToggled ((void (__cdecl* )(Panel_Type panelType, PanelButton_Type buttonType, bool32 toggled))0x0045aeb0)
 
 // <LegoRR.exe @0045aef0>
-#define Panel_CreateButtons ((void (__cdecl* )(Panel_Type panelType, uint32 count, sint32 param_3, sint32 param_4, sint32* param_5, sint32 param_6, sint32 param_7, sint32 param_8))0x0045aef0)
+#define Panel_CreateButtons ((void (__cdecl* )(Panel_Type panelType, uint32 count, const PanelButton_Type* buttonTypes, const Area2F* areas, char** imageNames, char** imageHoverNames, char** imagePressedNames, const ToolTip_Type* toolTips))0x0045aef0)
 
 // <LegoRR.exe @0045b070>
 #define Panel_CheckCollision ((bool32 (__cdecl* )(real32 elapsedAbs, uint32 mouseX, uint32 mouseY, bool32 leftButton, bool32 leftButtonLast, OUT bool32* panelCollision))0x0045b070)
 
 // <LegoRR.exe @0045b5d0>
-#define Panel_InputProc_FUN_0045b5d0 ((bool32 (__cdecl* )(OUT Panel_Type* panelType, OUT PanelButton_Type* panelButton, sint32 mouseX, sint32 mouseY, bool32 leftButton, bool32 leftButtonLast, OPTIONAL OUT bool32* param_7, OPTIONAL OUT bool32* panelCollision))0x0045b5d0)
+#define Panel_CheckButtonCollision ((bool32 (__cdecl* )(OUT Panel_Type* panelType, OUT PanelButton_Type* panelButton, sint32 mouseX, sint32 mouseY, bool32 leftButton, bool32 leftButtonLast, OPTIONAL OUT bool32* param_7, OPTIONAL OUT bool32* panelCollision))0x0045b5d0)
 
 // <LegoRR.exe @0045b850>
-#define Panel_TestMouseInsideOutInArea_FUN_0045b850 ((bool32 (__cdecl* )(PanelData* panel, const Area2F* area, sint32 mouseX, sint32 mouseY))0x0045b850)
+#define Panel_TestPointInsideRect ((bool32 (__cdecl* )(PanelData* panel, const Rect2F* rect, sint32 mouseX, sint32 mouseY))0x0045b850)
 
 // <LegoRR.exe @0045b8d0>
-#define Panel_UnsetFlag_6 ((void (__cdecl* )(void))0x0045b8d0)
+#define Panel_PriorityList_ResetButtons ((void (__cdecl* )(void))0x0045b8d0)
 
 // <LegoRR.exe @0045b8e0>
-#define Panel_PriorityList_FUN_0045b8e0 ((void (__cdecl* )(PanelButton_Type buttonType))0x0045b8e0)
+#define Panel_PriorityList_HandleButton ((void (__cdecl* )(PanelButton_Type buttonType))0x0045b8e0)
 
 // <LegoRR.exe @0045ba00>
 #define Panel_ScrollInfo_Initialise ((void (__cdecl* )(void))0x0045ba00)
@@ -268,43 +315,25 @@ __inline bool32 Panel_AirMeter_IsOxygenLow(void) { return panelGlobs.airMeterOxy
 #define Panel_Encyclopedia_Initialise ((void (__cdecl* )(void))0x0045bb10)
 
 // <LegoRR.exe @0045bb60>
-#define Panel_MathX_TestInsideCircle ((bool32 (__cdecl* )(sint32 x, sint32 y, sint32 centerX, sint32 centerY, sint32 radius))0x0045bb60)
+#define Panel_TestPointInsideCircle ((bool32 (__cdecl* )(sint32 x, sint32 y, sint32 centerX, sint32 centerY, sint32 radius))0x0045bb60)
 
 // <LegoRR.exe @0045bbc0>
-#define Panel_Maths_XY_Div_Radius ((void (__cdecl* )(sint32 x, sint32 y, sint32 radius, OUT real32* out_x, OUT real32* out_y))0x0045bbc0)
+#define Panel_RotationControl_NormalizePointRadius ((void (__cdecl* )(sint32 x, sint32 y, sint32 radius, OUT real32* out_x, OUT real32* out_y))0x0045bbc0)
 
 // <LegoRR.exe @0045bbf0>
-#define Panel_RotationControl_GetMouseXY_FUN_0045bbf0 ((void (__cdecl* )(OUT sint32* mouseX, OUT sint32* mouseY, sint32 param_3, sint32 param_4, sint32 param_5))0x0045bbf0)
-
-// <LegoRR.exe @0045bc90>
-#define Panel_RotationControl_Initialise ((void (__cdecl* )(const Gods98::Config* config, const char* gameName))0x0045bc90)
-
-// <LegoRR.exe @0045ba00>
-#define Panel_ScrollInfo_Initialise ((void (__cdecl* )(void))0x0045ba00)
-
-// <LegoRR.exe @0045bb10>
-#define Panel_Encyclopedia_Initialise ((void (__cdecl* )(void))0x0045bb10)
-
-// <LegoRR.exe @0045bb60>
-#define Panel_MathX_TestInsideCircle ((bool32 (__cdecl* )(sint32 x, sint32 y, sint32 centerX, sint32 centerY, sint32 radius))0x0045bb60)
-
-// <LegoRR.exe @0045bbc0>
-#define Panel_Maths_XY_Div_Radius ((void (__cdecl* )(sint32 x, sint32 y, sint32 radius, OUT real32* out_x, OUT real32* out_y))0x0045bbc0)
-
-// <LegoRR.exe @0045bbf0>
-#define Panel_RotationControl_GetMouseXY_FUN_0045bbf0 ((void (__cdecl* )(OUT sint32* mouseX, OUT sint32* mouseY, sint32 param_3, sint32 param_4, sint32 param_5))0x0045bbf0)
+#define Panel_RotationControl_ClampPointInsideCircle ((void (__cdecl* )(IN OUT sint32* mouseX, IN OUT sint32* mouseY, sint32 centerX, sint32 centerY, sint32 radius))0x0045bbf0)
 
 // <LegoRR.exe @0045bc90>
 #define Panel_RotationControl_Initialise ((void (__cdecl* )(const Gods98::Config* config, const char* gameName))0x0045bc90)
 
 // <LegoRR.exe @0045bf90>
-#define Panel_RotationControl_FUN_0045bf90 ((bool32 (__cdecl* )(sint32 mouseX, sint32 mouseY, real32 elapsedAbs))0x0045bf90)
+#define Panel_RotationControl_HandleRotation ((bool32 (__cdecl* )(sint32 mouseX, sint32 mouseY, real32 elapsedAbs))0x0045bf90)
 
 // <LegoRR.exe @0045c1e0>
-#define Panel_RotationControl_MoveDist ((void (__cdecl* )(bool32 doAdd, real32 amount))0x0045c1e0)
+#define Panel_RotationControl_HandleButtons ((void (__cdecl* )(PanelButton_Type buttonType, real32 elapsedAbs))0x0045c1e0)
 
 // <LegoRR.exe @0045c230>
-#define Panel_GetButtonRect ((void (__cdecl* )(Panel_Type panelType, PanelButton_Type buttonType, OUT Area2F* rect))0x0045c230)
+#define Panel_Button_GetArea ((void (__cdecl* )(Panel_Type panelType, PanelButton_Type buttonType, OUT Area2F* area))0x0045c230)
 
 // <LegoRR.exe @0045c270>
 #define Panel_Crystals_Initialise ((void (__cdecl* )(const char* smallCrystal, const char* usedCrystal, const char* noSmallCrystal))0x0045c270)

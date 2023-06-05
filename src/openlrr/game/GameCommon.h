@@ -652,7 +652,9 @@ enum Interface_MenuType : sint32
 	Interface_Menu_BuildSmallVehicle = 20,
 	Interface_Menu_BuildLargeVehicle = 21,
 
-	Interface_Menu_Type_Count,
+	Interface_Menu_Type_Count, // May not be correct after learning about Encyclopedia
+
+	Interface_Menu_Encyclopedia      = 23,
 };
 assert_sizeof(Interface_MenuType, 0x4);
 

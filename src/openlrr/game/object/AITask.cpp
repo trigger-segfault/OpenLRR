@@ -180,7 +180,7 @@ void __cdecl LegoRR::AITask_RemoveGetToolReferences(AITask* aiTask)
 		if (aiTask->getToolTask != nullptr) {
 
 			// I'm going to assume this is a list of child tasks, that aren't managed by themselves or something(?)
-			AITask* aiTaskUnk = aiGlobs.AITaskUnkPtr; // Linked list for something.
+			AITask* aiTaskUnk = aiGlobs.pendingTaskList; // Linked list for something.
 			while (aiTaskUnk != nullptr) {
 
 				if ((aiTaskUnk->taskType == AITask_Type_GetTool) && (aiTask->getToolTask == aiTaskUnk)) {

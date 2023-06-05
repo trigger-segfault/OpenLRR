@@ -450,6 +450,8 @@ void __cdecl LegoRR::ToolTip_DrawBox(Area2F valueRect, real32 rcRed, real32 rcGr
 	const Gods98::DrawEffect effect = (halfTrans ? Gods98::DrawEffect::HalfTrans : Gods98::DrawEffect::None);
 
 	Gods98::Draw_Begin(prerendered); // Start of only Draw calls for tooltip box.
+	Error_Warn(!Gods98::Draw_IsLocked(), "ToolTip_DrawBox: Draw_Begin() failed to lock the surface");
+
 	if (prerendered != nullptr) {
 		Gods98::Draw_SetTranslation(Point2F { -destPos.x, -destPos.y });
 	}

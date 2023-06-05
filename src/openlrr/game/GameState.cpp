@@ -463,17 +463,17 @@ bool32 __cdecl LegoRR::Lego_Initialise(void)
 	const char* backButton = Gods98::Config_GetTempStringValue(legoConfig, Main_ID(Button_buffer)); // "BackButton%ix%i"
 	if (backButton != nullptr) {
 
-		legoGlobs.BackButtonImage = Gods98::Image_LoadBMP(backButton);
-		if (legoGlobs.BackButtonImage != nullptr) {
-			Gods98::Image_SetupTrans(legoGlobs.BackButtonImage, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+		legoGlobs.RepeatButtonImage = Gods98::Image_LoadBMP(backButton);
+		if (legoGlobs.RepeatButtonImage != nullptr) {
+			Gods98::Image_SetupTrans(legoGlobs.RepeatButtonImage, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 
 			std::sprintf(Button_buffer, "BackButtonPos%ix%i", Gods98::appWidth(), Gods98::appHeight());
 			char* backButtonPos = Gods98::Config_GetStringValue(legoConfig, Main_ID(Button_buffer)); // "BackButtonPos%ix%i"
 			if (backButtonPos != nullptr) {
 				const uint32 numParts = Gods98::Util_Tokenise(backButtonPos, Button_stringParts, ",");
 				if (numParts == 2) {
-					legoGlobs.BackButtonPos.x = (real32)std::atof(Button_stringParts[0]);
-					legoGlobs.BackButtonPos.y = (real32)std::atof(Button_stringParts[1]);
+					legoGlobs.RepeatButtonPos.x = (real32)std::atof(Button_stringParts[0]);
+					legoGlobs.RepeatButtonPos.y = (real32)std::atof(Button_stringParts[1]);
 				}
 				Gods98::Mem_Free(backButtonPos);// util::free2(backButtonPos);
 			}
@@ -765,7 +765,7 @@ bool32 __cdecl LegoRR::Lego_Initialise(void)
 
 		legoGlobs.flags1 |= (GAME1_RADARON|GAME1_RADAR_TRACKOBJECTVIEW);
 
-		//util::logf_removed((char*)legoGlobs.rootCont, "animtex\\dirt");
+		//util::logf_removed((char*)legoGlobs.rootCont, "animtex\\dirt"); // Dust_Setup
 
 		legoGlobs.radarZoom = 15.0f;
 		legoGlobs.radarScreenRect = Area2F { 16.0f, 13.0f, 151.0f, 151.0f };
@@ -801,8 +801,8 @@ bool32 __cdecl LegoRR::Lego_Initialise(void)
 		Reward_Initialise();
 
 		Panel_LoadInterfaceButtons_ScrollInfo();
-		Panel_Button_SetFlags_10(Panel_Radar, PanelButton_Radar_ZoomIn, true);
-		Panel_Button_SetFlags_10(Panel_Radar, PanelButton_Radar_ZoomOut, true);
+		Panel_Button_Hide(Panel_Radar, PanelButton_Radar_ZoomIn, true);
+		Panel_Button_Hide(Panel_Radar, PanelButton_Radar_ZoomOut, true);
 		
 
 		Front_ResetSaveNumber();
@@ -1254,7 +1254,7 @@ bool32 __cdecl LegoRR::Lego_MainLoop(real32 elapsed)
 	Gods98::Container_Hide(legoGlobs.ambientLight, true);
 
 
-	if (Panel_IsFlags_2_Not8(Panel_Radar))
+	if (Panel_IsFullyOpen(Panel_Radar))
 		legoGlobs.flags1 |= GAME1_RADARON;
 	else
 		legoGlobs.flags1 &= ~GAME1_RADARON;
@@ -1343,23 +1343,23 @@ bool32 __cdecl LegoRR::Lego_MainLoop(real32 elapsed)
 	if (legoGlobs.flags1 & GAME1_RENDERPANELS) {
 		// Yes, this is really checking if NOT on...
 		if (!(legoGlobs.flags1 & GAME1_RADARON)) {
-			Panel_FUN_0045a9f0(Panel_RadarFill, elapsedInterface);
+			Panel_Draw(Panel_RadarFill, elapsedInterface);
 		}
 
-		Panel_FUN_0045a9f0(Panel_Radar, elapsedInterface);
+		Panel_Draw(Panel_Radar, elapsedInterface);
 
 		if ((legoGlobs.flags1 & GAME1_RADARON) && (legoGlobs.flags1 & GAME1_RADAR_TRACKOBJECTVIEW) &&
 			!(legoGlobs.flags1 & GAME1_RADAR_NOTRACKOBJECT))
 		{
-			Panel_FUN_0045a9f0(Panel_RadarOverlay, elapsedInterface);
+			Panel_Draw(Panel_RadarOverlay, elapsedInterface);
 		}
 
-		Panel_FUN_0045a9f0(Panel_MessagesSide, elapsedInterface);
-		Panel_FUN_0045a9f0(Panel_CameraControl, elapsedInterface);
-		Panel_FUN_0045a9f0(Panel_TopPanel, elapsedInterface);
-		Panel_FUN_0045a9f0(Panel_PriorityList, elapsedInterface);
+		Panel_Draw(Panel_MessagesSide, elapsedInterface);
+		Panel_Draw(Panel_CameraControl, elapsedInterface);
+		Panel_Draw(Panel_TopPanel, elapsedInterface);
+		Panel_Draw(Panel_PriorityList, elapsedInterface);
 		Priorities_Draw();
-		Panel_FUN_0045a9f0(Panel_Encyclopedia, elapsedInterface);
+		Panel_Draw(Panel_Encyclopedia, elapsedInterface);
 		Encyclopedia_Update(elapsedInterface);
 		if (!(legoGlobs.flags2 & GAME2_INMENU)) {
 			Interface_FUN_0041b3c0();
@@ -1368,7 +1368,7 @@ bool32 __cdecl LegoRR::Lego_MainLoop(real32 elapsed)
 		Interface_FUN_0041b860(elapsedInterface);
 
 
-		Panel_FUN_0045a9f0(Panel_CrystalSideBar, elapsedInterface);
+		Panel_Draw(Panel_CrystalSideBar, elapsedInterface);
 		/// JANK: Crystals panel drawing still happening outside of level,
 		///       and relying on values only assigned when in-level.
 		/// JANK: Why are these being stored as floats???
@@ -1385,10 +1385,10 @@ bool32 __cdecl LegoRR::Lego_MainLoop(real32 elapsed)
 		const uint32 oreTotal = (legoGlobs.currLevel->ore + (legoGlobs.currLevel->studs * 5));
 		Panel_PrintF(Panel_CrystalSideBar, legoGlobs.fontToolTip, 16, 469, true, "%i", oreTotal);
 
-		Panel_FUN_0045a9f0(Panel_Information, elapsedInterface);
+		Panel_Draw(Panel_Information, elapsedInterface);
 		ScrollInfo_Update(false);
 		Info_DrawPanel(elapsedInterface);
-		Panel_FUN_0045a9f0(Panel_InfoDock, elapsedInterface);
+		Panel_Draw(Panel_InfoDock, elapsedInterface);
 		Info_Draw(elapsedInterface);
 	}
 	HelpWindow_FUN_00418930();
@@ -1444,13 +1444,13 @@ bool32 __cdecl LegoRR::Lego_MainLoop(real32 elapsed)
 		Gods98::Image_DisplayScaled(legoGlobs.BackArrowImage, nullptr, &legoGlobs.menuPrevPoint, nullptr);
 	}
 
-	if (((legoGlobs.flags2 & GAME2_UNK_40) && legoGlobs.NextButtonImage != nullptr) &&
-		((!(legoGlobs.flags2 & GAME2_CAMERAMOVING) || Interface_GetBool_004ded1c())))
+	if (((legoGlobs.flags2 & GAME2_MESSAGE_HASNEXT) && legoGlobs.NextButtonImage != nullptr) &&
+		((!(legoGlobs.flags2 & GAME2_CAMERAMOVING) || Interface_GetFlashingState())))
 	{
 		Gods98::Image_DisplayScaled(legoGlobs.NextButtonImage, nullptr, &legoGlobs.NextButtonPos, nullptr);
 	}
-	if ((legoGlobs.flags2 & GAME2_UNK_80) && legoGlobs.BackButtonImage != nullptr) {
-		Gods98::Image_DisplayScaled(legoGlobs.BackButtonImage, nullptr, &legoGlobs.BackButtonPos, nullptr);
+	if ((legoGlobs.flags2 & GAME2_MESSAGE_HASREPEAT) && legoGlobs.RepeatButtonImage != nullptr) {
+		Gods98::Image_DisplayScaled(legoGlobs.RepeatButtonImage, nullptr, &legoGlobs.RepeatButtonPos, nullptr);
 	}
 	if ((legoGlobs.flags2 & GAME2_INOPTIONSMENU) && Front_IsFrontEndEnabled()) {
 
@@ -2295,8 +2295,8 @@ bool32 __cdecl LegoRR::Lego_HandleKeys(real32 elapsedGame, real32 elapsedInterfa
 					legoGlobs.flags1 |= GAME1_RADAR_MAPVIEW;
 				}
 				// Flags_10 must be "disabled"
-				Panel_Button_SetFlags_10(Panel_Radar, PanelButton_Radar_ZoomIn, newIsTrackObjectView);
-				Panel_Button_SetFlags_10(Panel_Radar, PanelButton_Radar_ZoomOut, newIsTrackObjectView);
+				Panel_Button_Hide(Panel_Radar, PanelButton_Radar_ZoomIn, newIsTrackObjectView);
+				Panel_Button_Hide(Panel_Radar, PanelButton_Radar_ZoomOut, newIsTrackObjectView);
 			}
 		}
 

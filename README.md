@@ -37,7 +37,7 @@ Submitting decompiled functions for game code is a very involved process. Most g
 ### Other LRR projects
 
 * [Manic Miners][Project_ManicMiners]
-* [Rock Raiders X][Project_RRX]
+* [ProjectReversio/LegoRockRaiders][Project_ProjectReversio]
 
 ### Similar open source projects
 
@@ -52,7 +52,8 @@ Submitting decompiled functions for game code is a very involved process. Most g
 [Page_RRUKB]: <https://kb.rockraidersunited.com/Main_Page> "Rock Raiders United: Knowledge Base"
 
 [Project_ManicMiners]: <https://manicminers.baraklava.com/> "Manic Miners: The Rock Raiders remake"
-[Project_RRX]: <https://rockraidersx.com/> "Rock Raiders X - Rock Raiders recreated"
+[Project_RRX]: <https://rockraidersx.com/> "Rock Raiders X - Rock Raiders recreated - This site is gone!"
+[Project_ProjectReversio]: <https://github.com/ProjectReversio/LegoRockRaiders> "ProjectReversio/LegoRockRaiders: Decompiling and implementing LRR from the top down"
 
 [Project_OpenRCT2]: <https://github.com/OpenRCT2/OpenRCT2> "An open source re-implementation of RollerCoaster Tycoon 2"
 [Project_OpenTTD]: <https://github.com/OpenTTD/OpenTTD> "An open source simulation game based upon Transport Tycoon Deluxe"

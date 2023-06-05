@@ -250,7 +250,7 @@ void __cdecl LegoRR::Message_Update(void)
 			if (Message_EnterFirstPersonView(message->argument2.uinteger)) {
 				/// FIX APPLY: Properly open FP interface menu.
 				/// TODO: Should we allow disabling this functionality in-case users want to mess with menus?
-				Interface_OpenMenu_FUN_0041b200(Interface_Menu_FP, nullptr);
+				Interface_OpenMenu(Interface_Menu_FP, nullptr);
 			}
 			break;
 		case Message_TrackObject: //0xa:
@@ -265,7 +265,7 @@ void __cdecl LegoRR::Message_Update(void)
 				/// TODO: Should we allow disabling this functionality in-case users want to mess with menus?
 				// Reduce is a shorthand for getting the right interface menu, while maintaining existing selection.
 				Message_ReduceSelectedUnits();
-				//Interface_OpenMenu_FUN_0041b200(Interface_Menu_Main, nullptr);
+				//Interface_OpenMenu(Interface_Menu_Main, nullptr);
 			}
 			break;
 		case Message_PlaySample: //0xc:
@@ -683,49 +683,49 @@ void __cdecl LegoRR::Message_ReduceSelectedUnits(void)
 	// Open the interface menu for the highest-priority selected reduceType.
 	switch (reduceType) {
 	case Message_ReduceType_MiniFigure:
-		Interface_OpenMenu_FUN_0041b200(Interface_Menu_LegoMan, nullptr);
+		Interface_OpenMenu(Interface_Menu_LegoMan, nullptr);
 		break;
 	case Message_ReduceType_LandVehicle:
-		Interface_OpenMenu_FUN_0041b200(Interface_Menu_LandVehicle, nullptr);
+		Interface_OpenMenu(Interface_Menu_LandVehicle, nullptr);
 		break;
 	case Message_ReduceType_WaterVehicle:
-		Interface_OpenMenu_FUN_0041b200(Interface_Menu_WaterVehicle, nullptr);
+		Interface_OpenMenu(Interface_Menu_WaterVehicle, nullptr);
 		break;
 	case Message_ReduceType_UnmannedVehicle:
-		Interface_OpenMenu_FUN_0041b200(Interface_Menu_UnmannedVehicle, nullptr);
+		Interface_OpenMenu(Interface_Menu_UnmannedVehicle, nullptr);
 		break;
 	case Message_ReduceType_Building:
-		Interface_OpenMenu_FUN_0041b200(Interface_Menu_Building, nullptr);
+		Interface_OpenMenu(Interface_Menu_Building, nullptr);
 		break;
 	case Message_ReduceType_ElectricFence:
-		Interface_OpenMenu_FUN_0041b200(Interface_Menu_ElectricFence, nullptr);
+		Interface_OpenMenu(Interface_Menu_ElectricFence, nullptr);
 		break;
 
 	case Message_ReduceType_Monster:
 		// Crashes:
-		//Interface_OpenMenu_FUN_0041b200(Interface_Menu_LegoMan, nullptr);
-		//Interface_OpenMenu_FUN_0041b200(Interface_Menu_Building, nullptr);
+		//Interface_OpenMenu(Interface_Menu_LegoMan, nullptr);
+		//Interface_OpenMenu(Interface_Menu_Building, nullptr);
 
 		// Works: Even the tele' up button functions (for "standard" monster types).
-		Interface_OpenMenu_FUN_0041b200(Interface_Menu_ElectricFence, nullptr); // Just a tele' up button.
-		//Interface_OpenMenu_FUN_0041b200(Interface_Menu_Main, nullptr);
+		Interface_OpenMenu(Interface_Menu_ElectricFence, nullptr); // Just a tele' up button.
+		//Interface_OpenMenu(Interface_Menu_Main, nullptr);
 		break;
 	case Message_ReduceType_SpiderWeb:
 		// Unknown:
-		Interface_OpenMenu_FUN_0041b200(Interface_Menu_ElectricFence, nullptr); // Just a tele' up button.
+		Interface_OpenMenu(Interface_Menu_ElectricFence, nullptr); // Just a tele' up button.
 		break;
 	case Message_ReduceType_Resource:
 		// Works: Even the tele' up button functions.
-		Interface_OpenMenu_FUN_0041b200(Interface_Menu_ElectricFence, nullptr); // Just a tele' up button.
+		Interface_OpenMenu(Interface_Menu_ElectricFence, nullptr); // Just a tele' up button.
 		break;
 	case Message_ReduceType_Equipment:
 		// Unknown:
-		Interface_OpenMenu_FUN_0041b200(Interface_Menu_ElectricFence, nullptr); // Just a tele' up button.
+		Interface_OpenMenu(Interface_Menu_ElectricFence, nullptr); // Just a tele' up button.
 		break;
 
 	default: // Fallback to main interface if no matching units found.
 		//reduceType = Message_ReduceType_Count;
-		Interface_OpenMenu_FUN_0041b200(Interface_Menu_Main, nullptr);
+		Interface_OpenMenu(Interface_Menu_Main, nullptr);
 		break;
 	}
 
@@ -885,7 +885,7 @@ bool32 __cdecl LegoRR::Message_DeselectObject(LegoObject* liveObj)
 			if (index == 0) {
 				// Primary unit has been deselected.
 				/// FIXME: Should we be clearing the entire selected list in this scenario?
-				Interface_OpenMenu_FUN_0041b200(Interface_Menu_Main, nullptr);
+				Interface_OpenMenu(Interface_Menu_Main, nullptr);
 			}
 
 			// Replace this deselected object with the object at the end of the list.

@@ -144,14 +144,8 @@ flags_end(StatsFlags3, 0x4);
 
 struct ObjectStats // [LegoRR/Stats.c|struct:0x150]
 {
-	/*000,4*/       undefined4 field_0; // field set to 0x30 for all constant ObjectStats (Barrier, Dynamite, Upgrade, Other)
-	/*004,4*/       undefined4 field_4;
-	/*008,4*/       undefined4 field_8;
-	/*00c,4*/       undefined4 field_c;
-	/*010,4*/       undefined4 field_10;
-	/*014,4*/       undefined4 field_14;
-	/*018,4*/       undefined4 field_18;
-	/*01c,4*/       undefined4 field_1c;
+	/*000,1e*/      char unused_typeName[30]; // field set to 0x30 ('0') for all constant ObjectStats (Barrier, Dynamite, Upgrade, Other)
+	/*01e,2*/       undefined2 padding;
 	/*020,4*/       real32 RouteSpeed; // (leveled)
 	/*024,48*/      real32 DrillTimes[Lego_SurfaceType_Count]; // (leveled, table of surface type times)
 	/*06c,4*/       real32 CollRadius; // (effect: flags1 | 0x80)
@@ -191,8 +185,8 @@ struct ObjectStats // [LegoRR/Stats.c|struct:0x150]
 	/*0f8,4*/       real32 FunctionCoef; // (leveled)
 	/*0fc,4*/       sint32 UpgradeCostOre; // Carry:Scan:Speed:Drill (requires all 4)
 	/*100,4*/       sint32 UpgradeCostStuds; // Carry:Scan:Speed:Drill (requires all 4)
-	/*104,4*/       undefined4 field_104;
-	/*108,4*/       undefined4 field_108;
+	/*104,4*/       real32 unused_viewAngle;
+	/*108,4*/       real32 unused_viewDist;
 	/*10c,4*/       real32 FreezerTime; // (default: 0.0)
 	/*110,4*/       real32 FreezerDamage; // (default: 0.0)
 	/*114,4*/       real32 PusherDist; // (default: 0.0)

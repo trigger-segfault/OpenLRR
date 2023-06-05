@@ -378,7 +378,7 @@ void __cdecl LegoRR::Advisor_ViewportTransform(Advisor_Type advisorType)
 
 	if (!(advisorGlobs.positions[advisorType].flags & ADVISOR_FLAG_NOPANEL)) {
 		// output -> x, y (get panel position?)
-		Panel_GetXYField3(advisorGlobs.positions[advisorType].panelType, &panelPos.x, &panelPos.y);
+		Panel_GetPosition(advisorGlobs.positions[advisorType].panelType, &panelPos.x, &panelPos.y);
 	}
 	else {
 		panelPos.x = 0.0f;

@@ -140,9 +140,9 @@ flags_end(MenuItem_SelectItemFlags, 0x4);
 
 enum Front_RockWipeFlags : uint32 // [LegoRR/Front.c|flags:0x1|type:byte]
 {
-	ROCKWIPE_FLAG_NONE  = 0,
-	ROCKWIPE_FLAG_UNK_1 = 0x1,
-	ROCKWIPE_FLAG_UNK_2 = 0x2,
+	ROCKWIPE_FLAG_NONE      = 0,
+	ROCKWIPE_FLAG_ANIMATING = 0x1,
+	ROCKWIPE_FLAG_NOINPUT   = 0x2,
 };
 flags_end(Front_RockWipeFlags, 0x4);
 
@@ -363,9 +363,15 @@ struct MenuItem_SelectData // [LegoRR/FrontEnd.c|struct:0x5c]
 	/*20,4*/	char* string1;
 	/*24,4*/	char* string2;
 	/*28,4*/	sint32* valuePtr;
-	/*2c,10*/	Area2I rect1;
-	/*3c,10*/	Area2I rect2;
-	/*4c,4*/	sint32 int_4c;
+	/*2c,4*/	sint32 x2;
+	/*30,4*/	sint32 y2;
+	/*34,4*/	sint32 selItemHeight;
+	/*38,4*/	sint32 scrollCount; // Max number of select items visible in scroll area.
+	/*3c,4*/	sint32 xString1;
+	/*40,4*/	sint32 yString1;
+	/*44,4*/	sint32 xString2;
+	/*48,4*/	sint32 yString2;
+	/*4c,4*/	sint32 scrollStart; // Index offset of visible scroll area.
 	/*50,4*/	undefined4 field_50;
 	/*54,4*/	MenuItem_SelectCallback callback;
 	/*58,4*/	Menu* nextMenu; // Optional menu to transition to after making a selection.
@@ -374,8 +380,19 @@ struct MenuItem_SelectData // [LegoRR/FrontEnd.c|struct:0x5c]
 assert_sizeof(MenuItem_SelectData, 0x5c);
 
 
-// No information on this structure (if one ever even existed)
-typedef void MenuItem_TextInputData;
+// No information on this structure's allocation.
+//typedef void MenuItem_TextInputData;
+struct MenuItem_TextInputData // [LegoRR/FrontEnd.c|struct:0x18]
+{
+	/*00,4*/	char* valuePtr;
+	/*04,4*/	sint32 length;
+	/*08,4*/	sint32 caretPos;  // Character index of cursor.
+	/*0c,4*/	sint32 maxLength; // Maximum length of value buffer.
+	/*10,4*/	sint32 x2;
+	/*14,4*/	sint32 y2;
+	/*18*/
+};
+assert_sizeof(MenuItem_TextInputData, 0x18);
 
 
 union MenuItem_Data_union // [LegoRR/FrontEnd.c|union:0x4]
@@ -569,8 +586,8 @@ struct Front_Globs // [LegoRR/FrontEnd.c|struct:0x884|tags:GLOBS]
 	/*524,8*/	undefined4 reserved4[2];
 	/*52c,4*/	Gods98::Container* rockWipeAnim;
 	/*530,4*/	Front_RockWipeFlags rockWipeFlags;
-	/*534,4*/	real32 rockWipeSFXTimer;
-	/*538,4*/	real32 rockWipeSFXStartTime;
+	/*534,4*/	real32 rockWipeTimer; // RockWipe animation timer in animation frames units.
+	/*538,4*/	real32 rockWipeLastUpdateTime;
 	/*53c,4*/	Gods98::Container* rockWipeLight;
 	/*540,4*/	bool32 saveBool_540;
 	/*544,4*/	bool32 isLoadModeBool_544;
@@ -678,7 +695,7 @@ extern bool32 & g_FrontBool_004dc8d4;
 
 
 // <LegoRR.exe @004dc8dc>
-extern sint32 & g_FrontCount_004dc8dc;
+extern sint32 & s_frontTextInputCaretBlinker;
 
 // <LegoRR.exe @004dc8e0>
 extern Menu* (& s_FrontOptionsMenu);
@@ -698,7 +715,7 @@ extern Front_Globs & frontGlobs;
 
 #pragma region Functions
 
-// Returns a temporary string buffer.
+// Returns a temporary string buffer. Or str if the temporary buffer is too small.
 // <LegoRR.exe @004101e0>
 const char* __cdecl Front_Util_ReplaceTextSpaces(const char* str);
 
@@ -731,9 +748,9 @@ Gods98::Font* __cdecl Front_Cache_LoadFont(const char* filename);
 char* __cdecl Front_Util_StrCpy(const char* str);
 
 // <LegoRR.exe @00410520>
-MenuItem_SelectData* __cdecl Front_MenuItem_CreateSelect(IN sint32* valuePtr, const char* string1, const char* string2, sint32 x1, sint32 y1,
-														 sint32 width1, sint32 height1, sint32 x2, sint32 y2, sint32 width2,
-														 sint32 height2, sint32 field50, MenuItem_SelectCallback callback,
+MenuItem_SelectData* __cdecl Front_MenuItem_CreateSelect(IN sint32* valuePtr, const char* string1, const char* string2, sint32 x2, sint32 y2,
+														 sint32 selItemHeight, sint32 scrollCount, sint32 xString1, sint32 yString1, sint32 xString2,
+														 sint32 yString2, sint32 field50, MenuItem_SelectCallback callback,
 														 OPTIONAL Menu* nextMenu);
 
 // <LegoRR.exe @004105c0>
@@ -886,8 +903,8 @@ void __cdecl Front_MenuItem_DrawSelectItem(sint32 x, sint32 y, Gods98::Font* fon
 //void __cdecl Front_Menu_DrawMenuImage(Menu* menu, bool32 light);
 
 // <LegoRR.exe @00412b30>
-#define Front_Menu_Update ((Menu* (__cdecl* )(real32 elapsed, Menu* menu, bool32* optout_bool))0x00412b30)
-//Menu* __cdecl Front_Menu_Update(real32 elapsed, Menu* menu, OUT bool32* unkBool);
+//#define Front_Menu_Update ((Menu* (__cdecl* )(real32 elapsed, Menu* menu, bool32* optout_bool))0x00412b30)
+Menu* __cdecl Front_Menu_Update(real32 elapsed, Menu* menu, OUT bool32* optout_bool);
 
 // <LegoRR.exe @004138a0>
 void __cdecl Front_Menu_UpdateMousePosition(Menu* menu);
@@ -1084,7 +1101,7 @@ const char* __cdecl Front_GetSelectedLevel(void);
 
 // <LegoRR.exe @00416d00>
 //#define Front_IsTriggerAppQuit ((bool32 (__cdecl* )(void))0x00416d00)
-sint32 __cdecl Front_IsTriggerAppQuit(void);
+bool32 __cdecl Front_IsTriggerAppQuit(void);
 
 // <LegoRR.exe @00416d10>
 //#define Front_IsTriggerMissionQuit ((bool32 (__cdecl* )(void))0x00416d10)
@@ -1117,7 +1134,7 @@ LevelLink* __cdecl Front_LevelSet_GetLevelLink(LevelSet* levelSet, const char* l
 
 
 // <LegoRR.exe @00416fc0>
-LevelLink* __cdecl Front_LevelSet_LoadLevelLinks(LevelSet* levelSet, const char* levelName);
+LevelLink* __cdecl Front_LevelSet_LoadLevelLinks(LevelSet* levelSet, OPTIONAL const char* levelName);
 
 // <LegoRR.exe @004170f0>
 bool32 __cdecl Front_LevelLink_RunThroughLinks(LevelLink* startLink, LevelLink_RunThroughLinksCallback callback, void* data);

@@ -35,10 +35,10 @@ enum Encyclopedia_GlobFlags : uint32
 {
 	ENCYCLOPEDIA_GLOB_FLAG_NONE = 0,
 
-	ENCYCLOPEDIA_GLOB_FLAG_UNK_1 = 0x1,
-	ENCYCLOPEDIA_GLOB_FLAG_UNK_2 = 0x2,
-	// Todo...
+	ENCYCLOPEDIA_GLOB_FLAG_ACTIVE    = 0x1,
+	ENCYCLOPEDIA_GLOB_FLAG_NEEDSTEXT = 0x2,
 };
+flags_end(Encyclopedia_GlobFlags, 0x4);
 
 #pragma endregion
 
@@ -48,6 +48,7 @@ enum Encyclopedia_GlobFlags : uint32
 
 #pragma region Structs
 
+/// TODO: Instead of opening a file, just read all the text. This is wasting open wad file entry slots.
 struct Encyclopedia_Globs // [LegoRR/Encyclopedia.c|struct:0x24|tags:GLOBS]
 {
 	/*00,4*/	Gods98::File** vehicleFiles;
@@ -83,16 +84,20 @@ extern Encyclopedia_Globs & encyclopediaGlobs;
 #pragma region Functions
 
 // <LegoRR.exe @0040e3c0>
-#define Encyclopedia_Initialise ((void (__cdecl* )(const Gods98::Config* config, const char* gameName))0x0040e3c0)
+//#define Encyclopedia_Initialise ((void (__cdecl* )(const Gods98::Config* config, const char* gameName))0x0040e3c0)
+void __cdecl Encyclopedia_Initialise(const Gods98::Config* config, const char* gameName);
 
 // <LegoRR.exe @0040e630>
-#define Encyclopedia_SetObject ((void (__cdecl* )(LegoObject* liveObj))0x0040e630)
+//#define Encyclopedia_SelectObject ((void (__cdecl* )(LegoObject* liveObj))0x0040e630)
+void __cdecl Encyclopedia_SelectObject(LegoObject* liveObj);
 
 // <LegoRR.exe @0040e710>
-#define Encyclopedia_UnsetFlag1 ((void (__cdecl* )(void))0x0040e710)
+//#define Encyclopedia_ClearSelection ((void (__cdecl* )(void))0x0040e710)
+void __cdecl Encyclopedia_ClearSelection(void);
 
 // <LegoRR.exe @0040e720>
-#define Encyclopedia_Update ((void (__cdecl* )(real32 elapsedAbs))0x0040e720)
+//#define Encyclopedia_Update ((void (__cdecl* )(real32 elapsedAbs))0x0040e720)
+void __cdecl Encyclopedia_Update(real32 elapsedAbs);
 
 // DRAW MODE: Only Draw API drawing calls can be used within this function.
 // <LegoRR.exe @0040e800>
@@ -105,7 +110,8 @@ void __cdecl Encyclopedia_DrawSelectName(Gods98::Viewport* viewMain);
 
 // Removes the current encyclopedia object if it matches the specified object.
 // <LegoRR.exe @0040e840>
-#define Encyclopedia_RemoveCurrentReference ((void (__cdecl* )(LegoObject* liveObj))0x0040e840)
+//#define Encyclopedia_RemoveCurrentReference ((void (__cdecl* )(LegoObject* liveObj))0x0040e840)
+void __cdecl Encyclopedia_RemoveCurrentReference(LegoObject* liveObj);
 
 #pragma endregion
 

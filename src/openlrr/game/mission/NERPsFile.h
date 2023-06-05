@@ -447,8 +447,8 @@ void __cdecl NERPsRuntime_Execute(real32 elapsedAbs);
 void __cdecl NERPs_SetHasNextButton(bool32 hasNextButton);
 
 // <LegoRR.exe @00453bd0>
-//#define NERPs_PlayUnkSampleIndex_IfDat_004a773c ((void (__cdecl* )(void))0x00453bd0)
-void __cdecl NERPs_PlayUnkSampleIndex_IfDat_004a773c(void);
+//#define NERPsRuntime_RepeatMessage ((void (__cdecl* )(void))0x00453bd0)
+void __cdecl NERPsRuntime_RepeatMessage(void);
 
 // <LegoRR.exe @00453be0>
 //#define NERPsRuntime_AdvanceMessage ((void (__cdecl* )(void))0x00453be0)
@@ -632,7 +632,7 @@ bool32 __cdecl NERPs_LiveObject_Callback_SetRockMonsterHealthType(LegoObject* li
 
 
 // <LegoRR.exe @00456ad0>
-#define NERPs_PlayUnkSampleIndex ((void (__cdecl* )(void))0x00456ad0)
+#define NERPs_RestartMessageSample ((void (__cdecl* )(void))0x00456ad0)
 
 // text is the raw input line (which usually has `#soundName#` and `<imageName>` etc.)
 // buffer is the stripped output line without the `#soundName#` or `<imageKey>` markers.

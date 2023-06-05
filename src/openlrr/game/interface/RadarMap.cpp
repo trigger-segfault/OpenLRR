@@ -157,6 +157,7 @@ void LegoRR::RadarMap_BeginDraw(RadarMap* radarMap)
 	}
 
 	Gods98::Draw_Begin(radarMap->renderTarget);
+	Error_Warn(!Gods98::Draw_IsLocked(), "RadarMap_BeginDraw: Draw_Begin() failed to lock the surface");
 
 	if (radarMap->renderTarget != nullptr) {
 		Gods98::Draw_SetTranslation(Point2F {
@@ -392,7 +393,7 @@ void __cdecl LegoRR::RadarMap_Draw(RadarMap* radarMap, const Point2F* centerPos)
 			blockCount++;
 
 			// This interface boolean is toggled on/off every 15-frames. So this is a flashing block.
-			if (Interface_GetBool_004ded1c() &&
+			if (Interface_GetFlashingState() &&
 				(bx == radarmapGlobs.highlightBlockPos.x && by == radarmapGlobs.highlightBlockPos.y))
 			{
 				drawRect->colour = ColourRGBF { 1.0f, 0.0f, 0.0f };

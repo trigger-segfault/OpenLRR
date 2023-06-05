@@ -797,7 +797,7 @@ bool32 __cdecl LegoRR::Weapon_LegoObject_CollisionRadius_FUN_00470800(LegoObject
 	LegoObject_GetPosition(liveObj, &toPos.x, &toPos.y);
 
 	Point2F collPos;
-	Collision_Maths_FUN_00408a90(fromPos, &fromFacePos, &toPos, &collPos);
+	Collision_PointOnLine(fromPos, &fromFacePos, &toPos, &collPos);
 
 	const real32 collRadius = StatsObject_GetCollRadius(liveObj);
 	return (Gods98::Maths_Vector2DDistance(&collPos, &toPos) < collRadius);
@@ -999,7 +999,7 @@ bool32 __cdecl LegoRR::Weapon_LegoObject_Callback_FUN_00471630(LegoObject* liveO
 		const real32 worldZ = Map3D_GetWorldZ(Lego_GetMap(), thisPos.x, thisPos.y);
 
 		Point2F collPos;
-		Collision_MathUnk_Vector2D_FUN_00408b20(&searchFromPos, &searchDistance, &thisPos, &collPos);
+		Collision_PointOnLineRay(&searchFromPos, &searchDistance, &thisPos, &collPos);
 
 		const real32 collRadius = StatsObject_GetCollRadius(liveObj);
 		if (Gods98::Maths_Vector2DDistance(&thisPos, &collPos) <= collRadius) {

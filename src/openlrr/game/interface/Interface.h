@@ -129,7 +129,7 @@ struct Interface_Globs // [LegoRR/Interface.c|struct:0x14ac|tags:GLOBS]
 	/*0f90,8*/	Point2F slideEndPosition; // (init: pointf_f78) Point2F_004dece8
 	/*0f98,4*/	real32 slideSpeed; // (init: 750.0f / 25.0f)
 	/*0f9c,8*/	Point2I highlightBlockPos;
-	/*0fa4,4*/	Interface_MenuType menuType_fa4;
+	/*0fa4,4*/	Interface_MenuType nextMenuType;
 	/*0fa8,4*/	Interface_MenuItemType menuItemType_fa8;
 	/*0fac,4*/	undefined4 field_fac;
 	/*0fb0,4*/	undefined4 field_fb0;
@@ -231,10 +231,10 @@ extern Interface_Globs & interfaceGlobs;
 #define Interface_LoadPlusMinusImages ((void (__cdecl* )(const char* plusName, const char* minusName))0x0041b1a0)
 
 // <LegoRR.exe @0041b200>
-#define Interface_OpenMenu_FUN_0041b200 ((void (__cdecl* )(Interface_MenuType menuType, const Point2I* blockPos))0x0041b200)
+#define Interface_OpenMenu ((void (__cdecl* )(Interface_MenuType menuType, const Point2I* blockPos))0x0041b200)
 
 // <LegoRR.exe @0041b230>
-#define Interface_SelectBlock ((void (__cdecl* )(Interface_MenuType menuType, const Point2I* blockPos))0x0041b230)
+#define _Interface_OpenMenu_SelectBlock ((void (__cdecl* )(Interface_MenuType menuType, const Point2I* blockPos))0x0041b230)
 
 // <LegoRR.exe @0041b2f0>
 #define Interface_FUN_0041b2f0 ((sint32 (__cdecl* )(Interface_MenuType interfaceMenuType))0x0041b2f0)
@@ -256,7 +256,7 @@ extern Interface_Globs & interfaceGlobs;
 
 // This interface boolean is toggled on/off every 15-frames. Probably used for flashing.
 // <LegoRR.exe @0041b8e0>
-#define Interface_GetBool_004ded1c ((bool32 (__cdecl* )(void))0x0041b8e0)
+#define Interface_GetFlashingState ((bool32 (__cdecl* )(void))0x0041b8e0)
 
 // <LegoRR.exe @0041b8f0>
 #define Interface_GetPrimaryUnit_PowerIcon ((Interface_MenuItemType (__cdecl* )(IN OUT Interface_MenuItemType* menuIcon))0x0041b8f0)
@@ -394,7 +394,7 @@ void __cdecl Interface_DrawHoverOutline(const Area2F* area);
 #define Interface_SetScrollParameters ((void (__cdecl* )(uint32 xEnd, uint32 yEnd, uint32 xStart, uint32 yStart, real32 timerFloat_750))0x0041e900)
 
 // <LegoRR.exe @0041e980>
-#define Interface_UnkSlideOffScreen_FUN_0041e980_internal ((void (__cdecl* )(Interface_MenuType menuType, OPTIONAL const Point2I* blockPos))0x0041e980)
+#define _Interface_OpenMenu_SetNext ((void (__cdecl* )(Interface_MenuType menuType, OPTIONAL const Point2I* blockPos))0x0041e980)
 
 // <LegoRR.exe @0041e9f0>
 #define Interface_FUN_0041e9f0 ((void (__cdecl* )(real32 elapsedAbs))0x0041e9f0)

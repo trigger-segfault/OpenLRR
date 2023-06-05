@@ -250,6 +250,7 @@ void __cdecl LegoRR::ObjInfo_DrawHealthBar(LegoObject* liveObj, sint32 screenX, 
 
 	if (prerendered != nullptr) {
 		Gods98::Draw_Begin(prerendered);
+		Error_Warn(!Gods98::Draw_IsLocked(), "ObjInfo_DrawHealthBar: Draw_Begin() failed to lock the surface");
 		Gods98::Draw_SetTranslation(Point2F { -destPos.x, -destPos.y });
 	}
 

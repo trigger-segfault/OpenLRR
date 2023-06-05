@@ -134,6 +134,7 @@ void __cdecl LegoRR::Interface_DrawHoverOutline(const Area2F* area)
 		#endif
 
 		Gods98::Draw_Begin(prerendered);
+		Error_Warn(!Gods98::Draw_IsLocked(), "Interface_DrawHoverOutline: Draw_Begin() failed to lock the surface");
 		if (prerendered != nullptr) {
 			Gods98::Draw_SetTranslation(Point2F { -destPos.x, -destPos.y }); // Translate to 0,0.
 		}

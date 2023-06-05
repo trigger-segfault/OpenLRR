@@ -278,6 +278,7 @@ union Image_Flic
 {
 	/*0,4*/ Image* image;
 	/*0,4*/ Flic* flic;
+	/*0,4*/ void* data; // For clearer null checking.
 	/*4*/
 };
 assert_sizeof(Image_Flic, 0x4);
@@ -494,7 +495,7 @@ uint8* _Flic_WritePixelRGB(const Flic* fsp, uint8* dst, uint8 r, uint8 g, uint8 
 // THIS FUNCTION MUST BE HOOKED ON AN INDIVIDUAL BASIS
 // There are 5 calls made to this:
 //  type:Flic (Flic_GetWidth)  -> FUN_004120e0  <@004120f7>
-//                                      Panel_FUN_0045a9f0  <@0045ab17>
+//                                      Panel_Draw  <@0045ab17>
 //                                      Pointer_DrawPointer  <@0045cfc8>
 //  type:FlocksData (Flocks_GetNumSubdata) -> LegoObject_Flocks_FUN_0044bef0  <@0044bfc3>
 //  type:AnimClone (AnimClone_IsLws) -> Container_FormatPartName  <@00473f60>
