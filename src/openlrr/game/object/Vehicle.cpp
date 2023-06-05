@@ -615,6 +615,7 @@ void __cdecl LegoRR::Vehicle_SetPosition(VehicleModel* vehicle, real32 xPos, rea
 	Gods98::Maths_Vector3DCrossProduct(&crossB, &tempA, &tempB);
 	Gods98::Maths_Vector3DNormalize(&crossB);
 	Gods98::Maths_Vector3DAdd(&wheelVector, &crossA, &crossB);
+	Gods98::Maths_Vector3DNormalize(&wheelVector);
 
 	if (!std::isfinite(vehicle->wheelVector_5c.x) || !std::isfinite(vehicle->wheelVector_5c.y) || !std::isfinite(vehicle->wheelVector_5c.z))
 	{
@@ -637,14 +638,14 @@ void __cdecl LegoRR::Vehicle_SetPosition(VehicleModel* vehicle, real32 xPos, rea
 
 	for (uint32 i = 0; i < vehicle->wheelNullFrames; ++i)
 	{
-		if (vehicle->contWheels[i])
+		if (vehicle->contWheels[i] != nullptr)
 		{
 			Gods98::Container_GetPosition(vehicle->wheelNulls[i], nullptr, &wheelPositions[i]);
 			Gods98::Container_AddTranslation(vehicle->wheelNulls[i], Gods98::Container_Combine::After, 0.0, -(zCallback(wheelPositions[i].x, wheelPositions[i].y, map) - wheelPositions[i].z - vehicle->wheelRadius), 0.0);
 			Gods98::Container_SetPosition(vehicle->contWheels[i], vehicle->wheelNulls[i], 0.0, 0.0, 0.0);
 			
 			Vector3F temp;
-			Gods98::Container_GetPosition(vehicle->contWheels[i], nullptr, &vehicle->wheelNullPositions[i]);
+			Gods98::Container_GetPosition(vehicle->contWheels[i], nullptr, &wheelPositions[i]);
 			Gods98::Maths_Vector3DSubtract(&temp, &wheelPositions[i], &vehicle->wheelNullPositions[i]);
 			real32 angle = Gods98::Maths_Vector3DModulus(&temp) / vehicle->wheelRadius;
 			if (Gods98::Maths_Vector3DDotProduct(&temp, &direction) < 0.0)
@@ -671,15 +672,15 @@ Gods98::Container* __cdecl LegoRR::Vehicle_FindNull(VehicleModel* vehicle, char*
 	log_firstcall();
 
 	Gods98::Container* container {};
-	if (vehicle->contAct2)
+	if (vehicle->contAct2 != nullptr)
 	{
-		char const *partName = Gods98::Container_FormatPartName(vehicle->contAct2, name, reinterpret_cast<uint32 const *>(frameNo));
+		char const *partName = Gods98::Container_FormatPartName(vehicle->contAct2, name, &frameNo);
 		container = Gods98::Container_SearchTree(vehicle->contAct2, partName, Gods98::Container_SearchMode::FirstMatch, nullptr);
 	}
 
-	if (!container)
+	if (container == nullptr)
 	{
-		char const* partName = Gods98::Container_FormatPartName(vehicle->contAct1, name, reinterpret_cast<uint32 const*>(frameNo));
+		char const* partName = Gods98::Container_FormatPartName(vehicle->contAct1, name, &frameNo);
 		container = Gods98::Container_SearchTree(vehicle->contAct1, partName, Gods98::Container_SearchMode::FirstMatch, nullptr);
 	}
 
@@ -696,7 +697,7 @@ Gods98::Container* __cdecl LegoRR::Vehicle_GetCameraNull(VehicleModel* vehicle, 
 		return nullptr;
 	}
 
-	if (vehicle->cameraNulls[frameNo])
+	if (vehicle->cameraNulls[frameNo] != nullptr)
 	{
 		return vehicle->cameraNulls[frameNo];
 	}
@@ -711,12 +712,12 @@ Gods98::Container* __cdecl LegoRR::Vehicle_GetDrillNull(VehicleModel* vehicle)
 {
 	log_firstcall();
 
-	if (vehicle->drillNullName)
+	if (vehicle->drillNullName == nullptr)
 	{
 		return nullptr;
 	}
 
-	if (vehicle->drillNull)
+	if (vehicle->drillNull != nullptr)
 	{
 		return vehicle->drillNull;
 	}
@@ -731,12 +732,12 @@ Gods98::Container* __cdecl LegoRR::Vehicle_GetDepositNull(VehicleModel* vehicle)
 {
 	log_firstcall();
 
-	if (vehicle->depositNullName)
+	if (vehicle->depositNullName == nullptr)
 	{
 		return nullptr;
 	}
 
-	if (vehicle->depositNull)
+	if (vehicle->depositNull != nullptr)
 	{
 		return vehicle->depositNull;
 	}
@@ -751,12 +752,12 @@ Gods98::Container* __cdecl LegoRR::Vehicle_GetDriverNull(VehicleModel* vehicle)
 {
 	log_firstcall();
 
-	if (vehicle->driverNullName)
+	if (vehicle->driverNullName == nullptr)
 	{
 		return nullptr;
 	}
 
-	if (vehicle->driverNull)
+	if (vehicle->driverNull != nullptr)
 	{
 		return vehicle->driverNull;
 	}
@@ -776,7 +777,7 @@ Gods98::Container* __cdecl LegoRR::Vehicle_GetCarryNull(VehicleModel* vehicle, u
 		return nullptr;
 	}
 
-	if (vehicle->carryNulls[frameNo])
+	if (vehicle->carryNulls[frameNo] != nullptr)
 	{
 		return vehicle->carryNulls[frameNo];
 	}
