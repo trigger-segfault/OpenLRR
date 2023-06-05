@@ -3201,6 +3201,14 @@ bool interop_hook_LegoRR_Vehicle(void)
 
 	// used by: Lego_Shutdown_Full, LegoObject_Remove
 	result &= hook_write_jmpret(0x0046d0d0, LegoRR::Vehicle_Remove);
+	// used by: Vehicle_SwapPolyHigh, LegoObject_FP_Callback_SwapPolyMeshParts
+	result &= hook_write_jmpret(0x0046d190, LegoRR::Vehicle_SwapPolyMedium);
+	// used by: LegoObject_FP_Callback_SwapPolyMeshParts
+	result &= hook_write_jmpret(0x0046d1e0, LegoRR::Vehicle_SwapPolyHigh);
+	// used by: LegoObject_HasEnoughOreToUpgrade, Lego_HandleDebugKeys
+	result &= hook_write_jmpret(0x0046d200, LegoRR::Vehicle_CanUpgradeType);
+	// used by: Vehicle_CanUpgradeType, LegoObject_CompleteVehicleUpgrade
+	result &= hook_write_jmpret(0x0046d240, LegoRR::Vehicle_GetUpgradeLevel);
 
 	// used by: Lego_HandleWorldDebugKeys, LegoObject_Create, LegoObject_CompleteVehicleUpgrade,
 	//          LegoObject_TeleportUp, Vehicle_Remove
@@ -3209,9 +3217,40 @@ bool interop_hook_LegoRR_Vehicle(void)
 	result &= hook_write_jmpret(0x0046d280, LegoRR::Vehicle_HideWheels);
 	// used by: LegoObject_Create
 	result &= hook_write_jmpret(0x0046d2b0, LegoRR::Vehicle_Clone);
-
+	// used by: LegoObject_Create
+	result &= hook_write_jmpret(0x0046d400, LegoRR::Vehicle_SetOwnerObject);
+	// used by: LegoObject_Callback_Update
+	result &= hook_write_jmpret(0x0046d460, LegoRR::Vehicle_GetAnimationTime);
+	// used by: LegoObject_MoveAnimation
+	result &= hook_write_jmpret(0x0046d480, LegoRR::Vehicle_MoveAnimation);
 	// used by: Vehicle_SetActivity, Vehicle_Clone
 	result &= hook_write_jmpret(0x0046d520, LegoRR::Vehicle_PopulateWheelNulls);
+	// used by: Lego_LoadVehicleTypes, LegoObject_Hide
+	result &= hook_write_jmpret(0x0046d580, LegoRR::Vehicle_Hide);
+	// used by: LegoObject_IsHidden
+	result &= hook_write_jmpret(0x0046d5f0, LegoRR::Vehicle_IsHidden);
+	// used by: LegoObject_UnkUpdateOrientation, LegoObject_UpdateRoutingVectors_FUN_004428b0, LegoObject_SetPositionAndHeading
+	result &= hook_write_jmpret(0x0046d610, LegoRR::Vehicle_SetOrientation);
+	// used by: LegoObject_UpdateRoutingVectors_FUN_004428b0, LegoObject_SetPositionAndHeading, LegoObject_FP_UpdateMovement, LegoObject_UpdateWorldStickyPosition
+	result &= hook_write_jmpret(0x0046d640, LegoRR::Vehicle_SetPosition);
+	// used by: LegoObject_UpdateRoutingVectors_FUN_004428b0, LegoObject_GetActivityContainer
+	result &= hook_write_jmpret(0x0046dca0, LegoRR::Vehicle_GetActivityContainer);
+	// used by: LegoObject_UpdateRoutingVectors_FUN_004428b0, LegoObject_GetActivityContainer
+	result &= hook_write_jmpret(0x0046dcb0, LegoRR::Vehicle_FindNull);
+	// used by: LegoObject_UpdateActivityChange, LegoObject_FP_GetPositionAndHeading
+	result &= hook_write_jmpret(0x0046dd10, LegoRR::Vehicle_GetCameraNull);
+	// used by: LegoObject_GetDrillNullPosition
+	result &= hook_write_jmpret(0x0046dd50, LegoRR::Vehicle_GetDrillNull);
+	// used by: LegoObject_GetDepositNull
+	result &= hook_write_jmpret(0x0046dd80, LegoRR::Vehicle_GetDepositNull);
+	// used by: LegoObject_UpdateDriverStickyPosition
+	result &= hook_write_jmpret(0x0046ddb0, LegoRR::Vehicle_GetDriverNull);
+	// used by: LegoObject_UpdateCarrying
+	result &= hook_write_jmpret(0x0046dde0, LegoRR::Vehicle_GetCarryNull);
+	// used by: LegoObject_Create
+	result &= hook_write_jmpret(0x0046de20, LegoRR::Vehicle_GetCarryNullFrames);
+	// used by: LegoObject_CalculateSpeeds
+	result &= hook_write_jmpret(0x0046de30, LegoRR::Vehicle_GetTransCoef);
 	
 	return_interop(result);
 }
