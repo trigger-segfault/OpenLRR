@@ -114,27 +114,22 @@ extern Loader_Globs & loaderGlobs;
 #pragma region Functions
 
 // <LegoRR.exe @0044de10>
-#define Loader_Initialise ((void (__cdecl* )(const char* loadScreenName, const char* shutdownScreenName, Gods98::Font* font5HI, const char* profileName, Direction progressDirection, const char* progressBarName, const Area2F* progressWindow, const char* loadingText))0x0044de10)
-//void __cdecl Loader_Initialise(const char* loadScreenName, const char* shutdownScreenName, Gods98::Font* font5HI, const char* profileName, Direction progressDirection, const char* progressBarName, const Area2F* progressWindow, const char* loadingText);
+void __cdecl Loader_Initialise(const char* loadScreenName, const char* shutdownScreenName, Gods98::Font* font5HI, const char* profileName, Direction progressDirection, const char* progressBarName, const Area2F* progressWindow, const char* loadingText);
 
 // <LegoRR.exe @0044e000>
-#define Loader_Shutdown ((void (__cdecl* )(const char* filename))0x0044e000)
-//void __cdecl Loader_Shutdown(const char* filename);
+void __cdecl Loader_Shutdown(const char* filename);
 
 // Sets the current section being loaded. Set to nullptr to disable loader screen.
 // <LegoRR.exe @0044e0a0>
-#define Loader_display_loading_bar ((void (__cdecl* )(const char* section))0x0044e0a0)
-//void __cdecl Loader_display_loading_bar(const char* section);
+void __cdecl Loader_display_loading_bar(const char* section);
 
 // Callback when a data file is loaded, which is used to add to the load size/progress of the currently active section.
 // <LegoRR.exe @0044e180>
-#define Loader_FileLoadCallback ((void (__cdecl* )(const char* filename, uint32 fileSize, void* data))0x0044e180)
-//void __cdecl Loader_FileLoadCallback(const char* filename, uint32 fileSize, void* data);
+void __cdecl Loader_FileLoadCallback(const char* filename, uint32 fileSize, void* data);
 
 // Displays the "Shutdown" screen image (only seen during a full shutdown with -programmer 10).
 // <LegoRR.exe @0044e360>
-#define Loader_display_shutdown ((void (__cdecl* )(void))0x0044e360)
-//void __cdecl Loader_display_shutdown(void);
+void __cdecl Loader_display_shutdown(void);
 
 #pragma endregion
 
