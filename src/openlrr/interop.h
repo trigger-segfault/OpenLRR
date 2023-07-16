@@ -74,6 +74,7 @@ bool interop_hook_LegoRR_Game(void);
 bool interop_hook_LegoRR_Interface(void);
 bool interop_hook_LegoRR_LegoCamera(void);
 bool interop_hook_LegoRR_LightEffects(void);
+bool interop_hook_LegoRR_Loader(void);
 bool interop_hook_LegoRR_MeshLOD(void);
 bool interop_hook_LegoRR_Messages(void);
 bool interop_hook_LegoRR_NERPsFile(void);

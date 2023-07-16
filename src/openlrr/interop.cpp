@@ -45,6 +45,7 @@
 #include "game/effects/Smoke.h"
 #include "game/front/Credits.h"
 #include "game/front/FrontEnd.h"
+#include "game/front/Loader.h"
 #include "game/front/Reward.h"
 #include "game/interface/hud/Bubbles.h"
 #include "game/interface/hud/ObjInfo.h"
@@ -2992,6 +2993,25 @@ bool interop_hook_LegoRR_LightEffects(void)
 	return_interop(result);
 }
 
+bool interop_hook_LegoRR_Loader(void)
+{
+	bool result = true;
+
+	// used by: Lego_Initialise
+	result &= hook_write_jmpret(0x0044de10, LegoRR::Loader_Initialise);
+	// used by: Lego_Shutdown_Full
+	result &= hook_write_jmpret(0x0044e000, LegoRR::Loader_Shutdown);
+	// used by: Lego_Initialise, Lego_LoadLevel
+	result &= hook_write_jmpret(0x0044e0a0, LegoRR::Loader_display_loading_bar);
+	// used by: Loader_Initialise, Loader_display_loading_bar
+	result &= hook_write_jmpret(0x0044e180, LegoRR::Loader_FileLoadCallback);
+	// used by: Lego_Shutdown_Full
+	result &= hook_write_jmpret(0x0044e360, LegoRR::Loader_display_shutdown);
+
+	return_interop(result);
+}
+
+
 bool interop_hook_LegoRR_MeshLOD(void)
 {
 	bool result = true;
@@ -4380,6 +4400,7 @@ bool interop_hook_all(void)
 	result &= interop_hook_LegoRR_Interface();
 	result &= interop_hook_LegoRR_LegoCamera();
 	result &= interop_hook_LegoRR_LightEffects();
+	result &= interop_hook_LegoRR_Loader();
 	result &= interop_hook_LegoRR_MeshLOD();
 	result &= interop_hook_LegoRR_Messages();
 	result &= interop_hook_LegoRR_NERPsFile();

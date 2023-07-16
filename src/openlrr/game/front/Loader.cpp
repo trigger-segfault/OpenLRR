@@ -30,10 +30,8 @@ void __cdecl LegoRR::Loader_Initialise(const char* loadScreenName, const char* s
 {
 	char* strBuffPtr;
 	Gods98::File* f;
-	LoaderSection* localLoaderSec;
 	char* stringParts[10];
-	#define BUFFSIZE 256
-	char buff[BUFFSIZE];
+	char buff[256];
 	//Setup all data structs
 	f = nullptr;
 	loaderGlobs.LoadScreen = Gods98::Image_LoadBMPScaled(loadScreenName, 0, 0);
@@ -70,42 +68,36 @@ void __cdecl LegoRR::Loader_Initialise(const char* loadScreenName, const char* s
 	}
 
 	//Iterate through all loader sections and store to loaderStruct
-	localLoaderSec = loaderGlobs.sectionList;
-	do {
+	//localLoaderSec = loaderGlobs.sectionList;
+	for(int i = 0; i < LOADER_MAXSECTIONS; i++){
 		//Check if file/string is null or if we have a string that isnt XXX=YYY
-		if ( (f == nullptr) || (Gods98::File_GetS(buff, BUFFSIZE, f) == nullptr) || (Gods98::Util_Tokenise(buff, stringParts, "=") != 2) )
+		if ( (f == nullptr) || (Gods98::File_GetS(buff, sizeof(buff), f) == nullptr) || (Gods98::Util_Tokenise(buff, stringParts, "=") != 2) )
 		{
-			localLoaderSec->name = nullptr;
+			loaderGlobs.sectionList[i].name = nullptr;
 		}
 		else {
 
-			//Allocate memory for the string on the struct and copy data over
-			uint32* allocPtr = (uint32*)Gods98::Mem_Alloc(strlen(stringParts[0]));
-			localLoaderSec->name = (char*)allocPtr;
-			strcpy((char*)allocPtr, stringParts[0]);
+			//Copy data over to string
+			loaderGlobs.sectionList[i].name = Gods98::Util_StrCpy(stringParts[0]);
 
 			//Grab integer size from stringparts and store
-			localLoaderSec->totalSize = std::atoi(stringParts[1]);
-			localLoaderSec->currentSize = 0;
+			loaderGlobs.sectionList[i].totalSize = std::atoi(stringParts[1]);
+			loaderGlobs.sectionList[i].currentSize = 0;
 		}
-		//Move up one slot
-		localLoaderSec = localLoaderSec + 1;
-		//if we are at the end of the struct and into the game data done loading files
-		if (&loaderGlobs.sectionList[LOADER_MAXSECTIONS] == localLoaderSec) {
-			if (f != nullptr) {
-				Gods98::File_Close(f);
-			}
-			Gods98::File_SetLoadCallback(Loader_FileLoadCallback, (void*)0x0);
-			return;
-		}
-	} while (true);
+	}
+
+	//if we are at the end of the struct and into the game data done loading files
+	if (f != nullptr) {
+		Gods98::File_Close(f);
+	}
+	Gods98::File_SetLoadCallback(Loader_FileLoadCallback, nullptr);
+	return;
 }
 
 // <LegoRR.exe @0044e000>
 void __cdecl LegoRR::Loader_Shutdown(const char* filename)
 {
 	Gods98::File* f;
-	LoaderSection* localLoaderSec;
 
 	//Check if file is null to setup nullptr
 	if (filename == nullptr) {
@@ -115,22 +107,19 @@ void __cdecl LegoRR::Loader_Shutdown(const char* filename)
 		f = Gods98::File_Open(filename, "w");
 	}
 
-	//Setup localStruct to clear out all memory
-	localLoaderSec = loaderGlobs.sectionList;
-	do {
+	//Clear out all memory
+	for(int i = 0; i < LOADER_MAXSECTIONS; i++){
 		//If the section isnt null print the section to the file and clear the memory
-		if (localLoaderSec->name != nullptr) {
-			if (localLoaderSec->currentSize == 0) {
-				localLoaderSec->currentSize = localLoaderSec->totalSize;
+		if (loaderGlobs.sectionList[i].name != nullptr) {
+			if (loaderGlobs.sectionList[i].currentSize == 0) {
+				loaderGlobs.sectionList[i].currentSize = loaderGlobs.sectionList[i].totalSize;
 			}
 			if (f != nullptr) {
-				Gods98::File_PrintF(f, "%s%s%i\n", localLoaderSec->name, "=", localLoaderSec->currentSize);
+				Gods98::File_PrintF(f, "%s%s%i\n", loaderGlobs.sectionList[i].name, "=", loaderGlobs.sectionList[i].currentSize);
 			}
-			Gods98::Mem_Free((void*)localLoaderSec->name);
+			Gods98::Mem_Free(loaderGlobs.sectionList[i].name);
 		}
-		//Bump up iterator unitl done
-		localLoaderSec = localLoaderSec + 1;
-	} while (localLoaderSec < (LoaderSection*)&loaderGlobs.current);
+	}
 
 	//if the file isnt null we're done
 	if (f != nullptr) {
@@ -147,42 +136,37 @@ void __cdecl LegoRR::Loader_Shutdown(const char* filename)
 // <LegoRR.exe @0044e0a0>
 void __cdecl LegoRR::Loader_display_loading_bar(const char* section)
 {
-	LoaderSection* localLoaderSec;
 	int secCntr;
 	//If section is null clear all flags and bails
 	if (section == nullptr) {
-		loaderGlobs.flags = loaderGlobs.flags & (~LOADER_GLOB_FLAG_ENABLED);
+		loaderGlobs.flags &= ~LOADER_GLOB_FLAG_ENABLED;
 		return;
 	}
 
 	secCntr = 0; 
-	localLoaderSec = loaderGlobs.sectionList;
-	do {
+	for(int i = 0; i < LOADER_MAXSECTIONS; i++){
 		//Check for empty section to determine if we're done
-		if ((localLoaderSec->name != nullptr) &&  (_stricmp(localLoaderSec->name, section) == 0)) {
+		if ((loaderGlobs.sectionList[i].name != nullptr) &&  (_stricmp(loaderGlobs.sectionList[i].name, section) == 0)) {
 			loaderGlobs.current = loaderGlobs.sectionList + secCntr;
 			loaderGlobs.sectionList[secCntr].currentSize = 0;
 			break;
 		}
-		localLoaderSec = localLoaderSec + 1;
 		secCntr = secCntr + 1;
 	//Leave if we pass the end of the current loader struct
-	} while (localLoaderSec < (LoaderSection*)&loaderGlobs.current);
+	}
 
 	//Check if we're in the gamedata section and copy over
-	if ((secCntr == LOADER_MAXSECTIONS) && (localLoaderSec != nullptr)) {
-		uint32* allocPtr = (undefined4*)Gods98::Mem_Alloc(strlen(section));
-		localLoaderSec->name = (char*)allocPtr;
-		strcpy((char*)allocPtr, section);
+	if ((secCntr == LOADER_MAXSECTIONS) && (&loaderGlobs.sectionList[LOADER_MAXSECTIONS-1] != nullptr)) {
+		loaderGlobs.sectionList[LOADER_MAXSECTIONS-1].name = Gods98::Util_StrCpy(section);
 
-		localLoaderSec->currentSize = 0;
-		localLoaderSec->totalSize = 0;
-		loaderGlobs.current = localLoaderSec;
+		loaderGlobs.sectionList[LOADER_MAXSECTIONS-1].currentSize = 0;
+		loaderGlobs.sectionList[LOADER_MAXSECTIONS-1].totalSize = 0;
+		loaderGlobs.current = &loaderGlobs.sectionList[LOADER_MAXSECTIONS-1];
 	}
 
 	//Setup flags and create callback
-	loaderGlobs.flags = loaderGlobs.flags | LOADER_GLOB_FLAG_ENABLED;
-	loaderGlobs.progressLast = -1.0;
+	loaderGlobs.flags |= LOADER_GLOB_FLAG_ENABLED;
+	loaderGlobs.progressLast = -1.0f;
 	Loader_FileLoadCallback(nullptr, 0, nullptr);
 	return;
 }
@@ -191,22 +175,26 @@ void __cdecl LegoRR::Loader_display_loading_bar(const char* section)
 void __cdecl LegoRR::Loader_FileLoadCallback(const char* filename, uint32 fileSize, void* data)
 {
 	int x,y;
-	long long lVar2;
 	Size2F barSize;
 	Point2F barPosition;
 
 	float localFloat = fileSize;
 
-	if (((byte)loaderGlobs.flags & LOADER_GLOB_FLAG_ENABLED) != 0) {
-		if (((loaderGlobs.current == nullptr) || ((loaderGlobs.current)->currentSize = (loaderGlobs.current)->currentSize + localFloat, loaderGlobs.current == nullptr))
-			|| ((loaderGlobs.current)->totalSize == 0)) {
+	if (loaderGlobs.flags & LOADER_GLOB_FLAG_ENABLED) {
+		if (loaderGlobs.current == nullptr) {
 			localFloat = 0.0f;
 		}
 		else {
-			//Get percentage here
-			float num = loaderGlobs.current->currentSize;
-			float deom = loaderGlobs.current->totalSize;
-			localFloat = num/deom;
+			loaderGlobs.current->currentSize += localFloat;
+			if (loaderGlobs.current->totalSize == 0) {
+				localFloat = 0.0f;
+			}
+			else {
+				//Get percentage here
+				float num = loaderGlobs.current->currentSize;
+				float deom = loaderGlobs.current->totalSize;
+				localFloat = num/deom;
+			}
 		}
 		/* // minimum increase since last update of progress bar
 		   if (floatVal > (loaderGlobs.progressLast - 0.002f)) */
@@ -241,12 +229,12 @@ void __cdecl LegoRR::Loader_FileLoadCallback(const char* filename, uint32 fileSi
 			}
 			if (loaderGlobs.LoadingText != nullptr) {
 				//center text in screen
-				x = (Gods98::appWidth()/2) - (loaderGlobs.LoadingWidth >> 1);
+				x = (Gods98::appWidth()/2) - (loaderGlobs.LoadingWidth/2);
 				y = (int)loaderGlobs.ProgressWindow.y - 1;
 				Gods98::Font_PrintF	(loaderGlobs.font, x, y, "%s", loaderGlobs.LoadingText);
 			}
-			Gods98::Main_LoopUpdate(0);
-			loaderGlobs.progressLast = (float)localFloat;
+			Gods98::Main_LoopUpdate(false);
+			loaderGlobs.progressLast = localFloat;
 		}
 	}
 	return;

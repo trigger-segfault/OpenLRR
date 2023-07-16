@@ -60,7 +60,7 @@ flags_end(Loader_GlobFlags, 0x4);
 
 struct LoaderSection // [LegoRR/Loader.c|struct:0xc]
 {
-	/*0,4*/	const char* name; // Name of the section files are being loaded from
+	/*0,4*/	char* name; // Name of the section files are being loaded from
 	/*4,4*/	uint32 currentSize; // Current total size of files loaded for this section
 	/*8,4*/	uint32 totalSize; // Predefined total "expected" size for files to load from this section
 	/*c*/
