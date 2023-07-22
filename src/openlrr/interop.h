@@ -80,6 +80,7 @@ bool interop_hook_LegoRR_Messages(void);
 bool interop_hook_LegoRR_NERPsFile(void);
 bool interop_hook_LegoRR_NERPsFunctions(void);
 bool interop_hook_LegoRR_Object(void);
+bool interop_hook_LegoRR_ObjectRecall(void);
 bool interop_hook_LegoRR_Objective(void);
 bool interop_hook_LegoRR_ObjInfo(void);
 bool interop_hook_LegoRR_Pointers(void);

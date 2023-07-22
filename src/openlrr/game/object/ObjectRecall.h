@@ -88,36 +88,28 @@ extern ObjectRecall_Globs & objectRecallGlobs;
 #pragma region Functions
 
 // <LegoRR.exe @00459450>
-#define ObjectRecall_StoreMiniFigure ((void (__cdecl* )(const LegoObject* liveObj))0x00459450)
-//void __cdecl ObjectRecall_StoreMiniFigure(const LegoObject* liveObj);
+void __cdecl ObjectRecall_StoreMiniFigure(const LegoObject* liveObj);
 
 // <LegoRR.exe @00459500>
-#define ObjectRecall_RecallMiniFigure ((bool32 (__cdecl* )(LegoObject* liveObj))0x00459500)
-//bool32 __cdecl ObjectRecall_RecallMiniFigure(LegoObject* liveObj);
+bool32 __cdecl ObjectRecall_RecallMiniFigure(LegoObject* liveObj);
 
 // <LegoRR.exe @00459560>
-#define ObjectRecall_Save_FreeObjectRecall ((void (__cdecl* )(void))0x00459560)
-//void __cdecl ObjectRecall_Save_FreeObjectRecall(void);
+void __cdecl ObjectRecall_Save_FreeObjectRecall(void);
 
 // <LegoRR.exe @004595a0>
-#define ObjectRecall_Save_CopyToNewObjectRecallData ((void (__cdecl* )(void))0x004595a0)
-//void __cdecl ObjectRecall_Save_CopyToNewObjectRecallData(void);
+void __cdecl ObjectRecall_Save_CopyToNewObjectRecallData(void);
 
 // <LegoRR.exe @00459620>
-#define ObjectRecall_Save_CreateNewObjectRecall ((bool32 (__cdecl* )(void))0x00459620)
-//bool32 __cdecl ObjectRecall_Save_CreateNewObjectRecall(void);
+bool32 __cdecl ObjectRecall_Save_CreateNewObjectRecall(void);
 
 // <LegoRR.exe @00459690>
-#define ObjectRecall_IsLoaded ((bool32 (__cdecl* )(void))0x00459690)
-//bool32 __cdecl ObjectRecall_IsLoaded(void);
+bool32 __cdecl ObjectRecall_IsLoaded(void);
 
 // <LegoRR.exe @004596a0>
-#define ObjectRecall_SaveRROSFile ((bool32 (__cdecl* )(const char* filename))0x004596a0)
-//bool32 __cdecl ObjectRecall_SaveRROSFile(const char* filename);
+bool32 __cdecl ObjectRecall_SaveRROSFile(const char* filename);
 
 // <LegoRR.exe @00459730>
-#define ObjectRecall_LoadRROSFile ((bool32 (__cdecl* )(const char* filename))0x00459730)
-//bool32 __cdecl ObjectRecall_LoadRROSFile(const char* filename);
+bool32 __cdecl ObjectRecall_LoadRROSFile(const char* filename);
 
 #pragma endregion
 

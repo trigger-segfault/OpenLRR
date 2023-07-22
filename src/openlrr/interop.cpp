@@ -68,6 +68,7 @@
 #include "game/object/Creature.h"
 #include "game/object/MeshLOD.h"
 #include "game/object/Object.h"
+#include "game/object/ObjectRecall.h"
 #include "game/object/Stats.h"
 #include "game/object/Vehicle.h"
 #include "game/object/Weapons.h"
@@ -3745,6 +3746,30 @@ bool interop_hook_LegoRR_Object(void)
 	return_interop(result);
 }
 
+bool interop_hook_LegoRR_ObjectRecall(void)
+{
+	bool result = true;
+
+	//  used by : LegoObject_UpdateRemoval
+	result &= hook_write_jmpret(0x00459450, LegoRR::ObjectRecall_StoreMiniFigure);
+	//  used by : LegoObject_UpdateTeleporter
+	result &= hook_write_jmpret(0x00459500, LegoRR::ObjectRecall_RecallMiniFigure);
+	//  used by : ObjectRecall_Save_CreateNewObjectRecall
+	result &= hook_write_jmpret(0x00459560, LegoRR::ObjectRecall_Save_FreeObjectRecall);
+	//  used by : Objective_Update
+	result &= hook_write_jmpret(0x004595a0, LegoRR::ObjectRecall_Save_CopyToNewObjectRecallData);
+	//  used by : Front_RestartLevel,Objective_Update
+	result &= hook_write_jmpret(0x00459620, LegoRR::ObjectRecall_Save_CreateNewObjectRecall);
+	//  used by : Lego_LoadLevel
+	result &= hook_write_jmpret(0x00459690, LegoRR::ObjectRecall_IsLoaded);
+	//  used by : Front_Save_WriteSaveFiles
+	result &= hook_write_jmpret(0x004596a0, LegoRR::ObjectRecall_SaveRROSFile);
+	//  used by : Lego_LoadLevel
+	result &= hook_write_jmpret(0x00459730, LegoRR::ObjectRecall_LoadRROSFile);
+
+	return_interop(result);
+}
+
 bool interop_hook_LegoRR_Objective(void)
 {
 	bool result = true;
@@ -4406,6 +4431,7 @@ bool interop_hook_all(void)
 	result &= interop_hook_LegoRR_NERPsFile();
 	result &= interop_hook_LegoRR_NERPsFunctions();
 	result &= interop_hook_LegoRR_Object();
+	result &= interop_hook_LegoRR_ObjectRecall();
 	result &= interop_hook_LegoRR_Objective();
 	result &= interop_hook_LegoRR_ObjInfo();
 	result &= interop_hook_LegoRR_Pointers();
