@@ -29,11 +29,9 @@ void __cdecl LegoRR::ObjectRecall_StoreMiniFigure(const LegoObject* liveObj)
 {
 
 	//Check type is correct, ability flags are set, and name is custom
-	if ((liveObj->type == LegoObject_MiniFigure) &&
-		(((liveObj->abilityFlags != ABILITY_FLAG_NONE || (liveObj->objLevel != 0)) || (liveObj->customName != nullptr)))) {
+	if (liveObj->type == LegoObject_MiniFigure && (liveObj->abilityFlags != ABILITY_FLAG_NONE || liveObj->objLevel != 0 || liveObj->customName != nullptr)) {
 		if (objectRecallGlobs.recallUsed == objectRecallGlobs.recallCapacity) {
 			/* More space is needed, allocate 10 extra slots */
-			//FC, should this be OBJECT_MAXRECORDOBJECTS?
 			objectRecallGlobs.recallCapacity = objectRecallGlobs.recallCapacity + 10;
 			objectRecallGlobs.recallList = (ObjectRecallEntry*) Gods98::Mem_ReAlloc(objectRecallGlobs.recallList,objectRecallGlobs.recallCapacity * sizeof(ObjectRecallEntry));
 		}
@@ -48,21 +46,23 @@ void __cdecl LegoRR::ObjectRecall_StoreMiniFigure(const LegoObject* liveObj)
 		//Move to next used object
 		objectRecallGlobs.recallUsed++;
 	}
-	return;
 }
 
 // <LegoRR.exe @00459500>
 bool32 __cdecl LegoRR::ObjectRecall_RecallMiniFigure(LegoObject* liveObj)
 {
 	if ((liveObj->type == LegoObject_MiniFigure) && (objectRecallGlobs.recallUsed != 0)) {
-		unsigned int prevUsedIndex = objectRecallGlobs.recallUsed - 1;
+		//Go down a index since we recalled
+		objectRecallGlobs.recallUsed--;
 		/* Trained ability flags */
-		liveObj->abilityFlags = objectRecallGlobs.recallList[prevUsedIndex].abilityFlags;
-		StatsObject_SetObjectLevel(liveObj, objectRecallGlobs.recallList[prevUsedIndex].level);
-		LegoObject_SetCustomName(liveObj, objectRecallGlobs.recallList[prevUsedIndex].customName);
+		liveObj->abilityFlags = objectRecallGlobs.recallList[objectRecallGlobs.recallUsed].abilityFlags;
+		StatsObject_SetObjectLevel(liveObj, objectRecallGlobs.recallList[objectRecallGlobs.recallUsed].level);
+		LegoObject_SetCustomName(liveObj, objectRecallGlobs.recallList[objectRecallGlobs.recallUsed].customName);
 		return TRUE;
 	}
-	return FALSE;
+	else {
+		return FALSE;
+	}
 }
 
 // <LegoRR.exe @00459560>
@@ -76,7 +76,6 @@ void __cdecl LegoRR::ObjectRecall_Save_FreeObjectRecall(void)
 	}
 	//Wipe list
 	objectRecallGlobs.recallList = nullptr;
-	return;
 }
 
 // <LegoRR.exe @004595a0>
@@ -96,7 +95,6 @@ void __cdecl LegoRR::ObjectRecall_Save_CopyToNewObjectRecallData(void)
 		objectRecallGlobs.recallNewCount = objectRecallGlobs.recallUsed;
 		objectRecallGlobs.loaded = TRUE;
 	}
-	return;
 }
 
 // <LegoRR.exe @00459620>
@@ -105,7 +103,7 @@ bool32 __cdecl LegoRR::ObjectRecall_Save_CreateNewObjectRecall(void)
 	//Save current objects
 	ObjectRecall_Save_FreeObjectRecall();
 	//If new recall list exists and we have things to recall
-	if ((objectRecallGlobs.recallNewList != nullptr) && (objectRecallGlobs.recallNewCount != 0)) {
+	if (objectRecallGlobs.recallNewList != nullptr && objectRecallGlobs.recallNewCount != 0) {
 		//Setup memory for new list and assign
 		objectRecallGlobs.recallList = (ObjectRecallEntry*)Gods98::Mem_Alloc(objectRecallGlobs.recallNewCount * sizeof(ObjectRecallEntry));
 		std::memcpy(objectRecallGlobs.recallList, objectRecallGlobs.recallNewList, objectRecallGlobs.recallNewCount * sizeof(ObjectRecallEntry));
@@ -113,7 +111,9 @@ bool32 __cdecl LegoRR::ObjectRecall_Save_CreateNewObjectRecall(void)
 		objectRecallGlobs.recallCapacity = objectRecallGlobs.recallNewCount;
 		return TRUE;
 	}
-	return FALSE;
+	else {
+		return FALSE;
+	}
 }
 // <LegoRR.exe @00459690>
 bool32 __cdecl LegoRR::ObjectRecall_IsLoaded(void)
@@ -145,7 +145,9 @@ bool32 __cdecl LegoRR::ObjectRecall_SaveRROSFile(const char* filename)
 		objectRecallGlobs.loaded = FALSE;
 		return TRUE;
 	}
-	return FALSE;
+	else {
+		return FALSE;
+	}
 }
 
 // <LegoRR.exe @00459730>
@@ -180,7 +182,9 @@ bool32 __cdecl LegoRR::ObjectRecall_LoadRROSFile(const char* filename)
 		Gods98::File_Close(f);
 		return TRUE;
 	}
-	return FALSE;
+	else {
+		return FALSE;
+	}
 }
 
 
