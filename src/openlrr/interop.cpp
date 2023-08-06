@@ -3923,6 +3923,41 @@ bool interop_hook_LegoRR_Reward(void)
 	return_interop(result);
 }
 
+
+bool interop_hook_LegoRR_Roof(void)
+{
+	bool result = true;
+
+	// used by: Lego_LoadMapSet
+	result &= hook_write_jmpret(0x00463060, LegoRR::Roof_Initialise);
+
+	// used by: Lego_LoadTextureSet
+	result &= hook_write_jmpret(0x00463120, LegoRR::Roof_SetTexture);
+
+	// used by: Level_Free
+	result &= hook_write_jmpret(0x00463190, LegoRR::Roof_Shutdown);
+
+	// used by: Level_Block_LowerRoofVertices
+	result &= hook_write_jmpret(0x004631e0, LegoRR::Roof_SetBlockRoofVertices);
+
+	// used by: Lego_MainLoop
+	result &= hook_write_jmpret(0x004634f0, LegoRR::Roof_Update);
+
+	// used by: Lego_LoadMapSet, Lego_MainLoop
+	result &= hook_write_jmpret(0x00463770, LegoRR::Roof_Hide);
+
+	// used by: Lego_FPHighPolyBlocks
+	result &= hook_write_jmpret(0x004637b0, LegoRR::Roof_AddVisibleBlock);
+
+	// used by: Lego_MainLoop
+	result &= hook_write_jmpret(0x00463800, LegoRR::Roof_HideAllVisibleBlocks);
+
+	// used by: Roof_Update
+	result &= hook_write_jmpret(0x00463850, LegoRR::Roof_GetBlockPlaneNormal);
+
+	return_interop(result);
+}
+
 bool interop_hook_LegoRR_SelectPlace(void)
 {
 	bool result = true;
@@ -4438,6 +4473,7 @@ bool interop_hook_all(void)
 	result &= interop_hook_LegoRR_PTL();
 	result &= interop_hook_LegoRR_RadarMap();
 	result &= interop_hook_LegoRR_Reward();
+	result &= interop_hook_LegoRR_Roof();
 	result &= interop_hook_LegoRR_SelectPlace();
 	result &= interop_hook_LegoRR_SFX();
 	result &= interop_hook_LegoRR_Smoke();

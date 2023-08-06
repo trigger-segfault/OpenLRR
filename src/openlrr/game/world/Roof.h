@@ -98,42 +98,33 @@ extern Roof_Globs& roofGlobs;
 #pragma region Functions
 
 // <LegoRR.exe @00463060>
-#define Roof_Initialise ((bool32 (__cdecl* )(Gods98::Container* contRoot, sint32 width, sint32 height))0x00463060)
-//bool32 __cdecl Roof_Initialise(Gods98::Container* contRoot, sint32 width, sint32 height);
+bool32 __cdecl Roof_Initialise(Gods98::Container* contRoot, sint32 width, sint32 height);
 
 // <LegoRR.exe @00463120>
-#define Roof_SetTexture ((bool32 (__cdecl* )(const char* filename))0x00463120)
-//bool32 __cdecl Roof_SetTexture(const char* filename);
+bool32 __cdecl Roof_SetTexture(const char* filename);
 
 // <LegoRR.exe @00463190>
-#define Roof_Shutdown ((void (__cdecl* )(void))0x00463190)
-//void __cdecl Roof_Shutdown(void);
+void __cdecl Roof_Shutdown(void);
 
 // <LegoRR.exe @004631e0>
-#define Roof_SetBlockRoofVertices ((void (__cdecl* )(uint32 bx, uint32 by, const Vector3F* vertPos0, const Vector3F* vertPos1, const Vector3F* vertPos2, const Vector3F* vertPos3))0x004631e0)
-//void __cdecl Roof_SetBlockRoofVertices(uint32 bx, uint32 by, const Vector3F* vertPos0, const Vector3F* vertPos1, const Vector3F* vertPos2, const Vector3F* vertPos3);
+void __cdecl Roof_SetBlockRoofVertices(uint32 bx, uint32 by, const Vector3F* vertPos0, const Vector3F* vertPos1, const Vector3F* vertPos2, const Vector3F* vertPos3);
 
 // <LegoRR.exe @004634f0>
-#define Roof_Update ((void (__cdecl* )(void))0x004634f0)
-//void __cdecl Roof_Update(void);
+void __cdecl Roof_Update(void);
 
 // <LegoRR.exe @00463770>
-#define Roof_Hide ((void (__cdecl* )(bool32 hide))0x00463770)
-//void __cdecl Roof_Hide(bool32 hide);
+void __cdecl Roof_Hide(bool32 hide);
 
 // I'm not actually sure if this is supposed to be "visible" blocks. But it's a
 // list of blocks that are assigned and cleared, all in a single FP update loop.
 // <LegoRR.exe @004637b0>
-#define Roof_AddVisibleBlock ((void (__cdecl* )(uint32 bx, uint32 by))0x004637b0)
-//void __cdecl Roof_AddVisibleBlock(uint32 bx, uint32 by);
+void __cdecl Roof_AddVisibleBlock(uint32 bx, uint32 by);
 
 // <LegoRR.exe @00463800>
-#define Roof_HideAllVisibleBlocks ((void (__cdecl* )(void))0x00463800)
-//void __cdecl Roof_HideAllVisibleBlocks(void);
+void __cdecl Roof_HideAllVisibleBlocks(void);
 
 // <LegoRR.exe @00463850>
-#define Roof_GetBlockPlaneNormal ((bool32 (__cdecl* )(uint32 bx, uint32 by, OUT Vector3F* normal))0x00463850)
-//bool32 __cdecl Roof_GetBlockPlaneNormal(uint32 bx, uint32 by, OUT Vector3F* normal);
+bool32 __cdecl Roof_GetBlockPlaneNormal(uint32 bx, uint32 by, OUT Vector3F* normal);
 
 #pragma endregion
 

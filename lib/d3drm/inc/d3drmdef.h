@@ -554,6 +554,7 @@ typedef struct _D3DRMVERTEX
 } D3DRMVERTEX, *LPD3DRMVERTEX;
 
 typedef LONG D3DRMGROUPINDEX; /* group indexes begin a 0 */
+static const D3DRMGROUPINDEX D3DRMGROUP_0 = 0;
 static const D3DRMGROUPINDEX D3DRMGROUP_ALLGROUPS = -1;
 
 /*
