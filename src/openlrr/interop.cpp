@@ -55,6 +55,7 @@
 #include "game/interface/Panels.h"
 #include "game/interface/Pointers.h"
 #include "game/interface/RadarMap.h"
+#include "game/interface/TextMessages.h"
 #include "game/interface/ToolTip.h"
 #include "game/mission/Messages.h"
 #include "game/mission/NERPsFile.h"
@@ -4121,6 +4122,48 @@ bool interop_hook_LegoRR_Stats(void)
 	return_interop(result);
 }
 
+bool interop_hook_LegoRR_TextMessages(void)
+{
+	bool result = true;
+
+	// used by: Lego_Initalize
+	result &= hook_write_jmpret(0x0046aab0, LegoRR::Text_Load);
+
+	// used by: Lego_Initalize
+	result &= hook_write_jmpret(0x0046ac10, LegoRR::Text_Initialise);
+
+	// used by: Text_Initalize, Text_Clear, Text_Update
+	result &= hook_write_jmpret(0x0046aca0, LegoRR::Text_UpdatePositionAndSize);
+
+	// used by: Level_Free, NERPsFile_LoadScriptFile, NERPsFile_Free
+	result &= hook_write_jmpret(0x0046ad50, LegoRR::Text_Clear);
+
+	// used by: Advisor_LoadPositions, Lego_LoadTextMessages
+	result &= hook_write_jmpret(0x0046ad90, LegoRR::Text_GetTextType);
+
+	// used by: Text_SetMessageWithImage,Lego_LoadTextMessages
+	result &= hook_write_jmpret(0x0046add0, LegoRR::Text_SetMessage);
+
+	// used by: Lego_LoadTextMessages
+	result &= hook_write_jmpret(0x0046ae70, LegoRR::Text_SetMessageWithImage);
+
+	// used by: NERPsRuntime_AdvanceMessage, NERPFunc__SetMessage
+	result &= hook_write_jmpret(0x0046aee0, LegoRR::Text_SetNERPsMessage);
+
+	// used by: Advisor_Update,AITask_LiveObject_SetAITaskUnk,Mainloop,
+	//			Lego_HandleWorld, Level_GenerateCrystal, Level_GenerateOre,
+	//			LegoObject_CompleteVehicleUpgrade, LegoObject_UnkBuildingPlaceDirection,
+	//			LegoObject_UnkBuildingPlaceDirection, Objective_Update, Priorities_TurnPriorityOff
+	result &= hook_write_jmpret(0x0046af20, LegoRR::Text_DisplayMessage);
+
+	// used by: Lego_MainLoop
+	result &= hook_write_jmpret(0x0046afc0, LegoRR::Text_Update);
+
+	return_interop(result);
+}
+
+
+
 bool interop_hook_LegoRR_ToolTip(void)
 {
 	bool result = true;
@@ -4478,6 +4521,7 @@ bool interop_hook_all(void)
 	result &= interop_hook_LegoRR_SFX();
 	result &= interop_hook_LegoRR_Smoke();
 	result &= interop_hook_LegoRR_Stats();
+	result &= interop_hook_LegoRR_TextMessages();
 	result &= interop_hook_LegoRR_ToolTip();
 	result &= interop_hook_LegoRR_Vehicle();
 	result &= interop_hook_LegoRR_Water();
