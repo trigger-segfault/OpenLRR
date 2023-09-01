@@ -1,7 +1,6 @@
 // TextMessages.cpp : 
 //
 
-#include "string.h"
 #include "TextMessages.h"
 #include "..\..\engine\drawing\TextWindow.h"
 #include "..\..\game\Game.h"
@@ -10,6 +9,7 @@
 #include "..\..\game\interface\Panels.h"
 #include "..\mission\NERPsFile.h"
 #include "..\mission\NERPsFunctions.h"
+#include "..\..\engine\core\Utils.h"
 
 
 
@@ -20,8 +20,8 @@
 
 #pragma region Globals
 
-// <LegoRR.exe @00504190>
-LegoRR::Text_Globs & LegoRR::textGlobs = *(LegoRR::Text_Globs*)0x00504190;
+ // <LegoRR.exe @00504190>
+LegoRR::Text_Globs& LegoRR::textGlobs = *(LegoRR::Text_Globs*)0x00504190;
 
 #pragma endregion
 
@@ -31,7 +31,7 @@ LegoRR::Text_Globs & LegoRR::textGlobs = *(LegoRR::Text_Globs*)0x00504190;
 
 #pragma region Functions
 
-// <LegoRR.exe @0046aab0>
+ // <LegoRR.exe @0046aab0>
 void __cdecl LegoRR::Text_Load(Gods98::TextWindow* textOnlyWindow, Gods98::TextWindow* textImageWindow, sint32 imageX, sint32 imageY, real32 pauseTime)
 {
 	// -FC, copy params to global object
@@ -42,35 +42,32 @@ void __cdecl LegoRR::Text_Load(Gods98::TextWindow* textOnlyWindow, Gods98::TextW
 	textGlobs.textCount = Text_Type_Count;
 	textGlobs.currType = Text_Type_Count;
 	// -FC, now just copy over the strings
-	const char *TextLocs[] = {
-		"Text_Walk",
-		"Text_Drill",
-		"Text_NoDrill",
-		"Text_CantDrill",
-		"Text_Reinforce",
-		"Text_NoReinforce",
-		"Text_CantReinforce",
-		"Text_PickupCrystal",
-		"Text_Encyclopedia",
-		"Text_RadarHelp",
-		"Text_BuildHelp",
-		"Text_SelectionHelp",
-		"Text_Drive",
-		"Text_CantDrive",
-		"Text_MakeTeleporter",
-		"Text_CannotPlaceBuilding",
-		"Text_CrystalOreDisabled",
-		"Text_CrystalFound",
-		"Text_CavernDiscovered",
-		"Text_OreFound",
-		"Text_AirSupplyLow",
-		"Text_AirSupplyRunningOut",
-		"Text_SpaceToContinue",
-		"Text_GameCompleted",
-		"Text_ManTrained",
-		"Text_UnitUpgraded",
-	};
-	std::copy(std::begin(TextLocs), std::end(TextLocs), std::begin(textGlobs.textName));
+	Text_RegisterName(Text_Walk);
+	Text_RegisterName(Text_Drill);
+	Text_RegisterName(Text_NoDrill);
+	Text_RegisterName(Text_CantDrill);
+	Text_RegisterName(Text_Reinforce);
+	Text_RegisterName(Text_NoReinforce);
+	Text_RegisterName(Text_CantReinforce);
+	Text_RegisterName(Text_PickupCrystal);
+	Text_RegisterName(Text_Encyclopedia);
+	Text_RegisterName(Text_RadarHelp);
+	Text_RegisterName(Text_BuildHelp);
+	Text_RegisterName(Text_SelectionHelp);
+	Text_RegisterName(Text_Drive);
+	Text_RegisterName(Text_CantDrive);
+	Text_RegisterName(Text_MakeTeleporter);
+	Text_RegisterName(Text_CannotPlaceBuilding);
+	Text_RegisterName(Text_CrystalOreDisabled);
+	Text_RegisterName(Text_CrystalFound);
+	Text_RegisterName(Text_CavernDiscovered);
+	Text_RegisterName(Text_OreFound);
+	Text_RegisterName(Text_AirSupplyLow);
+	Text_RegisterName(Text_AirSupplyRunningOut);
+	Text_RegisterName(Text_SpaceToContinue);
+	Text_RegisterName(Text_GameCompleted);
+	Text_RegisterName(Text_ManTrained);
+	Text_RegisterName(Text_UnitUpgraded);
 
 	// -FC, catch if pause time is 0 and reset back to 100
 	if (pauseTime == 0.0) {
@@ -86,7 +83,7 @@ void __cdecl LegoRR::Text_Initialise(const char* filename, uint32 x, uint32 y, u
 {
 	textGlobs.msgYPos = y;
 	textGlobs.MsgPanel_Rect1 = *msgRect;
-	textGlobs.winLowPos =	(textGlobs.MsgPanel_Rect1.y + textGlobs.MsgPanel_Rect1.height) - (float)(textGlobs.textOnlyWindow->font->fontHeight);
+	textGlobs.winLowPos = Gods98::Font_GetHeight(textGlobs.textOnlyWindow->font);
 	textGlobs.MsgPanel_Float20 = param_7; // -FC, this seems unused in this code
 	textGlobs.msgXPos = x;
 	Text_UpdatePositionAndSize();
@@ -131,19 +128,19 @@ bool32 __cdecl LegoRR::Text_GetTextType(const char* textName, OUT Text_Type* tex
 void __cdecl LegoRR::Text_SetMessage(Text_Type textType, const char* textMessage)
 {
 	// -FC, free existing memory and allocate to new string
-	if (textGlobs.textMessages[textType] != (char*)0x0) {
+	if (textGlobs.textMessages[textType] != nullptr) {
 		Gods98::Mem_Free(textGlobs.textMessages[textType]);
 	}
-	textGlobs.textMessages[textType] = (char*)Gods98::Mem_Alloc(strlen(textMessage)+1);
+	textGlobs.textMessages[textType]  = Gods98::Util_StrCpy(textMessage);
 
 	// -FC, loop throguh string removing addl \n's
 	char* LocStrPtr = textGlobs.textMessages[textType];
-	while (textMessage[0] != '\0') {
-		if (textMessage[0] == '_') {
-			LocStrPtr[0] = ' ';
+	while (*textMessage != '\0') {
+		if (*textMessage == '_') {
+			*LocStrPtr = ' ';
 		}
-		else if ((textMessage[0] == '\\') && (textMessage[1] == 'n')) {
-			LocStrPtr[0] = '\n';
+		else if ((*textMessage == '\\') && (textMessage[1] == 'n')) {
+			*LocStrPtr = '\n';
 			textMessage++;
 		}
 		else {
@@ -152,7 +149,7 @@ void __cdecl LegoRR::Text_SetMessage(Text_Type textType, const char* textMessage
 		LocStrPtr++;
 		textMessage++;
 	}
-	LocStrPtr[0] = '\0';
+	*LocStrPtr = '\0';
 
 	// -FC, finally check if the text image exists and remove it from memory
 	if (textGlobs.textImages[textType] !=  nullptr) {
@@ -168,7 +165,7 @@ void __cdecl LegoRR::Text_SetMessageWithImage(Text_Type textType, const char* me
 
 	// -FC, set text then copy over any nessary image as well
 	Text_SetMessage(textType, message);
-	std::sprintf((char*)textGlobs.textImagesSFX[textType], "%s", sfxName);
+	std::sprintf(textGlobs.textImagesSFX[textType], "%s", sfxName);
 	image = Gods98::Image_LoadBMPScaled(filename, 0, 0);
 	textGlobs.textImages[textType] = image;
 	if (image != nullptr) {
@@ -179,8 +176,10 @@ void __cdecl LegoRR::Text_SetMessageWithImage(Text_Type textType, const char* me
 // <LegoRR.exe @0046aee0>
 void __cdecl LegoRR::Text_SetNERPsMessage(const char* text, uint32 unusedCounter)
 {
-	textGlobs.currText = (char*)text;
+	textGlobs.currText = text;
+	// See Text_Update for description on jankCounter.
 	if (unusedCounter == 0) {
+		// Disable counter, otherwise the value is the number of ticks to countdown from.
 		unusedCounter = 0x8000;
 	}
 	textGlobs.jankCounter = unusedCounter | 0x10000;
@@ -192,7 +191,7 @@ void __cdecl LegoRR::Text_SetNERPsMessage(const char* text, uint32 unusedCounter
 void __cdecl LegoRR::Text_DisplayMessage(Text_Type textType, bool32 changeTiming, bool32 setFlagFlashing)
 {
 
-	if (changeTiming == 0) {
+	if (!changeTiming) {
 		if (textGlobs.flashTimer <= 0.0) {
 			textGlobs.currType = textType;
 		}
@@ -203,9 +202,10 @@ void __cdecl LegoRR::Text_DisplayMessage(Text_Type textType, bool32 changeTiming
 	}
 
 	// -FC, if tutorial flags off grab the normal text/image
-	if ((TutorialFlags)NERPFunc__GetTutorialFlags(nullptr) == TUTORIAL_FLAG_NONE) {
-		if (SFX_GetType((char*)textGlobs.textImagesSFX[textType], (SFX_ID*)&changeTiming) != 0) {
-			SFX_Random_SetAndPlayGlobalSample((SFX_ID)changeTiming, nullptr);
+	if (!NERPs_AnyTutorialFlags()) {
+		SFX_ID locSFXid = (SFX_ID)changeTiming;
+		if (SFX_GetType(textGlobs.textImagesSFX[textType], &locSFXid)) {
+			SFX_Random_SetAndPlayGlobalSample(locSFXid, nullptr);
 		}
 	}
 
@@ -242,11 +242,11 @@ void __cdecl LegoRR::Text_Update(real32 elapsedAbs)
 			}
 			// -FC, check format and see if its flashing
 			if (format != nullptr) {
-				int isFlashing = 1;
-				if ((textGlobs.TextPanelFlags & TEXT_GLOB_FLAG_FLASHING) != 0) {
-					isFlashing = interfaceGlobs.flashingState; // -FC this was a function but it just grabs this one var
+				bool isFlashing = true;
+				if (textGlobs.TextPanelFlags & TEXT_GLOB_FLAG_FLASHING) {
+					isFlashing = Interface_GetFlashingState();
 				}
-				if (isFlashing != 0) {
+				if (isFlashing) {
 					TextWindow_PrintFOverlay(locTextWindow, TRUE, format);
 				}
 			}
@@ -254,7 +254,7 @@ void __cdecl LegoRR::Text_Update(real32 elapsedAbs)
 			if (textGlobs.flashTimer <= 0.0) {
 				textGlobs.currType = Text_Type_Count;
 			}
-			textGlobs.flashTimer = textGlobs.flashTimer - elapsedAbs;
+			textGlobs.flashTimer -= elapsedAbs;
 		}
 	}
 	else if (textGlobs.currText == nullptr) {
@@ -264,13 +264,20 @@ void __cdecl LegoRR::Text_Update(real32 elapsedAbs)
 		// -FC, parse new nerps message to the main text box
 		char strBuff[512];
 		NERPs_Level_NERPMessage_Parse(textGlobs.currText, strBuff, FALSE);
-		TextWindow_PrintFOverlay(textGlobs.textOnlyWindow, 0, strBuff);
+		TextWindow_PrintFOverlay(textGlobs.textOnlyWindow, FALSE, strBuff);
+		// THE JANK COUNTER:
+		//   bits 0-14 : Counter value.
+		//   bit    15 : Counter decrement disabled flag.
+		//   bit    16 : When counter value is decremented past zero, switches to bit 15 flag.
+		//               Bit 16 is ALWAYS set with the counter value (or bit 15 flag when counter == 0).
+		// From how this counter field is used. The decrement operation and counter value
+		// CHANGES ABSOLUTELY NOTHING.
 		if ((textGlobs.jankCounter & 0x8000) == 0) {
 			textGlobs.jankCounter = textGlobs.jankCounter - 1;
 		}
 	}
 
-	if (((legoGlobs.flags1 & GAME1_FREEZEINTERFACE) != GAME1_NONE) && (locCurrType != Text_SpaceToContinue)) {
+	if ((legoGlobs.flags1 & GAME1_FREEZEINTERFACE) && (locCurrType != Text_SpaceToContinue)) {
 		Text_UpdatePositionAndSize();
 		Panel_SetPosition(Panel_Messages, textGlobs.msgXPos, textGlobs.winFontHeightOffs);
 		Panel_Draw(Panel_Messages, 0.0);
@@ -296,15 +303,16 @@ void __cdecl LegoRR::Text_Update(real32 elapsedAbs)
 	Panel_AirMeter_DrawOxygenLow(Panel_Messages);
 
 	int locWinLowPoint;
-	if (TextWindow_Update(textGlobs.textOnlyWindow, 0, elapsedAbs, &locWinLowPoint) == 0) {
-		if ((textGlobs.TextPanelFlags & TEXT_GLOB_FLAG_NERPSMSG) != 0) {
+	if (!TextWindow_Update(textGlobs.textOnlyWindow, 0, elapsedAbs, &locWinLowPoint)) {
+		if (textGlobs.TextPanelFlags & TEXT_GLOB_FLAG_NERPSMSG) {
 			if (textGlobs.winLowPos <= (float)locWinLowPoint) {
 				textGlobs.TextPanelFlags &= ~TEXT_GLOB_FLAG_NERPSMSG;
 				return;
 			}
-			textGlobs.winFontHeightOffs = textGlobs.textOnlyWindow->font->fontHeight + textGlobs.winFontHeightOffs;
-			textGlobs.MsgPanel_Rect2.y = textGlobs.textOnlyWindow->font->fontHeight + textGlobs.MsgPanel_Rect2.y;
-			textGlobs.MsgPanel_Rect2.height = textGlobs.MsgPanel_Rect2.height - textGlobs.textOnlyWindow->font->fontHeight;
+			real32 fontHeight = (real32)Gods98::Font_GetHeight(textGlobs.textOnlyWindow->font);
+			textGlobs.winFontHeightOffs += fontHeight;
+			textGlobs.MsgPanel_Rect2.y += fontHeight;
+			textGlobs.MsgPanel_Rect2.height -= fontHeight;
 			TextWindow_ChangePosition(textGlobs.textOnlyWindow, textGlobs.MsgPanel_Rect2.x, textGlobs.MsgPanel_Rect2.y);
 			TextWindow_ChangeSize(textGlobs.textOnlyWindow, textGlobs.MsgPanel_Rect2.width, textGlobs.MsgPanel_Rect2.height);
 
@@ -321,9 +329,10 @@ void __cdecl LegoRR::Text_Update(real32 elapsedAbs)
 	}
 
 	// -FC, if nothing else has returned, clear the nerps flag and update the output window
-	textGlobs.winFontHeightOffs = textGlobs.winFontHeightOffs - textGlobs.textOnlyWindow->font->fontHeight;
-	textGlobs.MsgPanel_Rect2.y = textGlobs.MsgPanel_Rect2.y - textGlobs.textOnlyWindow->font->fontHeight;
-	textGlobs.MsgPanel_Rect2.height = textGlobs.textOnlyWindow->font->fontHeight + textGlobs.MsgPanel_Rect2.height;
+	real32 fontHeight = (real32)Gods98::Font_GetHeight(textGlobs.textOnlyWindow->font);
+	textGlobs.winFontHeightOffs -= fontHeight;
+	textGlobs.MsgPanel_Rect2.y -= fontHeight;
+	textGlobs.MsgPanel_Rect2.height += fontHeight;
 	TextWindow_ChangePosition(textGlobs.textOnlyWindow, textGlobs.MsgPanel_Rect2.x, textGlobs.MsgPanel_Rect2.y);
 	TextWindow_ChangeSize(textGlobs.textOnlyWindow, textGlobs.MsgPanel_Rect2.width, textGlobs.MsgPanel_Rect2.height);
 	textGlobs.TextPanelFlags &= ~TEXT_GLOB_FLAG_NERPSMSG;
