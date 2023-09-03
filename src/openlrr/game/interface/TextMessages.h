@@ -17,17 +17,17 @@ namespace LegoRR
 
 #pragma endregion
 
-/**********************************************************************************
- ******** Constants
- **********************************************************************************/
+ /**********************************************************************************
+  ******** Constants
+  **********************************************************************************/
 
 #pragma region Constants
 
 #pragma endregion
 
-/**********************************************************************************
- ******** Enumerations
- **********************************************************************************/
+  /**********************************************************************************
+   ******** Enumerations
+   **********************************************************************************/
 
 #pragma region Enums
 
@@ -56,12 +56,12 @@ struct Text_Globs // [LegoRR/Text.c|struct:0x4dc|tags:GLOBS]
 	/*478,4*/	Text_Type currType;
 	/*47c,4*/	uint32 textCount;
 	/*480,4*/	uint32 jankCounter; // THE JANK COUNTER: (previously named textFlags)
-	                                //  bits 0-14 : Counter value.
-								    //  bit    15 : Counter decrement disabled flag.
-								    //  bit    16 : When counter value is decremented past zero, switches to bit 15 flag.
-								    //              Bit 16 is ALWAYS set with the counter value (or bit 15 flag when counter == 0).
-								    // From how this counter field is used. The decrement operation and counter value CHANGES ABSOLUTELY NOTHING.
-	/*484,4*/	char* currText; // Pointer to NERPsMessage raw text
+									//  bits 0-14 : Counter value.
+									//  bit    15 : Counter decrement disabled flag.
+									//  bit    16 : When counter value is decremented past zero, switches to bit 15 flag.
+									//              Bit 16 is ALWAYS set with the counter value (or bit 15 flag when counter == 0).
+									// From how this counter field is used. The decrement operation and counter value CHANGES ABSOLUTELY NOTHING.
+	/*484,4*/	const char* currText; // Pointer to NERPsMessage raw text
 	/*488,4*/	real32 flashTimer;
 	/*48c,4*/	Gods98::TextWindow* textOnlyWindow;
 	/*490,4*/	Gods98::TextWindow* textImageWindow; // Same as textOnlyWindow, but used instead when there's an image.
@@ -88,7 +88,7 @@ assert_sizeof(Text_Globs, 0x4dc);
 
 #pragma region Globals
 
-// <LegoRR.exe @00504190>
+ // <LegoRR.exe @00504190>
 extern Text_Globs & textGlobs;
 
 #pragma endregion
@@ -103,13 +103,13 @@ extern Text_Globs & textGlobs;
 
 #pragma endregion
 
-/**********************************************************************************
- ******** Functions
- **********************************************************************************/
+ /**********************************************************************************
+  ******** Functions
+  **********************************************************************************/
 
 #pragma region Functions
 
-// <LegoRR.exe @0046aab0>
+  // <LegoRR.exe @0046aab0>
 void __cdecl Text_Load(Gods98::TextWindow* textOnlyWindow, Gods98::TextWindow* textImageWindow, sint32 imageX, sint32 imageY, real32 pauseTime);
 
 // <LegoRR.exe @0046ac10>
