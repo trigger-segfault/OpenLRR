@@ -23,6 +23,9 @@ namespace LegoRR
 
 #pragma region Constants
 
+#define MAX_PRIO 0x50
+#define PRIO_INC 5
+
 #pragma endregion
 
 /**********************************************************************************
@@ -76,10 +79,10 @@ assert_sizeof(Priorities_Globs, 0x4c0);
 #pragma region Globals
 
 // <LegoRR.exe @004a9ee8>
-extern AI_Priority & s_PriorityList_Type;
+extern uint32 & s_PriorityList_Index;
 
 // <LegoRR.exe @004a9eec>
-extern const char* (& s_PriorityList_Name);
+extern LegoRR::AI_Priority (& s_PriorityList_Type);
 
 // <LegoRR.exe @00501f00>
 extern Priorities_Globs & prioritiesGlobs;
@@ -102,62 +105,48 @@ extern Priorities_Globs & prioritiesGlobs;
 
 // USAGE: <PriorityType>    <LangName>[|LangSFX]:<NormalImage>:<Pressedmage>:<OffImage>
 // <LegoRR.exe @0045d080>
-#define Priorities_LoadImages ((void (__cdecl* )(const Gods98::Config* config, const char* gameName))0x0045d080)
-//void __cdecl Priorities_LoadImages(const Gods98::Config* config, const char* gameName);
+void __cdecl Priorities_LoadImages(const Gods98::Config* config, const char* gameName);
 
 // <LegoRR.exe @0045d1c0>
-#define Priorities_Reset ((void (__cdecl* )(void))0x0045d1c0)
-//void __cdecl Priorities_Reset(void);
+void __cdecl Priorities_Reset(void);
 
 // <LegoRR.exe @0045d210>
-#define Priorities_LoadLevel ((bool32 (__cdecl* )(const Gods98::Config* config, const char* gameName, const char* levelName))0x0045d210)
-//bool32 __cdecl Priorities_LoadLevel(const Gods98::Config* config, const char* gameName, const char* levelName);
+bool32 __cdecl Priorities_LoadLevel(const Gods98::Config* config, const char* gameName, const char* levelName);
 
 // <LegoRR.exe @0045d320>
-#define Priorities_LoadPositions ((void (__cdecl* )(const Gods98::Config* config, const char* gameName))0x0045d320)
-//void __cdecl Priorities_LoadPositions(const Gods98::Config* config, const char* gameName);
+void __cdecl Priorities_LoadPositions(const Gods98::Config* config, const char* gameName);
 
 // <LegoRR.exe @0045d3d0>
-#define Priorities_HandleInput ((bool32 (__cdecl* )(uint32 mouseX, uint32 mouseY, bool32 leftButton, bool32 leftButtonLast, bool32 leftReleased))0x0045d3d0)
-//bool32 __cdecl Priorities_HandleInput(uint32 mouseX, uint32 mouseY, bool32 leftButton, bool32 leftButtonLast, bool32 leftReleased);
+bool32 __cdecl Priorities_HandleInput(uint32 mouseX, uint32 mouseY, bool32 leftButton, bool32 leftButtonLast, bool32 leftReleased);
 
 // <LegoRR.exe @0045d5c0>
-#define Priorities_ChangePriorityPressed ((bool32 (__cdecl* )(uint32 orderIndex, bool32 leftButton, bool32 leftButtonLast))0x0045d5c0)
-//bool32 __cdecl Priorities_ChangePriorityPressed(uint32 orderIndex, bool32 leftButton, bool32 leftButtonLast);
+bool32 __cdecl Priorities_ChangePriorityPressed(uint32 orderIndex, bool32 leftButton, bool32 leftButtonLast);
 
 // Sets the area used to draw a green rectangle around the current moused-over priority.
 // Hover is only drawn when PRIORITIES_GLOB_FLAG_HOVER flag is set.
 // <LegoRR.exe @0045d630>
-#define Priorities_SetHoverArea ((void (__cdecl* )(const Point2F* point, uint32 widthM1, uint32 heightM1))0x0045d630)
-//void __cdecl Priorities_SetHoverArea(const Point2F* point, uint32 widthM1, uint32 heightM1);
+void __cdecl Priorities_SetHoverArea(const Point2F* point, uint32 widthM1, uint32 heightM1);
 
 // <LegoRR.exe @0045d680>
-#define Priorities_MovePriorityUpOrTop ((void (__cdecl* )(uint32 orderIndex))0x0045d680)
-//void __cdecl Priorities_MovePriorityUpOrTop(uint32 orderIndex);
+void __cdecl Priorities_MovePriorityUpOrTop(uint32 orderIndex);
 
 // <LegoRR.exe @0045d6b0>
-#define Priorities_MovePriorityTop ((void (__cdecl* )(uint32 orderIndex))0x0045d6b0)
-//void __cdecl Priorities_MovePriorityTop(uint32 orderIndex);
+void __cdecl Priorities_MovePriorityTop(uint32 orderIndex);
 
 // <LegoRR.exe @0045d730>
-#define Priorities_MovePriorityUp ((void (__cdecl* )(uint32 orderIndex))0x0045d730)
-//void __cdecl Priorities_MovePriorityUp(uint32 orderIndex);
+void __cdecl Priorities_MovePriorityUp(uint32 orderIndex);
 
 // <LegoRR.exe @0045d7b0>
-#define Priorities_TurnPriorityOff ((void (__cdecl* )(uint32 orderIndex))0x0045d7b0)
-//void __cdecl Priorities_TurnPriorityOff(uint32 orderIndex);
+void __cdecl Priorities_TurnPriorityOff(uint32 orderIndex);
 
 // <LegoRR.exe @0045d810>
-#define Priorities_MoveCursorToPriorityUpButton ((void (__cdecl* )(uint32 orderIndex))0x0045d810)
-//void __cdecl Priorities_MoveCursorToPriorityUpButton(uint32 orderIndex);
+void __cdecl Priorities_MoveCursorToPriorityUpButton(uint32 orderIndex);
 
 // <LegoRR.exe @0045d900>
-#define Priorities_MoveCursorToPriorityImage ((void (__cdecl* )(uint32 orderIndex))0x0045d900)
-//void __cdecl Priorities_MoveCursorToPriorityImage(uint32 orderIndex);
+void __cdecl Priorities_MoveCursorToPriorityImage(uint32 orderIndex);
 
 // <LegoRR.exe @0045d990>
-#define Priorities_Draw ((void (__cdecl* )(void))0x0045d990)
-//void __cdecl Priorities_Draw(void);
+void __cdecl Priorities_Draw(void);
 
 #pragma endregion
 

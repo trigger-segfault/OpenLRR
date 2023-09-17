@@ -54,6 +54,7 @@
 #include "game/interface/Interface.h"
 #include "game/interface/Panels.h"
 #include "game/interface/Pointers.h"
+#include "game/interface/Priorities.h"
 #include "game/interface/RadarMap.h"
 #include "game/interface/TextMessages.h"
 #include "game/interface/ToolTip.h"
@@ -3853,6 +3854,43 @@ bool interop_hook_LegoRR_Pointers(void)
 	return_interop(result);
 }
 
+bool interop_hook_LegoRR_Priorities(void)
+{
+	bool result = true;
+
+	// used by: Lego_Initalize
+	result &= hook_write_jmpret(0x0045d080, LegoRR::Priorities_LoadImages);
+	// used by: Panel_CheckCollision
+	result &= hook_write_jmpret(0x0045d1c0, LegoRR::Priorities_Reset);
+	// used by: Lego_LoadLevel
+	result &= hook_write_jmpret(0x0045d210, LegoRR::Priorities_LoadLevel);
+	// used by: Lego_Initalize
+	result &= hook_write_jmpret(0x0045d320, LegoRR::Priorities_LoadPositions);
+	// used by: Lego_HandleWorld
+	result &= hook_write_jmpret(0x0045d3d0, LegoRR::Priorities_HandleInput);
+	// used by: Priorities_HandleInput
+	result &= hook_write_jmpret(0x0045d5c0, LegoRR::Priorities_ChangePriorityPressed);
+	// used by: Priorities_HandleInput
+	result &= hook_write_jmpret(0x0045d630, LegoRR::Priorities_SetHoverArea);
+	// used by: Priorities_HandleInput
+	result &= hook_write_jmpret(0x0045d680, LegoRR::Priorities_MovePriorityUpOrTop);
+	// used by: Priorities_MovePriorityUpOrTop
+	result &= hook_write_jmpret(0x0045d6b0, LegoRR::Priorities_MovePriorityTop);
+	// used by: Priorities_MovePriorityUpOrTop
+	result &= hook_write_jmpret(0x0045d730, LegoRR::Priorities_MovePriorityUp);
+	// used by: Panel_PriorityList_FUN_0045b8e0
+	result &= hook_write_jmpret(0x0045d7b0, LegoRR::Priorities_TurnPriorityOff);
+	// used by: Priorities_MovePriorityUp
+	result &= hook_write_jmpret(0x0045d810, LegoRR::Priorities_MoveCursorToPriorityUpButton);
+	// used by: Priorities_MoveCursorToPriorityUpButton
+	result &= hook_write_jmpret(0x0045d900, LegoRR::Priorities_MoveCursorToPriorityImage);
+	// used by: Lego_MainLoop
+	result &= hook_write_jmpret(0x0045d990, LegoRR::Priorities_Draw);
+
+	return_interop(result);
+}
+
+
 bool interop_hook_LegoRR_PTL(void)
 {
 	bool result = true;
@@ -4513,6 +4551,7 @@ bool interop_hook_all(void)
 	result &= interop_hook_LegoRR_Objective();
 	result &= interop_hook_LegoRR_ObjInfo();
 	result &= interop_hook_LegoRR_Pointers();
+	result &= interop_hook_LegoRR_Priorities();
 	result &= interop_hook_LegoRR_PTL();
 	result &= interop_hook_LegoRR_RadarMap();
 	result &= interop_hook_LegoRR_Reward();
