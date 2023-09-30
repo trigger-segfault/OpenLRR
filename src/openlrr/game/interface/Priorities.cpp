@@ -48,7 +48,7 @@ void __cdecl LegoRR::Priorities_LoadImages(const Gods98::Config* config, const c
 	char buff[512];
 	
 	const char* arrayID = Config_ID(gameName, "PriorityImages");
-	for (const Gods98::Config* prop = Config_FindArray(config, arrayID); prop != nullptr;  prop = (Gods98::Config*)Config_GetNextItem(prop)) {
+	for (const Gods98::Config* prop = Config_FindArray(config, arrayID); prop != nullptr;  prop = Config_GetNextItem(prop)) {
 		if (AIPriority_GetType(prop->itemName, &priorityType)) {
 			// -FC, grab strings and assign images for press, unpress, and disabled
 			std::strcpy(buff, Gods98::Config_GetDataString(prop));
@@ -81,10 +81,10 @@ void __cdecl LegoRR::Priorities_Reset(void)
 // <LegoRR.exe @0045d210>
 bool32 __cdecl LegoRR::Priorities_LoadLevel(const Gods98::Config* config, const char* gameName, const char* levelName)
 {
-	char* arrayID;
+	const char* arrayID;
 	const Gods98::Config* prop;
 	prioritiesGlobs.count = 0;
-	arrayID = (char*)Config_ID(gameName, levelName, "Priorities");
+	arrayID = Config_ID(gameName, levelName, "Priorities");
 	// -FC, create this instead of reusing levelName pointer 10 times
 	AI_Priority locAiPro;
 	for (prop = Config_FindArray(config, arrayID); prop != nullptr; prop = Config_GetNextItem(prop)) {
@@ -112,14 +112,13 @@ bool32 __cdecl LegoRR::Priorities_LoadLevel(const Gods98::Config* config, const 
 // <LegoRR.exe @0045d320>
 void __cdecl LegoRR::Priorities_LoadPositions(const Gods98::Config* config, const char* gameName)
 {
-	char* keyPath;
+	const char* keyPath;
 	char* parts[16];
-	char* startGameName = (char*)gameName;
 
 	for (uint32 i = 0; i < AI_Priority_Count; i++) {
 		char orderName[12]; // Max number of characters +1 that can appear in signed int32.
 		_itoa((int)i+1, orderName, 10);
-		keyPath = (char*)Config_ID(startGameName, "PrioritiesImagePositions", &orderName);
+		keyPath = Config_ID(gameName, "PrioritiesImagePositions", &orderName);
 		char* positionStr = Gods98::Config_GetStringValue(config, keyPath);
 		if (positionStr != nullptr) {
 			/// FIX APPLY: Don't pass GetTempStringValue to Util_Tokenise
@@ -235,11 +234,11 @@ void __cdecl LegoRR::Priorities_MovePriorityTop(uint32 orderIndex)
 	if (orderIndex > 0 && orderIndex < prioritiesGlobs.count) {
 		currPriorityType = prioritiesGlobs.buttonTypes[orderIndex];
 		for(index = orderIndex; index > 0; index--){
-				/* globs::prioritiesGlobs.priorityTypeTable_1[index - 1] */
-				//priorityType = (AI_Priority)prioritiesGlobs.sfxPriorityName[index + 0x1a];
-				priorityType = prioritiesGlobs.buttonTypes[index-1];
-				prioritiesGlobs.buttonTypes[index] = priorityType;
-				AITask_Game_SetPriorityValue(priorityType, MAX_PRIO + (index * -PRIO_INC));
+			/* globs::prioritiesGlobs.priorityTypeTable_1[index - 1] */
+			//priorityType = (AI_Priority)prioritiesGlobs.sfxPriorityName[index + 0x1a];
+			priorityType = prioritiesGlobs.buttonTypes[index-1];
+			prioritiesGlobs.buttonTypes[index] = priorityType;
+			AITask_Game_SetPriorityValue(priorityType, MAX_PRIO + (index * -PRIO_INC));
 		}
 		prioritiesGlobs.buttonTypes[0] = currPriorityType;
 		AITask_Game_SetPriorityValue(currPriorityType, MAX_PRIO);
@@ -252,7 +251,7 @@ void __cdecl LegoRR::Priorities_MovePriorityUp(uint32 orderIndex)
 {
 	AI_Priority currPriorityType;
 	AI_Priority prevPriorityType;
-	if (orderIndex && orderIndex < prioritiesGlobs.count) {
+	if (orderIndex > 0 && orderIndex < prioritiesGlobs.count) {
 		currPriorityType = prioritiesGlobs.buttonTypes[orderIndex];
 		prevPriorityType = prioritiesGlobs.buttonTypes[orderIndex-1];
 		/* prioritiesGlobs.priorityTypeTable_1[orderIndex - 1] */
