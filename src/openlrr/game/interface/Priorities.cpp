@@ -47,18 +47,18 @@ void __cdecl LegoRR::Priorities_LoadImages(const Gods98::Config* config, const c
 	char* stringPartsSub[10];
 	char buff[512];
 	
-	char* arrayID = (char*)Config_ID(gameName, "PriorityImages", 0);
-	for (Gods98::Config* prop = (Gods98::Config*)Config_FindArray(config, arrayID); prop != nullptr;  prop = (Gods98::Config*)Config_GetNextItem(prop)) {
+	const char* arrayID = Config_ID(gameName, "PriorityImages");
+	for (const Gods98::Config* prop = Config_FindArray(config, arrayID); prop != nullptr;  prop = (Gods98::Config*)Config_GetNextItem(prop)) {
 		if (AIPriority_GetType(prop->itemName, &priorityType)) {
 			// -FC, grab strings and assign images for press, unpress, and disabled
-			std::sprintf(buff, "%s", prop->dataString);
+			std::strcpy(buff, Gods98::Config_GetDataString(prop));
 			Gods98::Util_Tokenise(buff, stringParts, ":");
 			int numSubParts = Gods98::Util_Tokenise(stringParts[0], stringPartsSub, "|");
 			AI_Priority priorityTypeLoc = priorityType;
 			prioritiesGlobs.langPriorityName[priorityTypeLoc] = Gods98::Util_StrCpy(stringPartsSub[0]);
 
 			if (numSubParts == 2) {
-				SFX_GetType(stringPartsSub[1], prioritiesGlobs.sfxPriorityName + priorityTypeLoc);
+				SFX_GetType(stringPartsSub[1], &prioritiesGlobs.sfxPriorityName[priorityTypeLoc]);;
 			}
 
 			prioritiesGlobs.priorityImage[priorityType] =      Gods98::Image_LoadBMPScaled(stringParts[1], 0, 0);
@@ -82,25 +82,25 @@ void __cdecl LegoRR::Priorities_Reset(void)
 bool32 __cdecl LegoRR::Priorities_LoadLevel(const Gods98::Config* config, const char* gameName, const char* levelName)
 {
 	char* arrayID;
-	Gods98::Config* prop;
+	const Gods98::Config* prop;
 	prioritiesGlobs.count = 0;
-	arrayID = (char*)Config_ID(gameName, levelName, "Priorities", 0);
+	arrayID = (char*)Config_ID(gameName, levelName, "Priorities");
 	// -FC, create this instead of reusing levelName pointer 10 times
-	AI_Priority * locAiPro = (AI_Priority*)&levelName;
-	for (prop = (Gods98::Config*)Config_FindArray(config, arrayID); prop != nullptr; prop = (Gods98::Config*)Config_GetNextItem(prop)) {
-		if (AIPriority_GetType(prop->itemName, locAiPro)) {
-			prioritiesGlobs.buttonTypes[prioritiesGlobs.count] = *locAiPro;
-			prioritiesGlobs.initialTypes[prioritiesGlobs.count] = *locAiPro;
+	AI_Priority locAiPro;
+	for (prop = Config_FindArray(config, arrayID); prop != nullptr; prop = Config_GetNextItem(prop)) {
+		if (AIPriority_GetType(Gods98::Config_GetItemName(prop), &locAiPro)) {
+			prioritiesGlobs.buttonTypes[prioritiesGlobs.count] = locAiPro;
+			prioritiesGlobs.initialTypes[prioritiesGlobs.count] = locAiPro;
 			// -FC, prios start at 80 and dec by 5 each
 			prioritiesGlobs.initialValues[prioritiesGlobs.count] =	(prioritiesGlobs.count * -PRIO_INC) + MAX_PRIO;
-			AITask_Game_SetPriorityValue(*locAiPro,prioritiesGlobs.initialValues[prioritiesGlobs.count]);
-			if (Gods98::Util_GetBoolFromString(prop->dataString) == BOOL3_TRUE) {
+			AITask_Game_SetPriorityValue(locAiPro,prioritiesGlobs.initialValues[prioritiesGlobs.count]);
+			if (Gods98::Util_GetBoolFromString(Gods98::Config_GetDataString(prop)) == BOOL3_TRUE) {
 				/* Priority needs to be explicitly defined as ON in Lego.cfg */
-				AITask_Game_SetPriorityOff(*locAiPro, FALSE);
+				AITask_Game_SetPriorityOff(locAiPro, FALSE);
 				prioritiesGlobs.initialOff[prioritiesGlobs.count] = FALSE;
 			}
 			else {
-				AITask_Game_SetPriorityOff(*locAiPro, TRUE);
+				AITask_Game_SetPriorityOff(locAiPro, TRUE);
 				prioritiesGlobs.initialOff[prioritiesGlobs.count] = TRUE;
 			}
 			prioritiesGlobs.count++;
@@ -108,26 +108,25 @@ bool32 __cdecl LegoRR::Priorities_LoadLevel(const Gods98::Config* config, const 
 	}
 	return TRUE;
 }
+
 // <LegoRR.exe @0045d320>
 void __cdecl LegoRR::Priorities_LoadPositions(const Gods98::Config* config, const char* gameName)
 {
 	char* keyPath;
-	char* tempPositionValue;
-	int orderIndex;
 	char* parts[16];
 	char* startGameName = (char*)gameName;
-	orderIndex = 0;
 
-	for(uint32 i = 0; i < AI_Priority_Count; i++){
-		orderIndex++;
-		_itoa(orderIndex, (char*)&gameName, 10);
-		keyPath = (char*)Config_ID(startGameName, "PrioritiesImagePositions", &gameName, 0);
-		tempPositionValue = (char*)Config_GetTempStringValue(config, keyPath);
-		if (tempPositionValue != nullptr) {
-			/* NO! BAD BAD BAD! Util_Tokenise changes the passed input value!! */
-			Gods98::Util_Tokenise(tempPositionValue, parts, ",");
+	for (uint32 i = 0; i < AI_Priority_Count; i++) {
+		char orderName[12]; // Max number of characters +1 that can appear in signed int32.
+		_itoa((int)i+1, orderName, 10);
+		keyPath = (char*)Config_ID(startGameName, "PrioritiesImagePositions", &orderName);
+		char* positionStr = Gods98::Config_GetStringValue(config, keyPath);
+		if (positionStr != nullptr) {
+			/// FIX APPLY: Don't pass GetTempStringValue to Util_Tokenise
+			Gods98::Util_Tokenise(positionStr, parts, ",");
 			prioritiesGlobs.buttonPoints[i].x = (float)std::atoi(parts[0]);
-			prioritiesGlobs.buttonPoints[i].y = std::atoi(parts[1]);
+			prioritiesGlobs.buttonPoints[i].y = (float)std::atoi(parts[1]);
+			Gods98::Mem_Free(positionStr);
 		}
 	}
 }
@@ -142,22 +141,22 @@ bool32 __cdecl LegoRR::Priorities_HandleInput(uint32 mouseX, uint32 mouseY, bool
 	uint32 hoverWidth;
 	Gods98::Image* image;
 	// -FC, if panel is closed and not sliding we can activate it
-	if (Panel_IsFullyClosed(Panel_PriorityList) == 0 && Panel_IsSliding(Panel_PriorityList) == 0) {
+	if (!Panel_IsFullyClosed(Panel_PriorityList) && !Panel_IsSliding(Panel_PriorityList)) {
 		Panel_GetPosition(Panel_PriorityList, &x3, &y3);
 		for(uint32 i = 0; i < prioritiesGlobs.count; i++){
 			image = prioritiesGlobs.priorityImage[prioritiesGlobs.buttonTypes[i]];
 			if (image != nullptr) {
 				hoverPt.x = prioritiesGlobs.buttonPoints[i].x + x3;
-				hoverPt.y = y3 + prioritiesGlobs.buttonPoints[i].y;
-				hoverHeight = image->height;
-				hoverWidth = image->width;
+				hoverPt.y = prioritiesGlobs.buttonPoints[i].y + y3;
+				hoverWidth  = Gods98::Image_GetWidth(image);
+				hoverHeight = Gods98::Image_GetHeight(image);
 				/* if (mouseX >= hoverPt.x && mouseX < (hoverPt.x + hoverHeight)) */
 				if (hoverPt.x <= mouseX &&	mouseX <= hoverWidth + hoverPt.x) {
 					/* if (mouseY >= hoverPt.y && mouseY < (hoverPt.y + hoverHeight)) */
 					if (hoverPt.y <= mouseY && mouseY <= hoverHeight + hoverPt.y) {
 						prioritiesGlobs.flags |= PRIORITIES_GLOB_FLAG_HOVER;
 						Priorities_SetHoverArea(&hoverPt, hoverWidth - 1, hoverHeight - 1);
-						if (leftButton == 0) {
+						if (!leftButton) {
 							if (s_PriorityList_Index == i && s_PriorityList_Type == prioritiesGlobs.buttonTypes[i]) {
 								ToolTip_SetContent(ToolTip_Priority, prioritiesGlobs.langPriorityName[prioritiesGlobs.buttonTypes[i]]);
 								ToolTip_Activate(ToolTip_Priority);
@@ -187,11 +186,11 @@ bool32 __cdecl LegoRR::Priorities_HandleInput(uint32 mouseX, uint32 mouseY, bool
 bool32 __cdecl LegoRR::Priorities_ChangePriorityPressed(uint32 orderIndex, bool32 leftButton, bool32 leftButtonLast)
 {
 	uint32 origPressIndex = prioritiesGlobs.pressIndex;
-	if (leftButton == 0) {
+	if (!leftButton) {
 		prioritiesGlobs.pressIndex = AI_Priority_Count;
 	}
 	else if (prioritiesGlobs.pressIndex == AI_Priority_Count) {
-		if (leftButtonLast == 0) {
+		if (!leftButtonLast) {
 			prioritiesGlobs.pressIndex = orderIndex;
 			prioritiesGlobs.flags |= PRIORITIES_GLOB_FLAG_PRESSED;
 			return orderIndex == AI_Priority_Count;
@@ -220,9 +219,8 @@ void __cdecl LegoRR::Priorities_MovePriorityUpOrTop(uint32 orderIndex)
 {
 	if (panelGlobs.flags & PANEL_GLOB_FLAG_PRIORITIES_TOP) {
 		Priorities_MovePriorityTop(orderIndex);
-		return;
 	}
-	if (panelGlobs.flags & PANEL_GLOB_FLAG_PRIORITIES_UP) {
+	else if (panelGlobs.flags & PANEL_GLOB_FLAG_PRIORITIES_UP) {
 		Priorities_MovePriorityUp(orderIndex);
 	}
 }
@@ -232,19 +230,16 @@ void __cdecl LegoRR::Priorities_MovePriorityTop(uint32 orderIndex)
 {
 	AI_Priority priorityType;
 	uint32 index;
-	int priorityValue;
 	AI_Priority currPriorityType;
 
-	if ( orderIndex && orderIndex < prioritiesGlobs.count) {
+	if (orderIndex > 0 && orderIndex < prioritiesGlobs.count) {
 		currPriorityType = prioritiesGlobs.buttonTypes[orderIndex];
-		priorityValue = MAX_PRIO;
 		for(index = orderIndex; index > 0; index--){
 				/* globs::prioritiesGlobs.priorityTypeTable_1[index - 1] */
 				//priorityType = (AI_Priority)prioritiesGlobs.sfxPriorityName[index + 0x1a];
-				priorityType = (AI_Priority)prioritiesGlobs.buttonTypes[index-1];
+				priorityType = prioritiesGlobs.buttonTypes[index-1];
 				prioritiesGlobs.buttonTypes[index] = priorityType;
-				AITask_Game_SetPriorityValue(priorityType, priorityValue + (orderIndex * -PRIO_INC));
-				priorityValue = priorityValue + PRIO_INC;
+				AITask_Game_SetPriorityValue(priorityType, MAX_PRIO + (index * -PRIO_INC));
 		}
 		prioritiesGlobs.buttonTypes[0] = currPriorityType;
 		AITask_Game_SetPriorityValue(currPriorityType, MAX_PRIO);
@@ -264,8 +259,8 @@ void __cdecl LegoRR::Priorities_MovePriorityUp(uint32 orderIndex)
 		// -FC, swap prev and current priority
 		prioritiesGlobs.buttonTypes[orderIndex] = prevPriorityType;
 		prioritiesGlobs.buttonTypes[orderIndex-1] = currPriorityType;
-		AITask_Game_SetPriorityValue (prioritiesGlobs.buttonTypes[orderIndex], (orderIndex * -PRIO_INC) + MAX_PRIO);
-		AITask_Game_SetPriorityValue((AI_Priority)currPriorityType, (orderIndex * -PRIO_INC) + (MAX_PRIO+PRIO_INC));
+		AITask_Game_SetPriorityValue(prioritiesGlobs.buttonTypes[orderIndex], (orderIndex * -PRIO_INC) + MAX_PRIO);
+		AITask_Game_SetPriorityValue(prioritiesGlobs.buttonTypes[orderIndex-1], ((orderIndex - 1) * -PRIO_INC) + MAX_PRIO);
 		Priorities_MoveCursorToPriorityUpButton(orderIndex - 1);
 	}
 	Lego_SetPointerSFX(PointerSFX_Okay);
@@ -278,14 +273,14 @@ void __cdecl LegoRR::Priorities_TurnPriorityOff(uint32 orderIndex)
 
 	if (orderIndex < prioritiesGlobs.count) {
 		isOff = AITask_Game_IsPriorityOff(prioritiesGlobs.buttonTypes[orderIndex]);
-		AITask_Game_SetPriorityOff(prioritiesGlobs.buttonTypes[orderIndex], isOff == 0);
+		AITask_Game_SetPriorityOff(prioritiesGlobs.buttonTypes[orderIndex], !isOff);
 		/* Hardcoded handling to warn player about turning off things they don't know
 		   anything about.
 
-		   if (isOff && priorityType == AI_Priority_Crystal || priorityType ==
+		   if (!isOff && priorityType == AI_Priority_Crystal || priorityType ==
 		   AI_Priority_Ore) */
-		// -FC, default is to tell the user this when its off but in future maybe better to tell user before they turn off
-		if (isOff && (prioritiesGlobs.buttonTypes[orderIndex] == AI_Priority_Crystal || prioritiesGlobs.buttonTypes[orderIndex] == AI_Priority_Ore )) {
+		// -FC, decomp comment fixed above !isOff is the correct logic
+		if (!isOff && (prioritiesGlobs.buttonTypes[orderIndex] == AI_Priority_Crystal || prioritiesGlobs.buttonTypes[orderIndex] == AI_Priority_Ore)) {
 			Text_DisplayMessage(Text_CrystalOreDisabled, TRUE, FALSE);
 		}
 	}
@@ -334,7 +329,9 @@ void __cdecl LegoRR::Priorities_MoveCursorToPriorityUpButton(uint32 orderIndex)
 	// -FC, grab the button area and force the cursor to the next button img
 	Panel_GetPosition(Panel_PriorityList, &x3, &y3);
 	Panel_Button_GetArea(Panel_PriorityList, buttonType, &buttonArea);
-	Gods98::Input_SetCursorPos(buttonArea.width * 0.5f + buttonArea.x + x3, buttonArea.height * 0.5f + buttonArea.y + y3);
+	sint32 x = (sint32)(x3 + buttonArea.x + buttonArea.width  * 0.5f);
+	sint32 y = (sint32)(y3 + buttonArea.y + buttonArea.height * 0.5f);
+	Gods98::Input_SetCursorPos(x, y);
 }
 
 // <LegoRR.exe @0045d900>
@@ -352,10 +349,9 @@ void __cdecl LegoRR::Priorities_MoveCursorToPriorityImage(uint32 orderIndex)
 	if (prioritiesGlobs.priorityImage[priorityType] != nullptr) {
 		Panel_GetPosition(Panel_PriorityList, &x3, &y3);
 		priorityImage = prioritiesGlobs.priorityImage[priorityType];
-		centerSize = priorityImage->height >> 1;
-		y = prioritiesGlobs.buttonPoints[orderIndex].y + y3 + (float)centerSize;
-		centerSize = priorityImage->width >> 1;
-		x = prioritiesGlobs.buttonPoints[orderIndex].x + x3 +(float)centerSize;
+		const Point2F buttonPoint = prioritiesGlobs.buttonPoints[orderIndex];
+		x = (sint32)(buttonPoint.x + x3 + (Gods98::Image_GetWidth(priorityImage)  / 2));
+		y = (sint32)(buttonPoint.y + y3 + (Gods98::Image_GetHeight(priorityImage) / 2));
 		Gods98::Input_SetCursorPos(x, y);
 	}
 }
@@ -369,27 +365,27 @@ void __cdecl LegoRR::Priorities_Draw(void)
 	float y3;
 	AI_Priority priorityType;
 
-	if (Panel_IsFullyClosed(Panel_PriorityList) == 0) {
+	if (!Panel_IsFullyClosed(Panel_PriorityList)) {
 		Panel_GetPosition(Panel_PriorityList, &x3, &y3);
 		for(uint32 i = 0; i < prioritiesGlobs.count; i++){
-				destPos.x = prioritiesGlobs.buttonPoints[i].x + x3;
-				destPos.y = y3 + prioritiesGlobs.buttonPoints[i].y;
-				priorityType = prioritiesGlobs.buttonTypes[i];
-				if (AITask_Game_IsPriorityOff(priorityType) == 0) {
-					if (((prioritiesGlobs.flags & PRIORITIES_GLOB_FLAG_PRESSED) ==  PRIORITIES_GLOB_FLAG_NONE) || prioritiesGlobs.pressIndex != i) {
-						image = prioritiesGlobs.priorityImage[priorityType];
-					}
-					else {
-						image = prioritiesGlobs.priorityPressImage[priorityType];
-					}
+			destPos.x = prioritiesGlobs.buttonPoints[i].x + x3;
+			destPos.y = prioritiesGlobs.buttonPoints[i].y + y3;
+			priorityType = prioritiesGlobs.buttonTypes[i];
+			if (!AITask_Game_IsPriorityOff(priorityType)) {
+				if (!(prioritiesGlobs.flags & PRIORITIES_GLOB_FLAG_PRESSED) || prioritiesGlobs.pressIndex != i) {
+					image = prioritiesGlobs.priorityImage[priorityType];
 				}
 				else {
-					image = prioritiesGlobs.priorityOffImage[priorityType];
-				}
-				if (image != nullptr) {
-					Image_DisplayScaled(image, nullptr, &destPos, nullptr);
+					image = prioritiesGlobs.priorityPressImage[priorityType];
 				}
 			}
+			else {
+				image = prioritiesGlobs.priorityOffImage[priorityType];
+			}
+			if (image != nullptr) {
+				Image_DisplayScaled(image, nullptr, &destPos, nullptr);
+			}
+		}
 		/* Hover and pressed flags are handled/assigned every tick, rather than updated
 		   as needed. */
 		if (prioritiesGlobs.flags & PRIORITIES_GLOB_FLAG_HOVER) {

@@ -23,7 +23,7 @@ namespace LegoRR
 
 #pragma region Constants
 
-#define MAX_PRIO 0x50
+#define MAX_PRIO 80
 #define PRIO_INC 5
 
 #pragma endregion
