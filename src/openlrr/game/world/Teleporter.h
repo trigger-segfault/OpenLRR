@@ -125,59 +125,47 @@ extern bool32 & g_Teleporter_BOOL_00504188;
 
 // Previously named Teleporter_Free (old name conflict with "Teleporter_RemoveAll", now Restart).
 // <LegoRR.exe @0046a630>
-#define Teleporter_RemoveAll ((void (__cdecl* )(TeleporterService* teleporter))0x0046a630)
-//void __cdecl Teleporter_RemoveAll(TeleporterService* teleporter);
+void __cdecl Teleporter_RemoveAll(TeleporterService* teleporter);
 
 // Previously named Teleporter_RemoveAll (old name conflict with "Teleporter_Free", now RemoveAll).
 // <LegoRR.exe @0046a650>
-#define Teleporter_Restart ((void (__cdecl* )(void))0x0046a650)
-//void __cdecl Teleporter_Restart(void);
+void __cdecl Teleporter_Restart(void);
 
 // DATA: SearchTeleporter_10*
 // <LegoRR.exe @0046a680>
-#define Teleporter_LiveObjectCallback_Service ((bool32 (__cdecl* )(LegoObject* liveObj, void* search))0x0046a680)
-//bool32 __cdecl Teleporter_LiveObjectCallback_Service(LegoObject* liveObj, void* search);
+bool32 __cdecl Teleporter_LiveObjectCallback_Service(LegoObject* liveObj, void* search);
 
 // Point2F is returned BY VALUE here.
 // <LegoRR.exe @0046a6e0>
-#define Teleporter_GetCameraPosition ((Point2F (__cdecl* )(void))0x0046a6e0)
-//Point2F __cdecl Teleporter_GetCameraPosition(void);
+Point2F __cdecl Teleporter_GetCameraPosition(void);
 
 // <LegoRR.exe @0046a730>
-#define Teleporter_Add ((void (__cdecl* )(TeleporterService* teleporter))0x0046a730)
-//void __cdecl Teleporter_Add(TeleporterService* teleporter);
+void __cdecl Teleporter_Add(TeleporterService* teleporter);
 
 // DATA: TeleportObjectType* (or LegoObject_TypeFlags*)
 // <LegoRR.exe @0046a750>
-#define Teleporter_LiveObjectCallback_Unk ((bool32 (__cdecl* )(LegoObject* liveObj, void* teleportObjType))0x0046a750)
-//bool32 __cdecl Teleporter_LiveObjectCallback_Unk(LegoObject* liveObj, void* teleportObjType);
+bool32 __cdecl Teleporter_LiveObjectCallback_Unk(LegoObject* liveObj, void* teleportObjType);
 
 // Returns true when all units specified by the flags have been teleported up.
 // <LegoRR.exe @0046a780>
-#define Teleporter_ServiceAll ((bool32 (__cdecl* )(LegoObject_TypeFlags teleportObjTypes))0x0046a780)
-//bool32 __cdecl Teleporter_ServiceAll(LegoObject_TypeFlags teleportObjTypes);
+bool32 __cdecl Teleporter_ServiceAll(LegoObject_TypeFlags teleportObjTypes);
 
 // <LegoRR.exe @0046a7d0>
-#define Teleporter_Start ((void (__cdecl* )(LegoObject_TypeFlags teleportObjType, uint32 modeFlags, uint32 teleportFlags))0x0046a7d0)
-//void __cdecl Teleporter_Start(LegoObject_TypeFlags teleportObjType, uint32 modeFlags, uint32 teleportFlags);
+void __cdecl Teleporter_Start(LegoObject_TypeFlags teleportObjType, uint32 modeFlags, uint32 teleportFlags);
 
 // <LegoRR.exe @0046a880>
-#define Teleporter_LiveObjectCallback_Update ((bool32 (__cdecl* )(LegoObject* liveObj, void* data_unused))0x0046a880)
-//bool32 __cdecl Teleporter_LiveObjectCallback_Update(LegoObject* liveObj, void* data_unused);
+bool32 __cdecl Teleporter_LiveObjectCallback_Update(LegoObject* liveObj, void* data_unused);
 
 // <LegoRR.exe @0046a9c0>
-#define Teleporter_UpdateService ((bool32 (__cdecl* )(TeleporterService* teleporter, real32 elapsedGame))0x0046a9c0)
-//bool32 __cdecl Teleporter_UpdateService(TeleporterService* teleporter, real32 elapsedGame);
+bool32 __cdecl Teleporter_UpdateService(TeleporterService* teleporter, real32 elapsedGame);
 
 // <LegoRR.exe @0046a9f0>
-#define Teleporter_Update ((void (__cdecl* )(real32 elapsedGame))0x0046a9f0)
-//void __cdecl Teleporter_Update(real32 elapsedGame);
+void __cdecl Teleporter_Update(real32 elapsedGame);
 
 // Returns the first object type matching the flags.
 // Only supports object types up to includeing LegoObject_OohScary.
 // <LegoRR.exe @0046aa20>
-#define Teleporter_GetServiceObjectType ((LegoObject_Type (__cdecl* )(LegoObject_TypeFlags teleportObjType))0x0046aa20)
-//LegoObject_Type __cdecl Teleporter_GetServiceObjectType(LegoObject_TypeFlags teleportObjType);
+LegoObject_Type __cdecl Teleporter_GetServiceObjectType(LegoObject_TypeFlags teleportObjType);
 
 #pragma endregion
 

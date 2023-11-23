@@ -94,6 +94,7 @@ bool interop_hook_LegoRR_SFX(void);
 bool interop_hook_LegoRR_Smoke(void);
 bool interop_hook_LegoRR_Stats(void);
 bool interop_hook_LegoRR_ToolTip(void);
+bool interop_hook_LegoRR_Teleporter(void);
 bool interop_hook_LegoRR_TextMessages(void);
 bool interop_hook_LegoRR_Vehicle(void);
 bool interop_hook_LegoRR_Water(void);

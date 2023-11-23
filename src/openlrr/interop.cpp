@@ -82,6 +82,7 @@
 #include "game/world/Fallin.h"
 #include "game/world/Roof.h"
 #include "game/world/SelectPlace.h"
+#include "game/world/Teleporter.h"
 #include "game/world/Water.h"
 #include "game/Game.h"
 
@@ -4160,6 +4161,49 @@ bool interop_hook_LegoRR_Stats(void)
 	return_interop(result);
 }
 
+bool interop_hook_LegoRR_Teleporter(void)
+{
+	bool result = true;
+
+	// used by:  Teleporter_Restart
+	result &= hook_write_jmpret(0x0046a630, LegoRR::Teleporter_RemoveAll);
+
+	// used by: Lego_LoadLevel
+	result &= hook_write_jmpret(0x0046a650, LegoRR::Teleporter_Restart);
+
+	// used by: Teleporter_Start
+	result &= hook_write_jmpret(0x0046a680, LegoRR::Teleporter_LiveObjectCallback_Service);
+
+	// used by: Teleporter_Start
+	result &= hook_write_jmpret(0x0046a6e0, LegoRR::Teleporter_GetCameraPosition);
+	
+	// used by: Teleporter_Start
+	result &= hook_write_jmpret(0x0046a730, LegoRR::Teleporter_Add);
+
+	// used by: Teleporter_ServiceAll
+	result &= hook_write_jmpret(0x0046a750, LegoRR::Teleporter_LiveObjectCallback_Unk);
+	
+	// used by: Lego_UnkTeleporterInit_FUN_0043598, NERPFunc__GetOxygenLevel, Objective_HandleKeys, Objective_Update
+	result &= hook_write_jmpret(0x0046a780, LegoRR::Teleporter_ServiceAll);
+
+	// used by: Lego_StartLevelEnding, Objective_SetStatus
+	result &= hook_write_jmpret(0x0046a7d0, LegoRR::Teleporter_Start);
+
+	// used by: Teleporter_Update
+	result &= hook_write_jmpret(0x0046a880, LegoRR::Teleporter_LiveObjectCallback_Update);
+
+	// used by: Teleporter_Update
+	result &= hook_write_jmpret(0x0046a9c0, LegoRR::Teleporter_UpdateService);
+
+	// used by: Lego_MainLoop
+	result &= hook_write_jmpret(0x0046a9f0, LegoRR::Teleporter_Update);
+	
+	// used by: Teleporter_LiveObjectCallback_Unk, Teleporter_Start
+	result &= hook_write_jmpret(0x0046aa20, LegoRR::Teleporter_GetServiceObjectType);
+
+	return_interop(result);
+}
+
 bool interop_hook_LegoRR_TextMessages(void)
 {
 	bool result = true;
@@ -4560,6 +4604,7 @@ bool interop_hook_all(void)
 	result &= interop_hook_LegoRR_SFX();
 	result &= interop_hook_LegoRR_Smoke();
 	result &= interop_hook_LegoRR_Stats();
+	result &= interop_hook_LegoRR_Teleporter();
 	result &= interop_hook_LegoRR_TextMessages();
 	result &= interop_hook_LegoRR_ToolTip();
 	result &= interop_hook_LegoRR_Vehicle();
