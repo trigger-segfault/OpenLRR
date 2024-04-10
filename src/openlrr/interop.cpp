@@ -82,6 +82,7 @@
 #include "game/world/Fallin.h"
 #include "game/world/Roof.h"
 #include "game/world/SelectPlace.h"
+#include "game/world/SpiderWeb.h"
 #include "game/world/Water.h"
 #include "game/Game.h"
 
@@ -125,7 +126,7 @@ bool interop_hook_calls_WINMM_timeGetTime(void)
 	// currently hooked, don't replace these
 	// calls in: Main_WinMain:
 	//result &= hook_write_addr(0x00477d3a + 2, &_importTimeGetTime);
-	
+
 	// timeGetTime is also called by Main_GetTime.
 	// But we can't be hooking the call that we're replacing the call with.
 
@@ -156,7 +157,7 @@ bool interop_hook_calls_WINMM_timeGetTime(void)
 bool interop_hook_CRT_rand(void)
 {
 	bool result = true;
-	
+
 	// Hook random calls, so that we can have full control over I/O.
 	//result &= hook_write_jmpret(0x0048e420, legacy::srand);
 	//result &= hook_write_jmpret(0x0048e430, legacy::rand);
@@ -272,7 +273,7 @@ bool interop_hook_Gods98_3DSound(void)
 	//result &= hook_write_jmpret(0x0047bef0, Gods98::Sound3D_Stream_FillDataBuffer);
 	//result &= hook_write_jmpret(0x0047c070, Gods98::Sound3D_Stream_CheckPosition);
 	//result &= hook_write_jmpret(0x0047c380, Gods98::Sound3D_D3DVectorEqual);
-	
+
 	// used by: Lego_Initialise, Lego_MainLoop
 	result &= hook_write_jmpret(0x0047c3c0, Gods98::Sound3D_SetRollOffFactor);
 	// used by: Lego_MainLoop
@@ -393,7 +394,7 @@ bool interop_hook_Gods98_Config(void)
 	//result &= hook_write_jmpret(0x00479580, Gods98::Config_Remove);
 
 	result &= hook_write_jmpret(0x004795a0, Gods98::Config_FindItem);
-	
+
 	// internal, no need to hook these
 	//result &= hook_write_jmpret(0x00479750, Gods98::Config_AddList);
 	return_interop(result);
@@ -1116,7 +1117,7 @@ bool interop_hook_Gods98_Main(void)
 	result &= hook_write_jmpret(0x00401b30, Gods98::noinline(Main_ProgrammerMode));
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x00401b40, Gods98::noinline(Main_GetStartLevel));
-	
+
 	// used by: Lego_Initialise, LiveObject_DrawSelectedBox,
 	//           RadarMap_Initialise, RadarMap_Draw
 	result &= hook_write_jmpret(0x00401b70, Gods98::noinline(appWidth));
@@ -1285,7 +1286,7 @@ bool interop_hook_Gods98_Mesh(void)
 	//result &= hook_write_jmpret(0x00480a60, Gods98::Mesh_ObtainFromList);
 	//result &= hook_write_jmpret(0x00480a90, Gods98::Mesh_ReturnToList);
 	//result &= hook_write_jmpret(0x00480ab0, Gods98::Mesh_AddList);
-	
+
 	// used by: Container_MakeMesh2, DamageFont.c, Smoke.c, Weapons.c
 	result &= hook_write_jmpret(0x00480b30, Gods98::Mesh_CreateOnFrame);
 	// used by: Container_Clone, Lws_Clone, Lws_LoadMesh, AnimClone_CloneLwsMesh
@@ -1502,7 +1503,7 @@ bool interop_hook_Gods98_Utils(void)
 	result &= hook_write_jmpret(0x00477770, Gods98::Util_WSTokenise);
 	result &= hook_write_jmpret(0x00477810, Gods98::Util_StrCpy);
 	result &= hook_write_jmpret(0x00477850, Gods98::Util_RemoveUnderscores);
-	result &= hook_write_jmpret(0x004778d0, (char* (__cdecl*)(char*,const char*))Gods98::Util_StrIStr); // no const ambiguity
+	result &= hook_write_jmpret(0x004778d0, (char* (__cdecl*)(char*, const char*))Gods98::Util_StrIStr); // no const ambiguity
 	result &= hook_write_jmpret(0x00477930, Gods98::Util_HashString);
 	result &= hook_write_jmpret(0x004779d0, Gods98::Util_GetBoolFromString);
 	return_interop(result);
@@ -1684,7 +1685,7 @@ bool interop_hook_LegoRR_Advisor(void)
 
 	// used by: Interface_FUN_0041c420
 	result &= hook_write_jmpret(0x00401b60, LegoRR::Advisor_IsAnimating);
-	
+
 	return_interop(result);
 }
 
@@ -1715,7 +1716,7 @@ bool interop_hook_LegoRR_AITask(void)
 
 	// used by: AITask
 	result &= hook_write_jmpret(0x00406470, LegoRR::AITask_RunThroughLists);
-	
+
 	return_interop(result);
 }
 
@@ -1755,7 +1756,7 @@ bool interop_hook_LegoRR_Bubbles(void)
 	result &= hook_write_jmpret(0x00407890, LegoRR::Bubble_Callback_DrawObjInfo);
 	// used by: Bubble_ResetObjectBubbleImage, Bubble_UpdateAndGetBubbleImage
 	result &= hook_write_jmpret(0x00407940, LegoRR::Bubble_EvaluateObjectBubbleImage);
-	
+
 	return_interop(result);
 }
 
@@ -1818,7 +1819,7 @@ bool interop_hook_LegoRR_Building(void)
 bool interop_hook_LegoRR_Collision(void)
 {
 	bool result = true;
-	
+
 	// used by: Collision_DistanceToPolyOutline
 	result &= hook_write_jmpret(0x00408900, LegoRR::Collision_DistanceToLine);
 
@@ -1831,7 +1832,7 @@ bool interop_hook_LegoRR_Collision(void)
 
 	// used by: Weapon_LegoObject_Callback_FUN_00471630
 	result &= hook_write_jmpret(0x00408b20, LegoRR::Collision_PointOnLineRay);
-	
+
 	return_interop(result);
 }
 
@@ -1968,7 +1969,7 @@ bool interop_hook_LegoRR_Creature(void)
 	//result &= hook_write_jmpret(0x, LegoRR::);
 	// used by: 
 	//result &= hook_write_jmpret(0x, LegoRR::);
-	
+
 	return_interop(result);
 }
 
@@ -1978,7 +1979,7 @@ bool interop_hook_LegoRR_Credits(void)
 
 	// used by: Front_Callback_TriggerPlayCredits
 	result &= hook_write_jmpret(0x00409ff0, LegoRR::Credits_Play);
-	
+
 	return_interop(result);
 }
 
@@ -1995,7 +1996,7 @@ bool interop_hook_LegoRR_BezierCurve(void)
 	result &= hook_write_jmpret(0x004066e0, LegoRR::BezierCurve_UpdateDistances);
 	result &= hook_write_jmpret(0x00406750, LegoRR::BezierCurve_BuildPoints);
 	result &= hook_write_jmpret(0x004067f0, LegoRR::BezierCurve_Interpolate);
-	
+
 	return_interop(result);
 }
 
@@ -2022,7 +2023,7 @@ bool interop_hook_LegoRR_DamageText(void)
 	// used by: DamageText_ShowNumber, Lego_ShowObjectToolTip,
 	//          ObjInfo_DrawHealthBar
 	result &= hook_write_jmpret(0x0040aa10, LegoRR::DamageText_CanShow);
-	
+
 	return_interop(result);
 }
 
@@ -2883,15 +2884,15 @@ bool interop_hook_LegoRR_Interface(void)
 bool interop_hook_LegoRR_LegoCamera(void)
 {
 	bool result = true;
-	
+
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x00435a50, LegoRR::Camera_Create);
-	
+
 	// used by: Lego_HandleKeys
 	// INTEROP HOOK REPLACEMENT TO ALLOW TOGGLING FREE MOVEMENT MODE.
 	result &= hook_write_jmpret(0x00435cc1, LegoRR::Camera_ToggleFreeMovement);
 	//result &= hook_write_jmpret(0x00435cc1, LegoRR::Camera_EnableFreeMovement);
-	
+
 	// used by: Lego_Shutdown_Full
 	result &= hook_write_jmpret(0x00435cf8, LegoRR::Camera_Free);
 	// used by: Lego_Initialise
@@ -2921,13 +2922,13 @@ bool interop_hook_LegoRR_LegoCamera(void)
 
 	// (unused)
 	//result &= hook_write_jmpret(0x00436b43, LegoRR::Camera_SetRotationRange);
-	
+
 	result &= hook_write_jmpret(0x00436b75, LegoRR::Camera_SetRotation);
 	result &= hook_write_jmpret(0x00436c16, LegoRR::Camera_AddRotation);
 
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x00436c3a, LegoRR::Camera_SetZoomRange);
-	
+
 	result &= hook_write_jmpret(0x00436c6c, LegoRR::Camera_SetZoom);
 	result &= hook_write_jmpret(0x00436cc7, LegoRR::Camera_AddZoom);
 
@@ -2939,10 +2940,10 @@ bool interop_hook_LegoRR_LegoCamera(void)
 
 	// (unused)
 	//result &= hook_write_jmpret(0x00436d9b, LegoRR::Camera_GetRotation);
-	
+
 	// used by: Game_UpdateTopdownCamera
 	result &= hook_write_jmpret(0x00436da9, LegoRR::Camera_Move);
-	
+
 	return_interop(result);
 }
 
@@ -3038,7 +3039,7 @@ bool interop_hook_LegoRR_MeshLOD(void)
 bool interop_hook_LegoRR_Messages(void)
 {
 	bool result = true;
-	
+
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x00451f90, LegoRR::Message_Initialise);
 
@@ -3178,10 +3179,10 @@ bool interop_hook_LegoRR_NERPsFunctions(void)
 
 	// The remaining NERPs functions can be hooked by writing to the c_nerpsFunctions array instead.
 
-	#pragma region NERPs_hook_function
-	// Also hooked directly.
+#pragma region NERPs_hook_function
+// Also hooked directly.
 	result &= NERPs_hook_function(SetGameSpeed);
-	
+
 	result &= NERPs_hook_function(GetMessagesAreUpToDate);
 	result &= NERPs_hook_function(SupressArrow);
 	result &= NERPs_hook_function(AdvanceMessage);
@@ -3254,9 +3255,9 @@ bool interop_hook_LegoRR_NERPsFunctions(void)
 	result &= NERPs_hook_function(SetTutorialPointer);
 
 	result &= NERPs_hook_function(SetTutorialBlockClicks);
-	
+
 	result &= NERPs_hook_function(SetTutorialCrystals);
-	
+
 	result &= NERPs_hook_function(SetOreAtIconPositions);
 
 	result &= NERPs_hook_function(GetMiniFigureSelected);
@@ -3269,9 +3270,9 @@ bool interop_hook_LegoRR_NERPsFunctions(void)
 
 	result &= NERPs_hook_function(AddPoweredCrystals);
 	result &= NERPs_hook_function(AddStoredOre);
-	
+
 	result &= NERPs_hook_function(GetTutorialCrystals);
-	
+
 	result &= NERPs_hook_function(GetTutorialBlockClicks);
 
 	result &= NERPs_hook_function(GetMiniFigureinGraniteGrinder);
@@ -3504,7 +3505,7 @@ bool interop_hook_LegoRR_NERPsFunctions(void)
 	result &= NERPs_hook_function(GetMonsterAtTutorial);
 
 	result &= NERPs_hook_function(True);
-	#pragma endregion
+#pragma endregion
 
 	return_interop(result);
 }
@@ -3595,7 +3596,7 @@ bool interop_hook_LegoRR_Object(void)
 	result &= hook_write_jmpret(0x00438930, LegoRR::LegoObject_FindPoweredBuildingAtBlockPos);
 	// internal, no need to hook these
 	//result &= hook_write_jmpret(0x00438970, LegoRR::LegoObject_Callback_FindPoweredBuildingAtBlockPos);
-	
+
 	// used by: 
 	//result &= hook_write_jmpret(0x, LegoRR::);
 
@@ -3624,7 +3625,7 @@ bool interop_hook_LegoRR_Object(void)
 	result &= hook_write_jmpret(0x0043c570, LegoRR::LegoObject_UpdateAllRadarSurvey);
 	// used by: LegoObject_UpdateAllRadarSurvey
 	result &= hook_write_jmpret(0x0043c5b0, LegoRR::LegoObject_Callback_UpdateRadarSurvey);
-	
+
 	// used by: LegoObject_Create, LegoObject_Callback_Update, StatsObject_Debug_ToggleSelfPowered
 	result &= hook_write_jmpret(0x0043c830, LegoRR::LegoObject_UpdatePowerConsumption);
 	// used by: AITask_FUN_00405880
@@ -3815,21 +3816,21 @@ bool interop_hook_LegoRR_Objective(void)
 bool interop_hook_LegoRR_ObjInfo(void)
 {
 	bool result = true;
-	
+
 	// used by: Bubble_DrawAllObjInfos, Bubble_Callback_DrawObjInfo
 	result &= hook_write_jmpret(0x00459dc0, LegoRR::ObjInfo_DrawHealthBar);
 	// used by: Bubble_Callback_DrawObjInfo
 	result &= hook_write_jmpret(0x0045a210, LegoRR::ObjInfo_DrawHungerImage);
 	// used by: Bubble_DrawAllObjInfos, Bubble_Callback_DrawObjInfo
 	result &= hook_write_jmpret(0x0045a290, LegoRR::ObjInfo_DrawBubbleImage);
-	
+
 	return_interop(result);
 }
 
 bool interop_hook_LegoRR_Pointers(void)
 {
 	bool result = true;
-	
+
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x0045caf0, LegoRR::Pointer_Initialise);
 	// used by: Lego_Initialise
@@ -3850,7 +3851,7 @@ bool interop_hook_LegoRR_Pointers(void)
 	result &= hook_write_jmpret(0x0045cf30, LegoRR::Pointer_DrawPointer);
 	// used by: Lego_MainLoop, Reward_LoopUpdate
 	result &= hook_write_jmpret(0x0045d050, LegoRR::Pointer_Update);
-	
+
 	return_interop(result);
 }
 
@@ -3894,31 +3895,31 @@ bool interop_hook_LegoRR_Priorities(void)
 bool interop_hook_LegoRR_PTL(void)
 {
 	bool result = true;
-	
+
 	// used by: Lego_LoadLevel
 	result &= hook_write_jmpret(0x0045daa0, LegoRR::PTL_Initialise);
 
 	// used by: Message_Update
 	result &= hook_write_jmpret(0x0045db30, LegoRR::PTL_TranslateEvent);
-	
+
 	return_interop(result);
 }
 
 bool interop_hook_LegoRR_RadarMap(void)
 {
 	bool result = true;
-	
+
 	// used by: Lego_DrawRadarMap
 	result &= hook_write_jmpret(0x0045db60, LegoRR::RadarMap_SetZoom);
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x0045db70, LegoRR::RadarMap_Initialise);
 	// used by: Lego_LoadMapSet
 	result &= hook_write_jmpret(0x0045dd50, LegoRR::RadarMap_Create);
-	
+
 	/// THIS IS A MERGED FUNCTION! DON'T HOOK!
 	// used by: Level_Free
 	//result &= hook_write_jmpret(0x0045ddb0, LegoRR::RadarMap_Free);
-	
+
 	// used by: LegoObject_Callback_UpdateRadarSurvey
 	result &= hook_write_jmpret(0x0045ddc0, LegoRR::RadarMap_DrawSurveyDotCircle);
 	// used by: Lego_DrawRadarMap
@@ -3939,14 +3940,14 @@ bool interop_hook_LegoRR_RadarMap(void)
 	result &= hook_write_jmpret(0x0045ec00, LegoRR::RadarMap_TransformRect);
 	// used by: RadarMap_Draw
 	result &= hook_write_jmpret(0x0045eca0, LegoRR::RadarMap_GetBlockColour);
-	
+
 	return_interop(result);
 }
 
 bool interop_hook_LegoRR_Reward(void)
 {
 	bool result = true;
-	
+
 	// used by: Reward_Show, Reward_DrawScore, Reward_DrawAllValues
 	result &= hook_write_jmpret(0x00461a50, LegoRR::Reward_DrawItem);
 
@@ -3958,7 +3959,7 @@ bool interop_hook_LegoRR_Reward(void)
 
 	// used by: Reward_Show
 	result &= hook_write_jmpret(0x004629c0, LegoRR::Reward_LoopUpdate);
-	
+
 	return_interop(result);
 }
 
@@ -4000,7 +4001,7 @@ bool interop_hook_LegoRR_Roof(void)
 bool interop_hook_LegoRR_SelectPlace(void)
 {
 	bool result = true;
-	
+
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x004641c0, LegoRR::SelectPlace_Create);
 	// used by: Construction_CleanupBuildingFoundation, ElectricFence_Callback_ChainBeamsFromBuilding,
@@ -4012,7 +4013,7 @@ bool interop_hook_LegoRR_SelectPlace(void)
 	// used by: Lego_Initialise, Lego_HandleKeys, Lego_HandleWorld, Lego_StopUserAction,
 	//          LegoObject_UpdateBuildingPlacement
 	result &= hook_write_jmpret(0x004649e0, LegoRR::SelectPlace_Hide);
-	
+
 	return_interop(result);
 }
 
@@ -4057,7 +4058,7 @@ bool interop_hook_LegoRR_SFX(void)
 bool interop_hook_LegoRR_Smoke(void)
 {
 	bool result = true;
-	
+
 	// used by: Lego_Initialise
 	result &= hook_write_jmpret(0x00465640, LegoRR::Smoke_Initialise);
 	result &= hook_write_jmpret(0x00465660, LegoRR::Smoke_LoadTextures);
@@ -4085,14 +4086,46 @@ bool interop_hook_LegoRR_Smoke(void)
 	//result &= hook_write_jmpret(0x004660c0, LegoRR::Smoke_Group_Update);
 	//result &= hook_write_jmpret(0x004661a0, LegoRR::Smoke_MeshRenderCallback);
 	//result &= hook_write_jmpret(0x00466200, LegoRR::Smoke_Group_MeshRenderCallback);
-	
+
+	return_interop(result);
+}
+
+bool interop_hook_LegoRR_SpiderWeb(void)
+{
+	bool result = true;
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x00466480, LegoRR::SpiderWeb_Initialise);
+	//result &= hook_write_jmpret(0x004664d0, LegoRR::SpiderWeb_Shutdown);
+
+	// used by: Lego_LoadLevel, Lego_LoadMapSet
+	result &= hook_write_jmpret(0x004664f0, LegoRR::SpiderWeb_Restart);
+
+	// used by: Lego_HandleDebugKeys
+	result &= hook_write_jmpret(0x00466510, LegoRR::SpiderWeb_SpawnAt);
+
+	// used by: Lego_LoadOLObjectList
+	result &= hook_write_jmpret(0x00466640, LegoRR::SpiderWeb_Add);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x004666b0, LegoRR::SpiderWeb_GetAngle);
+	//result &= hook_write_jmpret(0x00466750, LegoRR::SpiderWeb_CheckCollision);
+
+	// used by: Lego_MainLoop
+	result &= hook_write_jmpret(0x00466880, LegoRR::SpiderWeb_Update);
+
+	// internal, no need to hook these
+	//result &= hook_write_jmpret(0x004668a0, LegoRR::SpiderWeb_LiveObjectCallback);
+	//result &= hook_write_jmpret(0x00466a10, LegoRR::SpiderWeb_Remove);
+
+
 	return_interop(result);
 }
 
 bool interop_hook_LegoRR_Stats(void)
 {
 	bool result = true;
-	
+
 	result &= hook_write_jmpret(0x00466aa0, LegoRR::Stats_Initialise);
 	result &= hook_write_jmpret(0x00469d50, LegoRR::Stats_AddToolTaskType);
 	result &= hook_write_jmpret(0x00469d80, LegoRR::Stats_GetCostOre);
@@ -4156,7 +4189,7 @@ bool interop_hook_LegoRR_Stats(void)
 	result &= hook_write_jmpret(0x0046a5b0, LegoRR::StatsObject_GetFreezerDamage);
 	result &= hook_write_jmpret(0x0046a5d0, LegoRR::StatsObject_GetFreezerTime);
 	result &= hook_write_jmpret(0x0046a5f0, LegoRR::StatsObject_Debug_ToggleSelfPowered);
-	
+
 	return_interop(result);
 }
 
@@ -4232,7 +4265,7 @@ bool interop_hook_LegoRR_ToolTip(void)
 	result &= hook_write_jmpret(0x0046bb70, LegoRR::ToolTip_DrawBox);
 	// used by: ToolTip_Update
 	result &= hook_write_jmpret(0x0046bef0, LegoRR::ToolTip_Draw);
-	
+
 	return_interop(result);
 }
 
@@ -4300,7 +4333,7 @@ bool interop_hook_LegoRR_Vehicle(void)
 	result &= hook_write_jmpret(0x0046de20, LegoRR::Vehicle_GetCarryNullFrames);
 	// used by: LegoObject_CalculateSpeeds
 	result &= hook_write_jmpret(0x0046de30, LegoRR::Vehicle_GetTransCoef);
-	
+
 	return_interop(result);
 }
 
@@ -4334,7 +4367,7 @@ bool interop_hook_LegoRR_Water(void)
 	result &= hook_write_jmpret(0x0046ed90, LegoRR::Water_AddPoolRowBlocks);
 	// used by: Water_Initialise
 	result &= hook_write_jmpret(0x0046edf0, LegoRR::Water_AddPool);
-	
+
 	return_interop(result);
 }
 
@@ -4458,12 +4491,12 @@ bool interop_hook_all(void)
 	// First patch in merged functions and individual calls:
 	// Do this now to prevent messing up any jmpret function hooks
 	//  (that contain calls being individually hooked).
-	
-	#pragma region Merged Calls
+
+#pragma region Merged Calls
 	result &= interop_hook_calls_WINMM_timeGetTime();
 	result &= interop_hook_calls_Gods98_AnimClone();
 	result &= interop_hook_calls_Gods98_Flic();
-	#pragma endregion
+#pragma endregion
 
 
 	// Now patch in all jmpret function hooks:
@@ -4471,14 +4504,14 @@ bool interop_hook_all(void)
 
 	// Add C Runtime hooks here:
 
-	#pragma region C Runtime
+#pragma region C Runtime
 	result &= interop_hook_CRT_rand();
-	#pragma endregion
+#pragma endregion
 
 
 	// Add Engine hooks here:
 
-	#pragma region Gods98 Engine
+#pragma region Gods98 Engine
 	result &= interop_hook_Gods98_3DSound();
 	result &= interop_hook_Gods98_Animation();
 	result &= interop_hook_Gods98_AnimClone();
@@ -4511,16 +4544,16 @@ bool interop_hook_all(void)
 	result &= interop_hook_Gods98_Viewports();
 	//result &= interop_hook_Gods98_Wad(); // no need to hook, used by: Files
 	//result &= interop_hook_Gods98_Init(); // no need to hook, used by: WinMain
-	#pragma endregion
+#pragma endregion
 
 
-	// Add Game hooks here:
+// Add Game hooks here:
 
-	#pragma region LegoRR Special
+#pragma region LegoRR Special
 	result &= interop_hook_replace_LegoRR_PanelRadarMapZoom();
-	#pragma endregion
+#pragma endregion
 
-	#pragma region LegoRR Game
+#pragma region LegoRR Game
 	result &= interop_hook_LegoRR_Advisor();
 	result &= interop_hook_LegoRR_AITask();
 	result &= interop_hook_LegoRR_BezierCurve();
@@ -4559,21 +4592,22 @@ bool interop_hook_all(void)
 	result &= interop_hook_LegoRR_SelectPlace();
 	result &= interop_hook_LegoRR_SFX();
 	result &= interop_hook_LegoRR_Smoke();
+	result &= interop_hook_LegoRR_SpiderWeb();
 	result &= interop_hook_LegoRR_Stats();
 	result &= interop_hook_LegoRR_TextMessages();
 	result &= interop_hook_LegoRR_ToolTip();
 	result &= interop_hook_LegoRR_Vehicle();
 	result &= interop_hook_LegoRR_Water();
 	result &= interop_hook_LegoRR_Weapons();
-	#pragma endregion
+#pragma endregion
 
 
 
 	// Add temporary hooks used for debugging here:
 
-	#pragma region Temporary Hooks
-	// Do not commit anything in here!
-	#pragma endregion
+#pragma region Temporary Hooks
+// Do not commit anything in here!
+#pragma endregion
 
 
 	return_interop(result);

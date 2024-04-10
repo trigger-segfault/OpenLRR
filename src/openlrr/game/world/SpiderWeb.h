@@ -72,8 +72,8 @@ assert_sizeof(SpiderWeb_Globs, 0x8);
 
 #pragma region Globals
 
-// <LegoRR.exe @005530e8>
-extern SpiderWeb_Globs & spiderwebGlobs;
+ // <LegoRR.exe @005530e8>
+extern SpiderWeb_Globs& spiderwebGlobs;
 
 #pragma endregion
 
@@ -83,53 +83,62 @@ extern SpiderWeb_Globs & spiderwebGlobs;
 
 #pragma region Macros
 
+/**
+ * @brief Gets the 1D index of a level's spider web grid block at the specified 2D coordinates.
+ */
+#define spiderwebBlockIndex(bx, by)		(blockIndex(spiderwebGlobs.level, (bx), (by)))
+/**
+ * @brief Gets the level's spider web grid block at the specified 2D coordinates.
+ */
+#define spiderwebBlockValue(bx, by)		(spiderwebGlobs.webBlocks[spiderwebBlockIndex((bx),(by))])
+
 #pragma endregion
 
-/**********************************************************************************
- ******** Functions
- **********************************************************************************/
+   /**********************************************************************************
+	******** Functions
+	**********************************************************************************/
 
 #pragma region Functions
 
-// <LegoRR.exe @00466480>
-#define SpiderWeb_Initialise ((void (__cdecl* )(Lego_Level* level))0x00466480)
-//void __cdecl SpiderWeb_Initialise(Lego_Level* level);
+	// <LegoRR.exe @00466480>
+	//#define SpiderWeb_Initialise ((void (__cdecl* )(Lego_Level* level))0x00466480)
+void __cdecl SpiderWeb_Initialise(Lego_Level* level);
 
 // <LegoRR.exe @004664d0>
-#define SpiderWeb_Shutdown ((void (__cdecl* )(void))0x004664d0)
-//void __cdecl SpiderWeb_Shutdown(void);
+//#define SpiderWeb_Shutdown ((void (__cdecl* )(void))0x004664d0)
+void __cdecl SpiderWeb_Shutdown(void);
 
 // <LegoRR.exe @004664f0>
-#define SpiderWeb_Restart ((void (__cdecl* )(Lego_Level* level))0x004664f0)
-//void __cdecl SpiderWeb_Restart(Lego_Level* level);
+//#define SpiderWeb_Restart ((void (__cdecl* )(Lego_Level* level))0x004664f0)
+void __cdecl SpiderWeb_Restart(Lego_Level* level);
 
 // <LegoRR.exe @00466510>
-#define SpiderWeb_SpawnAt ((bool32 (__cdecl* )(uint32 bx, uint32 by))0x00466510)
-//bool32 __cdecl SpiderWeb_SpawnAt(uint32 bx, uint32 by);
+//#define SpiderWeb_SpawnAt ((bool32 (__cdecl* )(uint32 bx, uint32 by))0x00466510)
+bool32 __cdecl SpiderWeb_SpawnAt(uint32 bx, uint32 by);
 
 // <LegoRR.exe @00466640>
-#define SpiderWeb_Add ((void (__cdecl* )(sint32 bx, sint32 by, LegoObject* webObj))0x00466640)
-//void __cdecl SpiderWeb_Add(sint32 bx, sint32 by, LegoObject* webObj);
+//#define SpiderWeb_Add ((void (__cdecl* )(sint32 bx, sint32 by, LegoObject* webObj))0x00466640)
+void __cdecl SpiderWeb_Add(sint32 bx, sint32 by, LegoObject* webObj);
 
 // <LegoRR.exe @004666b0>
-#define SpiderWeb_GetAngle ((bool32 (__cdecl* )(sint32 bx, sint32 by, OUT real32* theta))0x004666b0)
-//bool32 __cdecl SpiderWeb_GetAngle(sint32 bx, sint32 by, OUT real32* theta);
+//#define SpiderWeb_GetAngle ((bool32 (__cdecl* )(sint32 bx, sint32 by, OUT real32* theta))0x004666b0)
+bool32 __cdecl SpiderWeb_GetAngle(sint32 bx, sint32 by, OUT real32* theta);
 
 // <LegoRR.exe @00466750>
-#define SpiderWeb_CheckCollision ((bool32 (__cdecl* )(LegoObject* liveObj))0x00466750)
-//bool32 __cdecl SpiderWeb_CheckCollision(LegoObject* liveObj);
+//#define SpiderWeb_CheckCollision ((bool32 (__cdecl* )(LegoObject* liveObj))0x00466750)
+bool32 __cdecl SpiderWeb_CheckCollision(LegoObject* liveObj);
 
 // <LegoRR.exe @00466880>
-#define SpiderWeb_Update ((bool32 (__cdecl* )(real32 elapsedGame))0x00466880)
-//bool32 __cdecl SpiderWeb_Update(real32 elapsedGame);
+//#define SpiderWeb_Update ((bool32 (__cdecl* )(real32 elapsedGame))0x00466880)
+bool32 __cdecl SpiderWeb_Update(real32 elapsedGame);
 
 // <LegoRR.exe @004668a0>
-#define SpiderWeb_LiveObjectCallback ((bool32 (__cdecl* )(LegoObject* liveObj, real32* pElapsedGame))0x004668a0)
-//bool32 __cdecl SpiderWeb_LiveObjectCallback(LegoObject* liveObj, real32* pElapsedGame);
+//#define SpiderWeb_LiveObjectCallback ((bool32 (__cdecl* )(LegoObject* liveObj, real32* pElapsedGame))0x004668a0)
+bool32 __cdecl SpiderWeb_LiveObjectCallback(LegoObject* liveObj, real32* pElapsedGame);
 
 // <LegoRR.exe @00466a10>
-#define SpiderWeb_Remove ((void (__cdecl* )(sint32 bx, sint32 by))0x00466a10)
-//void __cdecl SpiderWeb_Remove(sint32 bx, sint32 by);
+//#define SpiderWeb_Remove ((void (__cdecl* )(sint32 bx, sint32 by))0x00466a10)
+void __cdecl SpiderWeb_Remove(sint32 bx, sint32 by);
 
 #pragma endregion
 
