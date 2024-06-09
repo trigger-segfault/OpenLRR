@@ -1,7 +1,9 @@
 // ObjInfo.cpp : 
 //
 
+#include "../../../engine/core/Config.h"
 #include "../../../engine/core/Maths.h"
+#include "../../../engine/core/Utils.h"
 #include "../../../engine/drawing/Draw.h"
 
 #include "../../effects/DamageText.h"
@@ -69,19 +71,188 @@ void LegoRR::ObjInfo_TryEndDraw()
 
 
 // <LegoRR.exe @004597f0>
-//void __cdecl LegoRR::ObjInfo_Initialise(const Gods98::Config* config, const char* gameName);
+void __cdecl LegoRR::ObjInfo_Initialise(const Gods98::Config* config, const char* gameName)
+{
+	ObjInfo_LoadHealthBar(config, gameName);
+	ObjInfo_LoadHunger(config, gameName);
+	ObjInfo_LoadBubble(config, gameName);
+}
 
 // <LegoRR.exe @00459820>
-//bool32 __cdecl LegoRR::ObjInfo_LoadHealthBar(const Gods98::Config* config, const char* gameName);
+bool32 __cdecl LegoRR::ObjInfo_LoadHealthBar(const Gods98::Config* config, const char* gameName)
+{
+	char* str;
+	uint32 numParts;
+	char* stringParts[10];
+
+	str = Gods98::Config_GetStringValue(config, Config_ID(gameName, "ObjInfo", "HealthBarPosition"));
+	if (str == nullptr) {
+		return false;
+	}
+
+	numParts = Gods98::Util_Tokenise(str, stringParts, ":");
+	if (numParts == 2) {
+		objinfoGlobs.HealthBarPosition.x = (float)std::atoi(stringParts[0]);
+		objinfoGlobs.HealthBarPosition.y = (float)std::atoi(stringParts[1]);
+		Gods98::Mem_Free(str);
+
+		str = Gods98::Config_GetStringValue(config, Config_ID(gameName, "ObjInfo", "HealthBarWidthHeight"));
+		if (str == nullptr) {
+			return false;
+		}
+
+		numParts = Gods98::Util_Tokenise(str, stringParts, ":");
+		if (numParts == 2) {
+			objinfoGlobs.HealthBarWidthHeight.width = (float)std::atoi(stringParts[0]);
+			objinfoGlobs.HealthBarWidthHeight.height = (float)std::atoi(stringParts[1]);
+			Gods98::Mem_Free(str);
+
+			const char* tempStr = Gods98::Config_GetTempStringValue(config, Config_ID(gameName, "ObjInfo", "HealthBarBorderSize"));
+			if (tempStr == nullptr) {
+				tempStr = "";
+			}
+			else {
+				// Not sure why this is repeated
+				// tempStr = Gods98::Config_GetTempStringValue(config, Config_ID(gameName, "ObjInfo", "HealthBarBorderSize"));
+			}
+			objinfoGlobs.HealthBarBorderSize = std::atoi(tempStr);
+
+			float* r  = objinfoGlobs.HealthBarBorderRGB_r;
+			float* g  = objinfoGlobs.HealthBarBorderRGB_g;
+			float* b  = objinfoGlobs.HealthBarBorderRGB_b;
+			bool success = Gods98::Config_GetRGBValue(config, Config_ID(gameName, "ObjInfo", "HealthBarBorderRGB"), r, g, b);
+			if (!success) {
+				return false;
+			}
+
+			// Calculate the high/low rgb values
+			objinfoGlobs.HealthBarBorderRGB_r[1] = objinfoGlobs.HealthBarBorderRGB_r[0] + objinfoGlobs.HealthBarBorderRGB_r[1] * 0.4f;
+			objinfoGlobs.HealthBarBorderRGB_r[2] = objinfoGlobs.HealthBarBorderRGB_r[0] - objinfoGlobs.HealthBarBorderRGB_r[1] * 0.4f;
+
+			objinfoGlobs.HealthBarBorderRGB_g[1] = objinfoGlobs.HealthBarBorderRGB_g[0] + objinfoGlobs.HealthBarBorderRGB_g[1] * 0.4f;
+			objinfoGlobs.HealthBarBorderRGB_g[2] = objinfoGlobs.HealthBarBorderRGB_g[0] - objinfoGlobs.HealthBarBorderRGB_g[1] * 0.4f;
+
+			objinfoGlobs.HealthBarBorderRGB_b[1] = objinfoGlobs.HealthBarBorderRGB_b[0] + objinfoGlobs.HealthBarBorderRGB_b[1] * 0.4f;
+			objinfoGlobs.HealthBarBorderRGB_b[2] = objinfoGlobs.HealthBarBorderRGB_b[0] - objinfoGlobs.HealthBarBorderRGB_b[1] * 0.4f;
+
+			// clamp their values to 0 -> 1.0
+			for (uint32 i = 0; i < 3; i++) {
+				if (1.0 < objinfoGlobs.HealthBarBorderRGB_r[i]) {
+					objinfoGlobs.HealthBarBorderRGB_r[i] = 1.0;
+				}
+				if (1.0 < objinfoGlobs.HealthBarBorderRGB_g[i]) {
+					objinfoGlobs.HealthBarBorderRGB_g[i] = 1.0;
+				}
+				if (1.0 < objinfoGlobs.HealthBarBorderRGB_b[i]) {
+					objinfoGlobs.HealthBarBorderRGB_b[i] = 1.0;
+				}
+
+				if (objinfoGlobs.HealthBarBorderRGB_r[i] < 0) {
+					objinfoGlobs.HealthBarBorderRGB_r[i] = 0;
+				}
+				if (objinfoGlobs.HealthBarBorderRGB_g[i] < 0) {
+					objinfoGlobs.HealthBarBorderRGB_g[i] = 0;
+				}
+				if (objinfoGlobs.HealthBarBorderRGB_b[i] < 0) {
+					objinfoGlobs.HealthBarBorderRGB_b[i] = 0;
+				}
+			}
+
+			r = &objinfoGlobs.HealthBarBackgroundRGB.r;
+			g = &objinfoGlobs.HealthBarBackgroundRGB.g;
+			b = &objinfoGlobs.HealthBarBackgroundRGB.b;
+			success = Gods98::Config_GetRGBValue(config, Config_ID(gameName, "ObjInfo", "HealthBarBackgroundRGB"), r, g, b);
+			if (!success) {
+				return false;
+			}
+
+			r = &objinfoGlobs.HealthBarRGB.r;
+			g = &objinfoGlobs.HealthBarRGB.g;
+			b = &objinfoGlobs.HealthBarRGB.b;
+			success = Gods98::Config_GetRGBValue(config, Config_ID(gameName, "ObjInfo", "HealthBarRGB"), r, g, b);
+			if (!success) {
+				return false;
+			}
+
+			BoolTri verticalHealthBar = Gods98::Config_GetBoolValue(config, Config_ID(gameName, "ObjInfo", "HealthBarVertical"));
+			if (verticalHealthBar == BOOL3_TRUE) {
+				objinfoGlobs.flags |= ObjInfo_GlobFlags::OBJINFO_GLOB_FLAG_HEALTHBAR_VERTICAL;
+			}
+
+			objinfoGlobs.flags |= ObjInfo_GlobFlags::OBJINFO_GLOB_FLAG_HEALTHBAR;
+			return true;
+		}
+	}
+
+	Gods98::Mem_Free(str);
+
+	return false;
+}
+
 
 // <LegoRR.exe @00459bc0>
-//bool32 __cdecl LegoRR::ObjInfo_LoadHunger(const Gods98::Config* config, const char* gameName);
+bool32 __cdecl LegoRR::ObjInfo_LoadHunger(const Gods98::Config* config, const char* gameName)
+{
+	char* stringParts[10];
+
+	ObjInfo_LoadHungerImages(config, gameName);
+	char* str = Gods98::Config_GetStringValue(config, Config_ID(gameName, "ObjInfo", "HungerImagesPosition"));
+	if (str != nullptr) {
+		uint32 numParts = Gods98::Util_Tokenise(str, stringParts, ":");
+		if (numParts == 2) {
+			objinfoGlobs.HungerPosition.x = (float)std::atoi(stringParts[0]);
+			objinfoGlobs.HungerPosition.y = (float)std::atoi(stringParts[1]);
+			Gods98::Mem_Free(str);
+			objinfoGlobs.flags|= OBJINFO_GLOB_FLAG_HUNGERIMAGES;
+			return true;
+		}
+		Gods98::Mem_Free(str);
+	}
+
+	return false;
+}
 
 // <LegoRR.exe @00459c80>
-//void __cdecl LegoRR::ObjInfo_LoadHungerImages(const Gods98::Config* config, const char* gameName);
+void __cdecl LegoRR::ObjInfo_LoadHungerImages(const Gods98::Config* config, const char* gameName)
+{
+	char buffer[64];
+
+	for (uint32 i=0; i < OBJINFO_HUNGERIMAGECOUNT; i++) {
+		std::sprintf(&buffer[0], "HungerImage%i", i);
+
+		const char* str = Gods98::Config_GetTempStringValue(config, Config_ID(gameName, "ObjInfo", "HungerImages", &buffer[0]));
+
+		uint32 width = 0;
+		uint32 height = 0;
+		Gods98::Image* image = Gods98::Image_LoadBMPScaled(str, width, height);
+		objinfoGlobs.HungerImages[i] = image;
+
+		if (image != nullptr) {
+			Gods98::Image_SetupTrans(image, 0, 0, 0, 0, 0, 0);
+		}
+	}
+}
 
 // <LegoRR.exe @00459d10>
-//bool32 __cdecl LegoRR::ObjInfo_LoadBubble(const Gods98::Config* config, const char* gameName);
+bool32 __cdecl LegoRR::ObjInfo_LoadBubble(const Gods98::Config* config, const char* gameName)
+{
+	char* stringParts[10];
+
+	char* str = Gods98::Config_GetStringValue(config, Config_ID(gameName, "ObjInfo", "BubbleImagesPosition"));
+	if (str != nullptr) {
+		int numParts = Gods98::Util_Tokenise(str, stringParts, ":");
+		if (numParts == 2) {
+			objinfoGlobs.BubblePosition.x = (float)std::atoi(stringParts[0]);
+			objinfoGlobs.BubblePosition.y = (float)std::atoi(stringParts[1]);
+			Gods98::Mem_Free(str);
+			objinfoGlobs.flags|= OBJINFO_GLOB_FLAG_BUBBLEIMAGES;
+			return true;
+		}
+		Gods98::Mem_Free(str);
+	}
+
+	return false;
+}
 
 // DRAW MODE: Only Draw API drawing calls can be used within this function.
 // <LegoRR.exe @00459dc0>

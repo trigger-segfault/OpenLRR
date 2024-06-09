@@ -3815,7 +3815,17 @@ bool interop_hook_LegoRR_Objective(void)
 bool interop_hook_LegoRR_ObjInfo(void)
 {
 	bool result = true;
-	
+
+	// used by: Lego_Initialise
+	result &= hook_write_jmpret(0x004597f0, LegoRR::ObjInfo_Initialise);
+	// used by: ObjInfo_Initialise
+	result &= hook_write_jmpret(0x00459820, LegoRR::ObjInfo_LoadHealthBar);
+	// used by: ObjInfo_Initialise
+	result &= hook_write_jmpret(0x00459bc0, LegoRR::ObjInfo_LoadHunger);
+	// used by: ObjInfo_LoadHunger
+	result &= hook_write_jmpret(0x00459c80, LegoRR::ObjInfo_LoadHungerImages);
+	// used by: ObjInfo_Initialise
+	result &= hook_write_jmpret(0x00459d10, LegoRR::ObjInfo_LoadBubble);
 	// used by: Bubble_DrawAllObjInfos, Bubble_Callback_DrawObjInfo
 	result &= hook_write_jmpret(0x00459dc0, LegoRR::ObjInfo_DrawHealthBar);
 	// used by: Bubble_Callback_DrawObjInfo
