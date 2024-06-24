@@ -83,7 +83,7 @@ void __cdecl LegoRR::Text_Initialise(const char* filename, uint32 x, uint32 y, u
 {
 	textGlobs.msgYPos = y;
 	textGlobs.MsgPanel_Rect1 = *msgRect;
-	textGlobs.winLowPos = Gods98::Font_GetHeight(textGlobs.textOnlyWindow->font);
+	textGlobs.winLowPos = (textGlobs.MsgPanel_Rect1.y + textGlobs.MsgPanel_Rect1.height) - Gods98::Font_GetHeight(textGlobs.textOnlyWindow->font);
 	textGlobs.MsgPanel_Float20 = param_7; // -FC, this seems unused in this code
 	textGlobs.msgXPos = x;
 	Text_UpdatePositionAndSize();

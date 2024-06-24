@@ -119,7 +119,6 @@ void __cdecl Text_Initialise(const char* filename, uint32 x, uint32 y, uint32 un
 void __cdecl Text_UpdatePositionAndSize(void);
 
 // <LegoRR.exe @0046ad50>
-//#define Text_Clear ((void (__cdecl* )(void))0x0046ad50)
 void __cdecl Text_Clear(void);
 
 // <LegoRR.exe @0046ad90>
