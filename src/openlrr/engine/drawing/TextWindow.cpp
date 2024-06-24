@@ -207,9 +207,9 @@ bool32 __cdecl Gods98::TextWindow_Update(TextWindow* window, uint32 posFromEnd, 
 				if ((uint8)c == 203) charWidth = 0;
 				currWidth += charWidth;
 				wordWidth += charWidth;
-				if (currWidth >= window->windowSize.width) {
+				if (currWidth > window->windowSize.width) {
 					// Check to see if the word is longer than the line
-					if (wordWidth >= window->windowSize.width) {
+					if (wordWidth > window->windowSize.width) {
 						// If so, split the word onto the next line
 						window->lineList[window->usedLines] = loop;
 						lineWidthList[window->usedLines-1] = currWidth-charWidth;
