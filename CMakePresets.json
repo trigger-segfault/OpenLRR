@@ -1,0 +1,51 @@
+{
+  "version": 10,
+  "cmakeMinimumRequired": {
+    "major": 4,
+    "minor": 0,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build/${presetName}"
+    },
+    {
+      "name": "base-mingw32",
+      "hidden": true,
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "i686-w64-mingw32-gcc",
+        "CMAKE_CXX_COMPILER": "i686-w64-mingw32-g++",
+        "CMAKE_SYSTEM_NAME": "Windows",
+        "CMAKE_SYSTEM_PROCESSOR": "i686"
+      }
+    },
+    {
+      "name": "debug-i686",
+      "displayName": "Debug (MinGW-w64 i686)",
+      "inherits": ["base", "base-mingw32"],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "release-i686",
+      "displayName": "Release (MinGW-w64 i686)",
+      "inherits": ["base", "base-mingw32"],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "windows",
+      "displayName": "Windows",
+      "inherits": ["base"],
+      "generator": "Visual Studio 17 2022",
+      "architecture": {
+        "value": "Win32"
+      }
+    }
+  ]
+}

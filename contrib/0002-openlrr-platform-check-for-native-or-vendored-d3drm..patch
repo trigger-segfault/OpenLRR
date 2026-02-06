@@ -1,0 +1,76 @@
+From 5ef905e61b2e0430b7ad03b8f372008aac23fbe6 Mon Sep 17 00:00:00 2001
+From: Zane van Iperen <zane@zanevaniperen.com>
+Date: Fri, 6 Feb 2026 22:19:38 +1000
+Subject: [PATCH 2/2] openlrr/platform: check for native or vendored d3drm.h
+
+---
+ src/openlrr/CMakeLists.txt   |  9 +++++++++
+ src/openlrr/platform/d3drm.h | 20 ++++++++++++++++++++
+ 2 files changed, 29 insertions(+)
+
+diff --git a/src/openlrr/CMakeLists.txt b/src/openlrr/CMakeLists.txt
+index aeb6b98..0935dff 100644
+--- a/src/openlrr/CMakeLists.txt
++++ b/src/openlrr/CMakeLists.txt
+@@ -1,5 +1,9 @@
+ project(openlrr)
+ 
++include(CheckIncludeFile)
++
++check_include_file(d3drm.h HAVE_D3DRM_H)
++
+ add_library(mingw-d3drm-headers INTERFACE)
+ target_include_directories(mingw-d3drm-headers INTERFACE d3drm)
+ 
+@@ -248,6 +252,7 @@ target_compile_definitions(openlrr PUBLIC
+         "$<$<NOT:$<CONFIG:Debug>>:NDEBUG>"
+         _GODS98COMPILE
+         _GODS98_USEWAD_
++        "OPENLRR_HAVE_D3DRM_H=$<BOOL:${HAVE_D3DRM_H}>"
+ )
+ 
+ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+@@ -267,6 +272,10 @@ target_link_libraries(openlrr PRIVATE
+         vfw32
+ )
+ 
++if(NOT HAVE_D3DRM_H)
++        target_link_libraries(openlrr PRIVATE mingw-d3drm-headers)
++endif()
++
+ set_target_properties(openlrr PROPERTIES
+         DEBUG_POSTFIX "-d"
+         PREFIX ""
+diff --git a/src/openlrr/platform/d3drm.h b/src/openlrr/platform/d3drm.h
+index c4177bf..c69f0dc 100644
+--- a/src/openlrr/platform/d3drm.h
++++ b/src/openlrr/platform/d3drm.h
+@@ -1,5 +1,25 @@
+ #pragma once
+ 
++/*
++ * If we don't have d3drm.h, we'll use our vendored copy of MinGW's.
++ * This is only supported on MSVC.
++ */
++#if !OPENLRR_HAVE_D3DRM_H
++
++#if !defined(_MSC_VER)
++#	error Refusing to use vendored d3drm.h on non-MSVC.
++#endif
++
++/*
++ * Coax MinGW's headers for compat with MSVC.
++ */
++#include <windows.h>
++
++#define __MSABI_LONG(x) (x##L)
++typedef BOOL WINBOOL;
++
++#endif
++
+ #include <d3drm.h>
+ 
+ 
+-- 
+2.32.0.windows.1
+

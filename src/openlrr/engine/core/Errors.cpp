@@ -201,9 +201,9 @@ void __cdecl Gods98::Error_Out(bool32 ErrFatal, const char* lpOutputString, ...)
 		*/
 #ifdef LOG_CONSOLEWINDOW
 #ifdef _UNICODE
-		std::wprintf(achBuffer);
+		std::fputws(achBuffer, stdout);
 #else
-		std::printf(achBuffer);
+		std::fputs(achBuffer, stdout);
 #endif
 #else
 #ifdef _cplusplus

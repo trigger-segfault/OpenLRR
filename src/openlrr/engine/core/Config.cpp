@@ -235,11 +235,11 @@ const char* __cdecl Gods98::Config_BuildStringID(const char* s, ...)
 	std::strcpy(configGlobs.s_JoinPath_string, s);
 
 	va_start(args, s);
-	while (curr = va_arg(args, const char*)) {
+	while ((curr = va_arg(args, const char*))) {
 		std::strcat(configGlobs.s_JoinPath_string, CONFIG_SEPARATOR);
 		std::strcat(configGlobs.s_JoinPath_string, curr);
 	}
-	va_end(s);
+	va_end(args);
 
 	return configGlobs.s_JoinPath_string;
 }

@@ -13,14 +13,14 @@ PE::PESectionStream::PESectionStream(PESectionSPtr section, bool expandable)
 	: m_section(section), m_position(0), m_expandable(expandable)
 {
 	if (m_section == nullptr)
-		throw std::exception("section cannot be null");
+		throw std::invalid_argument("section cannot be null");
 }
 PE::PESectionStream::PESectionStream(PEFile& pefile, const std::string& name, bool expandable)
 	: m_section(nullptr), m_position(0), m_expandable(expandable)
 {
 	m_section = pefile.GetSection(name);
 	if (m_section == nullptr)
-		throw std::exception("section with name not found");
+		throw std::invalid_argument("section with name not found");
 }
 
 
@@ -81,7 +81,7 @@ int32_t PE::PESectionStream::PutC(int32_t c)
 size32_t PE::PESectionStream::Read(OUT void* buffer, size32_t size)
 {
 	if (m_position < 0 || m_position + size > this->Length())
-		throw std::exception("section read failed");
+		throw std::runtime_error("section read failed");
 
 	std::memcpy(buffer, m_section->Data.data() + m_position, size);
 	m_position += size;
@@ -91,10 +91,10 @@ size32_t PE::PESectionStream::Read(OUT void* buffer, size32_t size)
 size32_t PE::PESectionStream::Write(const void* buffer, size32_t size)
 {
 	if (m_position < 0)
-		throw std::exception("section write failed");
+		throw std::runtime_error("section write failed");
 	if (m_position + size > this->Length()) {
 		if (!m_expandable)
-			throw std::exception("section write failed");
+			throw std::runtime_error("section write failed");
 
 		// Otherwise resize our buffer.
 		this->SetLength(m_position + size);

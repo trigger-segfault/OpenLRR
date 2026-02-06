@@ -25,27 +25,15 @@
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
 
 /////////////////////////////////////////////////////////////////////////////
-// Preprocessor macros
-
-#define STRINGIFY(text) STRINGIFY_A((text))
-#define STRINGIFY_A(arg) STRINGIFY_I arg
-#define STRINGIFY_I(text) #text
-
-#define ABOUT_VER(prefix,version) ABOUT_VER_A((prefix,version))
-#define ABOUT_VER_A(arg) ABOUT_VER_I arg
-#define ABOUT_VER_I(text1,text2) STRINGIFY_A((text1##text2))
-
-/////////////////////////////////////////////////////////////////////////////
 //
 // Resource constants
 //
 
 #define OPENLRR_VERSION_NUMBER          0,0,0,7
-#define OPENLRR_VERSION                 0.0.0.7
 
 #define OPENLRR_COPYRIGHT_STRING        "Copyright (C) 2022"
-#define OPENLRR_VERSION_STRING          STRINGIFY(OPENLRR_VERSION)
-#define OPENLRR_ABOUT_STRING            ABOUT_VER(OpenLRR v,OPENLRR_VERSION)
+#define OPENLRR_VERSION_STRING          "0.0.0.7"
+#define OPENLRR_ABOUT_STRING            "OpenLRR v0.0.0.7"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -107,7 +95,7 @@ BEGIN
         MENUITEM "Show Tooltips",               IDM_SHOWTOOLTIPS,CHECKED
         MENUITEM "&Tooltip Sound",              IDM_TOOLTIPSOUND,CHECKED
         MENUITEM SEPARATOR
-        MENUITEM "Reload &Keybinds"             IDM_RELOAD_KEYBINDS
+        MENUITEM "Reload &Keybinds",            IDM_RELOAD_KEYBINDS
         POPUP "Logging"
         BEGIN
             MENUITEM "Debug",                   IDM_LOGGING_DEBUG

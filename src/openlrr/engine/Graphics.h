@@ -20,13 +20,7 @@
 
 #pragma region Forward Declarations
 
-struct IDirectDraw;
-struct IDirectDrawSurface4;
-struct IDirect3DRM3;
-struct IDirect3DRMDevice3;
-struct IDirect3DDevice3;
-enum _D3DRENDERSTATETYPE;
-typedef enum _D3DRENDERSTATETYPE D3DRENDERSTATETYPE;
+#include "../platform/d3drm.h"
 assert_sizeof(D3DRENDERSTATETYPE, 0x4);
 
 #pragma endregion

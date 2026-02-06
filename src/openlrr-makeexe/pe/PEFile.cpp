@@ -182,12 +182,12 @@ bool PE::PEFile::Load(const tstring& filename)
 
 		// Unexpected optional header size.
 		if (m_nt.FileHeader.SizeOfOptionalHeader > sizeof(IMAGE_OPTIONAL_HEADER32))
-			throw std::exception("Optional header size too large, not supported");
+			throw std::invalid_argument("Optional header size too large, not supported");
 
 		this->Read(&m_nt.OptionalHeader, m_nt.FileHeader.SizeOfOptionalHeader);
 
 		if (m_nt.OptionalHeader.NumberOfRvaAndSizes < 3) {
-			throw std::exception("Optional header NumberOfRvaAndSizes too low, expected at least 3");
+			throw std::invalid_argument("Optional header NumberOfRvaAndSizes too low, expected at least 3");
 		}
 
 		// Read section headers.
@@ -232,7 +232,7 @@ bool PE::PEFile::Save(const tstring& filename)
 	try {
 		// Unexpected optional header size.
 		if (m_nt.FileHeader.SizeOfOptionalHeader > sizeof(IMAGE_OPTIONAL_HEADER32))
-			throw std::exception("Optional header size too large, not supported");
+			throw std::invalid_argument("Optional header size too large, not supported");
 
 		// Write PE headers.
 		this->Write(&m_dos, sizeof(m_dos));
@@ -302,7 +302,7 @@ size32_t PE::PEFile::WritePadding(fileoff32_t endOffset)
 {
 	fileoff32_t currPos = this->Tell();
 	if (endOffset < currPos)
-		throw std::exception("Invalid padding endOffset less than current position");
+		throw std::invalid_argument("Invalid padding endOffset less than current position");
 
 	size32_t padding = (endOffset - currPos);
 
@@ -324,26 +324,26 @@ fileoff32_t PE::PEFile::Tell()
 {
 	long result = std::ftell(m_file);
 	if (result == -1)
-		throw std::exception("ftell failed");
+		throw std::runtime_error("ftell failed");
 	return (fileoff32_t)result;
 }
 void PE::PEFile::Seek(fileoff_t offset, int32_t origin)// = SEEK_SET)
 {
 	if (std::fseek(m_file, (long)offset, origin) != 0)
-		throw std::exception("fseek failed");
+		throw std::runtime_error("fseek failed");
 }
 
 size32_t PE::PEFile::Read(OUT void* buffer, size32_t size)
 {
 	if (std::fread(buffer, size, 1, m_file) != 1)
-		throw std::exception("fread failed");
+		throw std::runtime_error("fread failed");
 	return size;
 }
 
 size32_t PE::PEFile::Write(const void* buffer, size32_t size)
 {
 	if (std::fwrite(buffer, size, 1, m_file) != 1)
-		throw std::exception("fwrite failed");
+		throw std::runtime_error("fwrite failed");
 	return size;
 }
 

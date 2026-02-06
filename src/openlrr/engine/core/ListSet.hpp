@@ -250,7 +250,7 @@ bool DeadFilter(const TItem* item) { return !ListSet::IsAlive(item); }
  * @param Reverse Only use in combination with std::reverse_iterator<>.
  *        Changes the search direction for the first valid item during the constructor.
  */
-template <typename TCont, const predicate_f<container_value_t<TCont>> FPredicate, const bool Reverse>
+template <typename TCont, predicate_f<container_value_t<TCont>> FPredicate, const bool Reverse>
 class BaseIterator
 {
 public:
@@ -459,7 +459,7 @@ protected:
  * @param TCont The container type holding a listSet.
  * @param FPredicate A filter function to skip past items where false is returned.
  */
-template <typename TCont, const predicate_f<container_value_t<TCont>> FPredicate>
+template <typename TCont, predicate_f<container_value_t<TCont>> FPredicate>
 using Iterator = BaseIterator<TCont, FPredicate, false>;
 
 /**
@@ -467,7 +467,7 @@ using Iterator = BaseIterator<TCont, FPredicate, false>;
  * @param TCont The container type holding a listSet.
  * @param FPredicate A filter function to skip past items where false is returned.
  */
-template <typename TCont, const predicate_f<container_value_t<TCont>> FPredicate>
+template <typename TCont, predicate_f<container_value_t<TCont>> FPredicate>
 using ReverseIterator = std::reverse_iterator<BaseIterator<TCont, FPredicate, true>>;
 
 #pragma endregion
@@ -480,7 +480,7 @@ using ReverseIterator = std::reverse_iterator<BaseIterator<TCont, FPredicate, tr
  * @param TCont The container type holding a listSet.
  * @param FPredicate A filter function to skip past items where false is returned.
  */
-template <typename TCont, const predicate_f<container_value_t<TCont>> FPredicate>
+template <typename TCont, predicate_f<container_value_t<TCont>> FPredicate>
 class Enumerable
 {
 public:
@@ -574,7 +574,7 @@ public:
 	using container         = TCont;
 	using value_type        = container_value_t<container>;
 
-	template <const predicate_f<value_type> FPredicate>
+	template <predicate_f<value_type> FPredicate>
 	using enumerable        = Enumerable<container, FPredicate>;
 
 
@@ -638,7 +638,7 @@ public:
 	 * @brief Returns an enumerable for iterating over filtered items in the listSet.
 	 * @param FPredicate A filter function to skip past items where false is returned.
 	 */
-	template <const predicate_f<value_type> FPredicate>
+	template <predicate_f<value_type> FPredicate>
 	enumerable<FPredicate> EnumerateWhere() { return enumerable<FPredicate>(m_cont); }
 
 	/**

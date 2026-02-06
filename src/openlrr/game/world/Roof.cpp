@@ -2,9 +2,9 @@
 //
 
 #include "Roof.h"
-#include "..\..\engine\gfx\Containers.h"
-#include "..\..\platform\d3drm.h"
-#include "..\..\engine\core\Maths.h"
+#include "../../engine/gfx/Containers.h"
+#include "../../platform/d3drm.h"
+#include "../../engine/core/Maths.h"
 
 /**********************************************************************************
  ******** Globals

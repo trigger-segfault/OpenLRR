@@ -2,10 +2,10 @@
 //
 
 #include "ObjectRecall.h"
-#include "..\..\game\mission\Objective.h"
-#include "..\..\game\object\Object.h"
-#include "..\..\game\object\Stats.h"
-#include "..\..\engine\core\Files.h"
+#include "../../game/mission/Objective.h"
+#include "../../game/object/Object.h"
+#include "../../game/object/Stats.h"
+#include "../../engine/core/Files.h"
 
 /**********************************************************************************
  ******** Globals

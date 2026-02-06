@@ -3112,7 +3112,7 @@ LegoRR::MenuSet* __cdecl LegoRR::Front_LoadMenuSet(const Gods98::Config* config,
 		}
 	}
 
-	va_end(menuName);
+	va_end(args);
 
 	return menuSet;
 }

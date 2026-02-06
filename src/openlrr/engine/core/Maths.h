@@ -54,7 +54,10 @@ real32 __cdecl Maths_RandRange(real32 low, real32 high);
 
 #pragma region Constants
 
+#if !defined(M_PI)
 #define M_PI			3.14159265358979323846f
+#endif
+
 #define M_EPSILON		1.0e-5f                 // Tolerance for REALs
 
 #define MATHS_RAND_MAX	(Random::LCGEngine::rand_max)

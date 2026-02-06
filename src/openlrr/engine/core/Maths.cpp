@@ -36,7 +36,7 @@ typedef long double float10;
 uint32 & Gods98::gLCGState = *(uint32*)0x004b0cc8; // = 1;
 
 // Random number generator replacement for `sint32 std::rand()` and `void std::srand(uint32)`.
-Random::WrapperLCGEngine Gods98::gRandom = Random::WrapperLCGEngine(gLCGState);
+Random::WrapperLCGEngine Gods98::gRandom = Random::WrapperLCGEngine(Gods98::gLCGState);
 
 // Random number generator replacement for `D3DRMVectorRandom`.
 // NOTE: Only for when `D3DRM_USE_PRIMARY_RAND` is not being used. Otherwise `gRandom` is used.

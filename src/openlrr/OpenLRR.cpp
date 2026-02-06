@@ -2,7 +2,7 @@
 //
 
 #include "platform/windows.h"
-#include "../../../resources/resource.h"
+#include "../../resources/resource.h"
 
 #include "OpenLRR.h"
 #include "hook.h"

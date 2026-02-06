@@ -153,7 +153,7 @@ static void ReplaceRsrcIcon(PE::PESectionStream& rsrcStream, IconRes& newIcon, r
 	ReadIconResFromRsrc(rsrcStream, icon, offset, size);
 	
 	if (std::memcmp(&icon.hdr, &newIcon.hdr, sizeof(icon.hdr)) != 0) {
-		throw std::exception("Icon resources differ, advanced icon replace not supported yet");
+		throw std::logic_error("Icon resources differ, advanced icon replace not supported yet");
 	}
 
 	// Skip past header, as we've confirmed they're the same.

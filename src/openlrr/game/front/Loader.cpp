@@ -2,10 +2,10 @@
 //
 
 #include "Loader.h"
-#include "..\..\engine\core\Utils.h"
-#include "..\..\engine\core\files.h"
-#include "..\..\engine\Main.h"
-#include "..\..\engine\drawing\DirectDraw.h"
+#include "../../engine/core/Utils.h"
+#include "../../engine/core/Files.h"
+#include "../../engine/Main.h"
+#include "../../engine/drawing/DirectDraw.h"
 
 
 /**********************************************************************************

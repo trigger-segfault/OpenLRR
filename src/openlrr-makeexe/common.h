@@ -9,13 +9,14 @@
 #include <cstring>
 #include <cstdint>
 #include <cassert>
+#include <direct.h>
 #include <tchar.h>
 #include <windows.h>
 #include <algorithm>
 #include <string>
 #include <vector>
 #include <memory>
-
+#include <stdexcept>
 
 /////////////////////////////////////////////////////////////////////
 // Undefines

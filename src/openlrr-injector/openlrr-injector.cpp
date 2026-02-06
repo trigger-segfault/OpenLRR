@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <direct.h>
 #include <tchar.h>
 #include <windows.h>
 #include <string>

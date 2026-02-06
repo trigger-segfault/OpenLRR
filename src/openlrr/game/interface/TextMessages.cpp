@@ -2,14 +2,14 @@
 //
 
 #include "TextMessages.h"
-#include "..\..\engine\drawing\TextWindow.h"
-#include "..\..\game\Game.h"
-#include "..\..\game\audio\SFX.h"
-#include "..\..\game\interface\Interface.h"
-#include "..\..\game\interface\Panels.h"
-#include "..\mission\NERPsFile.h"
-#include "..\mission\NERPsFunctions.h"
-#include "..\..\engine\core\Utils.h"
+#include "../../engine/drawing/TextWindow.h"
+#include "../../game/Game.h"
+#include "../../game/audio/SFX.h"
+#include "../../game/interface/Interface.h"
+#include "../../game/interface/Panels.h"
+#include "../mission/NERPsFile.h"
+#include "../mission/NERPsFunctions.h"
+#include "../../engine/core/Utils.h"
 
 
 

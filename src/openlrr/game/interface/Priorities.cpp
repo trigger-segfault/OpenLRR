@@ -2,15 +2,15 @@
 //
 
 #include "Priorities.h"
-#include "..\..\game\audio\SFX.h"
-#include "..\..\engine\core\Utils.h"
-#include "..\..\engine\input\Input.h"
-#include "..\..\game\object\AITask.h"
-#include "..\..\game\interface\Panels.h"
-#include "..\..\game\interface\ToolTip.h"
-#include "..\..\game\interface\TextMessages.h"
-#include "..\..\game\interface\Interface.h"
-#include "..\..\game\Game.h"
+#include "../../game/audio/SFX.h"
+#include "../../engine/core/Utils.h"
+#include "../../engine/input/Input.h"
+#include "../../game/object/AITask.h"
+#include "../../game/interface/Panels.h"
+#include "../../game/interface/ToolTip.h"
+#include "../../game/interface/TextMessages.h"
+#include "../../game/interface/Interface.h"
+#include "../../game/Game.h"
 
 
 

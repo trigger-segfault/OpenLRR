@@ -31,7 +31,7 @@ public:
 	inline PE::PESectionSPtr Section() noexcept { return m_section; }
 
 	// Shorthand for Section()->Name()
-	inline std::string Name() const { m_section->Name(); }
+	inline std::string Name() const { return m_section->Name(); }
 
 	// True if writing past the section size will increase the buffer size to make room.
 	constexpr bool IsExpandable() const noexcept { return m_expandable; }
